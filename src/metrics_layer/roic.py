@@ -1,35 +1,37 @@
 """ROIC (Return on Invested Capital) per docs/decisions.md."""
 
+from metrics_layer.result import MetricResult
+
 
 def roic_for_period(ebit, tax_rate, equity, net_debt):
-    """ROIC for a single fiscal year, or None if invested capital <= 0."""
+    """ROIC for a single fiscal year."""
     invested_capital = equity + net_debt
     if invested_capital <= 0:
-        return None
+        return MetricResult(value=None, invalid_reason="ic_non_positive")
     nopat = ebit * (1 - tax_rate)
-    return nopat / invested_capital
+    return MetricResult(value=nopat / invested_capital)
 
 
 def roic_3yr_average(periods):
     """3-year ROIC: mean of the three independently computed yearly ROICs.
 
-    Returns None if fewer than 3 periods are given (e.g. recent IPO) or if
-    invested capital <= 0 in any of the three periods - in both cases the
-    whole 3-year value is flagged invalid, never averaged over fewer years
-    or with the bad year excluded.
+    Invalid (fewer than 3 periods, e.g. recent IPO, or invested capital <= 0
+    in any of the three periods) flags the whole 3-year value - never
+    averaged over fewer years, extrapolated, or computed with the bad
+    year excluded.
     """
     if len(periods) != 3:
-        return None
+        return MetricResult(value=None, invalid_reason="insufficient_years")
 
     yearly_roics = []
     for period in periods:
-        value = roic_for_period(
+        result = roic_for_period(
             ebit=period["ebit"],
             tax_rate=period["tax_rate"],
             equity=period["equity"],
             net_debt=period["net_debt"],
         )
-        if value is None:
-            return None
-        yearly_roics.append(value)
-    return sum(yearly_roics) / len(yearly_roics)
+        if result.invalid_reason is not None:
+            return MetricResult(value=None, invalid_reason=result.invalid_reason)
+        yearly_roics.append(result.value)
+    return MetricResult(value=sum(yearly_roics) / len(yearly_roics))
