@@ -13,3 +13,10 @@ class MetricResult:
 
     value: Optional[float]
     invalid_reason: Optional[str] = None
+
+    def __post_init__(self):
+        if (self.value is None) == (self.invalid_reason is None):
+            raise ValueError(
+                "MetricResult requires exactly one of value or invalid_reason to be set, "
+                f"got value={self.value!r} invalid_reason={self.invalid_reason!r}"
+            )

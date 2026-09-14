@@ -20,8 +20,10 @@ def roic_3yr_average(periods):
     averaged over fewer years, extrapolated, or computed with the bad
     year excluded.
     """
-    if len(periods) != 3:
+    if len(periods) < 3:
         return MetricResult(value=None, invalid_reason="insufficient_years")
+    if len(periods) > 3:
+        return MetricResult(value=None, invalid_reason="too_many_years")
 
     yearly_roics = []
     for period in periods:
@@ -32,6 +34,6 @@ def roic_3yr_average(periods):
             net_debt=period["net_debt"],
         )
         if result.invalid_reason is not None:
-            return MetricResult(value=None, invalid_reason=result.invalid_reason)
+            return result
         yearly_roics.append(result.value)
     return MetricResult(value=sum(yearly_roics) / len(yearly_roics))
