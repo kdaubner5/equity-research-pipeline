@@ -51,10 +51,10 @@ ROIC bleibt 3-Jahres-Schnitt, Grauzone 10–12%. Net Debt/EBITDA ist laut [`docs
 | `GEKO12` | ~18,0% (gesund) | exakt 2,50x | Net-Debt/EBITDA harte Schwelle isoliert (durchgefallen) |
 | `BLKW13` | ~11,0% (jedes Jahr ~11%) | 2,40x | beide Grauzonen gleichzeitig (beide: Flag) |
 | `VULC14` | ~16,0% (gesund) | exakt 2,30x | Net-Debt/EBITDA untere Bandgrenze isoliert (Flag, nicht "bestanden") |
-| `CYBR15` | ~15,0% (gesund) | exakt 2,50x | zweite, dedizierte harte-Schwelle-Fixture (durchgefallen), analog zu `GEKO12` aber eigenständig |
+| `CYBR15` | ~15,0% (gesund) | exakt 2,60x | knapp oberhalb der harten Schwelle isoliert (klar durchgefallen) |
 | `TYRL16` | ~13,0% (gesund, alle 3 Jahre) | 2022: 3,5x · 2023: 3,0x · 2024: **1,0x** | Stichtag-vs-Schnitt-Testfall (siehe unten) |
 
-`GEKO12` und `CYBR15` sind bewusst zwei unabhängige Fixtures für dieselbe harte Schwelle (2,50x) — eine isoliert mit "sauberem" ROIC, um sicherzustellen, dass ein Net-Debt/EBITDA-Fail nicht von einem zufällig ebenfalls betroffenen ROIC-Wert überlagert wird.
+`VULC14`, `GEKO12` und `CYBR15` decken die Bandgrenze von beiden Seiten ab: 2,30x (Flag-Untergrenze), 2,50x (harte Schwelle selbst) und 2,60x (klar durchgefallen, bestätigt dass das Flag-Band nicht nach oben ausleiert). Jede der drei isoliert mit "sauberem", gesundem ROIC, damit ein Net-Debt/EBITDA-Ergebnis nicht von einem zufällig ebenfalls betroffenen ROIC-Wert überlagert wird.
 
 ### Stichtag- vs. Durchschnitts-Testfall: `TYRL16`
 
