@@ -41,6 +41,8 @@ Alle Beträge in Millionen USD.
 
 Alle übrigen Felder bleiben in diesen Fixtures realistisch, damit sie auch für ROIC (Issue #2) und Net Debt/EBITDA (Issue #3) nutzbar sind.
 
+Alle drei haben `net_income > 0` in 2022 und 2023 und verletzen den Guard nur im Fiskaljahr 2024 — sie decken damit zugleich den Fall ab, dass `net_income ≤ 0` nur in **einem** von 3 Jahren auftritt (analog zu `NAKA17` beim Invested-Capital-Guard, siehe unten). Ein Test bestätigt, dass `cash_conversion_3yr_average` in diesem Fall den **gesamten** 3-Jahres-Wert flaggt statt das schlechte Jahr auszuschließen und über die 2 gesunden Jahre zu mitteln — dieselbe Prüfung wie `test_roic_invested_capital_guard_flags_whole_company` bei ROIC.
+
 ## Grauzonen-/Schwellen-Fixtures (Gates-Layer, Issue #5)
 
 ROIC bleibt 3-Jahres-Schnitt, Grauzone 10–12%. Net Debt/EBITDA ist laut [`docs/decisions.md`](../../docs/decisions.md) ein **Stichtagswert** (nur Fiskaljahr 2024, das letzte) mit Grauzonen-Band **2,3–2,5x**: `< 2,3x` bestanden, `2,3x ≤ x < 2,5x` Flag, `≥ 2,5x` durchgefallen.
@@ -85,3 +87,11 @@ Testet den Guard aus [`docs/decisions.md`](../../docs/decisions.md): Weniger als
 | `WEYL19` | 2022/2023 gesund (EBITDA 520/180); 2024 (Stichtagsjahr) **EBITDA = -180** nach Wertminderung/Restrukturierung. Invested Capital bleibt 2024 positiv (2600), isoliert also nur den EBITDA-Guard, ohne den ROIC-IC-Guard mit auszulösen |
 
 Testet den Guard aus [`docs/decisions.md`](../../docs/decisions.md): EBITDA ≤ 0 in der Stichtags-Periode (letztes Fiskaljahr) liefert `MetricResult(value=None, invalid_reason="ebitda_non_positive")` statt einer sinnlosen Division.
+
+## Grauzone (Cash Conversion, Issue #4)
+
+Cash Conversion bleibt wie ROIC ein 3-Jahres-Schnitt (Mittelwert der Jahres-Verhältnisse `cfo/net_income`), Grauzonen-Band laut [`docs/decisions.md`](../../docs/decisions.md) **0,8–1,0**. Die Klassifikation ist Aufgabe des Gates-Layers (Issue #5); `metrics_layer/cash_conversion.py` gibt nur den rohen Mittelwert zurück.
+
+| company_id | Cash Conversion (3-Jahres-Schnitt) | ROIC / Net Debt/EBITDA | Fall |
+|---|---|---|---|
+| `SPCL20` | 0,90 (jedes Jahr exakt 0,90) | ROIC ~15,2% (gesund), Net Debt/EBITDA (2024) ~1,11x (gesund) | Cash-Conversion-Grauzone isoliert, andere Dimensionen bewusst gesund |
