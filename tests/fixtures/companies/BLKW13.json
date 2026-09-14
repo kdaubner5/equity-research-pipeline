@@ -1,0 +1,41 @@
+{
+  "company_id": "BLKW13",
+  "name": "Blackwood Resources Ltd.",
+  "sector": "Energy",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 4500,
+      "ebit": 623,
+      "ebitda": 900,
+      "tax_rate": 0.25,
+      "equity": 2000,
+      "net_debt": 2250,
+      "net_income": 350,
+      "cfo": 500
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 4650,
+      "ebit": 642,
+      "ebitda": 930,
+      "tax_rate": 0.25,
+      "equity": 2050,
+      "net_debt": 2325,
+      "net_income": 365,
+      "cfo": 520
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 4800,
+      "ebit": 651,
+      "ebitda": 960,
+      "tax_rate": 0.24,
+      "equity": 2100,
+      "net_debt": 2400,
+      "net_income": 380,
+      "cfo": 545
+    }
+  ]
+}

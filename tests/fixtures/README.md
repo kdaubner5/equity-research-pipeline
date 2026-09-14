@@ -38,3 +38,15 @@ Alle Beträge in Millionen USD.
 | `WONK08` | `net_income < 0`, `cfo > 0` (2024) |
 
 Alle übrigen Felder bleiben in diesen Fixtures realistisch, damit sie auch für ROIC (Issue #2) und Net Debt/EBITDA (Issue #3) nutzbar sind.
+
+## Grauzonen-/Schwellen-Fixtures (Gates-Layer, Issue #5)
+
+Gezielt auf die ROIC-Grauzone (10–12%) bzw. die Net-Debt/EBITDA-Schwelle (~2,5x) platziert, isoliert und in Kombination:
+
+| company_id | ROIC (3-Jahres-Schnitt) | Net Debt/EBITDA | Fall |
+|---|---|---|---|
+| `APRT11` | ~11,1% (jedes Jahr 10,98–11,24%) | ~0,7x (gesund) | ROIC-Grauzone isoliert |
+| `GEKO12` | ~18,0% (gesund) | exakt 2,50x (jedes Jahr) | Net-Debt/EBITDA-Schwelle isoliert |
+| `BLKW13` | ~11,0% (jedes Jahr ~11%) | exakt 2,50x (jedes Jahr) | beide Grauzonen gleichzeitig |
+
+Zum Vergleich: `PIED09` (Ø ROIC 10,06%) und `INIT10` (Ø ROIC 11,73%) liegen zufällig ebenfalls nahe der ROIC-Grauzone, wurden aber nicht gezielt dafür konstruiert und sind auf keiner anderen Dimension kontrolliert — für belastbare Gates-Layer-Tests `APRT11`/`GEKO12`/`BLKW13` verwenden.

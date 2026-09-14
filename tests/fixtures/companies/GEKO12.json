@@ -1,0 +1,41 @@
+{
+  "company_id": "GEKO12",
+  "name": "Gekko Capital Industries",
+  "sector": "Materials",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 5000,
+      "ebit": 700,
+      "ebitda": 1000,
+      "tax_rate": 0.22,
+      "equity": 530,
+      "net_debt": 2500,
+      "net_income": 380,
+      "cfo": 520
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 5250,
+      "ebit": 740,
+      "ebitda": 1050,
+      "tax_rate": 0.22,
+      "equity": 580,
+      "net_debt": 2625,
+      "net_income": 400,
+      "cfo": 545
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 5500,
+      "ebit": 780,
+      "ebitda": 1100,
+      "tax_rate": 0.21,
+      "equity": 670,
+      "net_debt": 2750,
+      "net_income": 420,
+      "cfo": 575
+    }
+  ]
+}

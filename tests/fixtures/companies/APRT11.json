@@ -1,0 +1,41 @@
+{
+  "company_id": "APRT11",
+  "name": "Aperture Robotics Corp.",
+  "sector": "Industrials",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 3800,
+      "ebit": 505,
+      "ebitda": 700,
+      "tax_rate": 0.25,
+      "equity": 2950,
+      "net_debt": 500,
+      "net_income": 300,
+      "cfo": 380
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 3950,
+      "ebit": 513,
+      "ebitda": 730,
+      "tax_rate": 0.25,
+      "equity": 3000,
+      "net_debt": 500,
+      "net_income": 310,
+      "cfo": 400
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 4100,
+      "ebit": 525,
+      "ebitda": 760,
+      "tax_rate": 0.24,
+      "equity": 3050,
+      "net_debt": 500,
+      "net_income": 325,
+      "cfo": 420
+    }
+  ]
+}
