@@ -66,8 +66,37 @@ Erhält `roic_3yr_average()` **mehr** als 3 Perioden, ist das keine Firmen-Eigen
 **How to apply — verbindlich für alle Stufe-1-Metriken, auch die noch nicht implementierten:**
 - `metrics_layer/roic.py` (Issue #2, umgesetzt): `"ic_non_positive"`, `"insufficient_years"`
 - `metrics_layer/net_debt_ebitda.py` (Issue #3, umgesetzt): `"ebitda_non_positive"`
-- `metrics_layer/cash_conversion.py` (Issue #4, ausstehend): folgt demselben Muster von Anfang an, z. B. `"net_income_non_positive"` statt des bisher nur informell beschriebenen Guards
+- `metrics_layer/cash_conversion.py` (Issue #4, umgesetzt): `"ni_non_positive"`, `"insufficient_years"`
 
 Kein `None` als alleiniger Rückgabewert irgendeiner Stufe-1-Metrik-Funktion — immer `MetricResult`.
 
 **Abgrenzung zu Exceptions:** `invalid_reason` ist ausschließlich für gültige, aber ungünstige *Dateneigenschaften einer Firma* (z. B. zu wenig Jahre, negatives Invested Capital, EBITDA ≤ 0). Ein fehlerhafter *Aufruf* der Funktion selbst (z. B. zu viele Perioden durch nicht deduplizierte Mehrfach-Filings, siehe Entscheidung 5 oben) ist kein `invalid_reason`, sondern eine `MetricInputError`-Exception. Diese Abgrenzung gilt für alle Stufe-1-Metriken.
+
+## 2026-09-14: Cash Conversion – 3-Jahres-Schnitt, NI≤0-Guard, Grauzone
+
+**Kontext:** Issue #4 (Cash Conversion, `cfo / net_income`) braucht denselben Zeitbezug-Entscheid wie Net Debt/EBITDA (Stichtag vs. 3-Jahres-Schnitt), den Guard für den Fall `net_income ≤ 0`, und die Einordnung der Grauzone 0,8–1,0, bevor `metrics_layer/cash_conversion.py` implementiert wird.
+
+**Entscheidung 1 – 3-Jahres-Schnitt der Jahres-Verhältnisse, kein Stichtag:**
+Cash Conversion ist der arithmetische Mittelwert der drei **einzeln** berechneten Jahres-Verhältnisse `cfo/net_income` (nicht `sum(cfo) / sum(net_income)`) — dieselbe Methode wie bei ROIC (siehe Entscheidung 2 im ROIC-Abschnitt oben), aus demselben Grund: Cash Conversion ist eine Ertragskennzahl (Flussgröße über ein Jahr), kein Bilanz-Zustand zu einem Stichtag wie Net Debt/EBITDA, das laut seiner Entscheidung 2 bewusst nicht gemittelt wird.
+
+**How to apply:** `metrics_layer/cash_conversion.py` berechnet pro Jahr `cfo / net_income`, mittelt danach über die drei Jahresverhältnisse.
+
+**Entscheidung 2 – NI≤0-Guard flaggt den gesamten 3-Jahres-Wert:**
+Ist `net_income` in **irgendeinem** der drei Jahre ≤ 0, wird der **gesamte** 3-Jahres-Wert dieser Firma als ungültig/geflaggt zurückgegeben (`invalid_reason="ni_non_positive"`) — nicht nur das betroffene Jahr aus dem Mittelwert ausgeschlossen und über die verbleibenden 2 Jahre gemittelt. Der Guard greift vor der Division, analog zum Invested-Capital≤0-Guard bei ROIC (Entscheidung 3 oben) und zum EBITDA≤0-Guard bei Net Debt/EBITDA (Entscheidung 3 im Net-Debt/EBITDA-Abschnitt).
+
+**How to apply:** `metrics_layer/cash_conversion.py` prüft `net_income <= 0` je Jahr vor der Division und gibt bei Verletzung sofort `MetricResult(value=None, invalid_reason="ni_non_positive")` für den gesamten 3-Jahres-Wert zurück. Testfixtures: `MDYN06`, `HOOL07`, `WONK08` (siehe `tests/fixtures/README.md`) — alle drei haben `net_income > 0` in 2022/2023 und verletzen den Guard nur in 2024, decken also denselben "1 von 3 Jahren" Fall ab wie `NAKA17` bei ROIC.
+
+**Entscheidung 3 – Perioden-Guards analog ROIC (insufficient_years / MetricInputError):**
+Cash Conversion hat dieselbe "3 einzeln geguardete Jahre"-Struktur wie ROIC (anders als der Stichtags-Ansatz bei Net Debt/EBITDA) und übernimmt deshalb dieselben Perioden-Guards: Weniger als 3 Perioden flaggt `invalid_reason="insufficient_years"` (kein Mittelwert aus 2 Jahren), mehr als 3 Perioden wirft `MetricInputError` (Aufrufer-Fehler, kein Flag) — siehe ROIC-Entscheidungen 4 und 5 oben, hier unverändert übernommen.
+
+**How to apply:** `metrics_layer/cash_conversion.py` prüft `len(periods) > 3` (→ `MetricInputError`) und `len(periods) < 3` (→ `invalid_reason="insufficient_years"`) vor der Iteration, exakt wie `roic_3yr_average()`.
+
+**Entscheidung 3b – doppelte Fiskaljahre bei Perioden-Anzahl 3 (Review-Fund):** Wie bei Net Debt/EBITDA (siehe dessen Entscheidung 4) reicht eine reine Anzahl-Prüfung nicht: 3 Perioden, von denen zwei dasselbe `fiscal_year` tragen (ein echtes drittes Jahr fehlt dabei), bestehen sowohl die `>3`- als auch die `<3`-Prüfung und würden sonst unbemerkt mit doppeltem Gewicht für das duplizierte Jahr gemittelt. `cash_conversion_3yr_average()` prüft deshalb zusätzlich `len(fiscal_years) != len(set(fiscal_years))` (unabhängig von der Perioden-Anzahl) und wirft `MetricInputError`, bevor über die Jahre iteriert wird. `roic_3yr_average()` hat diese Prüfung (Stand heute) noch nicht — dieselbe Lücke besteht dort ungefixt fort und wäre ein sinnvoller Folge-Fix.
+
+**Entscheidung 4 – MetricResult-Muster:**
+`cash_conversion.py` folgt von Anfang an dem verbindlichen `MetricResult(value, invalid_reason)`-Rückgabeformat (siehe Abschnitt "Verbindliches Rückgabeformat" oben) — kein nackter `None`, `invalid_reason` ∈ `{"ni_non_positive", "insufficient_years"}`.
+
+**Entscheidung 5 – Grauzone 0,8–1,0:**
+Das Grauzonen-Band für Cash Conversion liegt bei 0,8–1,0. Die Klassifikation (welche Seite von 0,8/1,0 "bestanden", "Flag" oder "durchgefallen" bedeutet) bleibt Aufgabe des Gates-Layers (Issue #5), analog zu Net Debt/EBITDA (siehe dessen Entscheidung 1 oben) — `metrics_layer/cash_conversion.py` gibt ausschließlich den rohen 3-Jahres-Mittelwert zurück, ohne ihn selbst einzuordnen.
+
+**How to apply:** `metrics_layer/cash_conversion.py` implementiert keine Schwellenwert-Logik. Testfixture für die Grauzone: `SPCL20` (3-Jahres-Schnitt = 0,90, siehe `tests/fixtures/README.md`).
