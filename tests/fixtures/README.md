@@ -90,14 +90,14 @@ Testet den Guard aus [`docs/decisions.md`](../../docs/decisions.md): EBITDA ≤ 
 
 ## Grauzone (Cash Conversion, Issue #4)
 
-Cash Conversion bleibt wie ROIC ein 3-Jahres-Schnitt (Mittelwert der Jahres-Verhältnisse `cfo/net_income`), Grauzonen-Band laut [`docs/decisions.md`](../../docs/decisions.md) **0,8–1,0**. Die Klassifikation ist Aufgabe des Gates-Layers (Issue #5); `metrics_layer/cash_conversion.py` gibt nur den rohen Mittelwert zurück.
+Cash Conversion bleibt wie ROIC ein 3-Jahres-Schnitt (Mittelwert der Jahres-Verhältnisse `cfo/net_income`), Grauzonen-Band laut [`docs/decisions.md`](../../docs/decisions.md) **0,8–1,0**: `≥ 1,0` sauber bestanden, `0,8 ≤ x < 1,0` bestanden mit Flag (Grauzone), `< 0,8` durchgefallen — dieselbe Richtung wie beim ROIC-Grauzonenband (Flag-Band unterhalb der sauberen Schwelle).
 
 | company_id | Cash Conversion (3-Jahres-Schnitt) | ROIC / Net Debt/EBITDA | Fall |
 |---|---|---|---|
 | `SPCL20` | 0,90 (jedes Jahr exakt 0,90) | ROIC ~15,2% (gesund), Net Debt/EBITDA (2024) ~1,11x (gesund) | Cash-Conversion-Grauzone isoliert, andere Dimensionen bewusst gesund |
-| `OSCP21` | 0,80 (jedes Jahr exakt 0,80) | ROIC ~15,2% (gesund), Net Debt/EBITDA (2024) ~1,11x (gesund) | untere Zahlenwert-Grenze des Bandes isoliert |
-| `DUFF22` | 1,00 (jedes Jahr exakt 1,00) | ROIC ~15,2% (gesund), Net Debt/EBITDA (2024) ~1,11x (gesund) | obere Zahlenwert-Grenze des Bandes isoliert |
+| `OSCP21` | 0,80 (jedes Jahr exakt 0,80) | ROIC ~15,2% (gesund), Net Debt/EBITDA (2024) ~1,11x (gesund) | untere Grauzonen-Grenze isoliert (Grauzone/Flag, **nicht** durchgefallen — Band ist `0,8 ≤ x`) |
+| `DUFF22` | 1,00 (jedes Jahr exakt 1,00) | ROIC ~15,2% (gesund), Net Debt/EBITDA (2024) ~1,11x (gesund) | obere Grauzonen-Grenze isoliert (sauber bestanden, **nicht** mehr Grauzone — Schwelle ist `x ≥ 1,0`) |
 
 `OSCP21` und `DUFF22` teilen sich bewusst dasselbe `ebit`/`equity`/`net_debt`/`ebitda`-Profil mit `SPCL20` (nur `net_income`/`cfo` unterscheiden sich) — analog zu `VULC14`/`GEKO12`/`CYBR15` bei Net Debt/EBITDA, die die Bandgrenze von beiden Seiten mit isoliert gesunden übrigen Dimensionen abdecken.
 
-**Wichtig — keine Richtungsannahme:** Anders als bei Net Debt/EBITDA (dort ist die "harte Schwelle" eindeutig die schlechtere/obere Bandgrenze, weil niedriger besser ist) ist bei Cash Conversion noch **nicht** entschieden, welche Seite von 0,8/1,0 "bestanden", "Flag" oder "durchgefallen" bedeutet (siehe `docs/decisions.md`, Entscheidung 5 im Cash-Conversion-Abschnitt) — höher könnte hier durchaus besser sein, was die schlechtere/harte Schwelle eher bei 0,80 als bei 1,00 verorten würde. `OSCP21`/`DUFF22` decken deshalb bewusst nur die beiden *Zahlenwerte* am Rand des Bandes ab, ohne eine semantische Pass/Flag/Fail-Rolle vorwegzunehmen — das bleibt Aufgabe des Gates-Layers (Issue #5).
+**Richtung ist festgelegt, Klassifizierungslogik nicht:** Die Richtung der Grauzone ist durch den Masterplan/die Konvention festgelegt (siehe `docs/decisions.md`, Entscheidung 5 im Cash-Conversion-Abschnitt) — `≥ 1,0` sauber bestanden, `0,8–1,0` Flag, `< 0,8` durchgefallen, analog zum ROIC-Muster. Offen ist ausschließlich die tatsächliche **Bucket-Klassifizierungslogik selbst** (die if/else-Implementierung, die einen rohen Wert einem der drei Fälle zuordnet) — das bleibt Aufgabe des Gates-Layers (Issue #5); `metrics_layer/cash_conversion.py` gibt weiterhin nur den rohen Mittelwert zurück, ohne selbst zu klassifizieren.
