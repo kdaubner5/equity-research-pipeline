@@ -1,6 +1,6 @@
 """Net Debt/EBITDA per docs/decisions.md."""
 
-from metrics_layer.result import MetricResult
+from metrics_layer.result import MetricInputError, MetricResult
 
 
 def net_debt_ebitda_for_period(net_debt, ebitda):
@@ -17,6 +17,19 @@ def net_debt_ebitda_latest(periods):
     balance-sheet stock, not a flow to be averaged. The grey zone
     (2.3-2.5x) and hard threshold (2.5x) are applied by the Gates-Layer
     (Issue #5), not here.
+
+    No periods at all is a valid (if extreme) data property, flagged via
+    MetricResult like insufficient_years in ROIC. Two periods sharing the
+    same fiscal_year is a caller error (un-deduplicated filings, e.g. an
+    original 10-K plus a 10-K/A) and raises MetricInputError instead,
+    since max() would otherwise silently pick one depending on list order.
     """
+    if not periods:
+        return MetricResult(value=None, invalid_reason="no_periods")
+
+    fiscal_years = [p["fiscal_year"] for p in periods]
+    if len(fiscal_years) != len(set(fiscal_years)):
+        raise MetricInputError("duplicate fiscal_year entries in periods")
+
     latest = max(periods, key=lambda p: p["fiscal_year"])
     return net_debt_ebitda_for_period(net_debt=latest["net_debt"], ebitda=latest["ebitda"])
