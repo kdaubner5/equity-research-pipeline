@@ -1,0 +1,41 @@
+{
+  "company_id": "WAYN03",
+  "name": "Wayne Consumer Goods Inc.",
+  "sector": "Consumer Staples",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 6300,
+      "ebit": 756,
+      "ebitda": 920,
+      "tax_rate": 0.25,
+      "equity": 3100,
+      "net_debt": 1400,
+      "net_income": 470,
+      "cfo": 830
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 6450,
+      "ebit": 774,
+      "ebitda": 945,
+      "tax_rate": 0.25,
+      "equity": 3220,
+      "net_debt": 1350,
+      "net_income": 482,
+      "cfo": 855
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 6600,
+      "ebit": 792,
+      "ebitda": 970,
+      "tax_rate": 0.25,
+      "equity": 3350,
+      "net_debt": 1300,
+      "net_income": 495,
+      "cfo": 880
+    }
+  ]
+}

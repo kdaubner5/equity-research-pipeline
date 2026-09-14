@@ -1,0 +1,41 @@
+{
+  "company_id": "WONK08",
+  "name": "Wonka Foods Group",
+  "sector": "Consumer Discretionary",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 2100,
+      "ebit": 210,
+      "ebitda": 340,
+      "tax_rate": 0.25,
+      "equity": 950,
+      "net_debt": 600,
+      "net_income": 120,
+      "cfo": 280
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 2050,
+      "ebit": 95,
+      "ebitda": 300,
+      "tax_rate": 0.25,
+      "equity": 970,
+      "net_debt": 650,
+      "net_income": 40,
+      "cfo": 260
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 1980,
+      "ebit": -60,
+      "ebitda": 250,
+      "tax_rate": 0.25,
+      "equity": 940,
+      "net_debt": 700,
+      "net_income": -85,
+      "cfo": 190
+    }
+  ]
+}

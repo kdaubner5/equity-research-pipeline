@@ -1,0 +1,41 @@
+{
+  "company_id": "STRK05",
+  "name": "Stark Energy Corp.",
+  "sector": "Energy",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 12400,
+      "ebit": 1860,
+      "ebitda": 2600,
+      "tax_rate": 0.28,
+      "equity": 6800,
+      "net_debt": 4200,
+      "net_income": 980,
+      "cfo": 2350
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 11800,
+      "ebit": 1652,
+      "ebitda": 2380,
+      "tax_rate": 0.28,
+      "equity": 7100,
+      "net_debt": 4000,
+      "net_income": 870,
+      "cfo": 2180
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 13100,
+      "ebit": 2030,
+      "ebitda": 2820,
+      "tax_rate": 0.27,
+      "equity": 7550,
+      "net_debt": 3800,
+      "net_income": 1120,
+      "cfo": 2540
+    }
+  ]
+}

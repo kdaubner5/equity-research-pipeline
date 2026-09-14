@@ -1,0 +1,41 @@
+{
+  "company_id": "INIT10",
+  "name": "Initrode Financial Holdings",
+  "sector": "Financials",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 3600,
+      "ebit": 1080,
+      "ebitda": 1120,
+      "tax_rate": 0.26,
+      "equity": 5200,
+      "net_debt": 1800,
+      "net_income": 740,
+      "cfo": 890
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 3850,
+      "ebit": 1155,
+      "ebitda": 1200,
+      "tax_rate": 0.26,
+      "equity": 5550,
+      "net_debt": 1750,
+      "net_income": 795,
+      "cfo": 940
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 4100,
+      "ebit": 1230,
+      "ebitda": 1280,
+      "tax_rate": 0.25,
+      "equity": 5950,
+      "net_debt": 1700,
+      "net_income": 850,
+      "cfo": 1010
+    }
+  ]
+}

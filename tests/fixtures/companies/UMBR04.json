@@ -1,0 +1,41 @@
+{
+  "company_id": "UMBR04",
+  "name": "Umbrella Pharmaceuticals Corp.",
+  "sector": "Healthcare",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 5100,
+      "ebit": 1275,
+      "ebitda": 1450,
+      "tax_rate": 0.22,
+      "equity": 4200,
+      "net_debt": 600,
+      "net_income": 940,
+      "cfo": 1180
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 5450,
+      "ebit": 1362,
+      "ebitda": 1550,
+      "tax_rate": 0.22,
+      "equity": 4650,
+      "net_debt": 550,
+      "net_income": 1005,
+      "cfo": 1260
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 5820,
+      "ebit": 1455,
+      "ebitda": 1660,
+      "tax_rate": 0.21,
+      "equity": 5130,
+      "net_debt": 500,
+      "net_income": 1080,
+      "cfo": 1350
+    }
+  ]
+}

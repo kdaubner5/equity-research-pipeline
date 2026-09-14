@@ -1,0 +1,41 @@
+{
+  "company_id": "ACME01",
+  "name": "Acme Manufacturing Corp.",
+  "sector": "Industrials",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 4200,
+      "ebit": 520,
+      "ebitda": 680,
+      "tax_rate": 0.24,
+      "equity": 2100,
+      "net_debt": 900,
+      "net_income": 340,
+      "cfo": 560
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 4450,
+      "ebit": 560,
+      "ebitda": 730,
+      "tax_rate": 0.24,
+      "equity": 2280,
+      "net_debt": 850,
+      "net_income": 365,
+      "cfo": 600
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 4700,
+      "ebit": 605,
+      "ebitda": 790,
+      "tax_rate": 0.23,
+      "equity": 2470,
+      "net_debt": 800,
+      "net_income": 400,
+      "cfo": 650
+    }
+  ]
+}

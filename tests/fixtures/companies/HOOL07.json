@@ -1,0 +1,41 @@
+{
+  "company_id": "HOOL07",
+  "name": "Hooli Telecom Inc.",
+  "sector": "Telecommunications",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 7200,
+      "ebit": 864,
+      "ebitda": 1950,
+      "tax_rate": 0.24,
+      "equity": 3400,
+      "net_debt": 5200,
+      "net_income": 310,
+      "cfo": 1400
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 7050,
+      "ebit": 705,
+      "ebitda": 1820,
+      "tax_rate": 0.24,
+      "equity": 3480,
+      "net_debt": 5350,
+      "net_income": 180,
+      "cfo": 1250
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 6600,
+      "ebit": -120,
+      "ebitda": 980,
+      "tax_rate": 0.24,
+      "equity": 3300,
+      "net_debt": 5600,
+      "net_income": -340,
+      "cfo": -95
+    }
+  ]
+}

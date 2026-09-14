@@ -1,0 +1,41 @@
+{
+  "company_id": "PIED09",
+  "name": "Piedmont Utilities Co.",
+  "sector": "Utilities",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 4800,
+      "ebit": 960,
+      "ebitda": 1680,
+      "tax_rate": 0.23,
+      "equity": 3600,
+      "net_debt": 3900,
+      "net_income": 520,
+      "cfo": 1450
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 4950,
+      "ebit": 990,
+      "ebitda": 1730,
+      "tax_rate": 0.23,
+      "equity": 3750,
+      "net_debt": 3850,
+      "net_income": 540,
+      "cfo": 1500
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 5100,
+      "ebit": 1020,
+      "ebitda": 1790,
+      "tax_rate": 0.22,
+      "equity": 3920,
+      "net_debt": 3800,
+      "net_income": 565,
+      "cfo": 1560
+    }
+  ]
+}

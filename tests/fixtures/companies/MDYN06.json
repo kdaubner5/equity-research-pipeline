@@ -1,0 +1,41 @@
+{
+  "company_id": "MDYN06",
+  "name": "Massive Dynamic Materials Corp.",
+  "sector": "Materials",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 3300,
+      "ebit": 330,
+      "ebitda": 470,
+      "tax_rate": 0.26,
+      "equity": 1900,
+      "net_debt": 1100,
+      "net_income": 180,
+      "cfo": 410
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 3150,
+      "ebit": 252,
+      "ebitda": 390,
+      "tax_rate": 0.26,
+      "equity": 1950,
+      "net_debt": 1150,
+      "net_income": 90,
+      "cfo": 330
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 2900,
+      "ebit": 145,
+      "ebitda": 280,
+      "tax_rate": 0.26,
+      "equity": 1970,
+      "net_debt": 1200,
+      "net_income": 0,
+      "cfo": 210
+    }
+  ]
+}

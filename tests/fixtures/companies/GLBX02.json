@@ -1,0 +1,41 @@
+{
+  "company_id": "GLBX02",
+  "name": "Globex Technologies Inc.",
+  "sector": "Technology",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 8100,
+      "ebit": 1620,
+      "ebitda": 1850,
+      "tax_rate": 0.19,
+      "equity": 5200,
+      "net_debt": -600,
+      "net_income": 1310,
+      "cfo": 1780
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 9200,
+      "ebit": 1932,
+      "ebitda": 2210,
+      "tax_rate": 0.19,
+      "equity": 6100,
+      "net_debt": -750,
+      "net_income": 1565,
+      "cfo": 2050
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 10500,
+      "ebit": 2310,
+      "ebitda": 2650,
+      "tax_rate": 0.18,
+      "equity": 7200,
+      "net_debt": -900,
+      "net_income": 1890,
+      "cfo": 2420
+    }
+  ]
+}
