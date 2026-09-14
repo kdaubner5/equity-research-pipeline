@@ -1,6 +1,7 @@
 import pytest
 
 from conftest import load_company
+from metrics_layer.result import MetricInputError
 from metrics_layer.roic import roic_for_period, roic_3yr_average
 
 
@@ -54,6 +55,15 @@ def test_roic_fewer_than_3_periods_flags_invalid():
         for p in company["periods"]
     ) / len(company["periods"])
     assert result.value != naive_average_of_2_years
+
+
+def test_roic_more_than_3_periods_raises_caller_error():
+    company = load_company("ACME01")
+    duplicated_periods = company["periods"] + [company["periods"][0]]
+    assert len(duplicated_periods) == 4
+
+    with pytest.raises(MetricInputError):
+        roic_3yr_average(duplicated_periods)
 
 
 def test_roic_for_period_guard_on_single_bad_year():

@@ -1,0 +1,41 @@
+{
+  "company_id": "WEYL19",
+  "name": "Weyland Extraction Corp.",
+  "sector": "Materials",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 3600,
+      "ebit": 380,
+      "ebitda": 520,
+      "tax_rate": 0.26,
+      "equity": 1800,
+      "net_debt": 1400,
+      "net_income": 210,
+      "cfo": 460
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 3200,
+      "ebit": 90,
+      "ebitda": 180,
+      "tax_rate": 0.27,
+      "equity": 1750,
+      "net_debt": 1550,
+      "net_income": 20,
+      "cfo": 140
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 2600,
+      "ebit": -450,
+      "ebitda": -180,
+      "tax_rate": 0.25,
+      "equity": 900,
+      "net_debt": 1700,
+      "net_income": -520,
+      "cfo": -90
+    }
+  ]
+}

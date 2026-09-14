@@ -1,6 +1,6 @@
 """ROIC (Return on Invested Capital) per docs/decisions.md."""
 
-from metrics_layer.result import MetricResult
+from metrics_layer.result import MetricInputError, MetricResult
 
 
 def roic_for_period(ebit, tax_rate, equity, net_debt):
@@ -19,11 +19,15 @@ def roic_3yr_average(periods):
     in any of the three periods) flags the whole 3-year value - never
     averaged over fewer years, extrapolated, or computed with the bad
     year excluded.
+
+    Raises MetricInputError if given more than 3 periods - that is a caller
+    error (e.g. un-deduplicated multiple filings for one fiscal year), not
+    a company data property, so it is not a MetricResult.invalid_reason.
     """
+    if len(periods) > 3:
+        raise MetricInputError(f"expected at most 3 periods, got {len(periods)}")
     if len(periods) < 3:
         return MetricResult(value=None, invalid_reason="insufficient_years")
-    if len(periods) > 3:
-        return MetricResult(value=None, invalid_reason="too_many_years")
 
     yearly_roics = []
     for period in periods:

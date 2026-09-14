@@ -20,3 +20,12 @@ class MetricResult:
                 "MetricResult requires exactly one of value or invalid_reason to be set, "
                 f"got value={self.value!r} invalid_reason={self.invalid_reason!r}"
             )
+
+
+class MetricInputError(Exception):
+    """Raised when a Stage-1 metric function is called with malformed input.
+
+    Reserved for caller errors (e.g. duplicate/un-deduplicated filings for
+    the same fiscal year), never for a valid-but-unfavorable data property
+    of a company - those are MetricResult.invalid_reason instead.
+    """
