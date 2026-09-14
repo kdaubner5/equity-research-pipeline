@@ -1,0 +1,41 @@
+{
+  "company_id": "TYRL16",
+  "name": "Tyrell Dynamics Corp.",
+  "sector": "Industrials",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 7000,
+      "ebit": 1100,
+      "ebitda": 1600,
+      "tax_rate": 0.24,
+      "equity": 831,
+      "net_debt": 5600,
+      "net_income": 600,
+      "cfo": 950
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 7300,
+      "ebit": 1150,
+      "ebitda": 1650,
+      "tax_rate": 0.24,
+      "equity": 1773,
+      "net_debt": 4950,
+      "net_income": 650,
+      "cfo": 1000
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 7800,
+      "ebit": 1250,
+      "ebitda": 1800,
+      "tax_rate": 0.23,
+      "equity": 5604,
+      "net_debt": 1800,
+      "net_income": 820,
+      "cfo": 1150
+    }
+  ]
+}

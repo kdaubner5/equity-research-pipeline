@@ -1,6 +1,8 @@
 # Test-Fixtures: Internes Firmen-Feldformat
 
-Die Dateien unter `companies/` sind Dummy-Testdaten für 10 fiktive Firmen (branchendivers), je mit 3 Fiskaljahren (2022–2024). Sie bilden **kein** Provider-Schema (EDGAR, secfinapi, SimFin) ab, sondern ein eigenes internes Format. Die Übersetzung echter Provider-Formate in dieses interne Format passiert später in den `data_layer`-Adaptern.
+Die Dateien unter `companies/` sind Dummy-Testdaten für 16 fiktive Firmen (branchendivers), je mit 3 Fiskaljahren (2022–2024). Sie bilden **kein** Provider-Schema (EDGAR, secfinapi, SimFin) ab, sondern ein eigenes internes Format. Die Übersetzung echter Provider-Formate in dieses interne Format passiert später in den `data_layer`-Adaptern.
+
+Design-Entscheidungen zu einzelnen Kennzahlen (z. B. Grauzonen-Bänder, Stichtag vs. 3-Jahres-Schnitt) stehen in [`docs/decisions.md`](../../docs/decisions.md) — dort zuerst nachsehen, bevor eine Formel implementiert wird.
 
 ## Format
 
@@ -41,12 +43,21 @@ Alle übrigen Felder bleiben in diesen Fixtures realistisch, damit sie auch für
 
 ## Grauzonen-/Schwellen-Fixtures (Gates-Layer, Issue #5)
 
-Gezielt auf die ROIC-Grauzone (10–12%) bzw. die Net-Debt/EBITDA-Schwelle (~2,5x) platziert, isoliert und in Kombination:
+ROIC bleibt 3-Jahres-Schnitt, Grauzone 10–12%. Net Debt/EBITDA ist laut [`docs/decisions.md`](../../docs/decisions.md) ein **Stichtagswert** (nur Fiskaljahr 2024, das letzte) mit Grauzonen-Band **2,3–2,5x**: `< 2,3x` bestanden, `2,3x ≤ x < 2,5x` Flag, `≥ 2,5x` durchgefallen.
 
-| company_id | ROIC (3-Jahres-Schnitt) | Net Debt/EBITDA | Fall |
+| company_id | ROIC (3-Jahres-Schnitt) | Net Debt/EBITDA (Stichtag 2024) | Fall |
 |---|---|---|---|
 | `APRT11` | ~11,1% (jedes Jahr 10,98–11,24%) | ~0,7x (gesund) | ROIC-Grauzone isoliert |
-| `GEKO12` | ~18,0% (gesund) | exakt 2,50x (jedes Jahr) | Net-Debt/EBITDA-Schwelle isoliert |
-| `BLKW13` | ~11,0% (jedes Jahr ~11%) | exakt 2,50x (jedes Jahr) | beide Grauzonen gleichzeitig |
+| `GEKO12` | ~18,0% (gesund) | exakt 2,50x | Net-Debt/EBITDA harte Schwelle isoliert (durchgefallen) |
+| `BLKW13` | ~11,0% (jedes Jahr ~11%) | 2,40x | beide Grauzonen gleichzeitig (beide: Flag) |
+| `VULC14` | ~16,0% (gesund) | exakt 2,30x | Net-Debt/EBITDA untere Bandgrenze isoliert (Flag, nicht "bestanden") |
+| `CYBR15` | ~15,0% (gesund) | exakt 2,50x | zweite, dedizierte harte-Schwelle-Fixture (durchgefallen), analog zu `GEKO12` aber eigenständig |
+| `TYRL16` | ~13,0% (gesund, alle 3 Jahre) | 2022: 3,5x · 2023: 3,0x · 2024: **1,0x** | Stichtag-vs-Schnitt-Testfall (siehe unten) |
 
-Zum Vergleich: `PIED09` (Ø ROIC 10,06%) und `INIT10` (Ø ROIC 11,73%) liegen zufällig ebenfalls nahe der ROIC-Grauzone, wurden aber nicht gezielt dafür konstruiert und sind auf keiner anderen Dimension kontrolliert — für belastbare Gates-Layer-Tests `APRT11`/`GEKO12`/`BLKW13` verwenden.
+`GEKO12` und `CYBR15` sind bewusst zwei unabhängige Fixtures für dieselbe harte Schwelle (2,50x) — eine isoliert mit "sauberem" ROIC, um sicherzustellen, dass ein Net-Debt/EBITDA-Fail nicht von einem zufällig ebenfalls betroffenen ROIC-Wert überlagert wird.
+
+### Stichtag- vs. Durchschnitts-Testfall: `TYRL16`
+
+`TYRL16` hat in 2022/2023 ein Net Debt/EBITDA weit über der Schwelle (3,5x / 3,0x), im aktuellsten Jahr 2024 aber klar gesund (1,0x) — z. B. nach Entschuldung. Eine korrekte Stichtag-Implementierung (nur Jahr t = 2024) liefert **bestanden, kein Flag**. Eine fälschlich mittelnde Implementierung würde `(3,5 + 3,0 + 1,0) / 3 = 2,5` berechnen und **durchgefallen** ausgeben — ein stark abweichendes, leicht testbares Fehlverhalten. ROIC ist in `TYRL16` bewusst über alle 3 Jahre konstant gesund (~13 %), damit die ROIC-Dimension das Testergebnis nicht verwässert.
+
+Zum Vergleich: `PIED09` (Ø ROIC 10,06%) und `INIT10` (Ø ROIC 11,73%) liegen zufällig ebenfalls nahe der ROIC-Grauzone, wurden aber nicht gezielt dafür konstruiert und sind auf keiner anderen Dimension kontrolliert — für belastbare Gates-Layer-Tests die oben gelisteten Fixtures verwenden.

@@ -10,8 +10,8 @@
       "ebit": 623,
       "ebitda": 900,
       "tax_rate": 0.25,
-      "equity": 2000,
-      "net_debt": 2250,
+      "equity": 2088,
+      "net_debt": 2160,
       "net_income": 350,
       "cfo": 500
     },
@@ -21,8 +21,8 @@
       "ebit": 642,
       "ebitda": 930,
       "tax_rate": 0.25,
-      "equity": 2050,
-      "net_debt": 2325,
+      "equity": 2145,
+      "net_debt": 2232,
       "net_income": 365,
       "cfo": 520
     },
@@ -32,8 +32,8 @@
       "ebit": 651,
       "ebitda": 960,
       "tax_rate": 0.24,
-      "equity": 2100,
-      "net_debt": 2400,
+      "equity": 2194,
+      "net_debt": 2304,
       "net_income": 380,
       "cfo": 545
     }

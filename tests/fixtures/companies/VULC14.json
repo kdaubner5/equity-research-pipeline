@@ -1,0 +1,41 @@
+{
+  "company_id": "VULC14",
+  "name": "Vulcan Steelworks Inc.",
+  "sector": "Materials",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 5000,
+      "ebit": 750,
+      "ebitda": 1000,
+      "tax_rate": 0.23,
+      "equity": 1309,
+      "net_debt": 2300,
+      "net_income": 420,
+      "cfo": 600
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 5200,
+      "ebit": 780,
+      "ebitda": 1040,
+      "tax_rate": 0.23,
+      "equity": 1362,
+      "net_debt": 2392,
+      "net_income": 440,
+      "cfo": 625
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 5400,
+      "ebit": 810,
+      "ebitda": 1080,
+      "tax_rate": 0.22,
+      "equity": 1465,
+      "net_debt": 2484,
+      "net_income": 460,
+      "cfo": 655
+    }
+  ]
+}

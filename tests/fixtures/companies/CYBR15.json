@@ -1,0 +1,41 @@
+{
+  "company_id": "CYBR15",
+  "name": "Cyberdyne Systems Corp.",
+  "sector": "Technology",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 6000,
+      "ebit": 850,
+      "ebitda": 1200,
+      "tax_rate": 0.22,
+      "equity": 1420,
+      "net_debt": 3000,
+      "net_income": 500,
+      "cfo": 700
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 6250,
+      "ebit": 880,
+      "ebitda": 1250,
+      "tax_rate": 0.22,
+      "equity": 1451,
+      "net_debt": 3125,
+      "net_income": 520,
+      "cfo": 730
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 6500,
+      "ebit": 910,
+      "ebitda": 1300,
+      "tax_rate": 0.21,
+      "equity": 1543,
+      "net_debt": 3250,
+      "net_income": 545,
+      "cfo": 765
+    }
+  ]
+}
