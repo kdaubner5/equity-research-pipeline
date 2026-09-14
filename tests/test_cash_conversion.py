@@ -23,8 +23,8 @@ def test_cash_conversion_grey_zone():
 @pytest.mark.parametrize(
     "company_id,expected",
     [
-        ("OSCP21", 0.80),  # untere Zahlenwert-Grenze des Grauzonen-Bandes
-        ("DUFF22", 1.00),  # obere Zahlenwert-Grenze des Grauzonen-Bandes
+        ("OSCP21", 0.80),  # untere Grauzonen-Grenze (Übergang Grauzone -> durchgefallen)
+        ("DUFF22", 1.00),  # obere Grauzonen-Grenze (Übergang sauber bestanden -> Grauzone)
     ],
 )
 def test_cash_conversion_grey_zone_boundaries(company_id, expected):
