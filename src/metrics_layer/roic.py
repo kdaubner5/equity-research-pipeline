@@ -13,10 +13,14 @@ def roic_for_period(ebit, tax_rate, equity, net_debt):
 def roic_3yr_average(periods):
     """3-year ROIC: mean of the three independently computed yearly ROICs.
 
-    Returns None if invested capital <= 0 in any of the given periods -
-    the whole 3-year value is flagged invalid, not just that year excluded
-    from the average.
+    Returns None if fewer than 3 periods are given (e.g. recent IPO) or if
+    invested capital <= 0 in any of the three periods - in both cases the
+    whole 3-year value is flagged invalid, never averaged over fewer years
+    or with the bad year excluded.
     """
+    if len(periods) != 3:
+        return None
+
     yearly_roics = []
     for period in periods:
         value = roic_for_period(

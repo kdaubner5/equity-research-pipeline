@@ -38,6 +38,20 @@ def test_roic_invested_capital_guard_flags_whole_company():
     assert result != naive_average_of_healthy_years
 
 
+def test_roic_fewer_than_3_periods_flags_invalid():
+    company = load_company("ORBT18")
+    assert len(company["periods"]) == 2
+
+    result = roic_3yr_average(company["periods"])
+    assert result is None
+
+    naive_average_of_2_years = sum(
+        roic_for_period(**{k: p[k] for k in ("ebit", "tax_rate", "equity", "net_debt")})
+        for p in company["periods"]
+    ) / len(company["periods"])
+    assert result != naive_average_of_2_years
+
+
 def test_roic_for_period_guard_on_single_bad_year():
     company = load_company("NAKA17")
     periods_by_year = {p["fiscal_year"]: p for p in company["periods"]}

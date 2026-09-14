@@ -1,0 +1,30 @@
+{
+  "company_id": "ORBT18",
+  "name": "Orbital Dynamics Inc.",
+  "sector": "Technology",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2023,
+      "revenue": 1800,
+      "ebit": 270,
+      "ebitda": 340,
+      "tax_rate": 0.21,
+      "equity": 1600,
+      "net_debt": 200,
+      "net_income": 190,
+      "cfo": 260
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 2300,
+      "ebit": 345,
+      "ebitda": 430,
+      "tax_rate": 0.21,
+      "equity": 2100,
+      "net_debt": 150,
+      "net_income": 245,
+      "cfo": 330
+    }
+  ]
+}
