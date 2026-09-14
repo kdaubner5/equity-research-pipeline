@@ -20,11 +20,13 @@ def roic_3yr_average(periods):
     averaged over fewer years, extrapolated, or computed with the bad
     year excluded.
 
-    Raises MetricInputError if given more than 3 periods, or if two periods
-    share the same fiscal_year (even within an otherwise-valid count of 3)
-    - both are caller errors (e.g. un-deduplicated multiple filings for one
-    fiscal year silently standing in for a missing distinct year), not a
-    company data property, so neither is a MetricResult.invalid_reason.
+    Raises MetricInputError if given more than 3 periods, or if any two
+    periods share the same fiscal_year - regardless of period count (this
+    check runs before the insufficient_years check too, since a duplicate
+    is a caller error, not a genuine data property, at any count). Both are
+    caller errors (e.g. un-deduplicated multiple filings for one fiscal
+    year silently standing in for a missing distinct year), not a company
+    data property, so neither is a MetricResult.invalid_reason.
     """
     if len(periods) > 3:
         raise MetricInputError(f"expected at most 3 periods, got {len(periods)}")

@@ -23,8 +23,8 @@ def test_cash_conversion_grey_zone():
 @pytest.mark.parametrize(
     "company_id,expected",
     [
-        ("OSCP21", 0.80),  # untere Grauzonen-Bandgrenze
-        ("DUFF22", 1.00),  # harte Schwelle selbst
+        ("OSCP21", 0.80),  # untere Zahlenwert-Grenze des Grauzonen-Bandes
+        ("DUFF22", 1.00),  # obere Zahlenwert-Grenze des Grauzonen-Bandes
     ],
 )
 def test_cash_conversion_grey_zone_boundaries(company_id, expected):
@@ -112,6 +112,18 @@ def test_cash_conversion_duplicate_fiscal_year_within_3_periods_raises_caller_er
 
     with pytest.raises(MetricInputError):
         cash_conversion_3yr_average(duplicated_same_count)
+
+
+def test_cash_conversion_duplicate_fiscal_year_below_3_periods_raises_caller_error():
+    company = load_company("ACME01")
+    periods = company["periods"]
+    duplicated_2_periods = [periods[0], periods[0]]
+    assert len(duplicated_2_periods) == 2
+
+    # a duplicate is a caller error at any period count - it must not be
+    # silently accepted as "insufficient_years" (2 distinct years) instead
+    with pytest.raises(MetricInputError):
+        cash_conversion_3yr_average(duplicated_2_periods)
 
 
 def test_cash_conversion_different_invalid_reasons_are_distinguishable():

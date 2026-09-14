@@ -1,6 +1,6 @@
 # Test-Fixtures: Internes Firmen-Feldformat
 
-Die Dateien unter `companies/` sind Dummy-Testdaten für 19 fiktive Firmen (branchendivers), je mit 3 Fiskaljahren (2022–2024), außer wo explizit anders vermerkt (`ORBT18`: nur 2 Jahre). Sie bilden **kein** Provider-Schema (EDGAR, secfinapi, SimFin) ab, sondern ein eigenes internes Format. Die Übersetzung echter Provider-Formate in dieses interne Format passiert später in den `data_layer`-Adaptern.
+Die Dateien unter `companies/` sind Dummy-Testdaten für 22 fiktive Firmen (branchendivers), je mit 3 Fiskaljahren (2022–2024), außer wo explizit anders vermerkt (`ORBT18`: nur 2 Jahre). Sie bilden **kein** Provider-Schema (EDGAR, secfinapi, SimFin) ab, sondern ein eigenes internes Format. Die Übersetzung echter Provider-Formate in dieses interne Format passiert später in den `data_layer`-Adaptern.
 
 Design-Entscheidungen zu einzelnen Kennzahlen (z. B. Grauzonen-Bänder, Stichtag vs. 3-Jahres-Schnitt) stehen in [`docs/decisions.md`](../../docs/decisions.md) — dort zuerst nachsehen, bevor eine Formel implementiert wird.
 
@@ -95,7 +95,9 @@ Cash Conversion bleibt wie ROIC ein 3-Jahres-Schnitt (Mittelwert der Jahres-Verh
 | company_id | Cash Conversion (3-Jahres-Schnitt) | ROIC / Net Debt/EBITDA | Fall |
 |---|---|---|---|
 | `SPCL20` | 0,90 (jedes Jahr exakt 0,90) | ROIC ~15,2% (gesund), Net Debt/EBITDA (2024) ~1,11x (gesund) | Cash-Conversion-Grauzone isoliert, andere Dimensionen bewusst gesund |
-| `OSCP21` | 0,80 (jedes Jahr exakt 0,80) | ROIC ~15,2% (gesund), Net Debt/EBITDA (2024) ~1,11x (gesund) | untere Grauzonen-Bandgrenze isoliert |
-| `DUFF22` | 1,00 (jedes Jahr exakt 1,00) | ROIC ~15,2% (gesund), Net Debt/EBITDA (2024) ~1,11x (gesund) | harte Schwelle selbst isoliert |
+| `OSCP21` | 0,80 (jedes Jahr exakt 0,80) | ROIC ~15,2% (gesund), Net Debt/EBITDA (2024) ~1,11x (gesund) | untere Zahlenwert-Grenze des Bandes isoliert |
+| `DUFF22` | 1,00 (jedes Jahr exakt 1,00) | ROIC ~15,2% (gesund), Net Debt/EBITDA (2024) ~1,11x (gesund) | obere Zahlenwert-Grenze des Bandes isoliert |
 
 `OSCP21` und `DUFF22` teilen sich bewusst dasselbe `ebit`/`equity`/`net_debt`/`ebitda`-Profil mit `SPCL20` (nur `net_income`/`cfo` unterscheiden sich) — analog zu `VULC14`/`GEKO12`/`CYBR15` bei Net Debt/EBITDA, die die Bandgrenze von beiden Seiten mit isoliert gesunden übrigen Dimensionen abdecken.
+
+**Wichtig — keine Richtungsannahme:** Anders als bei Net Debt/EBITDA (dort ist die "harte Schwelle" eindeutig die schlechtere/obere Bandgrenze, weil niedriger besser ist) ist bei Cash Conversion noch **nicht** entschieden, welche Seite von 0,8/1,0 "bestanden", "Flag" oder "durchgefallen" bedeutet (siehe `docs/decisions.md`, Entscheidung 5 im Cash-Conversion-Abschnitt) — höher könnte hier durchaus besser sein, was die schlechtere/harte Schwelle eher bei 0,80 als bei 1,00 verorten würde. `OSCP21`/`DUFF22` decken deshalb bewusst nur die beiden *Zahlenwerte* am Rand des Bandes ab, ohne eine semantische Pass/Flag/Fail-Rolle vorwegzunehmen — das bleibt Aufgabe des Gates-Layers (Issue #5).
