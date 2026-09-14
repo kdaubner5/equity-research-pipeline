@@ -1,0 +1,41 @@
+{
+  "company_id": "NAKA17",
+  "name": "Nakatomi Holdings Inc.",
+  "sector": "Technology",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 4000,
+      "ebit": 500,
+      "ebitda": 650,
+      "tax_rate": 0.24,
+      "equity": 2000,
+      "net_debt": 800,
+      "net_income": 320,
+      "cfo": 480
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 4200,
+      "ebit": 520,
+      "ebitda": 680,
+      "tax_rate": 0.24,
+      "equity": 2100,
+      "net_debt": 780,
+      "net_income": 335,
+      "cfo": 500
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 4300,
+      "ebit": 540,
+      "ebitda": 700,
+      "tax_rate": 0.23,
+      "equity": -2500,
+      "net_debt": 2000,
+      "net_income": 100,
+      "cfo": 300
+    }
+  ]
+}
