@@ -20,6 +20,20 @@ def test_cash_conversion_grey_zone():
     assert 0.8 <= result.value <= 1.0
 
 
+@pytest.mark.parametrize(
+    "company_id,expected",
+    [
+        ("OSCP21", 0.80),  # untere Grauzonen-Bandgrenze
+        ("DUFF22", 1.00),  # harte Schwelle selbst
+    ],
+)
+def test_cash_conversion_grey_zone_boundaries(company_id, expected):
+    company = load_company(company_id)
+    result = cash_conversion_3yr_average(company["periods"])
+    assert result.invalid_reason is None
+    assert result.value == pytest.approx(expected, abs=0.001)
+
+
 def test_cash_conversion_ni_guard_flags_whole_company():
     company = load_company("MDYN06")
     result = cash_conversion_3yr_average(company["periods"])

@@ -1,0 +1,41 @@
+{
+  "company_id": "DUFF22",
+  "name": "Duff Brewing Co.",
+  "sector": "Consumer Staples",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 4000,
+      "ebit": 560,
+      "ebitda": 700,
+      "tax_rate": 0.25,
+      "equity": 2000,
+      "net_debt": 800,
+      "net_income": 450,
+      "cfo": 450
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 4150,
+      "ebit": 580,
+      "ebitda": 725,
+      "tax_rate": 0.25,
+      "equity": 2050,
+      "net_debt": 820,
+      "net_income": 470,
+      "cfo": 470
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 4300,
+      "ebit": 605,
+      "ebitda": 755,
+      "tax_rate": 0.25,
+      "equity": 2100,
+      "net_debt": 840,
+      "net_income": 495,
+      "cfo": 495
+    }
+  ]
+}

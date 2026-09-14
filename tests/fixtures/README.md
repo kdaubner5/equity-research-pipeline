@@ -95,3 +95,7 @@ Cash Conversion bleibt wie ROIC ein 3-Jahres-Schnitt (Mittelwert der Jahres-Verh
 | company_id | Cash Conversion (3-Jahres-Schnitt) | ROIC / Net Debt/EBITDA | Fall |
 |---|---|---|---|
 | `SPCL20` | 0,90 (jedes Jahr exakt 0,90) | ROIC ~15,2% (gesund), Net Debt/EBITDA (2024) ~1,11x (gesund) | Cash-Conversion-Grauzone isoliert, andere Dimensionen bewusst gesund |
+| `OSCP21` | 0,80 (jedes Jahr exakt 0,80) | ROIC ~15,2% (gesund), Net Debt/EBITDA (2024) ~1,11x (gesund) | untere Grauzonen-Bandgrenze isoliert |
+| `DUFF22` | 1,00 (jedes Jahr exakt 1,00) | ROIC ~15,2% (gesund), Net Debt/EBITDA (2024) ~1,11x (gesund) | harte Schwelle selbst isoliert |
+
+`OSCP21` und `DUFF22` teilen sich bewusst dasselbe `ebit`/`equity`/`net_debt`/`ebitda`-Profil mit `SPCL20` (nur `net_income`/`cfo` unterscheiden sich) — analog zu `VULC14`/`GEKO12`/`CYBR15` bei Net Debt/EBITDA, die die Bandgrenze von beiden Seiten mit isoliert gesunden übrigen Dimensionen abdecken.

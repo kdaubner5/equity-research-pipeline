@@ -66,6 +66,16 @@ def test_roic_more_than_3_periods_raises_caller_error():
         roic_3yr_average(duplicated_periods)
 
 
+def test_roic_duplicate_fiscal_year_within_3_periods_raises_caller_error():
+    company = load_company("ACME01")
+    periods = company["periods"]
+    duplicated_same_count = [periods[0], periods[0], periods[1]]
+    assert len(duplicated_same_count) == 3
+
+    with pytest.raises(MetricInputError):
+        roic_3yr_average(duplicated_same_count)
+
+
 def test_roic_for_period_guard_on_single_bad_year():
     company = load_company("NAKA17")
     periods_by_year = {p["fiscal_year"]: p for p in company["periods"]}
