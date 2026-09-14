@@ -88,3 +88,22 @@ def test_cash_conversion_more_than_3_periods_raises_caller_error():
 
     with pytest.raises(MetricInputError):
         cash_conversion_3yr_average(duplicated_periods)
+
+
+def test_cash_conversion_duplicate_fiscal_year_within_3_periods_raises_caller_error():
+    company = load_company("ACME01")
+    periods = company["periods"]
+    duplicated_same_count = [periods[0], periods[0], periods[1]]
+    assert len(duplicated_same_count) == 3
+
+    with pytest.raises(MetricInputError):
+        cash_conversion_3yr_average(duplicated_same_count)
+
+
+def test_cash_conversion_different_invalid_reasons_are_distinguishable():
+    ni_guard_result = cash_conversion_3yr_average(load_company("MDYN06")["periods"])
+    insufficient_years_result = cash_conversion_3yr_average(load_company("ORBT18")["periods"])
+
+    assert ni_guard_result.invalid_reason == "ni_non_positive"
+    assert insufficient_years_result.invalid_reason == "insufficient_years"
+    assert ni_guard_result.invalid_reason != insufficient_years_result.invalid_reason
