@@ -56,6 +56,7 @@ ROIC bleibt 3-Jahres-Schnitt, Grauzone 10–12%. Net Debt/EBITDA ist laut [`docs
 | `CYBR15` | ~15,0% (gesund) | exakt 2,60x | knapp oberhalb der harten Schwelle isoliert (klar durchgefallen) |
 | `TYRL16` | ~13,0% (gesund, alle 3 Jahre) | 2022: 3,5x · 2023: 3,0x · 2024: **1,0x** | Stichtag-vs-Schnitt-Testfall (siehe unten) |
 | `INGN23` | exakt 12,0% (jedes Jahr exakt 12,0%) | 0,50x (gesund) | ROIC obere Grauzonen-Grenze isoliert (Flag, nicht "sauber bestanden" — Schwelle ist `x > 12%`); Cash Conversion (3-Jahres-Schnitt ~1,29) ebenfalls gesund |
+| `SIRI24` | exakt 10,0% (jedes Jahr exakt 10,0%) | 0,50x (gesund) | ROIC untere Grauzonen-Grenze isoliert (Flag, nicht "durchgefallen" — Schwelle ist `x < 10%`); Cash Conversion (3-Jahres-Schnitt ~1,28) ebenfalls gesund |
 
 `VULC14`, `GEKO12` und `CYBR15` decken die Bandgrenze von beiden Seiten ab: 2,30x (Flag-Untergrenze), 2,50x (harte Schwelle selbst) und 2,60x (klar durchgefallen, bestätigt dass das Flag-Band nicht nach oben ausleiert). Jede der drei isoliert mit "sauberem", gesundem ROIC, damit ein Net-Debt/EBITDA-Ergebnis nicht von einem zufällig ebenfalls betroffenen ROIC-Wert überlagert wird.
 

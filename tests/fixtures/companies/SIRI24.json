@@ -1,0 +1,41 @@
+{
+  "company_id": "SIRI24",
+  "name": "Sirius Cybernetics Corp.",
+  "sector": "Technology",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 4500,
+      "ebit": 400,
+      "ebitda": 1150,
+      "tax_rate": 0.25,
+      "equity": 2400,
+      "net_debt": 600,
+      "net_income": 350,
+      "cfo": 450
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 4600,
+      "ebit": 402,
+      "ebitda": 1175,
+      "tax_rate": 0.25,
+      "equity": 2415,
+      "net_debt": 600,
+      "net_income": 360,
+      "cfo": 462
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 4700,
+      "ebit": 404,
+      "ebitda": 1200,
+      "tax_rate": 0.25,
+      "equity": 2430,
+      "net_debt": 600,
+      "net_income": 370,
+      "cfo": 474
+    }
+  ]
+}
