@@ -142,3 +142,45 @@ Es gibt keine gewichtete oder summierte Kennzahl über die drei Metriken. Der Ra
 Analog zum `invalid_reason`-Muster (siehe Abschnitt "Verbindliches Rückgabeformat" oben) sind die vier Gesamtstatus-Werte kurze, stabile, maschinenlesbare snake_case-Strings, kein Freitext und kein Enum-Typ: `"passed"`, `"passed_with_flags"`, `"failed"`, `"not_evaluable"`. Die einzelnen Flags in der Flag-Liste sind ebenfalls Strings, benannt wie die Metrik-Module: `"roic"`, `"net_debt_ebitda"`, `"cash_conversion"`.
 
 **How to apply:** `gates_layer/stage1_gates.py` definiert `evaluate_stage1_gates(roic, net_debt_ebitda, cash_conversion) -> GateResult` (nimmt drei `MetricResult`-Objekte, wendet zuerst den `invalid_reason`-Vorrang aus Entscheidung 2 an, sonst die Bucket-Klassifizierung + Kombinationslogik aus Entscheidung 1) und `rank_companies(gate_results) -> list[tuple[str, GateResult]]` (Gruppierung/Sortierung aus Entscheidung 3). `GateResult` trägt `status`, `flags`, `invalid_reasons` und alle drei Rohwerte (`roic`, `net_debt_ebitda`, `cash_conversion`, je `float | None`).
+
+## 2026-09-15: Store-Layer (Issue #6) — Scope, Schema, CSV-Export
+
+**Kontext:** `docs/masterplan.md` §3 beschriftet den Store-Layer im Architektur-Diagramm als "SQLite ── Cache + Forward-Log". Issue #6 muss vor der Implementierung klären, was davon jetzt (Phase 1.0) gebaut wird und was erst später (Phase 1.1) folgt, welche Firmen überhaupt archiviert werden, und wie Schema + CSV-Export konkret aussehen.
+
+**Entscheidung 1 – Scope: nur Lauf-Archiv/Forward-Log, kein Rohdaten-Caching:**
+Issue #6 umfasst ausschließlich das Lauf-Archiv (Forward-Log) — also das Wegschreiben der Gates-Layer-Ergebnisse pro Lauf. Das Caching von Rohdaten (EDGAR/secfinapi-Antworten, um wiederholte Abrufe zu vermeiden) ist laut Roadmap (`docs/masterplan.md` §7) explizit Teil von **Phase 1.1** ("Härtung": *"Caching-Layer"*), nicht Teil dieses Issues. `store_layer/db.py` enthält deshalb keinerlei Rohdaten-Cache-Logik — das ist eine bewusste Abgrenzung, kein Vergessen.
+
+**Entscheidung 2 – archiviert wird nur, wer überlebt:**
+Das SQLite-Archiv speichert ausschließlich Firmen mit Status `passed` oder `passed_with_flags` pro Lauf — mit Zeitstempel, allen drei Rohwerten (ROIC, Net Debt/EBITDA, Cash Conversion), Status, Flags und Rang-Position. Durchgefallene und nicht bewertbare Firmen werden **nicht** archiviert. Begründung: `docs/masterplan.md` §8 spricht explizit von "überlebende Ticker" im Archiv ("Jeder Lauf schreibt Datum + überlebende Ticker + deren Kennzahlen ins SQLite-Archiv"), nicht von allen gescreenten Firmen. Das ist zugleich genau die Filterung, die `gates_layer.rank_companies()` bereits leistet (siehe Entscheidung 3 im Gates-Layer-Abschnitt oben) — `store_layer` erfindet die Überlebenden-Definition nicht neu, sondern nutzt `rank_companies()` als einzige Quelle dafür, wer ein Überlebender ist und welche Rang-Position er hat.
+
+**Entscheidung 3 – Schema: eine flache Tabelle `run_results`:**
+Bei diesem Umfang (ein Lauf pro Cron-Ausführung, keine komplexen Lauf-Metadaten) reicht eine einzige Tabelle, kein separates `runs`-Table:
+
+```sql
+CREATE TABLE run_results (
+    run_timestamp   TEXT NOT NULL,   -- ISO-Datum+Zeit, z. B. "2026-09-15T14:30:00"
+    ticker          TEXT NOT NULL,
+    roic_3yr        REAL NOT NULL,
+    net_debt_ebitda REAL NOT NULL,
+    cash_conversion_3yr REAL NOT NULL,
+    status          TEXT NOT NULL,   -- "passed" | "passed_with_flags"
+    flags           TEXT NOT NULL,   -- kommagetrennt, z. B. "roic,net_debt_ebitda"; "" bei 0 Flags
+    rank_position   INTEGER NOT NULL,
+    PRIMARY KEY (run_timestamp, ticker)
+)
+```
+
+`run_timestamp` ist Datum **und** Uhrzeit (nicht nur Datum), falls an einem Tag mehrfach gelaufen wird (z. B. manuelle Re-Runs während der Entwicklung). Der Composite Key `(run_timestamp, ticker)` verhindert doppelte Zeilen für dieselbe Firma im selben Lauf. `rank_position` ist die 1-basierte Position in der von `rank_companies()` zurückgegebenen Gesamtliste (nicht pro Flag-Gruppe neu bei 1 beginnend) — z. B. bei 6 Firmen mit 0 Flags und 3 mit 1 Flag steht die erste 1-Flag-Firma auf Position 7, nicht auf Position 1.
+
+**Entscheidung 4 – Insert, kein Upsert:** `save_run_results()` fügt Zeilen nur per `INSERT` ein, nicht `INSERT OR REPLACE`. Ein Forward-Log ist ein historisches Protokoll — ein zweiter `save_run_results()`-Aufruf mit demselben `run_timestamp` (z. B. ein Programmierfehler, der denselben Lauf zweimal loggt) soll laut per Composite-Key erzwungener `UNIQUE`-Verletzung laut auffallen (`sqlite3.IntegrityError`), statt eine bestehende historische Zeile still zu überschreiben.
+
+**Entscheidung 5 – CSV-Export: ein Snapshot pro Lauf, gitignorter Ordner:**
+`export_survivors_csv()` schreibt dieselbe gefilterte/gerankte Liste als CSV, ein File pro Lauf, Dateiname mit Zeitstempel: `survivors_<run_timestamp ohne ":">.csv` (z. B. `survivors_2026-09-15T143000.csv` — Doppelpunkte raus, da sie unter Windows in Dateinamen ungültig sind). Landet in `data/runs/`, DB-Datei in `data/run_archive.db` — beide unter dem neuen, gitignorten `data/`-Ordner, damit weder historische Lauf-CSVs noch die SQLite-Datei versehentlich eingecheckt werden.
+
+**Entscheidung 6 – akzeptierter Kompromiss: ein Lauf ohne Überlebende ist nicht von "nie gelaufen" unterscheidbar (Review-Fund):**
+Da nur Überlebende archiviert werden (Entscheidung 2) und es bewusst keine separate `runs`-Tabelle gibt (Entscheidung 3), hinterlässt ein realer Lauf mit 0 Überlebenden keine Zeile in `run_results` — genau wie ein `run_timestamp`, für den nie ein Lauf stattfand. Eine reine `run_results`-Abfrage kann diese beiden Fälle nicht unterscheiden. Bei diesem Umfang (Issue #6, ~20–30 Ticker, seltene Cron-Läufe) ist das ein bewusst akzeptierter Kompromiss, kein Versehen — eine separate `runs`-Tabelle nur für dieses Signal wäre verfrühte Komplexität. Sollte das relevant werden, ist der natürliche Ort dafür der Cron-Wrapper aus Issue #9 (z. B. eigenes Lauf-Log), nicht `store_layer/db.py`.
+
+**Entscheidung 7 – Default-Pfade als Python-Konstanten, kein Widerspruch zur YAML-Konvention (Review-Fund):**
+`DEFAULT_DB_PATH`/`DEFAULT_CSV_DIR` sind Python-Konstanten, nicht in `config/*.yaml` — anders als bei den Gates-Layer-Schwellen (siehe oben, Entscheidung 4 im Gates-Layer-Abschnitt) ist das hier aber keine bewusste Phase-1.1-Verschiebung, sondern schlicht unnötig: Beide Werte sind bereits über die Funktionsparameter `db_path`/`output_dir` von jedem Aufrufer überschreibbar, ohne `store_layer/db.py` anzufassen — genau das Problem, das die `CLAUDE.md`-Konvention ("Schwellenwerte... niemals hart im Code") verhindern soll (eine Neukalibrierung ohne Code-Änderung), ist hier bereits gelöst. Die Konstanten sind zusätzlich an das Projekt-Root verankert (`Path(__file__).resolve().parent.parent.parent`), nicht an das Arbeitsverzeichnis zur Laufzeit — relevant, weil dieser Code laut Masterplan als Cron-Batch-Job auf dem VPS läuft und ein Cron-Arbeitsverzeichnis nicht garantiert das Repo-Root ist; sonst würde ein Cron-Lauf und ein manueller Lauf aus dem Repo-Root heraus je eine andere physische Archiv-Datei beschreiben.
+
+**How to apply:** `store_layer/db.py` definiert `init_db(db_path=DEFAULT_DB_PATH)` (Schema anlegen, idempotent via `CREATE TABLE IF NOT EXISTS`), `save_run_results(run_timestamp, gate_results, db_path=DEFAULT_DB_PATH)` und `export_survivors_csv(run_timestamp, gate_results, output_dir=DEFAULT_CSV_DIR) -> Path`. `gate_results` ist das volle `Dict[str, GateResult]` aller gescreenten Firmen (wie von `gates_layer.rank_companies()` erwartet) — beide Funktionen rufen intern `rank_companies()` auf, filtern also selbst nicht nochmal separat. `db_path`/`output_dir` sind überschreibbare Parameter (nicht hart auf `DEFAULT_DB_PATH`/`DEFAULT_CSV_DIR` verdrahtet), damit Tests isolierte Pfade (z. B. `tmp_path`) nutzen können, ohne echte Archiv-Dateien zu berühren.
