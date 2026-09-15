@@ -7,6 +7,7 @@ import pytest
 from conftest import all_company_ids, load_company
 from metrics_layer.cash_conversion import cash_conversion_3yr_average
 from metrics_layer.net_debt_ebitda import net_debt_ebitda_latest
+from metrics_layer.result import MetricResult
 from metrics_layer.roic import roic_3yr_average
 from gates_layer.stage1_gates import evaluate_stage1_gates, rank_companies
 from store_layer.db import export_survivors_csv, init_db, save_run_results
@@ -25,6 +26,17 @@ def _simulated_run_gate_results():
     return gate_results
 
 
+def _zero_survivor_gate_results():
+    """Synthetic gate_results where every company fails - rank_companies() empty."""
+    failing = evaluate_stage1_gates(
+        roic=MetricResult(value=0.01),
+        net_debt_ebitda=MetricResult(value=5.0),
+        cash_conversion=MetricResult(value=0.1),
+    )
+    assert failing.status == "failed"
+    return {ticker: failing for ticker in ("ZERO01", "ZERO02", "ZERO03")}
+
+
 def _query_run(db_path, run_timestamp):
     connection = sqlite3.connect(db_path)
     try:
@@ -34,6 +46,19 @@ def _query_run(db_path, run_timestamp):
             (run_timestamp,),
         ).fetchall()
         return [dict(row) for row in rows]
+    finally:
+        connection.close()
+
+
+def _query_runs_table(db_path, run_timestamp):
+    connection = sqlite3.connect(db_path)
+    try:
+        connection.row_factory = sqlite3.Row
+        row = connection.execute(
+            "SELECT * FROM runs WHERE run_timestamp = ?",
+            (run_timestamp,),
+        ).fetchone()
+        return dict(row) if row is not None else None
     finally:
         connection.close()
 
@@ -174,3 +199,65 @@ def test_non_string_run_timestamp_raises_typeerror(tmp_path, func_name):
 
     with pytest.raises(TypeError):
         func(run_timestamp, gate_results, **kwargs)
+
+
+def test_zero_survivor_run_still_writes_runs_row_and_header_only_csv(tmp_path):
+    db_path = tmp_path / "archive.db"
+    csv_dir = tmp_path / "runs"
+    gate_results = _zero_survivor_gate_results()
+    run_timestamp = "2026-09-15T08:00:00"
+    assert rank_companies(gate_results) == []  # sanity: genuinely 0 survivors
+
+    save_run_results(run_timestamp, gate_results, db_path=db_path)
+    csv_path = export_survivors_csv(run_timestamp, gate_results, output_dir=csv_dir)
+
+    run_row = _query_runs_table(db_path, run_timestamp)
+    assert run_row is not None
+    assert run_row["companies_evaluated"] == len(gate_results)
+    assert run_row["survivors_count"] == 0
+
+    assert _query_run(db_path, run_timestamp) == []
+
+    assert csv_path.exists()
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        assert reader.fieldnames == [
+            "rank_position",
+            "ticker",
+            "status",
+            "flags",
+            "roic_3yr",
+            "net_debt_ebitda",
+            "cash_conversion_3yr",
+        ]
+        assert list(reader) == []  # header only, no data rows
+
+
+def test_zero_survivor_run_and_survivor_run_coexist(tmp_path):
+    db_path = tmp_path / "archive.db"
+    csv_dir = tmp_path / "runs"
+
+    zero_gate_results = _zero_survivor_gate_results()
+    zero_timestamp = "2026-09-15T08:00:00"
+    save_run_results(zero_timestamp, zero_gate_results, db_path=db_path)
+    zero_csv_path = export_survivors_csv(zero_timestamp, zero_gate_results, output_dir=csv_dir)
+
+    real_gate_results = _simulated_run_gate_results()
+    real_timestamp = "2026-09-15T14:30:00"
+    save_run_results(real_timestamp, real_gate_results, db_path=db_path)
+    real_csv_path = export_survivors_csv(real_timestamp, real_gate_results, output_dir=csv_dir)
+
+    zero_run_row = _query_runs_table(db_path, zero_timestamp)
+    real_run_row = _query_runs_table(db_path, real_timestamp)
+    assert zero_run_row["survivors_count"] == 0
+    real_survivor_count = len(rank_companies(real_gate_results))
+    assert real_survivor_count > 0
+    assert real_run_row["survivors_count"] == real_survivor_count
+
+    assert _query_run(db_path, zero_timestamp) == []
+    assert len(_query_run(db_path, real_timestamp)) == real_survivor_count
+
+    with open(zero_csv_path, newline="", encoding="utf-8") as f:
+        assert list(csv.DictReader(f)) == []
+    with open(real_csv_path, newline="", encoding="utf-8") as f:
+        assert len(list(csv.DictReader(f))) == real_survivor_count

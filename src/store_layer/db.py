@@ -50,7 +50,7 @@ def _require_run_timestamp_str(run_timestamp):
 
 
 def init_db(db_path=DEFAULT_DB_PATH):
-    """Create the run_results schema if it doesn't already exist. Idempotent."""
+    """Create the run_results and runs schema if it doesn't already exist. Idempotent."""
     db_path = Path(db_path)
     db_path.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(db_path)
@@ -67,6 +67,15 @@ def init_db(db_path=DEFAULT_DB_PATH):
                 flags TEXT NOT NULL,
                 rank_position INTEGER NOT NULL,
                 PRIMARY KEY (run_timestamp, ticker)
+            )
+            """
+        )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS runs (
+                run_timestamp TEXT PRIMARY KEY,
+                companies_evaluated INTEGER NOT NULL,
+                survivors_count INTEGER NOT NULL
             )
             """
         )
@@ -98,12 +107,20 @@ def _survivor_rows(gate_results: Dict[str, GateResult]):
 
 
 def save_run_results(run_timestamp, gate_results, db_path=DEFAULT_DB_PATH):
-    """Persist one run's survivors into run_results. Non-survivors are excluded.
+    """Persist one run: exactly one `runs` row plus its survivors in `run_results`.
 
-    Uses a plain INSERT, not INSERT OR REPLACE: the forward-log is a
-    historical record, so re-saving the same (run_timestamp, ticker) is a
-    caller bug that should raise (sqlite3.IntegrityError on the composite
-    primary key), never silently overwrite a past run.
+    The `runs` row is written on every call, regardless of survivors_count -
+    a 0-survivor run is an explicitly expected outcome (masterplan.md §4,
+    "Kein Zwangskauf": below 8 qualifiers, cash is held rather than lowering
+    the bar), not an edge case, and needs proof it happened at all,
+    independent of whether anyone survived it.
+
+    Both inserts share one connection/transaction (single commit): a failed
+    run_results insert (e.g. sqlite3.IntegrityError on a re-saved
+    run_timestamp - a plain INSERT, not INSERT OR REPLACE, since the
+    forward-log is a historical record that must never be silently
+    overwritten) must not leave an orphaned `runs` row with no matching
+    run_results rows, and vice versa.
     """
     _require_run_timestamp_str(run_timestamp)
     db_path = Path(db_path)
@@ -112,6 +129,10 @@ def save_run_results(run_timestamp, gate_results, db_path=DEFAULT_DB_PATH):
 
     connection = sqlite3.connect(db_path)
     try:
+        connection.execute(
+            "INSERT INTO runs (run_timestamp, companies_evaluated, survivors_count) VALUES (?, ?, ?)",
+            (run_timestamp, len(gate_results), len(rows)),
+        )
         connection.executemany(
             """
             INSERT INTO run_results (
@@ -144,6 +165,10 @@ def export_survivors_csv(run_timestamp, gate_results, output_dir=DEFAULT_CSV_DIR
     Filename is survivors_<run_timestamp>.csv with colons stripped from the
     timestamp (invalid in Windows filenames), e.g.
     "2026-09-15T14:30:00" -> "survivors_2026-09-15T143000.csv".
+
+    Always writes a file, even with 0 survivors (header row only, same
+    reasoning as save_run_results()'s `runs` row) - a missing file must
+    never be mistaken for "no run happened".
     """
     _require_run_timestamp_str(run_timestamp)
     output_dir = Path(output_dir)

@@ -180,7 +180,31 @@ CREATE TABLE run_results (
 **Entscheidung 6 – akzeptierter Kompromiss: ein Lauf ohne Überlebende ist nicht von "nie gelaufen" unterscheidbar (Review-Fund):**
 Da nur Überlebende archiviert werden (Entscheidung 2) und es bewusst keine separate `runs`-Tabelle gibt (Entscheidung 3), hinterlässt ein realer Lauf mit 0 Überlebenden keine Zeile in `run_results` — genau wie ein `run_timestamp`, für den nie ein Lauf stattfand. Eine reine `run_results`-Abfrage kann diese beiden Fälle nicht unterscheiden. Bei diesem Umfang (Issue #6, ~20–30 Ticker, seltene Cron-Läufe) ist das ein bewusst akzeptierter Kompromiss, kein Versehen — eine separate `runs`-Tabelle nur für dieses Signal wäre verfrühte Komplexität. Sollte das relevant werden, ist der natürliche Ort dafür der Cron-Wrapper aus Issue #9 (z. B. eigenes Lauf-Log), nicht `store_layer/db.py`.
 
+**Revidiert (2026-09-15, `fix-zero-survivor-tracking`):** Dieser Kompromiss wurde zurückgenommen — siehe den neuen Abschnitt "Lauf-Nachweis unabhängig von Survivor-Zahl" unten. Ein 0-Survivor-Lauf ist laut Masterplan Abschnitt 4 ("Kein Zwangskauf") ein explizit erwartetes, gültiges Ergebnis, kein Rand- oder Fehlerfall — dafür braucht es doch einen Nachweis innerhalb von `store_layer/db.py` selbst, nicht erst später in Issue #9.
+
 **Entscheidung 7 – Default-Pfade als Python-Konstanten, kein Widerspruch zur YAML-Konvention (Review-Fund):**
 `DEFAULT_DB_PATH`/`DEFAULT_CSV_DIR` sind Python-Konstanten, nicht in `config/*.yaml` — anders als bei den Gates-Layer-Schwellen (siehe oben, Entscheidung 4 im Gates-Layer-Abschnitt) ist das hier aber keine bewusste Phase-1.1-Verschiebung, sondern schlicht unnötig: Beide Werte sind bereits über die Funktionsparameter `db_path`/`output_dir` von jedem Aufrufer überschreibbar, ohne `store_layer/db.py` anzufassen — genau das Problem, das die `CLAUDE.md`-Konvention ("Schwellenwerte... niemals hart im Code") verhindern soll (eine Neukalibrierung ohne Code-Änderung), ist hier bereits gelöst. Die Konstanten sind zusätzlich an das Projekt-Root verankert (`Path(__file__).resolve().parent.parent.parent`), nicht an das Arbeitsverzeichnis zur Laufzeit — relevant, weil dieser Code laut Masterplan als Cron-Batch-Job auf dem VPS läuft und ein Cron-Arbeitsverzeichnis nicht garantiert das Repo-Root ist; sonst würde ein Cron-Lauf und ein manueller Lauf aus dem Repo-Root heraus je eine andere physische Archiv-Datei beschreiben.
 
 **How to apply:** `store_layer/db.py` definiert `init_db(db_path=DEFAULT_DB_PATH)` (Schema anlegen, idempotent via `CREATE TABLE IF NOT EXISTS`), `save_run_results(run_timestamp, gate_results, db_path=DEFAULT_DB_PATH)` und `export_survivors_csv(run_timestamp, gate_results, output_dir=DEFAULT_CSV_DIR) -> Path`. `gate_results` ist das volle `Dict[str, GateResult]` aller gescreenten Firmen (wie von `gates_layer.rank_companies()` erwartet) — beide Funktionen rufen intern `rank_companies()` auf, filtern also selbst nicht nochmal separat. `db_path`/`output_dir` sind überschreibbare Parameter (nicht hart auf `DEFAULT_DB_PATH`/`DEFAULT_CSV_DIR` verdrahtet), damit Tests isolierte Pfade (z. B. `tmp_path`) nutzen können, ohne echte Archiv-Dateien zu berühren.
+
+## 2026-09-15: Lauf-Nachweis unabhängig von Survivor-Zahl (Store-Layer, Nachtrag)
+
+**Kontext:** Die Gates-Layer/Store-Layer-Entscheidung 6 oben akzeptierte bewusst, dass ein 0-Survivor-Lauf in `run_results` keine Spur hinterlässt — nicht von einem nie stattgefundenen Lauf (z. B. ausgefallener Cron-Job) unterscheidbar. Das ist kein Rand- oder Fehlerfall: `docs/masterplan.md` §4 ("Kein Zwangskauf") sagt explizit, dass bei weniger als 8 qualifizierten Titeln **Cash gehalten** wird, statt den Standard zu senken — ein 0- oder Wenig-Survivor-Lauf ist also ein erwartetes, korrektes Ergebnis des Trichters, kein Ausfall. Ein Betriebs-Log, das diese beiden Fälle nicht unterscheiden kann, widerspricht der in Masterplan §8 verlangten "ehrlichen" Mess-Schicht: dort muss erkennbar sein, *dass* jeder Lauf stattfand, unabhängig vom Ergebnis.
+
+**Entscheidung 1 – zweite, schlanke Tabelle `runs`, eine Zeile pro Aufruf:**
+```sql
+CREATE TABLE runs (
+    run_timestamp        TEXT PRIMARY KEY,
+    companies_evaluated  INTEGER NOT NULL,
+    survivors_count      INTEGER NOT NULL
+)
+```
+`save_run_results()` schreibt bei **jedem** Aufruf genau eine Zeile in `runs` — unabhängig davon, ob `survivors_count` 0 ist —, zusätzlich zu den (ggf. null) Survivor-Zeilen in `run_results`. `companies_evaluated` ist `len(gate_results)` (alle gescreenten Firmen, nicht nur Überlebende), `survivors_count` die Anzahl der Zeilen, die auch in `run_results` landen. Kein separates `runs`-Objekt/Funktion nötig — `save_run_results()` bleibt der einzige Schreibpfad für beide Tabellen.
+
+**Entscheidung 2 – beide Inserts in einer Transaktion:**
+Der `runs`-Insert und die `run_results`-Inserts laufen in derselben SQLite-Connection/Transaktion (ein `commit()` für beide), nicht mehr in getrennten Connections wie zuvor nur für `run_results`. Damit bleibt die `INSERT`-ohne-Upsert-Garantie aus Entscheidung 4 oben konsistent über beide Tabellen: schlägt der `run_results`-Insert fehl (z. B. doppelter `run_timestamp`), wird auch kein verwaister `runs`-Eintrag ohne zugehörige Survivor-Zeilen zurückgelassen, und umgekehrt.
+
+**Entscheidung 3 – `export_survivors_csv()` schreibt immer eine Datei, auch bei 0 Überlebenden:**
+Geprüft (kein Codeänderung nötig, war bereits korrekt): Die Funktion öffnet die CSV-Datei und schreibt den Header bedingungslos, bevor sie über die (ggf. leere) Survivor-Liste iteriert — bei 0 Überlebenden entsteht also bereits heute eine gültige, nur aus der Kopfzeile bestehende CSV-Datei, keine fehlende Datei. Dieselbe Begründung wie bei Entscheidung 1: das Fehlen einer erwarteten Datei muss "kein Lauf" bedeuten, nicht "Lauf ohne Ergebnisse".
+
+**How to apply:** `init_db()` legt zusätzlich zu `run_results` die Tabelle `runs` an (beide `CREATE TABLE IF NOT EXISTS`, idempotent). `save_run_results()` öffnet eine einzige Connection, schreibt den `runs`-Eintrag und die `run_results`-Zeilen (auch wenn letztere eine leere Liste sind) und committet einmal gemeinsam. `export_survivors_csv()` bleibt unverändert, da bereits korrekt.
