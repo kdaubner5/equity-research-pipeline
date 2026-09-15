@@ -1,0 +1,41 @@
+{
+  "company_id": "INGN23",
+  "name": "InGen Genetics Corp.",
+  "sector": "Biotechnology",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 3200,
+      "ebit": 320,
+      "ebitda": 800,
+      "tax_rate": 0.25,
+      "equity": 1600,
+      "net_debt": 400,
+      "net_income": 300,
+      "cfo": 390
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 3280,
+      "ebit": 328,
+      "ebitda": 820,
+      "tax_rate": 0.25,
+      "equity": 1650,
+      "net_debt": 400,
+      "net_income": 310,
+      "cfo": 400
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 3360,
+      "ebit": 336,
+      "ebitda": 840,
+      "tax_rate": 0.25,
+      "equity": 1680,
+      "net_debt": 420,
+      "net_income": 320,
+      "cfo": 410
+    }
+  ]
+}
