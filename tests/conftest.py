@@ -10,3 +10,8 @@ def load_company(company_id):
         data = json.load(f)
     data["periods"] = sorted(data["periods"], key=lambda p: p["fiscal_year"])
     return data
+
+
+def all_company_ids():
+    """All fixture company_ids, sorted by ticker."""
+    return sorted(path.stem for path in FIXTURES_DIR.glob("*.json"))
