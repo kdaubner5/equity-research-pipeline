@@ -17,6 +17,7 @@ def test_roic_normal_case():
     [
         ("APRT11", 0.1107),
         ("BLKW13", 0.1100),
+        ("INGN23", 0.1200),
     ],
 )
 def test_roic_grey_zone(company_id, expected):
