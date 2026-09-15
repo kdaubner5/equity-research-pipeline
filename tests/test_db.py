@@ -1,4 +1,5 @@
 import csv
+import datetime
 import sqlite3
 
 import pytest
@@ -158,3 +159,18 @@ def test_export_survivors_csv_filename_strips_colons_from_timestamp(tmp_path):
 
     assert csv_path.name == "survivors_2026-09-15T143000.csv"
     assert csv_path.exists()
+
+
+@pytest.mark.parametrize("func_name", ["save_run_results", "export_survivors_csv"])
+def test_non_string_run_timestamp_raises_typeerror(tmp_path, func_name):
+    # a raw datetime is an easy mistake given the parameter name "timestamp" -
+    # must raise a clear TypeError, not a confusing one from datetime.replace()
+    # silently shadowing the intended str.replace() in export_survivors_csv
+    gate_results = _simulated_run_gate_results()
+    run_timestamp = datetime.datetime(2026, 9, 15, 14, 30, 0)
+
+    func = {"save_run_results": save_run_results, "export_survivors_csv": export_survivors_csv}[func_name]
+    kwargs = {"db_path": tmp_path / "archive.db"} if func_name == "save_run_results" else {"output_dir": tmp_path / "runs"}
+
+    with pytest.raises(TypeError):
+        func(run_timestamp, gate_results, **kwargs)

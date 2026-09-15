@@ -14,8 +14,14 @@ from typing import Dict
 
 from gates_layer.stage1_gates import GateResult, rank_companies
 
-DEFAULT_DB_PATH = Path("data") / "run_archive.db"
-DEFAULT_CSV_DIR = Path("data") / "runs"
+# Anchored to the repo root (src/store_layer/db.py -> repo root is two
+# parents up), not the process's current working directory - a cron
+# invocation's cwd is not guaranteed to be the repo root, and resolving
+# against cwd would silently split the archive across different physical
+# files depending on how a run was triggered.
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+DEFAULT_DB_PATH = _REPO_ROOT / "data" / "run_archive.db"
+DEFAULT_CSV_DIR = _REPO_ROOT / "data" / "runs"
 
 _CSV_FIELDNAMES = [
     "rank_position",
@@ -26,6 +32,21 @@ _CSV_FIELDNAMES = [
     "net_debt_ebitda",
     "cash_conversion_3yr",
 ]
+
+
+def _require_run_timestamp_str(run_timestamp):
+    """Guard against e.g. a raw datetime being passed instead of an ISO string.
+
+    Without this, a datetime's .replace(':', '') in export_survivors_csv
+    would silently resolve to datetime.replace() (a same-named but
+    unrelated method) instead of str.replace(), raising a confusing
+    TypeError far from the actual mistake.
+    """
+    if not isinstance(run_timestamp, str):
+        raise TypeError(
+            f"run_timestamp must be an ISO-format string (e.g. '2026-09-15T14:30:00'), "
+            f"got {type(run_timestamp).__name__}"
+        )
 
 
 def init_db(db_path=DEFAULT_DB_PATH):
@@ -84,6 +105,7 @@ def save_run_results(run_timestamp, gate_results, db_path=DEFAULT_DB_PATH):
     caller bug that should raise (sqlite3.IntegrityError on the composite
     primary key), never silently overwrite a past run.
     """
+    _require_run_timestamp_str(run_timestamp)
     db_path = Path(db_path)
     init_db(db_path)
     rows = _survivor_rows(gate_results)
@@ -123,6 +145,7 @@ def export_survivors_csv(run_timestamp, gate_results, output_dir=DEFAULT_CSV_DIR
     timestamp (invalid in Windows filenames), e.g.
     "2026-09-15T14:30:00" -> "survivors_2026-09-15T143000.csv".
     """
+    _require_run_timestamp_str(run_timestamp)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
