@@ -39,11 +39,15 @@ class GateResult:
     net_debt_ebitda / cash_conversion. The three raw values are always
     populated where the underlying MetricResult had one, regardless of
     status - a not_evaluable company keeps whichever raw values were valid.
+
+    flags and invalid_reasons are tuples, not lists: frozen=True only stops
+    a field from being reassigned, not a mutable field's contents from being
+    changed in place, and a list field would also make GateResult unhashable.
     """
 
     status: str
-    flags: List[str]
-    invalid_reasons: List[str]
+    flags: Tuple[str, ...]
+    invalid_reasons: Tuple[str, ...]
     roic: Optional[float]
     net_debt_ebitda: Optional[float]
     cash_conversion: Optional[float]
@@ -97,19 +101,19 @@ def evaluate_stage1_gates(
     results = {"roic": roic, "net_debt_ebitda": net_debt_ebitda, "cash_conversion": cash_conversion}
     raw_values = {name: results[name].value for name in _METRIC_NAMES}
 
-    invalid_reasons = [
+    invalid_reasons = tuple(
         results[name].invalid_reason for name in _METRIC_NAMES if results[name].invalid_reason is not None
-    ]
+    )
     if invalid_reasons:
         return GateResult(
             status=NOT_EVALUABLE,
-            flags=[],
+            flags=(),
             invalid_reasons=invalid_reasons,
             **raw_values,
         )
 
     classifications = {name: _CLASSIFIERS[name](raw_values[name]) for name in _METRIC_NAMES}
-    flags = [name for name in _METRIC_NAMES if classifications[name] == PASSED_WITH_FLAGS]
+    flags = tuple(name for name in _METRIC_NAMES if classifications[name] == PASSED_WITH_FLAGS)
 
     if any(classification == FAILED for classification in classifications.values()):
         status = FAILED
@@ -118,7 +122,7 @@ def evaluate_stage1_gates(
     else:
         status = PASSED
 
-    return GateResult(status=status, flags=flags, invalid_reasons=[], **raw_values)
+    return GateResult(status=status, flags=flags, invalid_reasons=(), **raw_values)
 
 
 def rank_companies(gate_results: Dict[str, GateResult]) -> List[Tuple[str, GateResult]]:
