@@ -54,6 +54,19 @@ def test_evaluate_stage1_gates_two_flags_simultaneously():
     assert result.cash_conversion == pytest.approx(1.43, abs=0.01)
 
 
+def test_evaluate_stage1_gates_roic_lower_boundary_is_flag_not_failed():
+    # SIRI24: ROIC exactly 10.0% (3yr avg, every year identically 10.0%).
+    # Regression guard for the ROIC fail/flag boundary direction documented
+    # in docs/decisions.md: the grey zone is inclusive on its "worse" side
+    # (10% <= x <= 12%), analogous to Net Debt/EBITDA's un-named clean-pass
+    # edge - so 10.0% itself must classify as a flag, never as failed.
+    result = _gate_result_for("SIRI24")
+    assert result.status == "passed_with_flags"
+    assert result.status != "failed"
+    assert result.flags == ("roic",)
+    assert result.roic == pytest.approx(0.10, abs=0.001)
+
+
 @pytest.mark.parametrize(
     "company_id",
     [
