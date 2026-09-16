@@ -136,6 +136,38 @@ def test_missing_debt_tags_default_to_zero_not_invalid(ticker):
         assert DEBT_COMPONENT_MISSING_FLAG in period["data_quality_flags"]
 
 
+def test_debt_components_all_present_sum_correctly_without_flag():
+    # None of the 4 pilot tickers report all three debt-component tags (see
+    # test_missing_debt_tags_default_to_zero_not_invalid above) - a synthetic
+    # minimal companyfacts dict exercises the "fully reported, no flag"
+    # branch directly, so a sign/field-order regression in the sum is still
+    # caught even without a pilot ticker for it.
+    tags = {
+        "OperatingIncomeLoss": {"units": {"USD": [_usd_fact(100, "2024-12-31", "2024-01-01", fy=2024)]}},
+        "DepreciationDepletionAndAmortization": {
+            "units": {"USD": [_usd_fact(10, "2024-12-31", "2024-01-01", fy=2024)]}
+        },
+        "IncomeTaxExpenseBenefit": {"units": {"USD": [_usd_fact(20, "2024-12-31", "2024-01-01", fy=2024)]}},
+        "IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest": {
+            "units": {"USD": [_usd_fact(80, "2024-12-31", "2024-01-01", fy=2024)]}
+        },
+        "StockholdersEquity": {"units": {"USD": [_usd_fact(500, "2024-12-31", fy=2024)]}},
+        "CashAndCashEquivalentsAtCarryingValue": {"units": {"USD": [_usd_fact(50, "2024-12-31", fy=2024)]}},
+        "NetCashProvidedByUsedInOperatingActivities": {
+            "units": {"USD": [_usd_fact(90, "2024-12-31", "2024-01-01", fy=2024)]}
+        },
+        "NetIncomeLoss": {"units": {"USD": [_usd_fact(60, "2024-12-31", "2024-01-01", fy=2024)]}},
+        "Revenues": {"units": {"USD": [_usd_fact(1000, "2024-12-31", "2024-01-01", fy=2024)]}},
+        "LongTermDebtNoncurrent": {"units": {"USD": [_usd_fact(300, "2024-12-31", fy=2024)]}},
+        "LongTermDebtCurrent": {"units": {"USD": [_usd_fact(40, "2024-12-31", fy=2024)]}},
+        "ShortTermBorrowings": {"units": {"USD": [_usd_fact(15, "2024-12-31", fy=2024)]}},
+    }
+    periods = map_companyfacts_to_periods(_minimal_companyfacts(tags), max_years=1)
+    assert len(periods) == 1
+    assert periods[0]["net_debt"] == (300 + 40 + 15) - 50
+    assert DEBT_COMPONENT_MISSING_FLAG not in periods[0]["data_quality_flags"]
+
+
 def test_revenue_prefers_excluding_assessed_tax_tag_when_present():
     # MOV and FOSL both have the top-priority tag for every period in the
     # pilot window - the flagged "IncludingAssessedTax" fallback should
