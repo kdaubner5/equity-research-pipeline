@@ -121,12 +121,24 @@ def test_roic_different_invalid_reasons_are_distinguishable():
     insufficient_years_result = roic_3yr_average(load_company("ORBT18")["periods"])
     undefined_tax_rate_result = roic_3yr_average(load_company("DHRM25")["periods"])
 
-    assert ic_guard_result.invalid_reason == "ic_non_positive"
-    assert insufficient_years_result.invalid_reason == "insufficient_years"
-    assert undefined_tax_rate_result.invalid_reason == "undefined_tax_rate"
-    assert len(
-        {ic_guard_result.invalid_reason, insufficient_years_result.invalid_reason, undefined_tax_rate_result.invalid_reason}
-    ) == 3
+    reasons = {
+        ic_guard_result.invalid_reason,
+        insufficient_years_result.invalid_reason,
+        undefined_tax_rate_result.invalid_reason,
+    }
+    assert reasons == {"ic_non_positive", "insufficient_years", "undefined_tax_rate"}
+
+
+def test_roic_for_period_undefined_tax_rate_takes_precedence_over_ic_guard():
+    # Pins down guard ordering for a period where both conditions hold at
+    # once (undefined tax_rate and invested_capital <= 0) - per
+    # docs/decisions.md, the tax_rate check runs first (it guards the
+    # NOPAT numerator, checked before the IC denominator), so
+    # "undefined_tax_rate" wins over "ic_non_positive". A future reordering
+    # of the two guards would silently flip which reason is reported here.
+    result = roic_for_period(ebit=100, tax_rate=None, equity=-500, net_debt=200)
+    assert result.value is None
+    assert result.invalid_reason == "undefined_tax_rate"
 
 
 def test_roic_undefined_tax_rate_guard_flags_whole_company():
