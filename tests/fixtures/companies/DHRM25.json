@@ -1,0 +1,41 @@
+{
+  "company_id": "DHRM25",
+  "name": "Dharma Applied Sciences Inc.",
+  "sector": "Materials",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 3000,
+      "ebit": 350,
+      "ebitda": 420,
+      "tax_rate": 0.25,
+      "equity": 1500,
+      "net_debt": 600,
+      "net_income": 210,
+      "cfo": 300
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 3150,
+      "ebit": 365,
+      "ebitda": 440,
+      "tax_rate": 0.25,
+      "equity": 1600,
+      "net_debt": 590,
+      "net_income": 220,
+      "cfo": 310
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 3200,
+      "ebit": 40,
+      "ebitda": 110,
+      "tax_rate": null,
+      "equity": 1650,
+      "net_debt": 1200,
+      "net_income": -15,
+      "cfo": 90
+    }
+  ]
+}

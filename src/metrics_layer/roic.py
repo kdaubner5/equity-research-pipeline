@@ -4,7 +4,15 @@ from metrics_layer.result import MetricInputError, MetricResult
 
 
 def roic_for_period(ebit, tax_rate, equity, net_debt):
-    """ROIC for a single fiscal year."""
+    """ROIC for a single fiscal year.
+
+    tax_rate=None is the sentinel for "undefined" (pretax income <= 0 for
+    this year, per docs/decisions.md) - guarded before the NOPAT
+    calculation even touches ebit, since there is no meaningful rate to
+    apply, not even 0 or an estimate.
+    """
+    if tax_rate is None:
+        return MetricResult(value=None, invalid_reason="undefined_tax_rate")
     invested_capital = equity + net_debt
     if invested_capital <= 0:
         return MetricResult(value=None, invalid_reason="ic_non_positive")
@@ -15,10 +23,10 @@ def roic_for_period(ebit, tax_rate, equity, net_debt):
 def roic_3yr_average(periods):
     """3-year ROIC: mean of the three independently computed yearly ROICs.
 
-    Invalid (fewer than 3 periods, e.g. recent IPO, or invested capital <= 0
-    in any of the three periods) flags the whole 3-year value - never
-    averaged over fewer years, extrapolated, or computed with the bad
-    year excluded.
+    Invalid (fewer than 3 periods, e.g. recent IPO; invested capital <= 0;
+    or an undefined tax_rate, i.e. pretax income <= 0, in any of the three
+    periods) flags the whole 3-year value - never averaged over fewer
+    years, extrapolated, or computed with the bad year excluded.
 
     Raises MetricInputError if given more than 3 periods, or if any two
     periods share the same fiscal_year - regardless of period count (this
