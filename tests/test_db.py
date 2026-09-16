@@ -71,11 +71,15 @@ def test_init_db_is_idempotent(tmp_path):
     connection = sqlite3.connect(db_path)
     try:
         tables = connection.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='run_results'"
+            "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('run_results', 'runs')"
         ).fetchall()
     finally:
         connection.close()
-    assert len(tables) == 1
+    # each table must exist exactly once - catches a regression that makes
+    # either CREATE TABLE non-idempotent, not just "some table exists"
+    table_names = [row[0] for row in tables]
+    assert table_names.count("run_results") == 1
+    assert table_names.count("runs") == 1
 
 
 def test_save_run_results_only_survivors_are_archived(tmp_path):
