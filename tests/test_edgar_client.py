@@ -6,6 +6,7 @@ import pytest
 from data_layer.edgar_client import (
     CASH_INCLUDES_RESTRICTED_FLAG,
     DA_INCOMPLETE_FLAG,
+    DEBT_COMPONENT_MISSING_FLAG,
     NET_INCOME_INCLUDES_NCI_FLAG,
     REVENUE_INCLUDING_ASSESSED_TAX_FLAG,
     EdgarMappingError,
@@ -89,7 +90,10 @@ def test_da_falls_back_to_depreciation_and_flags_it_as_incomplete():
     # switches to the plain (possibly incomplete) Depreciation tag.
     periods = {p["fiscal_year"]: p for p in map_companyfacts_to_periods(_load_raw("NPK"))}
 
-    assert periods[2023]["data_quality_flags"] == []
+    # NPK is also missing debt tags in every year (see
+    # test_missing_debt_tags_default_to_zero_not_invalid) - DA_INCOMPLETE_FLAG
+    # is the only thing this test cares about, not the full flag list.
+    assert DA_INCOMPLETE_FLAG not in periods[2023]["data_quality_flags"]
     assert periods[2023]["ebitda"] == pytest.approx(periods[2023]["ebit"] + 6_007_000)
 
     for fy in (2024, 2025):
@@ -101,7 +105,10 @@ def test_cash_falls_back_to_restricted_cash_tag_and_flags_it():
     # FY2024 and switches to the combined restricted-cash tag.
     periods = {p["fiscal_year"]: p for p in map_companyfacts_to_periods(_load_raw("LAKE"))}
 
-    assert periods[2024]["data_quality_flags"] == []
+    # LAKE is also missing debt tags in every year (see
+    # test_missing_debt_tags_default_to_zero_not_invalid) - CASH_INCLUDES_RESTRICTED_FLAG
+    # is the only thing this test cares about, not the full flag list.
+    assert CASH_INCLUDES_RESTRICTED_FLAG not in periods[2024]["data_quality_flags"]
     for fy in (2025, 2026):
         assert CASH_INCLUDES_RESTRICTED_FLAG in periods[fy]["data_quality_flags"]
 
@@ -121,10 +128,12 @@ def test_net_income_falls_back_to_profit_loss_and_flags_nci():
 def test_missing_debt_tags_default_to_zero_not_invalid(ticker):
     # Neither MOV nor NPK reports LongTermDebtNoncurrent/Current or
     # ShortTermBorrowings in recent years - a real net-cash position, not
-    # missing data, so net_debt must equal exactly -cash (total debt = 0).
+    # missing data, so net_debt must equal exactly -cash (total debt = 0),
+    # and the gap must be visible via the flag, not just inferred from the sign.
     record = build_company_record(ticker, _load_raw(ticker))
     for period in record["periods"]:
         assert period["net_debt"] < 0
+        assert DEBT_COMPONENT_MISSING_FLAG in period["data_quality_flags"]
 
 
 def test_revenue_prefers_excluding_assessed_tax_tag_when_present():
@@ -220,3 +229,88 @@ def test_quarterly_stub_period_tagged_as_fy_is_excluded():
     periods = map_companyfacts_to_periods(_minimal_companyfacts(tags), max_years=1)
     assert len(periods) == 1
     assert periods[0]["ebit"] == 100
+
+
+def test_fewer_than_max_years_anchor_periods_returns_only_available_years():
+    # A short EBIT history (e.g. a recent IPO) has fewer anchor period ends
+    # than max_years - no pilot ticker shows this, so a synthetic minimal
+    # companyfacts dict exercises it directly: requesting the default 3
+    # years back with only 2 EBIT period ends available must return exactly
+    # those 2, not crash and not pad/fabricate a 3rd year.
+    tags = {
+        "OperatingIncomeLoss": {
+            "units": {
+                "USD": [
+                    _usd_fact(100, "2023-12-31", "2023-01-01", fy=2023),
+                    _usd_fact(120, "2024-12-31", "2024-01-01", fy=2024),
+                ]
+            }
+        },
+        "DepreciationDepletionAndAmortization": {
+            "units": {
+                "USD": [
+                    _usd_fact(10, "2023-12-31", "2023-01-01", fy=2023),
+                    _usd_fact(12, "2024-12-31", "2024-01-01", fy=2024),
+                ]
+            }
+        },
+        "IncomeTaxExpenseBenefit": {
+            "units": {
+                "USD": [
+                    _usd_fact(20, "2023-12-31", "2023-01-01", fy=2023),
+                    _usd_fact(24, "2024-12-31", "2024-01-01", fy=2024),
+                ]
+            }
+        },
+        "IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest": {
+            "units": {
+                "USD": [
+                    _usd_fact(80, "2023-12-31", "2023-01-01", fy=2023),
+                    _usd_fact(96, "2024-12-31", "2024-01-01", fy=2024),
+                ]
+            }
+        },
+        "StockholdersEquity": {
+            "units": {
+                "USD": [
+                    _usd_fact(500, "2023-12-31", fy=2023),
+                    _usd_fact(560, "2024-12-31", fy=2024),
+                ]
+            }
+        },
+        "CashAndCashEquivalentsAtCarryingValue": {
+            "units": {
+                "USD": [
+                    _usd_fact(50, "2023-12-31", fy=2023),
+                    _usd_fact(55, "2024-12-31", fy=2024),
+                ]
+            }
+        },
+        "NetCashProvidedByUsedInOperatingActivities": {
+            "units": {
+                "USD": [
+                    _usd_fact(90, "2023-12-31", "2023-01-01", fy=2023),
+                    _usd_fact(95, "2024-12-31", "2024-01-01", fy=2024),
+                ]
+            }
+        },
+        "NetIncomeLoss": {
+            "units": {
+                "USD": [
+                    _usd_fact(60, "2023-12-31", "2023-01-01", fy=2023),
+                    _usd_fact(72, "2024-12-31", "2024-01-01", fy=2024),
+                ]
+            }
+        },
+        "Revenues": {
+            "units": {
+                "USD": [
+                    _usd_fact(1000, "2023-12-31", "2023-01-01", fy=2023),
+                    _usd_fact(1100, "2024-12-31", "2024-01-01", fy=2024),
+                ]
+            }
+        },
+    }
+    periods = map_companyfacts_to_periods(_minimal_companyfacts(tags))
+    assert len(periods) == 2
+    assert [p["fiscal_year"] for p in periods] == [2023, 2024]

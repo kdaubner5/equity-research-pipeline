@@ -54,6 +54,7 @@ DA_INCOMPLETE_FLAG = "da_incomplete_depreciation_only"
 NET_INCOME_INCLUDES_NCI_FLAG = "net_income_includes_noncontrolling_interest"
 REVENUE_INCLUDING_ASSESSED_TAX_FLAG = "revenue_including_assessed_tax"
 CASH_INCLUDES_RESTRICTED_FLAG = "cash_includes_restricted_cash"
+DEBT_COMPONENT_MISSING_FLAG = "debt_component_missing_defaulted_zero"
 
 
 class EdgarMappingError(Exception):
@@ -169,10 +170,10 @@ def map_companyfacts_to_periods(raw_companyfacts, max_years=MAX_YEARS):
     Pure/network-free - operates only on already-fetched JSON, so it is
     testable directly against tests/fixtures/edgar_raw/*.json. Applies the
     tag-fallback rules from docs/decisions.md: missing debt-component tags
-    default to 0 (not an error - Entscheidung 5), pretax income <= 0
-    yields tax_rate=None (triggers metrics_layer's undefined_tax_rate
-    guard), and falling back to a lower-priority tag for D&A/NetIncome/
-    Revenue sets the matching data_quality_flags entry.
+    default to 0 and set data_quality_flags (not an error - Entscheidung 5),
+    pretax income <= 0 yields tax_rate=None (triggers metrics_layer's
+    undefined_tax_rate guard), and falling back to a lower-priority tag for
+    D&A/NetIncome/Revenue sets the matching data_quality_flags entry.
 
     Raises EdgarMappingError if a concept with no accepted "missing = 0"
     default (i.e. anything other than the three debt components) has no
@@ -215,6 +216,8 @@ def map_companyfacts_to_periods(raw_companyfacts, max_years=MAX_YEARS):
         long_term_noncurrent, _ = _resolve_tag_value(gaap, LONG_TERM_DEBT_NONCURRENT_TAGS, end)
         long_term_current, _ = _resolve_tag_value(gaap, LONG_TERM_DEBT_CURRENT_TAGS, end)
         short_term_borrowings, _ = _resolve_tag_value(gaap, SHORT_TERM_BORROWINGS_TAGS, end)
+        if long_term_noncurrent is None or long_term_current is None or short_term_borrowings is None:
+            flags.append(DEBT_COMPONENT_MISSING_FLAG)
         total_debt = (long_term_noncurrent or 0) + (long_term_current or 0) + (short_term_borrowings or 0)
         net_debt = total_debt - cash
 
@@ -267,6 +270,9 @@ def build_company_record(ticker, raw_companyfacts, max_years=MAX_YEARS, currency
     }
 
 
+# resolve_cik()/fetch_companyfacts() have no retry logic for transient
+# network failures - relevant for cron operation (Issue #9/#10), deliberately
+# not built here in Issue #7.
 def resolve_cik(ticker, user_agent, ticker_map=None):
     """Look up a ticker's 10-digit zero-padded CIK.
 
@@ -300,9 +306,12 @@ def fetch_company_record(ticker, user_agent, max_years=MAX_YEARS, ticker_map=Non
     """Resolve CIK, fetch companyfacts, and map one ticker to an internal-schema record.
 
     Network calls, rate-limited per docs/decisions.md (SEC fair-use) - the
-    delay sits between the CIK lookup and the companyfacts fetch; a caller
-    fetching many tickers is responsible for its own inter-ticker delay
-    and for passing a shared ticker_map to resolve_cik.
+    delay sits between the CIK lookup and the companyfacts fetch for THIS
+    ticker only. Issue #8 (full fetch over 20-30 tickers): the caller must
+    add its own delay BETWEEN tickers and pass a shared, already-fetched
+    ticker_map into resolve_cik instead of re-fetching it per ticker -
+    otherwise 20-30 back-to-back companies risk violating SEC's fair-use
+    policy.
     """
     cik10 = resolve_cik(ticker, user_agent, ticker_map=ticker_map)
     time.sleep(SEC_REQUEST_DELAY_SECONDS)
