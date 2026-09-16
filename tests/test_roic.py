@@ -119,7 +119,52 @@ def test_roic_for_period_guard_on_single_bad_year():
 def test_roic_different_invalid_reasons_are_distinguishable():
     ic_guard_result = roic_3yr_average(load_company("NAKA17")["periods"])
     insufficient_years_result = roic_3yr_average(load_company("ORBT18")["periods"])
+    undefined_tax_rate_result = roic_3yr_average(load_company("DHRM25")["periods"])
 
     assert ic_guard_result.invalid_reason == "ic_non_positive"
     assert insufficient_years_result.invalid_reason == "insufficient_years"
-    assert ic_guard_result.invalid_reason != insufficient_years_result.invalid_reason
+    assert undefined_tax_rate_result.invalid_reason == "undefined_tax_rate"
+    assert len(
+        {ic_guard_result.invalid_reason, insufficient_years_result.invalid_reason, undefined_tax_rate_result.invalid_reason}
+    ) == 3
+
+
+def test_roic_undefined_tax_rate_guard_flags_whole_company():
+    company = load_company("DHRM25")
+    result = roic_3yr_average(company["periods"])
+    assert result.value is None
+    assert result.invalid_reason == "undefined_tax_rate"
+
+    healthy_years = [p for p in company["periods"] if p["fiscal_year"] != 2024]
+    naive_average_of_healthy_years = sum(
+        roic_for_period(**{k: p[k] for k in ("ebit", "tax_rate", "equity", "net_debt")}).value
+        for p in healthy_years
+    ) / len(healthy_years)
+    assert naive_average_of_healthy_years == pytest.approx(0.125, abs=0.001)
+    assert result.value != naive_average_of_healthy_years
+
+
+def test_roic_for_period_guard_on_undefined_tax_rate():
+    company = load_company("DHRM25")
+    periods_by_year = {p["fiscal_year"]: p for p in company["periods"]}
+
+    healthy = periods_by_year[2022]
+    healthy_result = roic_for_period(
+        ebit=healthy["ebit"],
+        tax_rate=healthy["tax_rate"],
+        equity=healthy["equity"],
+        net_debt=healthy["net_debt"],
+    )
+    assert healthy_result.invalid_reason is None
+    assert healthy_result.value == pytest.approx(0.125, abs=0.001)
+
+    bad_year = periods_by_year[2024]
+    assert bad_year["tax_rate"] is None
+    bad_result = roic_for_period(
+        ebit=bad_year["ebit"],
+        tax_rate=bad_year["tax_rate"],
+        equity=bad_year["equity"],
+        net_debt=bad_year["net_debt"],
+    )
+    assert bad_result.value is None
+    assert bad_result.invalid_reason == "undefined_tax_rate"

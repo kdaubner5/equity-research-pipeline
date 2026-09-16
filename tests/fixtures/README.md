@@ -1,6 +1,6 @@
 # Test-Fixtures: Internes Firmen-Feldformat
 
-Die Dateien unter `companies/` sind Dummy-Testdaten für 24 fiktive Firmen (branchendivers), je mit 3 Fiskaljahren (2022–2024), außer wo explizit anders vermerkt (`ORBT18`: nur 2 Jahre). Sie bilden **kein** Provider-Schema (EDGAR, secfinapi, SimFin) ab, sondern ein eigenes internes Format. Die Übersetzung echter Provider-Formate in dieses interne Format passiert später in den `data_layer`-Adaptern.
+Die Dateien unter `companies/` sind Dummy-Testdaten für 25 fiktive Firmen (branchendivers), je mit 3 Fiskaljahren (2022–2024), außer wo explizit anders vermerkt (`ORBT18`: nur 2 Jahre). Sie bilden **kein** Provider-Schema (EDGAR, secfinapi, SimFin) ab, sondern ein eigenes internes Format. Die Übersetzung echter Provider-Formate in dieses interne Format passiert später in den `data_layer`-Adaptern.
 
 Design-Entscheidungen zu einzelnen Kennzahlen (z. B. Grauzonen-Bänder, Stichtag vs. 3-Jahres-Schnitt) stehen in [`docs/decisions.md`](../../docs/decisions.md) — dort zuerst nachsehen, bevor eine Formel implementiert wird.
 
@@ -73,6 +73,14 @@ Zum Vergleich: `PIED09` (Ø ROIC 10,06%) und `INIT10` (Ø ROIC 11,73%) liegen zu
 | `NAKA17` | 2022/2023 gesund (IC 2800/2880, ROIC ~13,6%); 2024 Invested Capital = **-500** (equity=-2500 nach fremdfinanziertem Rückkauf, net_debt=2000) |
 
 Testet den Guard aus [`docs/decisions.md`](../../docs/decisions.md): Invested Capital ≤ 0 in **einem** Jahr flaggt den **gesamten** 3-Jahres-ROIC als ungültig — eine Implementierung, die das schlechte Jahr stattdessen nur aus dem Mittel ausschließt und über die 2 gesunden Jahre mittelt, würde bei `NAKA17` fälschlich einen gültigen Wert (~13,6%) statt eines Flags liefern.
+
+## Undefinierter Steuersatz-Guard (ROIC, Issue #2, Nachtrag)
+
+| company_id | Fall |
+|---|---|
+| `DHRM25` | 2022/2023 gesund (`tax_rate` 0,25, ROIC ~12,5%); 2024 `tax_rate: null` (Vorsteuerergebnis ≤ 0 simuliert — `ebit` bleibt mit 40 positiv, aber der effektive Steuersatz ist für dieses Jahr nicht definierbar) |
+
+Testet den Guard aus [`docs/decisions.md`](../../docs/decisions.md): `tax_rate = None` in **einem** Jahr liefert `invalid_reason="undefined_tax_rate"` für den **gesamten** 3-Jahres-ROIC, unterscheidbar vom `ic_non_positive`-Guard bei `NAKA17` — beide flaggen die ganze Firma, aber aus unabhängigen Gründen (Zähler vs. Nenner von NOPAT/Invested Capital).
 
 ## Weniger als 3 Fiskaljahre (ROIC, Issue #2)
 

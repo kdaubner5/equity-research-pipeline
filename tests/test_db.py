@@ -14,7 +14,7 @@ from store_layer.db import export_survivors_csv, init_db, save_run_results
 
 
 def _simulated_run_gate_results():
-    """Gate results for all 24 fixtures - the simulated run's input, per Issue #6."""
+    """Gate results for all fixtures - the simulated run's input, per Issue #6."""
     gate_results = {}
     for company_id in all_company_ids():
         periods = load_company(company_id)["periods"]
