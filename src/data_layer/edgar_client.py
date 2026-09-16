@@ -153,6 +153,10 @@ def _anchor_period_ends(gaap, max_years):
     company with a non-calendar fiscal year end (e.g. FOSL's FY2025 ending
     2026-01-03) would otherwise be mislabeled by its end date's calendar
     year.
+
+    Raises EdgarMappingError (instead of a bare TypeError from min()) if
+    any duplicate point at a period end has fy=None - not observed in the
+    4 pilot tickers, but not guaranteed by SEC's schema either.
     """
     facts = gaap.get(EBIT_TAGS[0])
     if facts is None:
@@ -161,7 +165,13 @@ def _anchor_period_ends(gaap, max_years):
     if not raw:
         raise EdgarMappingError(f"anchor tag {EBIT_TAGS[0]!r} has no annual (10-K/FY) data points")
     ends_desc = sorted(raw.keys(), reverse=True)[:max_years]
-    return [(end, min(p["fy"] for p in raw[end])) for end in sorted(ends_desc)]
+    period_ends = []
+    for end in sorted(ends_desc):
+        fiscal_years = [p["fy"] for p in raw[end]]
+        if any(fy is None for fy in fiscal_years):
+            raise EdgarMappingError(f"anchor tag {EBIT_TAGS[0]!r} has a data point with fy=None at period end {end}")
+        period_ends.append((end, min(fiscal_years)))
+    return period_ends
 
 
 def map_companyfacts_to_periods(raw_companyfacts, max_years=MAX_YEARS):
@@ -260,7 +270,16 @@ def build_company_record(ticker, raw_companyfacts, max_years=MAX_YEARS, currency
     sector is left as None - EDGAR's SIC codes are explicitly rejected as
     a classification source (docs/masterplan.md §4), and no replacement
     (NAICS/price-feed sector) is wired up yet.
+
+    Only "USD" is supported: every tag lookup in this module reads the
+    "USD" unit unconditionally, and docs/masterplan.md scopes this project
+    to US tickers with no non-USD data source or conversion. Passing any
+    other currency previously produced USD-denominated figures silently
+    mislabeled with the requested currency; it now raises explicitly
+    instead.
     """
+    if currency != "USD":
+        raise EdgarMappingError(f"unsupported currency {currency!r} - only USD is supported")
     return {
         "company_id": ticker,
         "name": raw_companyfacts.get("entityName", ticker),

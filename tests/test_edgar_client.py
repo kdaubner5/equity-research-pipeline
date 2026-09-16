@@ -221,6 +221,34 @@ def test_missing_anchor_tag_raises_mapping_error():
         map_companyfacts_to_periods(_minimal_companyfacts({}))
 
 
+def test_build_company_record_rejects_non_usd_currency():
+    # No non-USD data source or conversion exists (docs/masterplan.md scopes
+    # this to US tickers) - every tag lookup reads the "USD" unit
+    # unconditionally, so a non-"USD" currency argument must fail loudly
+    # rather than silently mislabel USD figures with the wrong currency.
+    with pytest.raises(EdgarMappingError):
+        build_company_record("MOV", _load_raw("MOV"), currency="EUR")
+
+
+def test_anchor_tag_duplicate_with_fy_none_raises_mapping_error():
+    # SEC's schema does not guarantee every duplicate point carries a `fy`
+    # value - no pilot ticker shows this, so a synthetic minimal
+    # companyfacts dict exercises it: a fy=None duplicate must raise
+    # EdgarMappingError, not a bare TypeError out of min().
+    tags = {
+        "OperatingIncomeLoss": {
+            "units": {
+                "USD": [
+                    _usd_fact(100, "2024-12-31", "2024-01-01", fy=2024),
+                    _usd_fact(100, "2024-12-31", "2024-01-01", fy=None, filed="2025-06-01"),
+                ]
+            }
+        },
+    }
+    with pytest.raises(EdgarMappingError):
+        map_companyfacts_to_periods(_minimal_companyfacts(tags), max_years=1)
+
+
 def test_missing_non_defaultable_concept_raises_mapping_error():
     # EBIT present, but nothing else - every non-debt concept has no
     # accepted "missing = 0" default (unlike the 3 debt components).
