@@ -4,7 +4,14 @@ from metrics_layer.result import MetricInputError, MetricResult
 
 
 def net_debt_ebitda_for_period(net_debt, ebitda):
-    """Net Debt/EBITDA for a single fiscal year."""
+    """Net Debt/EBITDA for a single fiscal year.
+
+    net_debt=None is the sentinel for "unreliable" (per docs/decisions.md,
+    Net-Debt-Zuverlässigkeits-Guard). Checked before the ebitda guard, same
+    precedence rationale as roic_for_period's tax_rate check.
+    """
+    if net_debt is None:
+        return MetricResult(value=None, invalid_reason="net_debt_unreliable")
     if ebitda <= 0:
         return MetricResult(value=None, invalid_reason="ebitda_non_positive")
     return MetricResult(value=net_debt / ebitda)

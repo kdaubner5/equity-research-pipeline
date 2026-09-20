@@ -10,9 +10,18 @@ def roic_for_period(ebit, tax_rate, equity, net_debt):
     this year, per docs/decisions.md) - guarded before the NOPAT
     calculation even touches ebit, since there is no meaningful rate to
     apply, not even 0 or an estimate.
+
+    net_debt=None is the sentinel for "unreliable" (per docs/decisions.md,
+    Net-Debt-Zuverlässigkeits-Guard) - a data_layer adapter sets this when
+    a debt figure contradicts another statement rather than merely being
+    absent (unlike a plain missing value, which would default elsewhere).
+    Guarded before invested_capital is computed, same reason as the
+    tax_rate check: equity + None would otherwise raise a bare TypeError.
     """
     if tax_rate is None:
         return MetricResult(value=None, invalid_reason="undefined_tax_rate")
+    if net_debt is None:
+        return MetricResult(value=None, invalid_reason="net_debt_unreliable")
     invested_capital = equity + net_debt
     if invested_capital <= 0:
         return MetricResult(value=None, invalid_reason="ic_non_positive")
@@ -24,9 +33,10 @@ def roic_3yr_average(periods):
     """3-year ROIC: mean of the three independently computed yearly ROICs.
 
     Invalid (fewer than 3 periods, e.g. recent IPO; invested capital <= 0;
-    or an undefined tax_rate, i.e. pretax income <= 0, in any of the three
-    periods) flags the whole 3-year value - never averaged over fewer
-    years, extrapolated, or computed with the bad year excluded.
+    an undefined tax_rate, i.e. pretax income <= 0; or an unreliable
+    net_debt, in any of the three periods) flags the whole 3-year value -
+    never averaged over fewer years, extrapolated, or computed with the
+    bad year excluded.
 
     Raises MetricInputError if given more than 3 periods, or if any two
     periods share the same fiscal_year - regardless of period count (this

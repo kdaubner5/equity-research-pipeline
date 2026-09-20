@@ -1,6 +1,6 @@
 # Test-Fixtures: Internes Firmen-Feldformat
 
-Die Dateien unter `companies/` sind Dummy-Testdaten für 25 fiktive Firmen (branchendivers), je mit 3 Fiskaljahren (2022–2024), außer wo explizit anders vermerkt (`ORBT18`: nur 2 Jahre). Sie bilden **kein** Provider-Schema (EDGAR, secfinapi, SimFin) ab, sondern ein eigenes internes Format. Die Übersetzung echter Provider-Formate in dieses interne Format passiert später in den `data_layer`-Adaptern.
+Die Dateien unter `companies/` sind Dummy-Testdaten für 27 fiktive Firmen (branchendivers), je mit 3 Fiskaljahren (2022–2024), außer wo explizit anders vermerkt (`ORBT18`: nur 2 Jahre). Sie bilden **kein** Provider-Schema (EDGAR, secfinapi, SimFin) ab, sondern ein eigenes internes Format. Die Übersetzung echter Provider-Formate in dieses interne Format passiert später in den `data_layer`-Adaptern.
 
 Design-Entscheidungen zu einzelnen Kennzahlen (z. B. Grauzonen-Bänder, Stichtag vs. 3-Jahres-Schnitt) stehen in [`docs/decisions.md`](../../docs/decisions.md) — dort zuerst nachsehen, bevor eine Formel implementiert wird.
 
@@ -97,6 +97,15 @@ Testet den Guard aus [`docs/decisions.md`](../../docs/decisions.md): Weniger als
 | `WEYL19` | 2022/2023 gesund (EBITDA 520/180); 2024 (Stichtagsjahr) **EBITDA = -180** nach Wertminderung/Restrukturierung. Invested Capital bleibt 2024 positiv (2600), isoliert also nur den EBITDA-Guard, ohne den ROIC-IC-Guard mit auszulösen |
 
 Testet den Guard aus [`docs/decisions.md`](../../docs/decisions.md): EBITDA ≤ 0 in der Stichtags-Periode (letztes Fiskaljahr) liefert `MetricResult(value=None, invalid_reason="ebitda_non_positive")` statt einer sinnlosen Division.
+
+## Net-Debt-Zuverlässigkeits-Guard (ROIC + Net Debt/EBITDA, `fix-net-debt-reliability-guard`)
+
+| company_id | Fall |
+|---|---|
+| `MURK26` | 2022/2023 gesund (`net_debt` 800/780); 2024 (zugleich Stichtagsjahr **und** letztes der 3 ROIC-Jahre) `net_debt: null` |
+| `FOGG27` | 2022 (ältestes der 3 ROIC-Jahre, **nicht** Stichtagsjahr) `net_debt: null`; 2023/2024 gesund (`net_debt` 780/800) |
+
+Testet den Guard aus [`docs/decisions.md`](../../docs/decisions.md): `net_debt = None` liefert `invalid_reason="net_debt_unreliable"` in beiden Metriken, aber mit unterschiedlicher Zeitfenster-Wirkung. `MURK26` isoliert den Fall, in dem das betroffene Jahr sowohl für ROIC (eines der 3 Jahre) als auch für Net Debt/EBITDA (Stichtag) relevant ist — beide Metriken werden geflaggt. `FOGG27` ist der eigentliche Unterscheidungs-Testfall: Das betroffene Jahr (2022) ist zwar eines der 3 ROIC-Jahre (ROIC wird geflaggt, analog zu `NAKA17`/`DHRM25` — ein einzelnes schlechtes Jahr disqualifiziert den gesamten 3-Jahres-Schnitt), aber **nicht** das Stichtagsjahr von Net Debt/EBITDA (2024 bleibt unberührt und liefert einen gültigen Wert) — dieselbe Stichtag-Isolierung, die `TYRL16` bereits für einen schlechten (nicht unzuverlässigen) älteren Wert demonstriert.
 
 ## Grauzone (Cash Conversion, Issue #4)
 
