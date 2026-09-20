@@ -96,9 +96,7 @@ def test_net_debt_ebitda_zero_is_not_treated_as_unreliable():
 def test_net_debt_ebitda_unreliable_takes_precedence_over_ebitda_guard():
     # Pins down guard ordering per docs/decisions.md ("Guard-Reihenfolge"):
     # net_debt is checked before ebitda, so when both conditions hold at
-    # once, "net_debt_unreliable" wins over "ebitda_non_positive" - mirrors
-    # test_roic_for_period_undefined_tax_rate_takes_precedence_over_ic_guard
-    # in test_roic.py for the analogous ROIC-side ordering.
+    # once, "net_debt_unreliable" wins over "ebitda_non_positive".
     result = net_debt_ebitda_for_period(net_debt=None, ebitda=-100)
     assert result.value is None
     assert result.invalid_reason == "net_debt_unreliable"
