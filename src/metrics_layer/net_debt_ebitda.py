@@ -7,8 +7,9 @@ def net_debt_ebitda_for_period(net_debt, ebitda):
     """Net Debt/EBITDA for a single fiscal year.
 
     net_debt=None is the sentinel for "unreliable" (per docs/decisions.md,
-    Net-Debt-Zuverlässigkeits-Guard). Checked before the ebitda guard, same
-    precedence rationale as roic_for_period's tax_rate check.
+    Net-Debt-Zuverlässigkeits-Guard). Checked before the ebitda guard -
+    data availability of net_debt itself is more fundamental than an
+    already-computable threshold guard on a different input.
     """
     if net_debt is None:
         return MetricResult(value=None, invalid_reason="net_debt_unreliable")

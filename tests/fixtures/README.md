@@ -1,6 +1,6 @@
 # Test-Fixtures: Internes Firmen-Feldformat
 
-Die Dateien unter `companies/` sind Dummy-Testdaten für 27 fiktive Firmen (branchendivers), je mit 3 Fiskaljahren (2022–2024), außer wo explizit anders vermerkt (`ORBT18`: nur 2 Jahre). Sie bilden **kein** Provider-Schema (EDGAR, secfinapi, SimFin) ab, sondern ein eigenes internes Format. Die Übersetzung echter Provider-Formate in dieses interne Format passiert später in den `data_layer`-Adaptern.
+Die Dateien unter `companies/` sind Dummy-Testdaten für 26 fiktive Firmen (branchendivers), je mit 3 Fiskaljahren (2022–2024), außer wo explizit anders vermerkt (`ORBT18`: nur 2 Jahre). Sie bilden **kein** Provider-Schema (EDGAR, secfinapi, SimFin) ab, sondern ein eigenes internes Format. Die Übersetzung echter Provider-Formate in dieses interne Format passiert später in den `data_layer`-Adaptern.
 
 Design-Entscheidungen zu einzelnen Kennzahlen (z. B. Grauzonen-Bänder, Stichtag vs. 3-Jahres-Schnitt) stehen in [`docs/decisions.md`](../../docs/decisions.md) — dort zuerst nachsehen, bevor eine Formel implementiert wird.
 
@@ -49,12 +49,12 @@ ROIC bleibt 3-Jahres-Schnitt, Grauzone 10–12%. Net Debt/EBITDA ist laut [`docs
 
 | company_id | ROIC (3-Jahres-Schnitt) | Net Debt/EBITDA (Stichtag 2024) | Fall |
 |---|---|---|---|
-| `APRT11` | ~11,1% (jedes Jahr 10,98–11,24%) | ~0,7x (gesund) | ROIC-Grauzone isoliert |
-| `GEKO12` | ~18,0% (gesund) | exakt 2,50x | Net-Debt/EBITDA harte Schwelle isoliert (durchgefallen) |
-| `BLKW13` | ~11,0% (jedes Jahr ~11%) | 2,40x | beide Grauzonen gleichzeitig (beide: Flag) |
-| `VULC14` | ~16,0% (gesund) | exakt 2,30x | Net-Debt/EBITDA untere Bandgrenze isoliert (Flag, nicht "bestanden") |
-| `CYBR15` | ~15,0% (gesund) | exakt 2,60x | knapp oberhalb der harten Schwelle isoliert (klar durchgefallen) |
-| `TYRL16` | ~13,0% (gesund, alle 3 Jahre) | 2022: 3,5x · 2023: 3,0x · 2024: **1,0x** | Stichtag-vs-Schnitt-Testfall (siehe unten) |
+| `APRT11` | ~11,0% (jedes Jahr 10,98–11,09%) | ~0,7x (gesund) | ROIC-Grauzone isoliert |
+| `GEKO12` | ~17,3% (gesund) | exakt 2,50x | Net-Debt/EBITDA harte Schwelle isoliert (durchgefallen) |
+| `BLKW13` | ~11,0% (jedes Jahr 10,85–11,00%) | 2,40x | beide Grauzonen gleichzeitig (beide: Flag) |
+| `VULC14` | ~15,5% (gesund) | exakt 2,30x | Net-Debt/EBITDA untere Bandgrenze isoliert (Flag, nicht "bestanden") |
+| `CYBR15` | ~14,4% (gesund) | exakt 2,60x | knapp oberhalb der harten Schwelle isoliert (klar durchgefallen) |
+| `TYRL16` | ~12,8% (gesund, alle 3 Jahre) | 2022: 3,5x · 2023: 3,0x · 2024: **1,0x** | Stichtag-vs-Schnitt-Testfall (siehe unten) |
 | `INGN23` | exakt 12,0% (jedes Jahr exakt 12,0%) | 0,50x (gesund) | ROIC obere Grauzonen-Grenze isoliert (Flag, nicht "sauber bestanden" — Schwelle ist `x > 12%`); Cash Conversion (3-Jahres-Schnitt ~1,29) ebenfalls gesund |
 | `SIRI24` | exakt 10,0% (jedes Jahr exakt 10,0%) | 0,50x (gesund) | ROIC untere Grauzonen-Grenze isoliert (Flag, nicht "durchgefallen" — Schwelle ist `x < 10%`); Cash Conversion (3-Jahres-Schnitt ~1,28) ebenfalls gesund |
 
@@ -62,9 +62,9 @@ ROIC bleibt 3-Jahres-Schnitt, Grauzone 10–12%. Net Debt/EBITDA ist laut [`docs
 
 ### Stichtag- vs. Durchschnitts-Testfall: `TYRL16`
 
-`TYRL16` hat in 2022/2023 ein Net Debt/EBITDA weit über der Schwelle (3,5x / 3,0x), im aktuellsten Jahr 2024 aber klar gesund (1,0x) — z. B. nach Entschuldung. Eine korrekte Stichtag-Implementierung (nur Jahr t = 2024) liefert **bestanden, kein Flag**. Eine fälschlich mittelnde Implementierung würde `(3,5 + 3,0 + 1,0) / 3 = 2,5` berechnen und **durchgefallen** ausgeben — ein stark abweichendes, leicht testbares Fehlverhalten. ROIC ist in `TYRL16` bewusst über alle 3 Jahre konstant gesund (~13 %), damit die ROIC-Dimension das Testergebnis nicht verwässert.
+`TYRL16` hat in 2022/2023 ein Net Debt/EBITDA weit über der Schwelle (3,5x / 3,0x), im aktuellsten Jahr 2024 aber klar gesund (1,0x) — z. B. nach Entschuldung. Eine korrekte Stichtag-Implementierung (nur Jahr t = 2024) liefert **bestanden, kein Flag**. Eine fälschlich mittelnde Implementierung würde `(3,5 + 3,0 + 1,0) / 3 = 2,5` berechnen und **durchgefallen** ausgeben — ein stark abweichendes, leicht testbares Fehlverhalten. ROIC ist in `TYRL16` bewusst über alle 3 Jahre konstant gesund (~12,8 %), damit die ROIC-Dimension das Testergebnis nicht verwässert.
 
-Zum Vergleich: `PIED09` (Ø ROIC 10,06%) und `INIT10` (Ø ROIC 11,73%) liegen zufällig ebenfalls nahe der ROIC-Grauzone, wurden aber nicht gezielt dafür konstruiert und sind auf keiner anderen Dimension kontrolliert — für belastbare Gates-Layer-Tests die oben gelisteten Fixtures verwenden.
+Zum Vergleich: `PIED09` (Ø ROIC 9,76%) und `INIT10` (Ø ROIC 11,83%) liegen zufällig ebenfalls nahe der ROIC-Grauzone, wurden aber nicht gezielt dafür konstruiert und sind auf keiner anderen Dimension kontrolliert — für belastbare Gates-Layer-Tests die oben gelisteten Fixtures verwenden.
 
 ## Invested-Capital≤0-Guard (ROIC, Issue #2)
 
@@ -73,14 +73,6 @@ Zum Vergleich: `PIED09` (Ø ROIC 10,06%) und `INIT10` (Ø ROIC 11,73%) liegen zu
 | `NAKA17` | 2022/2023 gesund (IC 2800/2880, ROIC ~13,6%); 2024 Invested Capital = **-500** (equity=-2500 nach fremdfinanziertem Rückkauf, net_debt=2000) |
 
 Testet den Guard aus [`docs/decisions.md`](../../docs/decisions.md): Invested Capital ≤ 0 in **einem** Jahr flaggt den **gesamten** 3-Jahres-ROIC als ungültig — eine Implementierung, die das schlechte Jahr stattdessen nur aus dem Mittel ausschließt und über die 2 gesunden Jahre mittelt, würde bei `NAKA17` fälschlich einen gültigen Wert (~13,6%) statt eines Flags liefern.
-
-## Undefinierter Steuersatz-Guard (ROIC, Issue #2, Nachtrag)
-
-| company_id | Fall |
-|---|---|
-| `DHRM25` | 2022/2023 gesund (`tax_rate` 0,25, ROIC ~12,5%); 2024 `tax_rate: null` (Vorsteuerergebnis ≤ 0 simuliert — `ebit` bleibt mit 40 positiv, aber der effektive Steuersatz ist für dieses Jahr nicht definierbar) |
-
-Testet den Guard aus [`docs/decisions.md`](../../docs/decisions.md): `tax_rate = None` in **einem** Jahr liefert `invalid_reason="undefined_tax_rate"` für den **gesamten** 3-Jahres-ROIC, unterscheidbar vom `ic_non_positive`-Guard bei `NAKA17` — beide flaggen die ganze Firma, aber aus unabhängigen Gründen (Zähler vs. Nenner von NOPAT/Invested Capital).
 
 ## Weniger als 3 Fiskaljahre (ROIC, Issue #2)
 
@@ -105,7 +97,7 @@ Testet den Guard aus [`docs/decisions.md`](../../docs/decisions.md): EBITDA ≤ 
 | `MURK26` | 2022/2023 gesund (`net_debt` 800/780); 2024 (zugleich Stichtagsjahr **und** letztes der 3 ROIC-Jahre) `net_debt: null` |
 | `FOGG27` | 2022 (ältestes der 3 ROIC-Jahre, **nicht** Stichtagsjahr) `net_debt: null`; 2023/2024 gesund (`net_debt` 780/800) |
 
-Testet den Guard aus [`docs/decisions.md`](../../docs/decisions.md): `net_debt = None` liefert `invalid_reason="net_debt_unreliable"` in beiden Metriken, aber mit unterschiedlicher Zeitfenster-Wirkung. `MURK26` isoliert den Fall, in dem das betroffene Jahr sowohl für ROIC (eines der 3 Jahre) als auch für Net Debt/EBITDA (Stichtag) relevant ist — beide Metriken werden geflaggt. `FOGG27` ist der eigentliche Unterscheidungs-Testfall: Das betroffene Jahr (2022) ist zwar eines der 3 ROIC-Jahre (ROIC wird geflaggt, analog zu `NAKA17`/`DHRM25` — ein einzelnes schlechtes Jahr disqualifiziert den gesamten 3-Jahres-Schnitt), aber **nicht** das Stichtagsjahr von Net Debt/EBITDA (2024 bleibt unberührt und liefert einen gültigen Wert) — dieselbe Stichtag-Isolierung, die `TYRL16` bereits für einen schlechten (nicht unzuverlässigen) älteren Wert demonstriert.
+Testet den Guard aus [`docs/decisions.md`](../../docs/decisions.md): `net_debt = None` liefert `invalid_reason="net_debt_unreliable"` in beiden Metriken, aber mit unterschiedlicher Zeitfenster-Wirkung. `MURK26` isoliert den Fall, in dem das betroffene Jahr sowohl für ROIC (eines der 3 Jahre) als auch für Net Debt/EBITDA (Stichtag) relevant ist — beide Metriken werden geflaggt. `FOGG27` ist der eigentliche Unterscheidungs-Testfall: Das betroffene Jahr (2022) ist zwar eines der 3 ROIC-Jahre (ROIC wird geflaggt, analog zu `NAKA17` — ein einzelnes schlechtes Jahr disqualifiziert den gesamten 3-Jahres-Schnitt), aber **nicht** das Stichtagsjahr von Net Debt/EBITDA (2024 bleibt unberührt und liefert einen gültigen Wert) — dieselbe Stichtag-Isolierung, die `TYRL16` bereits für einen schlechten (nicht unzuverlässigen) älteren Wert demonstriert.
 
 ## Grauzone (Cash Conversion, Issue #4)
 

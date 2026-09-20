@@ -181,8 +181,10 @@ def map_companyfacts_to_periods(raw_companyfacts, max_years=MAX_YEARS):
     testable directly against tests/fixtures/edgar_raw/*.json. Applies the
     tag-fallback rules from docs/decisions.md: missing debt-component tags
     default to 0 and set data_quality_flags (not an error - Entscheidung 5),
-    pretax income <= 0 yields tax_rate=None (triggers metrics_layer's
-    undefined_tax_rate guard), and falling back to a lower-priority tag for
+    pretax income <= 0 yields tax_rate=None (an informational schema field -
+    metrics_layer/roic.py no longer consumes tax_rate at all as of
+    masterplan v1.1's fixed-rate NOPAT, docs/decisions.md "Masterplan v1.1
+    uebernommen"), and falling back to a lower-priority tag for
     D&A/NetIncome/Revenue sets the matching data_quality_flags entry.
 
     Raises EdgarMappingError if a concept with no accepted "missing = 0"
