@@ -22,7 +22,7 @@ def test_evaluate_stage1_gates_clean_pass():
     assert result.status == "passed"
     assert result.flags == ()
     assert result.invalid_reasons == ()
-    assert result.roic == pytest.approx(0.1367, abs=0.001)
+    assert result.roic == pytest.approx(0.1343, abs=0.001)
     assert result.net_debt_ebitda == pytest.approx(800 / 790, abs=0.001)
     assert result.cash_conversion == pytest.approx(1.6386, abs=0.001)
 
@@ -30,7 +30,7 @@ def test_evaluate_stage1_gates_clean_pass():
 @pytest.mark.parametrize(
     "company_id,expected_flags",
     [
-        ("APRT11", ("roic",)),  # ROIC grey zone (~11.07%), other two clean pass
+        ("APRT11", ("roic",)),  # ROIC grey zone (~11.02%), other two clean pass
         ("SPCL20", ("cash_conversion",)),  # Cash Conversion grey zone (0.90)
         ("VULC14", ("net_debt_ebitda",)),  # Net Debt/EBITDA lower grey-zone boundary (2.30x)
         ("OSCP21", ("cash_conversion",)),  # Cash Conversion lower grey-zone boundary (0.80)
@@ -49,7 +49,7 @@ def test_evaluate_stage1_gates_two_flags_simultaneously():
     assert result.status == "passed_with_flags"
     assert result.flags == ("roic", "net_debt_ebitda")
     assert result.invalid_reasons == ()
-    assert result.roic == pytest.approx(0.1100, abs=0.001)
+    assert result.roic == pytest.approx(0.1095, abs=0.001)
     assert result.net_debt_ebitda == pytest.approx(2.40, abs=0.001)
     assert result.cash_conversion == pytest.approx(1.43, abs=0.01)
 
@@ -110,7 +110,6 @@ def test_evaluate_stage1_gates_point_in_time_not_averaged():
         ("ORBT18", "insufficient_years"),
         ("WEYL19", "ebitda_non_positive"),
         ("MDYN06", "ni_non_positive"),
-        ("DHRM25", "undefined_tax_rate"),
         ("MURK26", "net_debt_unreliable"),
     ],
 )

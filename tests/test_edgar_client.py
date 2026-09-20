@@ -13,7 +13,6 @@ from data_layer.edgar_client import (
     build_company_record,
     map_companyfacts_to_periods,
 )
-from metrics_layer.roic import roic_for_period
 
 EDGAR_RAW_DIR = Path(__file__).parent / "fixtures" / "edgar_raw"
 
@@ -66,23 +65,16 @@ def test_fiscal_year_uses_companys_own_fy_label_not_end_date_calendar_year():
 
 
 def test_tax_rate_undefined_when_pretax_income_non_positive():
-    # LAKE has 1 healthy year and 2 years with negative pretax income
-    # (mirrors the ROIC guard's fixture shape, but from real EDGAR data).
+    # LAKE has 1 healthy year and 2 years with negative pretax income. The
+    # tax_rate field itself is still computed this way (schema field,
+    # informational) even though metrics_layer/roic.py no longer consumes
+    # it for NOPAT (masterplan v1.1: fixed 25% rate, docs/decisions.md
+    # "Masterplan v1.1 uebernommen") - this test covers only the data_layer
+    # computation, not a metrics_layer guard.
     periods = {p["fiscal_year"]: p for p in map_companyfacts_to_periods(_load_raw("LAKE"))}
     assert periods[2024]["tax_rate"] is not None
     assert periods[2025]["tax_rate"] is None
     assert periods[2026]["tax_rate"] is None
-
-    # confirm this actually flows into the Branch 1 guard, not just a
-    # coincidentally-None field the metrics layer never sees
-    result = roic_for_period(
-        ebit=periods[2025]["ebit"],
-        tax_rate=periods[2025]["tax_rate"],
-        equity=periods[2025]["equity"],
-        net_debt=periods[2025]["net_debt"],
-    )
-    assert result.value is None
-    assert result.invalid_reason == "undefined_tax_rate"
 
 
 def test_da_falls_back_to_depreciation_and_flags_it_as_incomplete():
