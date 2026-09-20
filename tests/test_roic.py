@@ -131,9 +131,8 @@ def test_roic_different_invalid_reasons_are_distinguishable():
 
 def test_roic_net_debt_unreliable_guard_flags_whole_company():
     # MURK26: net_debt=None in 2024, which is both the last of the 3 ROIC
-    # years and (separately) the Net-Debt/EBITDA stichtag year - see
-    # test_net_debt_ebitda.py for the matching Net-Debt/EBITDA-side test on
-    # the same fixture.
+    # years and (separately) the Net-Debt/EBITDA stichtag year - Net
+    # Debt/EBITDA is flagged too for this fixture (see test_net_debt_ebitda.py).
     company = load_company("MURK26")
     result = roic_3yr_average(company["periods"])
     assert result.value is None
@@ -150,13 +149,12 @@ def test_roic_net_debt_unreliable_guard_flags_whole_company():
 
 def test_roic_net_debt_unreliable_flags_whole_company_even_in_an_older_year():
     # FOGG27: net_debt=None in 2022 (the OLDEST of the 3 years, not the
-    # Net-Debt/EBITDA stichtag) - unlike Net-Debt/EBITDA (a point-in-time
-    # metric that only looks at the latest year, see
-    # test_net_debt_ebitda_unaffected_by_unreliable_net_debt_in_an_older_year
-    # in test_net_debt_ebitda.py), ROIC's 3-year average is flagged by an
+    # Net-Debt/EBITDA stichtag). ROIC's 3-year average is flagged by an
     # unreliable net_debt in ANY of its 3 years, regardless of position -
     # same "one bad year disqualifies the whole average" rule as
-    # ic_non_positive (NAKA17) and undefined_tax_rate (DHRM25).
+    # ic_non_positive (NAKA17) and undefined_tax_rate (DHRM25). Contrast
+    # with Net Debt/EBITDA on this same fixture in test_net_debt_ebitda.py,
+    # which stays valid since its stichtag logic only looks at 2024.
     company = load_company("FOGG27")
     result = roic_3yr_average(company["periods"])
     assert result.value is None
@@ -202,10 +200,21 @@ def test_roic_normal_net_debt_is_not_treated_as_unreliable():
     # ordinary numeric net_debt (the "under 10%" informational-flag case
     # per docs/decisions.md, where a data_layer adapter keeps the real
     # value instead of substituting None) must compute exactly as before -
-    # the new guard must not misfire on a real number.
-    result = roic_for_period(ebit=500, tax_rate=0.25, equity=2000, net_debt=800)
+    # the new guard must not misfire on a real number. Uses values distinct
+    # from MURK26/FOGG27's healthy years so this doesn't just re-assert an
+    # already-covered case.
+    result = roic_for_period(ebit=1000, tax_rate=0.30, equity=5000, net_debt=1500)
     assert result.invalid_reason is None
-    assert result.value == pytest.approx(0.1339, abs=0.001)
+    assert result.value == pytest.approx(0.1077, abs=0.001)
+
+
+def test_roic_net_debt_zero_is_not_treated_as_unreliable():
+    # net_debt=0 (a genuine net-cash position, e.g. GLBX02-style) must be
+    # distinguished from the net_debt_unreliable sentinel - the guard uses
+    # "is None", not truthiness, so a falsy-but-valid 0 must pass through.
+    result = roic_for_period(ebit=500, tax_rate=0.25, equity=2000, net_debt=0)
+    assert result.invalid_reason is None
+    assert result.value == pytest.approx(0.1875, abs=0.001)
 
 
 def test_roic_for_period_undefined_tax_rate_takes_precedence_over_ic_guard():

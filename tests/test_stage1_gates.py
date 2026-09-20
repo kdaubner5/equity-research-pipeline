@@ -111,6 +111,7 @@ def test_evaluate_stage1_gates_point_in_time_not_averaged():
         ("WEYL19", "ebitda_non_positive"),
         ("MDYN06", "ni_non_positive"),
         ("DHRM25", "undefined_tax_rate"),
+        ("MURK26", "net_debt_unreliable"),
     ],
 )
 def test_evaluate_stage1_gates_not_evaluable(company_id, expected_reason):
