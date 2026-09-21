@@ -110,6 +110,10 @@ def test_kelya_all_years_dropped_returns_empty_periods_not_error():
     [
         ("USNA", 2025, None),  # ratio 9,000,000/83,424,000 = 10.79% >= 10%
         ("CATO", 2020, None),  # EBITDA = -79,249,000 + 14,681,000 = -64,568,000 <= 0
+        ("ROCK", 2023, None),  # ratio 91,000,000/142,476,000 = 63.87% - well above 10%
+        ("UFPT", 2023, None),  # ratio 23,063,000/72,743,000 = 31.70%
+        ("UFPT", 2024, None),  # ratio 157,302,000/99,190,000 = 158.58%
+        ("UFPT", 2025, None),  # ratio 53,983,000/112,121,000 = 48.15%
     ],
 )
 def test_net_debt_unreliable_fires_at_or_above_10_percent_or_non_positive_ebitda(
@@ -125,6 +129,8 @@ def test_net_debt_unreliable_fires_at_or_above_10_percent_or_non_positive_ebitda
     "ticker,fiscal_year,expected_net_debt",
     [
         ("MATW", 2023, 748_079_000),  # ratio 18,224,000/184,647,000 = 9.87% - just under 10%
+        ("CENT", 2023, 699_473_000),  # ratio 338,000/298,346,000 = 0.11%
+        ("CENT", 2024, 436_498_000),  # ratio 370,000/276,194,000 = 0.13%
         ("CENT", 2025, 309_215_000),  # ratio 231,000/334,936,000 = 0.07% - clearly under
     ],
 )
@@ -162,6 +168,18 @@ def test_lake_and_culp_fy2024_are_not_actually_under_10_percent_examples(ticker,
     period = periods[fiscal_year]
     assert period["net_debt"] is None
     assert NET_DEBT_UNRELIABLE_FLAG in period["data_quality_flags"]
+
+
+def test_lake_every_year_inside_the_3_year_window_is_net_debt_unreliable():
+    # LAKE's window is FY2023-2025 (its own 3 most recent EBIT-having
+    # years); none of the three is under the 10% threshold (22.1% / 333.3% /
+    # EBITDA <= 0). LAKE's <10% ratios exist only in FY2019-2022, which the
+    # adapter never evaluates - outside the window, not an exception to it.
+    periods = map_simfin_to_periods(_load_raw("LAKE"))
+    assert [p["fiscal_year"] for p in periods] == [2023, 2024, 2025]
+    for period in periods:
+        assert period["net_debt"] is None
+        assert NET_DEBT_UNRELIABLE_FLAG in period["data_quality_flags"]
 
 
 def test_debt_component_missing_defaults_to_zero_and_flags_it():
