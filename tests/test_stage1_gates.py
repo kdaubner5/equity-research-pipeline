@@ -1,8 +1,9 @@
 import pytest
 
 from conftest import load_company
-from metrics_layer.cash_conversion import cash_conversion_3yr_average
+from metrics_layer.cash_conversion import cash_conversion_3yr_average, net_income_margin_3yr_average
 from metrics_layer.net_debt_ebitda import net_debt_ebitda_latest
+from metrics_layer.result import MetricResult
 from metrics_layer.roic import roic_3yr_average
 from gates_layer.stage1_gates import evaluate_stage1_gates, rank_companies
 
@@ -14,6 +15,7 @@ def _gate_result_for(company_id):
         roic=roic_3yr_average(periods),
         net_debt_ebitda=net_debt_ebitda_latest(periods),
         cash_conversion=cash_conversion_3yr_average(periods),
+        net_income_margin=net_income_margin_3yr_average(periods),
     )
 
 
@@ -111,6 +113,7 @@ def test_evaluate_stage1_gates_point_in_time_not_averaged():
         ("WEYL19", "ebitda_non_positive"),
         ("MDYN06", "ni_non_positive"),
         ("MURK26", "net_debt_unreliable"),
+        ("VOID32", "revenue_non_positive"),
     ],
 )
 def test_evaluate_stage1_gates_not_evaluable(company_id, expected_reason):
@@ -118,6 +121,79 @@ def test_evaluate_stage1_gates_not_evaluable(company_id, expected_reason):
     assert result.status == "not_evaluable"
     assert result.flags == ()
     assert expected_reason in result.invalid_reasons
+
+
+def test_evaluate_stage1_gates_margin_boundary_exactly_2_percent_passes():
+    # EDGE30: net_income_margin exactly 2.0% every year - the >=2% threshold
+    # is inclusive, so the exact boundary is a clean pass, not a failure.
+    # Other three criteria are all clean pass too, isolating this boundary.
+    result = _gate_result_for("EDGE30")
+    assert result.status == "passed"
+    assert result.flags == ()
+    assert result.invalid_reasons == ()
+    assert result.net_income_margin == pytest.approx(0.02, abs=0.0001)
+
+
+def test_evaluate_stage1_gates_margin_below_2_percent_fails_despite_other_metrics_healthy():
+    # THIN31: net_income_margin exactly 1.0% every year, but ROIC/Net
+    # Debt/EBITDA/Cash Conversion are all clean pass. Demonstrates "hardest
+    # single result wins" (Gates-Layer-Entscheidung 1): the company is
+    # overall failed purely from the margin gate, and net_income_margin
+    # never contributes to the flags list (it has no grey zone).
+    result = _gate_result_for("THIN31")
+    assert result.status == "failed"
+    assert result.flags == ()
+    assert result.invalid_reasons == ()
+    assert result.net_income_margin == pytest.approx(0.01, abs=0.0001)
+
+
+def test_evaluate_stage1_gates_margin_revenue_guard_isolated():
+    # VOID32 isolates revenue_non_positive from the other three criteria
+    # (all stay valid/healthy) - covered generically by the parametrized
+    # not_evaluable test above; this asserts the isolation explicitly.
+    result = _gate_result_for("VOID32")
+    assert result.status == "not_evaluable"
+    assert result.invalid_reasons == ("revenue_non_positive",)
+    assert result.roic is not None
+    assert result.net_debt_ebitda is not None
+    assert result.cash_conversion is not None
+    assert result.net_income_margin is None
+
+
+def test_evaluate_stage1_gates_invalid_takes_precedence_over_margin_failure():
+    # HOOL07: net_income<0 and cfo<0 in 2024 triggers the EXISTING
+    # ni_non_positive guard on cash_conversion. Its net_income_margin 3yr
+    # average (~0.57%) is itself well below the new 2% threshold - would
+    # be "failed" in isolation - but the company must stay "not_evaluable",
+    # never "failed", since invalid_reason still takes precedence over any
+    # failed/passed classification (Gates-Layer-Entscheidung 2, unchanged).
+    company = load_company("HOOL07")
+    periods = company["periods"]
+    margin_result = net_income_margin_3yr_average(periods)
+    assert margin_result.invalid_reason is None
+    assert margin_result.value < 0.02  # would fail the margin gate in isolation
+
+    result = _gate_result_for("HOOL07")
+    assert result.status == "not_evaluable"
+    assert result.status != "failed"
+    assert result.invalid_reasons == ("ni_non_positive",)
+
+
+def test_evaluate_stage1_gates_invalid_takes_precedence_over_margin_failure_synthetic():
+    # Direct-input regression guard (mirrors tests/test_db.py's synthetic
+    # gate_results pattern) for the exact scenario named in the task: NI<=0
+    # and margin<2% in the same year. Uses synthetic MetricResults instead
+    # of a fixture so the scenario is deterministic and doesn't depend on a
+    # fixture's arithmetic happening to line up.
+    result = evaluate_stage1_gates(
+        roic=MetricResult(value=0.15),
+        net_debt_ebitda=MetricResult(value=1.0),
+        cash_conversion=MetricResult(value=None, invalid_reason="ni_non_positive"),
+        net_income_margin=MetricResult(value=0.01),
+    )
+    assert result.status == "not_evaluable"
+    assert result.status != "failed"
+    assert result.invalid_reasons == ("ni_non_positive",)
 
 
 def test_rank_companies_groups_by_flag_count_then_ticker():

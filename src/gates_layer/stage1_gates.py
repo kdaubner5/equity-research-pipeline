@@ -1,9 +1,10 @@
 """Stage-1 Gates: boundary classification, flags and ranking per docs/decisions.md.
 
-Combines the three raw Stage-1 MetricResults (ROIC, Net Debt/EBITDA, Cash
-Conversion) into one GateResult per company - the hardest single result
-wins, any invalid_reason disqualifies into its own "not_evaluable" status,
-and the rank output is a flag-count grouping, never a composite score.
+Combines the four raw Stage-1 MetricResults (ROIC, Net Debt/EBITDA, Cash
+Conversion, Net Income Margin) into one GateResult per company - the
+hardest single result wins, any invalid_reason disqualifies into its own
+"not_evaluable" status, and the rank output is a flag-count grouping,
+never a composite score.
 """
 
 from dataclasses import dataclass
@@ -23,12 +24,17 @@ NET_DEBT_EBITDA_FAIL_AT_OR_ABOVE = 2.5
 CASH_CONVERSION_CLEAN_PASS_AT_OR_ABOVE = 1.0
 CASH_CONVERSION_FAIL_BELOW = 0.8
 
+# Net Income Margin (masterplan v1.1) has no grey zone, unlike the other
+# three criteria - a single hard threshold, per docs/decisions.md
+# ("Net-Income-Margin-Gate", explicit assumption).
+NET_INCOME_MARGIN_FAIL_BELOW = 0.02
+
 PASSED = "passed"
 PASSED_WITH_FLAGS = "passed_with_flags"
 FAILED = "failed"
 NOT_EVALUABLE = "not_evaluable"
 
-_METRIC_NAMES = ("roic", "net_debt_ebitda", "cash_conversion")
+_METRIC_NAMES = ("roic", "net_debt_ebitda", "cash_conversion", "net_income_margin")
 
 
 @dataclass(frozen=True)
@@ -36,9 +42,10 @@ class GateResult:
     """Combined Stage-1 gate result for one company.
 
     flags and invalid_reasons follow the fixed metric order roic /
-    net_debt_ebitda / cash_conversion. The three raw values are always
-    populated where the underlying MetricResult had one, regardless of
-    status - a not_evaluable company keeps whichever raw values were valid.
+    net_debt_ebitda / cash_conversion / net_income_margin. The four raw
+    values are always populated where the underlying MetricResult had one,
+    regardless of status - a not_evaluable company keeps whichever raw
+    values were valid.
 
     flags and invalid_reasons are tuples, not lists: frozen=True only stops
     a field from being reassigned, not a mutable field's contents from being
@@ -51,6 +58,7 @@ class GateResult:
     roic: Optional[float]
     net_debt_ebitda: Optional[float]
     cash_conversion: Optional[float]
+    net_income_margin: Optional[float]
 
 
 def _classify_roic(value):
@@ -77,10 +85,18 @@ def _classify_cash_conversion(value):
     return PASSED_WITH_FLAGS
 
 
+def _classify_net_income_margin(value):
+    """Binary classification, no grey zone - see NET_INCOME_MARGIN_FAIL_BELOW."""
+    if value < NET_INCOME_MARGIN_FAIL_BELOW:
+        return FAILED
+    return PASSED
+
+
 _CLASSIFIERS = {
     "roic": _classify_roic,
     "net_debt_ebitda": _classify_net_debt_ebitda,
     "cash_conversion": _classify_cash_conversion,
+    "net_income_margin": _classify_net_income_margin,
 }
 
 
@@ -88,17 +104,29 @@ def evaluate_stage1_gates(
     roic: MetricResult,
     net_debt_ebitda: MetricResult,
     cash_conversion: MetricResult,
+    net_income_margin: MetricResult,
 ) -> GateResult:
-    """Combine the three Stage-1 MetricResults into one GateResult.
+    """Combine the four Stage-1 MetricResults into one GateResult.
 
-    Any invalid_reason among the three inputs disqualifies the company into
+    Any invalid_reason among the four inputs disqualifies the company into
     "not_evaluable", independent of and never mixed with passed/flagged/
-    failed. Otherwise the hardest single per-metric classification wins:
-    any "failed" makes the company overall failed; else any flag makes it
-    passed_with_flags (listing every flagged metric, not just the first);
+    failed - this takes precedence over net_income_margin's own failed
+    classification too (e.g. net_income <= 0 and net_income/revenue < 2%
+    in the same year: cash_conversion's existing ni_non_positive guard
+    already forces not_evaluable before net_income_margin's classification
+    matters, docs/decisions.md "Net-Income-Margin-Gate" Entscheidung 4).
+    Otherwise the hardest single per-metric classification wins: any
+    "failed" makes the company overall failed; else any flag makes it
+    passed_with_flags (listing every flagged metric, not just the first) -
+    net_income_margin never contributes a flag, since it has no grey zone;
     else passed.
     """
-    results = {"roic": roic, "net_debt_ebitda": net_debt_ebitda, "cash_conversion": cash_conversion}
+    results = {
+        "roic": roic,
+        "net_debt_ebitda": net_debt_ebitda,
+        "cash_conversion": cash_conversion,
+        "net_income_margin": net_income_margin,
+    }
     raw_values = {name: results[name].value for name in _METRIC_NAMES}
 
     invalid_reasons = tuple(

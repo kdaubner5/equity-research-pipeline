@@ -1,6 +1,6 @@
 # Test-Fixtures: Internes Firmen-Feldformat
 
-Die Dateien unter `companies/` sind Dummy-Testdaten für 28 fiktive Firmen (branchendivers), je mit 3 Fiskaljahren (2022–2024), außer wo explizit anders vermerkt (`ORBT18`: nur 2 Jahre). Sie bilden **kein** Provider-Schema (EDGAR, secfinapi, SimFin) ab, sondern ein eigenes internes Format. Die Übersetzung echter Provider-Formate in dieses interne Format passiert später in den `data_layer`-Adaptern.
+Die Dateien unter `companies/` sind Dummy-Testdaten für 31 fiktive Firmen (branchendivers), je mit 3 Fiskaljahren (2022–2024), außer wo explizit anders vermerkt (`ORBT18`: nur 2 Jahre). Sie bilden **kein** Provider-Schema (EDGAR, secfinapi, SimFin) ab, sondern ein eigenes internes Format. Die Übersetzung echter Provider-Formate in dieses interne Format passiert später in den `data_layer`-Adaptern.
 
 Design-Entscheidungen zu einzelnen Kennzahlen (z. B. Grauzonen-Bänder, Stichtag vs. 3-Jahres-Schnitt) stehen in [`docs/decisions.md`](../../docs/decisions.md) — dort zuerst nachsehen, bevor eine Formel implementiert wird.
 
@@ -22,7 +22,7 @@ Alle Beträge in Millionen USD.
 
 | Feld | Bedeutung | Verwendet in |
 |---|---|---|
-| `revenue` | Umsatz | Kontext/Grauzonen |
+| `revenue` | Umsatz | Kontext/Grauzonen; Net Income Margin = net_income / revenue (Guard `revenue_non_positive`) |
 | `ebit` | Operatives Ergebnis | ROIC (NOPAT), Cash-Conversion-Kontext |
 | `ebitda` | EBIT + D&A | Net Debt/EBITDA |
 | `tax_rate` | Effektiver Steuersatz | historisch (ROIC nutzt seit Masterplan v1.1 den festen `NOPAT_TAX_RATE`, siehe `docs/decisions.md`) |
@@ -124,3 +124,19 @@ Cash Conversion bleibt wie ROIC ein 3-Jahres-Schnitt (Mittelwert der Jahres-Verh
 `OSCP21` und `DUFF22` teilen sich bewusst dasselbe `ebit`/`equity`/`net_debt`/`ebitda`-Profil mit `SPCL20` (nur `net_income`/`cfo` unterscheiden sich) — analog zu `VULC14`/`GEKO12`/`CYBR15` bei Net Debt/EBITDA, die die Bandgrenze von beiden Seiten mit isoliert gesunden übrigen Dimensionen abdecken.
 
 **Richtung ist festgelegt, Klassifizierungslogik nicht:** Die Richtung der Grauzone ist durch den Masterplan/die Konvention festgelegt (siehe `docs/decisions.md`, Entscheidung 5 im Cash-Conversion-Abschnitt) — `≥ 1,0` sauber bestanden, `0,8–1,0` Flag, `< 0,8` durchgefallen, analog zum ROIC-Muster. Offen ist ausschließlich die tatsächliche **Bucket-Klassifizierungslogik selbst** (die if/else-Implementierung, die einen rohen Wert einem der drei Fälle zuordnet) — das bleibt Aufgabe des Gates-Layers (Issue #5); `metrics_layer/cash_conversion.py` gibt weiterhin nur den rohen Mittelwert zurück, ohne selbst zu klassifizieren.
+
+## Net-Income-Margin-Gate (`cash-conversion-margin-gate`)
+
+Viertes Stufe-1-Kriterium aus Masterplan v1.1: `Net Income ≥ 2 % des Umsatzes`, 3-Jahres-Schnitt der Jahres-Margen (`net_income / revenue`), **kein** Graubereich (Annahme, siehe `docs/decisions.md`) — nur `≥ 2 %` bestanden / `< 2 %` durchgefallen. Guard `revenue_non_positive` bei `revenue ≤ 0` (unabhängig vom bestehenden `ni_non_positive`-Guard auf Cash Conversion, der weiterhin auf `net_income ≤ 0` prüft).
+
+| company_id | Net Income Margin (3-Jahres-Schnitt) | ROIC / Net Debt/EBITDA / Cash Conversion | Fall |
+|---|---|---|---|
+| `EDGE30` | 2,00 % (jedes Jahr exakt 2,00 %) | alle drei gesund/sauber bestanden | Grenzfall isoliert (bestanden, **nicht** durchgefallen — Schwelle ist `x ≥ 2 %`) |
+| `THIN31` | 1,00 % (jedes Jahr exakt 1,00 %) | alle drei gesund/sauber bestanden | isoliert `Status = durchgefallen` trotz drei sauber bestandener übriger Kriterien ("härtestes Einzelergebnis gewinnt") |
+| `VOID32` | 2022/2023 gesund (~8 %); 2024 `revenue = 0` | alle drei gesund (2024: `net_income`/`cfo` bewusst weiterhin positiv) | `revenue_non_positive`-Guard isoliert, kein gleichzeitiges `ni_non_positive` |
+
+`EDGE30` und `THIN31` teilen sich bewusst dasselbe `ebit`/`equity`/`net_debt`/`ebitda`-Profil (nur `net_income`/`cfo` unterscheiden sich), analog zu `OSCP21`/`DUFF22`/`SPCL20` bei Cash Conversion — isoliert die Margen-Dimension von den übrigen drei Kriterien.
+
+**Bestandsschutz geprüft:** Vor der Implementierung wurde `net_income_margin` für alle damals als `passed`/`passed_with_flags` eingestuften Fixtures berechnet — keine lag unter 2 % (niedrigster Wert `WAYN03` ~7,48 %). Details siehe `docs/decisions.md`, Entscheidung 5 im Net-Income-Margin-Gate-Abschnitt.
+
+**Invalid-Vorrang-Regressionstest:** `HOOL07` (bereits bestehende Fixture, `net_income<0`/`cfo<0` in 2024 → `ni_non_positive` auf Cash Conversion) hat einen Margen-Schnitt von ~0,57 % — würde die neue Klassifizierung isoliert ebenfalls durchfallen lassen, das Gesamtergebnis bleibt aber `nicht bewertbar`, nicht `durchgefallen` (Gates-Layer-Entscheidung 2, `invalid_reason` hat weiterhin Vorrang).
