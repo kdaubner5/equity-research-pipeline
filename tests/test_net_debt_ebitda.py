@@ -162,6 +162,14 @@ def test_net_debt_ebitda_net_debt_none_without_the_completely_missing_flag_stays
         assert result.invalid_reason == "net_debt_unreliable"
 
 
+def test_net_debt_ebitda_data_quality_flags_key_present_but_null_does_not_raise():
+    healthy = [dict(p, data_quality_flags=None) for p in load_company("ACME01")["periods"]]
+    assert net_debt_ebitda_latest(healthy).invalid_reason is None
+
+    unreliable = _acme_periods_with_net_debt_none_in_year(2024, None)
+    assert net_debt_ebitda_latest(unreliable).invalid_reason == "net_debt_unreliable"
+
+
 def test_net_debt_ebitda_for_period_net_debt_invalid_reason_parameter():
     assert net_debt_ebitda_for_period(net_debt=None, ebitda=700).invalid_reason == "net_debt_unreliable"
     result = net_debt_ebitda_for_period(

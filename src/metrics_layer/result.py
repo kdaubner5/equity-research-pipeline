@@ -35,7 +35,9 @@ def net_debt_none_reason(period):
     that flag, else "net_debt_unreliable". A period without a
     data_quality_flags key (e.g. the dummy fixtures) is always the latter.
     """
-    if DEBT_DATA_COMPLETELY_MISSING in period.get("data_quality_flags", ()):
+    # `or ()`, not just a .get default: a key present but null (e.g. read
+    # back from JSON/DB) must behave like an absent one, not raise TypeError.
+    if DEBT_DATA_COMPLETELY_MISSING in (period.get("data_quality_flags") or ()):
         return DEBT_DATA_COMPLETELY_MISSING
     return NET_DEBT_UNRELIABLE
 

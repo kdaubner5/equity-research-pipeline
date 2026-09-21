@@ -31,6 +31,11 @@ MAX_BATCH_SIZE = 2
 RETRY_DELAY_SECONDS = 90
 MAX_RETRY_ATTEMPTS = 12
 
+# Per-request socket timeout - without one a stalled connection would block
+# a cron batch forever (code review of PR #30). Generous, since one batch
+# call bundles PL/BS/CF for two companies.
+REQUEST_TIMEOUT_SECONDS = 60
+
 # data_quality_flags values, per docs/decisions.md ("SimFin-Client"
 # Entscheidungen 5/6). debt_component_missing_defaulted_zero shares its exact
 # string with edgar_client.py's DEBT_COMPONENT_MISSING_FLAG (same meaning in
@@ -44,6 +49,10 @@ DEBT_DATA_COMPLETELY_MISSING_FLAG = "debt_data_completely_missing"
 # BS/CF reach a fiscal year later than the newest PL year the adapter
 # anchored on - informative only, never an invalid_reason (Entscheidung 11).
 PL_LAGS_OTHER_STATEMENTS_FLAG = "pl_lags_other_statements"
+# At least one anchored year was dropped for a missing required value
+# (Entscheidung 14) - tells a data gap (this) apart from a genuinely short
+# history (fewer EBIT-having years exist at all, no flag).
+YEAR_DROPPED_MISSING_FIELD_FLAG = "year_dropped_missing_required_field"
 
 # Reliability threshold for the net_debt guard below - docs/decisions.md
 # ("SimFin-Client" Entscheidung 6). Module constant, not YAML: config-driven
@@ -55,17 +64,23 @@ NET_DEBT_UNRELIABLE_RATIO = 0.10
 class SimFinMappingError(Exception):
     """Raised when raw SimFin statements data cannot be mapped at all.
 
-    Reserved for a company with no usable EBIT/anchor data whatsoever. A
-    single fiscal year missing some other required field is deliberately
-    NOT an error - it just drops that year from the returned periods
-    (docs/decisions.md Entscheidung 5, "SimFin-Client" - a considered
-    difference from edgar_client.py's per-field crash, since such gaps are
-    common in SimFin's data, not rare anomalies).
+    Reserved for a company with no usable EBIT/anchor data whatsoever, or
+    raw data whose structure is not what the mapping assumes (an expected
+    column absent, duplicate (Fiscal Period, Fiscal Year) rows, a ticker or
+    currency that does not match what was requested). A single fiscal year
+    missing some other required VALUE is deliberately NOT an error - it
+    just drops that year from the returned periods (docs/decisions.md
+    Entscheidungen 5 and 12, "SimFin-Client" - a considered difference from
+    edgar_client.py's per-field crash, since such gaps are common in
+    SimFin's data, not rare anomalies).
     """
 
 
 def _column_index(columns, name):
-    return columns.index(name)
+    try:
+        return columns.index(name)
+    except ValueError:
+        raise SimFinMappingError(f"expected column {name!r} is missing from the statement's columns") from None
 
 
 def _statement(raw_company, statement_code):
@@ -79,13 +94,25 @@ def _rows_by_fiscal_year(stmt, fiscal_period):
     """fiscal_year -> row, for rows matching the given Fiscal Period label.
 
     No duplicate (Fiscal Period, Fiscal Year) pairs were observed in any of
-    the 23 committed pilot fixtures (docs/decisions.md) - if SimFin ever
-    returns one, the later row in `data` silently wins (dict overwrite).
+    the 23 committed pilot fixtures (docs/decisions.md) - but that says
+    nothing about the full universe, and picking either of two conflicting
+    rows would be a silent guess, so a duplicate raises SimFinMappingError.
     """
     cols = stmt["columns"]
     fp_idx = _column_index(cols, "Fiscal Period")
     fy_idx = _column_index(cols, "Fiscal Year")
-    return {row[fy_idx]: row for row in stmt["data"] if row[fp_idx] == fiscal_period}
+    rows = {}
+    for row in stmt["data"]:
+        if row[fp_idx] != fiscal_period:
+            continue
+        fiscal_year = row[fy_idx]
+        if fiscal_year in rows:
+            raise SimFinMappingError(
+                f"duplicate ({fiscal_period!r}, {fiscal_year}) rows in the {stmt['statement']} statement - "
+                "ambiguous, refusing to pick one"
+            )
+        rows[fiscal_year] = row
+    return rows
 
 
 def map_simfin_to_periods(raw_company, max_years=MAX_YEARS):
@@ -105,7 +132,10 @@ def map_simfin_to_periods(raw_company, max_years=MAX_YEARS):
     source) is dropped from the result entirely, rather than raising
     (docs/decisions.md Entscheidung 5) - this can leave fewer than
     max_years periods, which the Stage-1 metrics' existing
-    insufficient_years guard already handles.
+    insufficient_years guard already handles. The drop is not silent: every
+    returned period carries year_dropped_missing_required_field
+    (Entscheidung 14), which tells a data gap apart from a genuinely short
+    history (no flag). A company losing ALL years has no period to carry it.
 
     Short Term Debt/Long Term Debt default to 0 when missing, flagged
     debt_component_missing_defaulted_zero (docs/decisions.md Entscheidung
@@ -166,6 +196,7 @@ def map_simfin_to_periods(raw_company, max_years=MAX_YEARS):
     total_assets_idx = _column_index(bs["columns"], "Total Assets") if bs else None
 
     periods = []
+    any_year_dropped = False
     for year in sorted(anchor_years):
         pl_row = pl_fy_rows[year]
         cf_row = cf_fy_rows.get(year)
@@ -181,7 +212,8 @@ def map_simfin_to_periods(raw_company, max_years=MAX_YEARS):
         total_assets = bs_row[total_assets_idx] if bs_row else None
 
         if any(v is None for v in (revenue, net_income, da, cfo, equity, cash, total_assets)):
-            continue  # required field missing, no fallback - drop this year (Entscheidung 5)
+            any_year_dropped = True  # required field missing, no fallback - drop this year (Entscheidung 5), but not silently
+            continue
 
         flags = []
         st_debt = bs_row[st_debt_idx]
@@ -230,6 +262,10 @@ def map_simfin_to_periods(raw_company, max_years=MAX_YEARS):
                 "data_quality_flags": flags,
             }
         )
+
+    if any_year_dropped:
+        for period in periods:
+            period["data_quality_flags"].append(YEAR_DROPPED_MISSING_FIELD_FLAG)
     return periods
 
 
@@ -241,10 +277,21 @@ def build_company_record(ticker, raw_company, max_years=MAX_YEARS, currency="USD
 
     Only "USD" is supported, same rationale and same guard as
     edgar_client.py's build_company_record: no non-USD data source or
-    conversion exists in this project.
+    conversion exists in this project. The guard checks both the requested
+    currency and, where the raw record states one, the raw record's own
+    currency - checking only the argument would label EUR figures "USD".
+    Likewise a raw record whose own ticker differs from the requested one
+    (fetch_statements_batch returns a bare list, so a mispaired record is
+    possible) is refused rather than filed under the wrong ticker.
     """
     if currency != "USD":
         raise SimFinMappingError(f"unsupported currency {currency!r} - only USD is supported")
+    raw_currency = raw_company.get("currency")
+    if raw_currency is not None and raw_currency != currency:
+        raise SimFinMappingError(f"raw record for {ticker!r} is in {raw_currency!r}, only {currency!r} is supported")
+    raw_ticker = raw_company.get("ticker")
+    if raw_ticker is not None and raw_ticker.upper() != ticker.upper():
+        raise SimFinMappingError(f"raw record is for ticker {raw_ticker!r}, but {ticker!r} was requested")
     return {
         "company_id": ticker,
         "name": raw_company.get("name", ticker),
@@ -268,12 +315,14 @@ def resolve_simfin_id(ticker, api_key, company_list=None):
         req = urllib.request.Request(
             SIMFIN_COMPANIES_LIST_URL, headers={"Authorization": api_key, "Accept": "application/json"}
         )
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SECONDS) as resp:
             company_list = json.load(resp)
 
     ticker_upper = ticker.upper()
     for entry in company_list:
-        if entry.get("ticker", "").upper() == ticker_upper:
+        # `or ""`: an entry with a null ticker (key present, value None) must
+        # be skipped, not crash every lookup that scans past it.
+        if (entry.get("ticker") or "").upper() == ticker_upper:
             return entry["id"]
     raise SimFinMappingError(f"ticker {ticker!r} not found in companies/list")
 
@@ -294,7 +343,7 @@ def fetch_statements_batch(ids, api_key, statements=("PL", "BS", "CF")):
 
     for attempt in range(1, MAX_RETRY_ATTEMPTS + 1):
         try:
-            with urllib.request.urlopen(req) as resp:
+            with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SECONDS) as resp:
                 return json.load(resp)
         except urllib.error.HTTPError as exc:
             if exc.code == 429 and attempt < MAX_RETRY_ATTEMPTS:

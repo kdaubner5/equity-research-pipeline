@@ -1,18 +1,24 @@
 import copy
+import io
 import json
 from pathlib import Path
 
 import pytest
 
+from data_layer import simfin_client
 from data_layer.simfin_client import (
     DEBT_COMPONENT_MISSING_FLAG,
     DEBT_DATA_COMPLETELY_MISSING_FLAG,
     DEBT_STATEMENT_MISMATCH_FLAG,
     NET_DEBT_UNRELIABLE_FLAG,
     PL_LAGS_OTHER_STATEMENTS_FLAG,
+    REQUEST_TIMEOUT_SECONDS,
+    YEAR_DROPPED_MISSING_FIELD_FLAG,
     SimFinMappingError,
     build_company_record,
+    fetch_statements_batch,
     map_simfin_to_periods,
+    resolve_simfin_id,
 )
 from gates_layer.stage1_gates import NOT_EVALUABLE, evaluate_stage1_gates
 from metrics_layer.cash_conversion import cash_conversion_3yr_average, net_income_margin_3yr_average
@@ -287,8 +293,15 @@ def test_rock_completely_missing_debt_data_makes_net_debt_ebitda_not_evaluable_e
     assert net_debt_ebitda.value is None
     assert net_debt_ebitda.invalid_reason == "debt_data_completely_missing"
 
+    # ROIC reports the first invalid year in fiscal-year order, like every
+    # ROIC guard: FY2023 (ratio guard) precedes the completely-missing FY2024/25,
+    # so ROIC says net_debt_unreliable while Net Debt/EBITDA (Stichtag FY2025
+    # only) says debt_data_completely_missing (docs/decisions.md Entscheidung 10).
+    roic = roic_3yr_average(periods)
+    assert roic.invalid_reason == "net_debt_unreliable"
+
     gate_result = evaluate_stage1_gates(
-        roic=roic_3yr_average(periods),
+        roic=roic,
         net_debt_ebitda=net_debt_ebitda,
         cash_conversion=cash_conversion_3yr_average(periods),
         net_income_margin=net_income_margin_3yr_average(periods),
@@ -363,13 +376,100 @@ def test_missing_bs_or_cf_statement_drops_every_year_instead_of_crashing(missing
 def test_missing_expected_column_still_fails_loudly():
     # Entscheidung 12: only a missing VALUE (null) in a guaranteed column
     # drops a year. If SimFin's column structure itself changes (an expected
-    # column absent from `columns`), the structural failure stays loud -
-    # currently a bare ValueError from list.index in _column_index.
+    # column absent from `columns`), the structural failure stays loud - as
+    # a SimFinMappingError naming the column, so a batch loop that catches
+    # per-company mapping errors keeps going (code review of PR #30).
     raw = copy.deepcopy(_load_raw("ATRO"))
     cf = next(s for s in raw["statements"] if s["statement"] == "CF")
     cf["columns"][cf["columns"].index("Depreciation & Amortization")] = "Renamed By SimFin"
-    with pytest.raises(ValueError):
+    with pytest.raises(SimFinMappingError, match="Depreciation & Amortization"):
         map_simfin_to_periods(raw)
+
+
+def test_duplicate_fiscal_year_rows_raise_instead_of_silently_overwriting():
+    # A restated/duplicated PL FY row appended after the real one used to
+    # replace it silently (later row wins) - here Revenue=1 would have
+    # become ATRO's FY2025 revenue with no error.
+    raw = copy.deepcopy(_load_raw("ATRO"))
+    pl = next(s for s in raw["statements"] if s["statement"] == "PL")
+    fp_idx, fy_idx = pl["columns"].index("Fiscal Period"), pl["columns"].index("Fiscal Year")
+    real_row = next(r for r in pl["data"] if r[fp_idx] == "FY" and r[fy_idx] == 2025)
+    duplicate = list(real_row)
+    duplicate[pl["columns"].index("Revenue")] = 1
+    pl["data"].append(duplicate)
+    with pytest.raises(SimFinMappingError, match="duplicate"):
+        map_simfin_to_periods(raw)
+
+
+def test_year_dropped_flag_on_every_returned_period_when_a_year_had_a_missing_field():
+    # MATW FY2025 is dropped (missing total_assets/cash) - both survivors
+    # carry the flag, so insufficient_years is traceable to a data gap.
+    periods = map_simfin_to_periods(_load_raw("MATW"))
+    assert [p["fiscal_year"] for p in periods] == [2023, 2024]
+    for period in periods:
+        assert YEAR_DROPPED_MISSING_FIELD_FLAG in period["data_quality_flags"]
+
+
+def test_year_dropped_flag_absent_for_a_genuinely_short_history():
+    # CATO has only 2 EBIT-having PL years at all - nothing was dropped, the
+    # history is simply short, so this must NOT look like a data gap.
+    periods = map_simfin_to_periods(_load_raw("CATO"))
+    assert [p["fiscal_year"] for p in periods] == [2019, 2020]
+    for period in periods:
+        assert YEAR_DROPPED_MISSING_FIELD_FLAG not in period["data_quality_flags"]
+
+
+@pytest.mark.parametrize("ticker", ["ATRO", "CENT", "SGC"])
+def test_year_dropped_flag_absent_when_nothing_was_dropped(ticker):
+    for period in map_simfin_to_periods(_load_raw(ticker)):
+        assert YEAR_DROPPED_MISSING_FIELD_FLAG not in period["data_quality_flags"]
+
+
+def test_build_company_record_rejects_a_raw_record_in_another_currency():
+    # Checking only the `currency` argument would label EUR figures "USD".
+    raw = copy.deepcopy(_load_raw("ATRO"))
+    raw["currency"] = "EUR"
+    with pytest.raises(SimFinMappingError, match="EUR"):
+        build_company_record("ATRO", raw)
+
+
+def test_build_company_record_rejects_a_mispaired_raw_record():
+    # fetch_statements_batch returns a bare list - ATRO's data must not be
+    # filed under CENT.
+    with pytest.raises(SimFinMappingError, match="ATRO"):
+        build_company_record("CENT", _load_raw("ATRO"))
+
+
+def test_build_company_record_ticker_match_is_case_insensitive():
+    assert build_company_record("atro", _load_raw("ATRO"))["company_id"] == "atro"
+
+
+def test_resolve_simfin_id_skips_entries_with_a_null_ticker():
+    company_list = [{"id": 1, "ticker": None}, {"id": 2}, {"id": 3, "ticker": "atro"}]
+    assert resolve_simfin_id("ATRO", "key", company_list=company_list) == 3
+
+
+def test_resolve_simfin_id_unknown_ticker_raises():
+    with pytest.raises(SimFinMappingError):
+        resolve_simfin_id("NOPE", "key", company_list=[{"id": 1, "ticker": "ATRO"}])
+
+
+class _FakeResponse(io.BytesIO):
+    pass
+
+
+def test_network_calls_pass_a_request_timeout(monkeypatch):
+    # Without a timeout a stalled connection blocks a cron batch forever.
+    seen = []
+
+    def fake_urlopen(req, timeout=None):
+        seen.append(timeout)
+        return _FakeResponse(b'[{"id": 7, "ticker": "ATRO"}]')
+
+    monkeypatch.setattr(simfin_client.urllib.request, "urlopen", fake_urlopen)
+    assert resolve_simfin_id("ATRO", "key") == 7
+    assert fetch_statements_batch([7], "key") == [{"id": 7, "ticker": "ATRO"}]
+    assert seen == [REQUEST_TIMEOUT_SECONDS, REQUEST_TIMEOUT_SECONDS]
 
 
 def test_da_sourced_from_cf_not_pl():

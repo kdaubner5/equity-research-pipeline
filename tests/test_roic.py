@@ -365,6 +365,19 @@ def test_roic_net_debt_none_without_the_completely_missing_flag_stays_net_debt_u
         assert result.invalid_reason == "net_debt_unreliable"
 
 
+def test_roic_data_quality_flags_key_present_but_null_does_not_raise():
+    # A period read back from JSON/DB may carry data_quality_flags=None - it
+    # must behave like an absent key, not raise TypeError from an `in` check
+    # (code review of PR #30: master never read this key at all).
+    healthy = [dict(p, data_quality_flags=None) for p in load_company("ACME01")["periods"]]
+    assert roic_3yr_average(healthy).invalid_reason is None
+
+    unreliable = _acme_periods_with_net_debt_none_in_year(2023, None)
+    for period in unreliable:
+        period["data_quality_flags"] = None
+    assert roic_3yr_average(unreliable).invalid_reason == "net_debt_unreliable"
+
+
 def test_roic_for_period_net_debt_invalid_reason_parameter_defaults_to_unreliable():
     unreliable = roic_for_period(ebit=500, equity=2000, net_debt=None, total_assets=9000)
     assert unreliable.invalid_reason == "net_debt_unreliable"
