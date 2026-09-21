@@ -1,0 +1,44 @@
+{
+  "company_id": "OMNI28",
+  "name": "Omni Consumer Holdings Inc.",
+  "sector": "Industrials",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 4000,
+      "ebit": 500,
+      "ebitda": 650,
+      "tax_rate": 0.24,
+      "equity": 2000,
+      "net_debt": 800,
+      "total_assets": 8400,
+      "net_income": 320,
+      "cfo": 480
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 4200,
+      "ebit": 520,
+      "ebitda": 680,
+      "tax_rate": 0.24,
+      "equity": 2100,
+      "net_debt": 780,
+      "total_assets": 8640,
+      "net_income": 335,
+      "cfo": 500
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 4300,
+      "ebit": 150,
+      "ebitda": 300,
+      "tax_rate": 0.23,
+      "equity": 380,
+      "net_debt": 500,
+      "total_assets": 9000,
+      "net_income": 90,
+      "cfo": 140
+    }
+  ]
+}

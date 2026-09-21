@@ -9,8 +9,14 @@ from metrics_layer.result import MetricInputError, MetricResult
 # Phase-1.0 exception as the Gates-Layer thresholds (gates_layer/stage1_gates.py).
 NOPAT_TAX_RATE = 0.25
 
+# Invested-Capital/Bilanzsummen-Guard (masterplan v1.1, docs/decisions.md
+# "ROIC - Invested-Capital/Bilanzsummen-Guard") - same Phase-1.0 module-
+# constant exception as NOPAT_TAX_RATE above.
+IC_ASSET_FLOOR_RATIO = 0.10
+ROIC_IMPLAUSIBLE_ABOVE = 0.60
 
-def roic_for_period(ebit, equity, net_debt):
+
+def roic_for_period(ebit, equity, net_debt, total_assets):
     """ROIC for a single fiscal year.
 
     net_debt=None is the sentinel for "unreliable" (per docs/decisions.md,
@@ -19,14 +25,25 @@ def roic_for_period(ebit, equity, net_debt):
     absent (unlike a plain missing value, which would default elsewhere).
     Guarded before invested_capital is computed - equity + None would
     otherwise raise a bare TypeError.
+
+    ic_below_asset_floor and roic_implausibly_high are checked via
+    docs/decisions.md's Invested-Capital/Bilanzsummen-Guard - the former
+    before the division (multiplication against total_assets, not a second
+    division), the latter necessarily after it since it guards the computed
+    ratio itself, not an input.
     """
     if net_debt is None:
         return MetricResult(value=None, invalid_reason="net_debt_unreliable")
     invested_capital = equity + net_debt
     if invested_capital <= 0:
         return MetricResult(value=None, invalid_reason="ic_non_positive")
+    if invested_capital < IC_ASSET_FLOOR_RATIO * total_assets:
+        return MetricResult(value=None, invalid_reason="ic_below_asset_floor")
     nopat = ebit * (1 - NOPAT_TAX_RATE)
-    return MetricResult(value=nopat / invested_capital)
+    roic = nopat / invested_capital
+    if roic > ROIC_IMPLAUSIBLE_ABOVE:
+        return MetricResult(value=None, invalid_reason="roic_implausibly_high")
+    return MetricResult(value=roic)
 
 
 def roic_3yr_average(periods):
@@ -61,6 +78,7 @@ def roic_3yr_average(periods):
             ebit=period["ebit"],
             equity=period["equity"],
             net_debt=period["net_debt"],
+            total_assets=period["total_assets"],
         )
         if result.invalid_reason is not None:
             return result

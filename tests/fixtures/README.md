@@ -1,6 +1,6 @@
 # Test-Fixtures: Internes Firmen-Feldformat
 
-Die Dateien unter `companies/` sind Dummy-Testdaten für 26 fiktive Firmen (branchendivers), je mit 3 Fiskaljahren (2022–2024), außer wo explizit anders vermerkt (`ORBT18`: nur 2 Jahre). Sie bilden **kein** Provider-Schema (EDGAR, secfinapi, SimFin) ab, sondern ein eigenes internes Format. Die Übersetzung echter Provider-Formate in dieses interne Format passiert später in den `data_layer`-Adaptern.
+Die Dateien unter `companies/` sind Dummy-Testdaten für 28 fiktive Firmen (branchendivers), je mit 3 Fiskaljahren (2022–2024), außer wo explizit anders vermerkt (`ORBT18`: nur 2 Jahre). Sie bilden **kein** Provider-Schema (EDGAR, secfinapi, SimFin) ab, sondern ein eigenes internes Format. Die Übersetzung echter Provider-Formate in dieses interne Format passiert später in den `data_layer`-Adaptern.
 
 Design-Entscheidungen zu einzelnen Kennzahlen (z. B. Grauzonen-Bänder, Stichtag vs. 3-Jahres-Schnitt) stehen in [`docs/decisions.md`](../../docs/decisions.md) — dort zuerst nachsehen, bevor eine Formel implementiert wird.
 
@@ -13,7 +13,7 @@ Design-Entscheidungen zu einzelnen Kennzahlen (z. B. Grauzonen-Bänder, Stichtag
   "sector": "Industrials",
   "currency": "USD",
   "periods": [
-    { "fiscal_year": 2022, "revenue": 0, "ebit": 0, "ebitda": 0, "tax_rate": 0.0, "equity": 0, "net_debt": 0, "net_income": 0, "cfo": 0 }
+    { "fiscal_year": 2022, "revenue": 0, "ebit": 0, "ebitda": 0, "tax_rate": 0.0, "equity": 0, "net_debt": 0, "total_assets": 0, "net_income": 0, "cfo": 0 }
   ]
 }
 ```
@@ -25,9 +25,10 @@ Alle Beträge in Millionen USD.
 | `revenue` | Umsatz | Kontext/Grauzonen |
 | `ebit` | Operatives Ergebnis | ROIC (NOPAT), Cash-Conversion-Kontext |
 | `ebitda` | EBIT + D&A | Net Debt/EBITDA |
-| `tax_rate` | Effektiver Steuersatz | NOPAT = ebit × (1 − tax_rate) für ROIC |
+| `tax_rate` | Effektiver Steuersatz | historisch (ROIC nutzt seit Masterplan v1.1 den festen `NOPAT_TAX_RATE`, siehe `docs/decisions.md`) |
 | `equity` | Eigenkapital | Invested Capital = equity + net_debt für ROIC |
 | `net_debt` | Nettoverschuldung | Net Debt/EBITDA, Invested Capital |
+| `total_assets` | Bilanzsumme | ROIC-Guard `ic_below_asset_floor` (Invested Capital muss ≥ 10 % der Bilanzsumme sein) |
 | `net_income` | Jahresüberschuss | Cash Conversion = cfo / net_income (Guard bei net_income ≤ 0) |
 | `cfo` | Operativer Cashflow | Cash Conversion |
 
@@ -73,6 +74,17 @@ Zum Vergleich: `PIED09` (Ø ROIC 9,76%) und `INIT10` (Ø ROIC 11,83%) liegen zuf
 | `NAKA17` | 2022/2023 gesund (IC 2800/2880, ROIC ~13,6%); 2024 Invested Capital = **-500** (equity=-2500 nach fremdfinanziertem Rückkauf, net_debt=2000) |
 
 Testet den Guard aus [`docs/decisions.md`](../../docs/decisions.md): Invested Capital ≤ 0 in **einem** Jahr flaggt den **gesamten** 3-Jahres-ROIC als ungültig — eine Implementierung, die das schlechte Jahr stattdessen nur aus dem Mittel ausschließt und über die 2 gesunden Jahre mittelt, würde bei `NAKA17` fälschlich einen gültigen Wert (~13,6%) statt eines Flags liefern.
+
+## Invested-Capital/Bilanzsummen-Guard (ROIC, `roic-total-assets-guard`)
+
+Masterplan v1.1 (`docs/masterplan.md` Abschnitt 3) fordert zusätzlich zum reinen `ic_non_positive`-Guard: Invested Capital muss ≥ 10 % der Bilanzsumme (`total_assets`) sein, sonst ist das Jahr n/a; kein Einzeljahr im 3-Jahres-Schnitt darf einen ROIC über 60 % liefern. Details und die Begründung der Lesart (Kappung auf den ROIC-Wert selbst, nicht auf das IC/Bilanzsummen-Verhältnis) stehen in [`docs/decisions.md`](../../docs/decisions.md).
+
+| company_id | Fall |
+|---|---|
+| `OMNI28` | 2022/2023 gesund (IC 2800/2880, ~33 % der Bilanzsumme); 2024 Invested Capital = **880**, positiv (löst `ic_non_positive` nicht aus), aber nur **9,78 %** der Bilanzsumme (9000) — unter der 10%-Schwelle → `ic_below_asset_floor` |
+| `APEX29` | 2022/2023 gesund (IC 2800/2880, ~33 % der Bilanzsumme); 2024 Invested Capital = 1000, gesunde 33,3 % der Bilanzsumme (3000, löst `ic_below_asset_floor` nicht aus), aber der resultierende Jahres-ROIC (67,5 %) liegt über der 60%-Plausibilitätsgrenze → `roic_implausibly_high` |
+
+Beide Fixtures isolieren ihren jeweiligen Guard bewusst vom anderen (unterschiedliche Bilanzsummen-Skalierung im Bad-Year, damit nicht versehentlich beide Guards gleichzeitig feuern) und teilen sich, analog zu `NAKA17`/`MURK26`/`FOGG27`/`OSCP21`/`DUFF22`/`SPCL20`, dasselbe gesunde 2022/2023-Profil. Je ein Test bestätigt, dass der **gesamte** 3-Jahres-Wert geflaggt wird (nicht nur das betroffene Jahr aus dem Mittel ausgeschlossen) — dieselbe Prüfung wie bei `NAKA17`.
 
 ## Weniger als 3 Fiskaljahre (ROIC, Issue #2)
 

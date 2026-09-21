@@ -37,7 +37,7 @@ def test_roic_invested_capital_guard_flags_whole_company():
 
     healthy_years = [p for p in company["periods"] if p["fiscal_year"] != 2024]
     naive_average_of_healthy_years = sum(
-        roic_for_period(**{k: p[k] for k in ("ebit", "equity", "net_debt")}).value
+        roic_for_period(**{k: p[k] for k in ("ebit", "equity", "net_debt", "total_assets")}).value
         for p in healthy_years
     ) / len(healthy_years)
     assert naive_average_of_healthy_years == pytest.approx(0.1347, abs=0.001)
@@ -53,7 +53,7 @@ def test_roic_fewer_than_3_periods_flags_invalid():
     assert result.invalid_reason == "insufficient_years"
 
     naive_average_of_2_years = sum(
-        roic_for_period(**{k: p[k] for k in ("ebit", "equity", "net_debt")}).value
+        roic_for_period(**{k: p[k] for k in ("ebit", "equity", "net_debt", "total_assets")}).value
         for p in company["periods"]
     ) / len(company["periods"])
     assert result.value != naive_average_of_2_years
@@ -99,6 +99,7 @@ def test_roic_for_period_guard_on_single_bad_year():
         ebit=healthy["ebit"],
         equity=healthy["equity"],
         net_debt=healthy["net_debt"],
+        total_assets=healthy["total_assets"],
     )
     assert healthy_result.invalid_reason is None
     assert healthy_result.value == pytest.approx(0.1339, abs=0.001)
@@ -109,22 +110,125 @@ def test_roic_for_period_guard_on_single_bad_year():
         ebit=bad_year["ebit"],
         equity=bad_year["equity"],
         net_debt=bad_year["net_debt"],
+        total_assets=bad_year["total_assets"],
     )
     assert bad_result.value is None
     assert bad_result.invalid_reason == "ic_non_positive"
+
+
+def test_roic_ic_below_asset_floor_guard_flags_whole_company():
+    # OMNI28: 2022/2023 healthy (IC 2800/2880, ~33% of total_assets); 2024
+    # Invested Capital = 880, positive (does not trip ic_non_positive) but
+    # only 9.78% of total_assets (9000), below the 10% floor.
+    company = load_company("OMNI28")
+    result = roic_3yr_average(company["periods"])
+    assert result.value is None
+    assert result.invalid_reason == "ic_below_asset_floor"
+
+    healthy_years = [p for p in company["periods"] if p["fiscal_year"] != 2024]
+    naive_average_of_healthy_years = sum(
+        roic_for_period(**{k: p[k] for k in ("ebit", "equity", "net_debt", "total_assets")}).value
+        for p in healthy_years
+    ) / len(healthy_years)
+    assert naive_average_of_healthy_years == pytest.approx(0.1347, abs=0.001)
+    assert result.value != naive_average_of_healthy_years
+
+
+def test_roic_for_period_guard_ic_below_asset_floor():
+    company = load_company("OMNI28")
+    periods_by_year = {p["fiscal_year"]: p for p in company["periods"]}
+
+    healthy = periods_by_year[2022]
+    healthy_result = roic_for_period(
+        ebit=healthy["ebit"],
+        equity=healthy["equity"],
+        net_debt=healthy["net_debt"],
+        total_assets=healthy["total_assets"],
+    )
+    assert healthy_result.invalid_reason is None
+    assert healthy_result.value == pytest.approx(0.1339, abs=0.001)
+
+    bad_year = periods_by_year[2024]
+    invested_capital = bad_year["equity"] + bad_year["net_debt"]
+    assert invested_capital > 0
+    assert invested_capital < 0.10 * bad_year["total_assets"]
+    bad_result = roic_for_period(
+        ebit=bad_year["ebit"],
+        equity=bad_year["equity"],
+        net_debt=bad_year["net_debt"],
+        total_assets=bad_year["total_assets"],
+    )
+    assert bad_result.value is None
+    assert bad_result.invalid_reason == "ic_below_asset_floor"
+
+
+def test_roic_implausibly_high_guard_flags_whole_company():
+    # APEX29: 2022/2023 healthy (IC 2800/2880, ~33% of total_assets); 2024
+    # Invested Capital = 1000, a healthy 33.3% of total_assets (3000) - does
+    # not trip ic_below_asset_floor - but the resulting ROIC (67.5%) exceeds
+    # the 60% plausibility cap.
+    company = load_company("APEX29")
+    result = roic_3yr_average(company["periods"])
+    assert result.value is None
+    assert result.invalid_reason == "roic_implausibly_high"
+
+    healthy_years = [p for p in company["periods"] if p["fiscal_year"] != 2024]
+    naive_average_of_healthy_years = sum(
+        roic_for_period(**{k: p[k] for k in ("ebit", "equity", "net_debt", "total_assets")}).value
+        for p in healthy_years
+    ) / len(healthy_years)
+    assert naive_average_of_healthy_years == pytest.approx(0.1347, abs=0.001)
+    assert result.value != naive_average_of_healthy_years
+
+
+def test_roic_for_period_guard_roic_implausibly_high():
+    company = load_company("APEX29")
+    periods_by_year = {p["fiscal_year"]: p for p in company["periods"]}
+
+    healthy = periods_by_year[2022]
+    healthy_result = roic_for_period(
+        ebit=healthy["ebit"],
+        equity=healthy["equity"],
+        net_debt=healthy["net_debt"],
+        total_assets=healthy["total_assets"],
+    )
+    assert healthy_result.invalid_reason is None
+    assert healthy_result.value == pytest.approx(0.1339, abs=0.001)
+
+    bad_year = periods_by_year[2024]
+    invested_capital = bad_year["equity"] + bad_year["net_debt"]
+    assert invested_capital >= 0.10 * bad_year["total_assets"]  # does not trip the asset-floor guard
+    bad_result = roic_for_period(
+        ebit=bad_year["ebit"],
+        equity=bad_year["equity"],
+        net_debt=bad_year["net_debt"],
+        total_assets=bad_year["total_assets"],
+    )
+    assert bad_result.value is None
+    assert bad_result.invalid_reason == "roic_implausibly_high"
 
 
 def test_roic_different_invalid_reasons_are_distinguishable():
     ic_guard_result = roic_3yr_average(load_company("NAKA17")["periods"])
     insufficient_years_result = roic_3yr_average(load_company("ORBT18")["periods"])
     net_debt_unreliable_result = roic_3yr_average(load_company("MURK26")["periods"])
+    ic_below_asset_floor_result = roic_3yr_average(load_company("OMNI28")["periods"])
+    roic_implausibly_high_result = roic_3yr_average(load_company("APEX29")["periods"])
 
     reasons = {
         ic_guard_result.invalid_reason,
         insufficient_years_result.invalid_reason,
         net_debt_unreliable_result.invalid_reason,
+        ic_below_asset_floor_result.invalid_reason,
+        roic_implausibly_high_result.invalid_reason,
     }
-    assert reasons == {"ic_non_positive", "insufficient_years", "net_debt_unreliable"}
+    assert reasons == {
+        "ic_non_positive",
+        "insufficient_years",
+        "net_debt_unreliable",
+        "ic_below_asset_floor",
+        "roic_implausibly_high",
+    }
 
 
 def test_roic_net_debt_unreliable_guard_flags_whole_company():
@@ -138,7 +242,7 @@ def test_roic_net_debt_unreliable_guard_flags_whole_company():
 
     healthy_years = [p for p in company["periods"] if p["fiscal_year"] != 2024]
     naive_average_of_healthy_years = sum(
-        roic_for_period(**{k: p[k] for k in ("ebit", "equity", "net_debt")}).value
+        roic_for_period(**{k: p[k] for k in ("ebit", "equity", "net_debt", "total_assets")}).value
         for p in healthy_years
     ) / len(healthy_years)
     assert naive_average_of_healthy_years == pytest.approx(0.1347, abs=0.001)
@@ -160,7 +264,7 @@ def test_roic_net_debt_unreliable_flags_whole_company_even_in_an_older_year():
 
     healthy_years = [p for p in company["periods"] if p["fiscal_year"] != 2022]
     naive_average_of_healthy_years = sum(
-        roic_for_period(**{k: p[k] for k in ("ebit", "equity", "net_debt")}).value
+        roic_for_period(**{k: p[k] for k in ("ebit", "equity", "net_debt", "total_assets")}).value
         for p in healthy_years
     ) / len(healthy_years)
     assert naive_average_of_healthy_years == pytest.approx(0.1352, abs=0.001)
@@ -176,6 +280,7 @@ def test_roic_for_period_guard_on_net_debt_none():
         ebit=healthy["ebit"],
         equity=healthy["equity"],
         net_debt=healthy["net_debt"],
+        total_assets=healthy["total_assets"],
     )
     assert healthy_result.invalid_reason is None
     assert healthy_result.value == pytest.approx(0.1339, abs=0.001)
@@ -186,6 +291,7 @@ def test_roic_for_period_guard_on_net_debt_none():
         ebit=bad_year["ebit"],
         equity=bad_year["equity"],
         net_debt=bad_year["net_debt"],
+        total_assets=bad_year["total_assets"],
     )
     assert bad_result.value is None
     assert bad_result.invalid_reason == "net_debt_unreliable"
@@ -199,7 +305,7 @@ def test_roic_normal_net_debt_is_not_treated_as_unreliable():
     # the new guard must not misfire on a real number. Uses values distinct
     # from MURK26/FOGG27's healthy years so this doesn't just re-assert an
     # already-covered case.
-    result = roic_for_period(ebit=1000, equity=5000, net_debt=1500)
+    result = roic_for_period(ebit=1000, equity=5000, net_debt=1500, total_assets=20000)
     assert result.invalid_reason is None
     assert result.value == pytest.approx(0.1154, abs=0.001)
 
@@ -208,6 +314,6 @@ def test_roic_net_debt_zero_is_not_treated_as_unreliable():
     # net_debt=0 (a genuine net-cash position, e.g. GLBX02-style) must be
     # distinguished from the net_debt_unreliable sentinel - the guard uses
     # "is None", not truthiness, so a falsy-but-valid 0 must pass through.
-    result = roic_for_period(ebit=500, equity=2000, net_debt=0)
+    result = roic_for_period(ebit=500, equity=2000, net_debt=0, total_assets=8000)
     assert result.invalid_reason is None
     assert result.value == pytest.approx(0.1875, abs=0.001)

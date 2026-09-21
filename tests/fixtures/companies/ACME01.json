@@ -12,6 +12,7 @@
       "tax_rate": 0.24,
       "equity": 2100,
       "net_debt": 900,
+      "total_assets": 9000,
       "net_income": 340,
       "cfo": 560
     },
@@ -23,6 +24,7 @@
       "tax_rate": 0.24,
       "equity": 2280,
       "net_debt": 850,
+      "total_assets": 9390,
       "net_income": 365,
       "cfo": 600
     },
@@ -34,6 +36,7 @@
       "tax_rate": 0.23,
       "equity": 2470,
       "net_debt": 800,
+      "total_assets": 9810,
       "net_income": 400,
       "cfo": 650
     }
