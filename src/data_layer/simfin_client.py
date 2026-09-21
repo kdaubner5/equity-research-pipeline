@@ -37,11 +37,17 @@ MAX_RETRY_ATTEMPTS = 12
 REQUEST_TIMEOUT_SECONDS = 60
 
 # data_quality_flags values, per docs/decisions.md ("SimFin-Client"
-# Entscheidungen 5/6). debt_component_missing_defaulted_zero shares its exact
-# string with edgar_client.py's DEBT_COMPONENT_MISSING_FLAG (same meaning in
-# the internal schema, independent adapter modules - no cross-import).
+# Entscheidung 5 and "net_debt-Zuverlässigkeit - Stock-Flow-Abgleich").
+# debt_component_missing_defaulted_zero shares its exact string with
+# edgar_client.py's DEBT_COMPONENT_MISSING_FLAG (same meaning in the internal
+# schema, independent adapter modules - no cross-import).
 DEBT_COMPONENT_MISSING_FLAG = "debt_component_missing_defaulted_zero"
-DEBT_STATEMENT_MISMATCH_FLAG = "debt_statement_mismatch"
+# net_debt is None because the balance-sheet debt change contradicts the
+# reported debt cash flow beyond tolerance, or could not be checked at all
+# (no prior-year balance sheet). Always accompanied by the generic
+# net_debt_unreliable, which is what metrics_layer reports.
+DEBT_STOCK_FLOW_MISMATCH_FLAG = "debt_stock_flow_mismatch"
+DEBT_STOCK_FLOW_UNVERIFIABLE_FLAG = "debt_stock_flow_unverifiable"
 NET_DEBT_UNRELIABLE_FLAG = "net_debt_unreliable"
 # Both BS debt components AND the debt cash flow are null (not 0) - no debt
 # information at all, so not verified debt-free (Entscheidung 10).
@@ -54,11 +60,17 @@ PL_LAGS_OTHER_STATEMENTS_FLAG = "pl_lags_other_statements"
 # history (fewer EBIT-having years exist at all, no flag).
 YEAR_DROPPED_MISSING_FIELD_FLAG = "year_dropped_missing_required_field"
 
-# Reliability threshold for the net_debt guard below - docs/decisions.md
-# ("SimFin-Client" Entscheidung 6). Module constant, not YAML: config-driven
-# thresholds are Phase 1.1 (docs/masterplan.md §7), same Phase-1.0 exception
-# as the Gates-Layer thresholds (Entscheidung 13).
-NET_DEBT_UNRELIABLE_RATIO = 0.10
+# Tolerance of the stock-flow reconciliation (balance-sheet debt change vs.
+# reported debt cash flow) - docs/decisions.md, "net_debt-Zuverlässigkeit -
+# Stock-Flow-Abgleich", Entscheidung 2: a year reconciles if
+#   |delta_debt - debt_cf| <= max(RATIO * max(debt_t, debt_t-1),
+#                                 ASSETS_RATIO * total_assets_t)
+# Module constants, not YAML: config-driven thresholds are Phase 1.1
+# (docs/masterplan.md §7), same Phase-1.0 exception as the Gates-Layer
+# thresholds (SimFin-Client Entscheidung 13). Fixed before the gates
+# distribution was recomputed - do not tune them to that result.
+DEBT_RECONCILIATION_TOLERANCE_RATIO = 0.05
+DEBT_RECONCILIATION_TOLERANCE_ASSETS_RATIO = 0.001
 
 
 class SimFinMappingError(Exception):
@@ -115,6 +127,24 @@ def _rows_by_fiscal_year(stmt, fiscal_period):
     return rows
 
 
+def _debt_stock_flow_reconciles(debt_now, debt_prev, debt_cf, total_assets):
+    """True if the balance-sheet debt change agrees with the reported debt cash flow.
+
+    Tolerance per DEBT_RECONCILIATION_TOLERANCE_* above: a share of the debt
+    level (non-cash movements - FX translation, discount amortization,
+    finance-lease additions - scale with the debt stock, not with the size of
+    the cash flow), with an absolute floor as a share of total assets so a
+    debt level of (nearly) zero does not turn any tiny cash flow into an
+    infinite relative discrepancy.
+    """
+    discrepancy = abs((debt_now - debt_prev) - debt_cf)
+    tolerance = max(
+        DEBT_RECONCILIATION_TOLERANCE_RATIO * max(debt_now, debt_prev),
+        DEBT_RECONCILIATION_TOLERANCE_ASSETS_RATIO * total_assets,
+    )
+    return discrepancy <= tolerance
+
+
 def map_simfin_to_periods(raw_company, max_years=MAX_YEARS):
     """Map one company's raw SimFin statements JSON into internal-schema periods.
 
@@ -139,14 +169,18 @@ def map_simfin_to_periods(raw_company, max_years=MAX_YEARS):
 
     Short Term Debt/Long Term Debt default to 0 when missing, flagged
     debt_component_missing_defaulted_zero (docs/decisions.md Entscheidung
-    5). net_debt itself is set to None ("net_debt_unreliable") whenever
-    EBITDA <= 0 or the fiscal year's debt-related financing cash flow is
-    large relative to EBITDA (docs/decisions.md Entscheidung 6) - otherwise
-    net_debt is the normal balance-sheet figure, with an informational
-    debt_statement_mismatch flag if that cash flow is nonzero. net_debt is
-    also None (flagged debt_data_completely_missing) when both debt
-    components AND the debt cash flow are all null - no debt information at
-    all is not verified debt-freedom (Entscheidung 10).
+    5). net_debt is None (flagged debt_data_completely_missing) when both
+    debt components AND the debt cash flow are all null - no debt
+    information at all is not verified debt-freedom (SimFin-Client
+    Entscheidung 10). Otherwise the year's balance-sheet debt change
+    (Q4(t) vs Q4(t-1)) is reconciled against its reported debt cash flow
+    (null counts as 0): net_debt is the normal balance-sheet figure if they
+    agree within tolerance - regardless of how large the movement is
+    relative to EBITDA, and regardless of EBITDA's sign - and None
+    (debt_stock_flow_mismatch + net_debt_unreliable) if they do not, or
+    (debt_stock_flow_unverifiable + net_debt_unreliable) if there is no
+    prior-year balance sheet to reconcile against ("net_debt-Zuverlässigkeit
+    - Stock-Flow-Abgleich" Entscheidungen 1-3).
 
     If BS or CF reach a fiscal year later than the newest anchored PL year,
     every returned period carries an informative pl_lags_other_statements
@@ -223,26 +257,29 @@ def map_simfin_to_periods(raw_company, max_years=MAX_YEARS):
             flags.append(DEBT_COMPONENT_MISSING_FLAG)
         total_debt = (st_debt or 0) + (lt_debt or 0)
 
+        ebitda = ebit + da  # informational for net_debt: its sign no longer decides reliability
+
         # A reported 0 is a statement about the company, null is not: all
         # three debt fields null at once is "no information", not "no debt"
-        # (Entscheidung 10) - the ratio check below cannot see it, since it
-        # looks for a contradiction between two statements and finds none
-        # when both sides are absent.
+        # (SimFin-Client Entscheidung 10) - the stock-flow reconciliation
+        # below cannot see it, since it needs at least one side to compare.
         debt_data_missing = st_debt is None and lt_debt is None and debt_cf_raw is None
 
-        ebitda = ebit + da
-        debt_cf = debt_cf_raw or 0
-        unreliable = ebitda <= 0 or (abs(debt_cf) / abs(ebitda)) >= NET_DEBT_UNRELIABLE_RATIO
         if debt_data_missing:
             flags.append(DEBT_DATA_COMPLETELY_MISSING_FLAG)
-        if unreliable:
-            flags.append(NET_DEBT_UNRELIABLE_FLAG)
-        if debt_data_missing or unreliable:
             net_debt = None
         else:
-            net_debt = total_debt - cash
-            if debt_cf != 0:
-                flags.append(DEBT_STATEMENT_MISMATCH_FLAG)
+            prev_bs_row = bs_q4_rows.get(year - 1)
+            if prev_bs_row is None:
+                flags.extend([DEBT_STOCK_FLOW_UNVERIFIABLE_FLAG, NET_DEBT_UNRELIABLE_FLAG])
+                net_debt = None
+            else:
+                prev_debt = (prev_bs_row[st_debt_idx] or 0) + (prev_bs_row[lt_debt_idx] or 0)
+                if _debt_stock_flow_reconciles(total_debt, prev_debt, debt_cf_raw or 0, total_assets):
+                    net_debt = total_debt - cash
+                else:
+                    flags.extend([DEBT_STOCK_FLOW_MISMATCH_FLAG, NET_DEBT_UNRELIABLE_FLAG])
+                    net_debt = None
 
         if pl_lags_other_statements:
             flags.append(PL_LAGS_OTHER_STATEMENTS_FLAG)
