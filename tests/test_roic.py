@@ -2,7 +2,7 @@ import pytest
 
 from conftest import load_company
 from metrics_layer.result import MetricInputError
-from metrics_layer.roic import roic_for_period, roic_3yr_average
+from metrics_layer.roic import roic_for_period, roic_3yr_average, IC_ASSET_FLOOR_RATIO
 
 
 def test_roic_normal_case():
@@ -151,7 +151,7 @@ def test_roic_for_period_guard_ic_below_asset_floor():
     bad_year = periods_by_year[2024]
     invested_capital = bad_year["equity"] + bad_year["net_debt"]
     assert invested_capital > 0
-    assert invested_capital < 0.10 * bad_year["total_assets"]
+    assert invested_capital < IC_ASSET_FLOOR_RATIO * bad_year["total_assets"]
     bad_result = roic_for_period(
         ebit=bad_year["ebit"],
         equity=bad_year["equity"],
@@ -197,7 +197,7 @@ def test_roic_for_period_guard_roic_implausibly_high():
 
     bad_year = periods_by_year[2024]
     invested_capital = bad_year["equity"] + bad_year["net_debt"]
-    assert invested_capital >= 0.10 * bad_year["total_assets"]  # does not trip the asset-floor guard
+    assert invested_capital >= IC_ASSET_FLOOR_RATIO * bad_year["total_assets"]  # asset-floor guard not tripped
     bad_result = roic_for_period(
         ebit=bad_year["ebit"],
         equity=bad_year["equity"],
@@ -317,3 +317,22 @@ def test_roic_net_debt_zero_is_not_treated_as_unreliable():
     result = roic_for_period(ebit=500, equity=2000, net_debt=0, total_assets=8000)
     assert result.invalid_reason is None
     assert result.value == pytest.approx(0.1875, abs=0.001)
+
+
+def test_roic_total_assets_none_is_treated_as_unreliable():
+    # Mirrors the net_debt=None guard: total_assets is a mandatory field,
+    # but a data_layer adapter marking it unreliable (analogous to the
+    # established net_debt sentinel) must not crash the whole evaluation.
+    result = roic_for_period(ebit=500, equity=2000, net_debt=800, total_assets=None)
+    assert result.value is None
+    assert result.invalid_reason == "total_assets_unreliable"
+
+
+def test_roic_total_assets_non_positive_is_treated_as_unreliable():
+    # A non-positive total_assets would otherwise make the asset-floor
+    # comparison's right-hand side <=0, letting any already-confirmed-
+    # positive invested_capital trivially pass the guard it's meant to
+    # enforce (Review-Fund, roic-total-assets-guard).
+    result = roic_for_period(ebit=500, equity=2000, net_debt=800, total_assets=0)
+    assert result.value is None
+    assert result.invalid_reason == "total_assets_unreliable"

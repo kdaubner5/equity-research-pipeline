@@ -31,12 +31,22 @@ def roic_for_period(ebit, equity, net_debt, total_assets):
     before the division (multiplication against total_assets, not a second
     division), the latter necessarily after it since it guards the computed
     ratio itself, not an input.
+
+    total_assets=None or <=0 is guarded before use for the same reason as
+    net_debt=None above (avoids a bare TypeError/silently-true comparison)
+    and gets its own invalid_reason, "total_assets_unreliable" - a
+    non-positive total_assets would otherwise make the asset-floor
+    comparison's right-hand side <=0, letting any already-confirmed-
+    positive invested_capital trivially pass the guard it's meant to
+    enforce (Review-Fund, roic-total-assets-guard).
     """
     if net_debt is None:
         return MetricResult(value=None, invalid_reason="net_debt_unreliable")
     invested_capital = equity + net_debt
     if invested_capital <= 0:
         return MetricResult(value=None, invalid_reason="ic_non_positive")
+    if total_assets is None or total_assets <= 0:
+        return MetricResult(value=None, invalid_reason="total_assets_unreliable")
     if invested_capital < IC_ASSET_FLOOR_RATIO * total_assets:
         return MetricResult(value=None, invalid_reason="ic_below_asset_floor")
     nopat = ebit * (1 - NOPAT_TAX_RATE)
@@ -50,9 +60,11 @@ def roic_3yr_average(periods):
     """3-year ROIC: mean of the three independently computed yearly ROICs.
 
     Invalid (fewer than 3 periods, e.g. recent IPO; invested capital <= 0;
-    or an unreliable net_debt, in any of the three periods) flags the
-    whole 3-year value - never averaged over fewer years, extrapolated,
-    or computed with the bad year excluded.
+    an unreliable net_debt or total_assets; invested capital below the
+    10% Bilanzsummen floor; or an implausibly high (>60%) single-year
+    ROIC, in any of the three periods) flags the whole 3-year value -
+    never averaged over fewer years, extrapolated, or computed with the
+    bad year excluded.
 
     Raises MetricInputError if given more than 3 periods, or if any two
     periods share the same fiscal_year - regardless of period count (this
