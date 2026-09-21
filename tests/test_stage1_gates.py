@@ -5,7 +5,7 @@ from metrics_layer.cash_conversion import cash_conversion_3yr_average, net_incom
 from metrics_layer.net_debt_ebitda import net_debt_ebitda_latest
 from metrics_layer.result import MetricResult
 from metrics_layer.roic import roic_3yr_average
-from gates_layer.stage1_gates import evaluate_stage1_gates, rank_companies
+from gates_layer.stage1_gates import collect_data_quality_flags, evaluate_stage1_gates, rank_companies
 
 
 def _gate_result_for(company_id):
@@ -210,3 +210,45 @@ def test_rank_companies_groups_by_flag_count_then_ticker():
     ranked_tickers = {ticker for ticker, _ in ranked}
     assert "GEKO12" not in ranked_tickers
     assert "NAKA17" not in ranked_tickers
+
+
+def test_collect_data_quality_flags_is_distinct_sorted_and_company_level():
+    periods = [
+        {"fiscal_year": 2023, "data_quality_flags": ["pl_lags_other_statements", "debt_component_missing_defaulted_zero"]},
+        {"fiscal_year": 2024, "data_quality_flags": ["debt_component_missing_defaulted_zero"]},
+        {"fiscal_year": 2025, "data_quality_flags": []},
+    ]
+    assert collect_data_quality_flags(periods) == (
+        "debt_component_missing_defaulted_zero",
+        "pl_lags_other_statements",
+    )
+
+
+def test_collect_data_quality_flags_tolerates_missing_key_null_and_no_periods():
+    # the dummy fixtures carry no data_quality_flags key at all
+    assert collect_data_quality_flags(load_company("ACME01")["periods"]) == ()
+    assert collect_data_quality_flags([{"fiscal_year": 2024, "data_quality_flags": None}]) == ()
+    assert collect_data_quality_flags([]) == ()
+
+
+def test_evaluate_stage1_gates_passes_data_quality_flags_through_without_affecting_the_verdict():
+    inputs = dict(
+        roic=MetricResult(value=0.15),
+        net_debt_ebitda=MetricResult(value=1.0),
+        cash_conversion=MetricResult(value=1.5),
+        net_income_margin=MetricResult(value=0.05),
+    )
+    plain = evaluate_stage1_gates(**inputs)
+    flagged = evaluate_stage1_gates(**inputs, data_quality_flags=("pl_lags_other_statements",))
+    assert plain.data_quality_flags == ()
+    assert flagged.data_quality_flags == ("pl_lags_other_statements",)
+    assert (flagged.status, flagged.flags, flagged.invalid_reasons) == (plain.status, plain.flags, plain.invalid_reasons)
+
+    # also carried on a not_evaluable result, and stored as a tuple even if a list is passed
+    not_evaluable = evaluate_stage1_gates(
+        **{**inputs, "roic": MetricResult(value=None, invalid_reason="ic_non_positive")},
+        data_quality_flags=["year_dropped_missing_required_field"],
+    )
+    assert not_evaluable.status == "not_evaluable"
+    assert not_evaluable.data_quality_flags == ("year_dropped_missing_required_field",)
+    hash(not_evaluable)  # still hashable: a tuple, not a list
