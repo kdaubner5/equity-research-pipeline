@@ -1,6 +1,6 @@
 """ROIC (Return on Invested Capital) per docs/decisions.md."""
 
-from metrics_layer.result import MetricInputError, MetricResult
+from metrics_layer.result import NET_DEBT_UNRELIABLE, MetricInputError, MetricResult, net_debt_none_reason
 
 # Fixed, normalized tax rate for NOPAT (masterplan v1.1, docs/decisions.md
 # "Masterplan v1.1 uebernommen") - replaces the effective per-company rate,
@@ -16,13 +16,16 @@ IC_ASSET_FLOOR_RATIO = 0.10
 ROIC_IMPLAUSIBLE_ABOVE = 0.60
 
 
-def roic_for_period(ebit, equity, net_debt, total_assets):
+def roic_for_period(ebit, equity, net_debt, total_assets, net_debt_invalid_reason=NET_DEBT_UNRELIABLE):
     """ROIC for a single fiscal year.
 
     net_debt=None is the sentinel for "unreliable" (per docs/decisions.md,
     Net-Debt-Zuverlässigkeits-Guard) - a data_layer adapter sets this when
     a debt figure contradicts another statement rather than merely being
-    absent (unlike a plain missing value, which would default elsewhere).
+    absent (unlike a plain missing value, which would default elsewhere) -
+    or when no debt information exists at all (Entscheidung 10). Which of
+    the two is reported as the invalid_reason is the caller's to pass in
+    via net_debt_invalid_reason (default "net_debt_unreliable").
     Guarded before invested_capital is computed - equity + None would
     otherwise raise a bare TypeError.
 
@@ -41,7 +44,7 @@ def roic_for_period(ebit, equity, net_debt, total_assets):
     enforce (Review-Fund, roic-total-assets-guard).
     """
     if net_debt is None:
-        return MetricResult(value=None, invalid_reason="net_debt_unreliable")
+        return MetricResult(value=None, invalid_reason=net_debt_invalid_reason)
     invested_capital = equity + net_debt
     if invested_capital <= 0:
         return MetricResult(value=None, invalid_reason="ic_non_positive")
@@ -91,6 +94,7 @@ def roic_3yr_average(periods):
             equity=period["equity"],
             net_debt=period["net_debt"],
             total_assets=period["total_assets"],
+            net_debt_invalid_reason=net_debt_none_reason(period),
         )
         if result.invalid_reason is not None:
             return result

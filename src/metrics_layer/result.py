@@ -22,6 +22,26 @@ class MetricResult:
             )
 
 
+NET_DEBT_UNRELIABLE = "net_debt_unreliable"
+DEBT_DATA_COMPLETELY_MISSING = "debt_data_completely_missing"
+
+
+def net_debt_none_reason(period):
+    """invalid_reason for a period whose net_debt is None.
+
+    net_debt=None stays the single sentinel (docs/decisions.md, "SimFin-
+    Client" Entscheidung 10) - the adapter distinguishes *why* via
+    data_quality_flags. "debt_data_completely_missing" if the period carries
+    that flag, else "net_debt_unreliable". A period without a
+    data_quality_flags key (e.g. the dummy fixtures) is always the latter.
+    """
+    # `or ()`, not just a .get default: a key present but null (e.g. read
+    # back from JSON/DB) must behave like an absent one, not raise TypeError.
+    if DEBT_DATA_COMPLETELY_MISSING in (period.get("data_quality_flags") or ()):
+        return DEBT_DATA_COMPLETELY_MISSING
+    return NET_DEBT_UNRELIABLE
+
+
 class MetricInputError(Exception):
     """Raised when a Stage-1 metric function is called with malformed input.
 

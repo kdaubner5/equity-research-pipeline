@@ -1,18 +1,20 @@
 """Net Debt/EBITDA per docs/decisions.md."""
 
-from metrics_layer.result import MetricInputError, MetricResult
+from metrics_layer.result import NET_DEBT_UNRELIABLE, MetricInputError, MetricResult, net_debt_none_reason
 
 
-def net_debt_ebitda_for_period(net_debt, ebitda):
+def net_debt_ebitda_for_period(net_debt, ebitda, net_debt_invalid_reason=NET_DEBT_UNRELIABLE):
     """Net Debt/EBITDA for a single fiscal year.
 
     net_debt=None is the sentinel for "unreliable" (per docs/decisions.md,
-    Net-Debt-Zuverlässigkeits-Guard). Checked before the ebitda guard -
+    Net-Debt-Zuverlässigkeits-Guard) or for "no debt information at all"
+    (Entscheidung 10) - net_debt_invalid_reason (default
+    "net_debt_unreliable") says which. Checked before the ebitda guard -
     data availability of net_debt itself is more fundamental than an
     already-computable threshold guard on a different input.
     """
     if net_debt is None:
-        return MetricResult(value=None, invalid_reason="net_debt_unreliable")
+        return MetricResult(value=None, invalid_reason=net_debt_invalid_reason)
     if ebitda <= 0:
         return MetricResult(value=None, invalid_reason="ebitda_non_positive")
     return MetricResult(value=net_debt / ebitda)
@@ -40,4 +42,8 @@ def net_debt_ebitda_latest(periods):
         raise MetricInputError("duplicate fiscal_year entries in periods")
 
     latest = max(periods, key=lambda p: p["fiscal_year"])
-    return net_debt_ebitda_for_period(net_debt=latest["net_debt"], ebitda=latest["ebitda"])
+    return net_debt_ebitda_for_period(
+        net_debt=latest["net_debt"],
+        ebitda=latest["ebitda"],
+        net_debt_invalid_reason=net_debt_none_reason(latest),
+    )

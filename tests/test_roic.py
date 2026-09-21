@@ -336,3 +336,67 @@ def test_roic_total_assets_non_positive_is_treated_as_unreliable():
     result = roic_for_period(ebit=500, equity=2000, net_debt=800, total_assets=0)
     assert result.value is None
     assert result.invalid_reason == "total_assets_unreliable"
+
+
+def _acme_periods_with_net_debt_none_in_year(fiscal_year, data_quality_flags=None):
+    periods = [dict(p) for p in load_company("ACME01")["periods"]]
+    period = next(p for p in periods if p["fiscal_year"] == fiscal_year)
+    period["net_debt"] = None
+    if data_quality_flags is not None:
+        period["data_quality_flags"] = data_quality_flags
+    return periods
+
+
+def test_roic_debt_data_completely_missing_flag_gives_its_own_reason_for_the_whole_company():
+    # docs/decisions.md "SimFin-Client" Entscheidung 10: net_debt=None plus
+    # the adapter's debt_data_completely_missing flag on ANY of the 3 years
+    # flags the whole 3-year ROIC, with its own reason (not net_debt_unreliable).
+    periods = _acme_periods_with_net_debt_none_in_year(2023, ["debt_data_completely_missing"])
+    result = roic_3yr_average(periods)
+    assert result.value is None
+    assert result.invalid_reason == "debt_data_completely_missing"
+
+
+def test_roic_net_debt_none_without_the_completely_missing_flag_stays_net_debt_unreliable():
+    # Absent data_quality_flags key (the dummy fixtures) and unrelated
+    # flags both leave the reason unchanged.
+    for flags in (None, [], ["debt_statement_mismatch", "pl_lags_other_statements"]):
+        result = roic_3yr_average(_acme_periods_with_net_debt_none_in_year(2023, flags))
+        assert result.invalid_reason == "net_debt_unreliable"
+
+
+def test_roic_data_quality_flags_key_present_but_null_does_not_raise():
+    # A period read back from JSON/DB may carry data_quality_flags=None - it
+    # must behave like an absent key, not raise TypeError from an `in` check
+    # (code review of PR #30: master never read this key at all).
+    healthy = [dict(p, data_quality_flags=None) for p in load_company("ACME01")["periods"]]
+    assert roic_3yr_average(healthy).invalid_reason is None
+
+    unreliable = _acme_periods_with_net_debt_none_in_year(2023, None)
+    for period in unreliable:
+        period["data_quality_flags"] = None
+    assert roic_3yr_average(unreliable).invalid_reason == "net_debt_unreliable"
+
+
+def test_roic_for_period_net_debt_invalid_reason_parameter_defaults_to_unreliable():
+    unreliable = roic_for_period(ebit=500, equity=2000, net_debt=None, total_assets=9000)
+    assert unreliable.invalid_reason == "net_debt_unreliable"
+    missing = roic_for_period(
+        ebit=500,
+        equity=2000,
+        net_debt=None,
+        total_assets=9000,
+        net_debt_invalid_reason="debt_data_completely_missing",
+    )
+    assert missing.invalid_reason == "debt_data_completely_missing"
+
+
+def test_roic_ignores_informative_data_quality_flags():
+    # pl_lags_other_statements / debt_statement_mismatch are informational
+    # (Entscheidung 11) - a healthy company with them computes exactly as before.
+    baseline = roic_3yr_average(load_company("ACME01")["periods"])
+    periods = [dict(p, data_quality_flags=["pl_lags_other_statements", "debt_statement_mismatch"])
+               for p in load_company("ACME01")["periods"]]
+    flagged = roic_3yr_average(periods)
+    assert flagged.invalid_reason is None
+    assert flagged.value == pytest.approx(baseline.value)
