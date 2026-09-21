@@ -170,10 +170,29 @@ def save_run_results(run_timestamp, gate_results, db_path=DEFAULT_DB_PATH):
     """
     _require_run_timestamp_str(run_timestamp)
     db_path = Path(db_path)
-    init_db(db_path)
     survivor_rows = _survivor_rows(gate_results)
     eliminated_rows = _eliminated_rows(gate_results)
 
+    # Guard against a silent partition gap (Review-Fund): _survivor_rows()
+    # and _eliminated_rows() each independently check a company's status
+    # against their own fixed set of status strings (PASSED/PASSED_WITH_FLAGS
+    # vs. FAILED/NOT_EVALUABLE). Those two sets only exhaustively partition
+    # every company because exactly four status strings exist today
+    # (gates_layer.stage1_gates deliberately keeps status a plain string,
+    # not an enum - see its Entscheidung 5). An unrecognized status (a
+    # future fifth status added to one filter but not the other, or a
+    # malformed GateResult) would otherwise vanish from both tables with no
+    # exception raised - exactly the silent data loss CLAUDE.md's data-
+    # integrity convention forbids.
+    accounted_for = {row["ticker"] for row in survivor_rows} | {row["ticker"] for row in eliminated_rows}
+    if accounted_for != set(gate_results):
+        raise ValueError(
+            f"gate_results contains companies with an unrecognized status that "
+            f"landed in neither run_results nor eliminated_results: "
+            f"{sorted(set(gate_results) - accounted_for)}"
+        )
+
+    init_db(db_path)
     connection = sqlite3.connect(db_path)
     try:
         connection.execute(

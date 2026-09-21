@@ -9,7 +9,7 @@ from metrics_layer.cash_conversion import cash_conversion_3yr_average, net_incom
 from metrics_layer.net_debt_ebitda import net_debt_ebitda_latest
 from metrics_layer.result import MetricResult
 from metrics_layer.roic import roic_3yr_average
-from gates_layer.stage1_gates import evaluate_stage1_gates, rank_companies
+from gates_layer.stage1_gates import GateResult, evaluate_stage1_gates, rank_companies
 from store_layer.db import export_survivors_csv, init_db, save_run_results
 
 
@@ -155,6 +155,29 @@ def test_save_run_results_full_funnel_partitions_every_company_exactly_once(tmp_
     }
     assert survivor_tickers == expected_survivors
     assert eliminated_tickers == expected_eliminated
+
+
+def test_save_run_results_unrecognized_status_raises_instead_of_vanishing(tmp_path):
+    # Review-Fund: _survivor_rows() and _eliminated_rows() each check their
+    # own fixed status set (PASSED/PASSED_WITH_FLAGS vs. FAILED/
+    # NOT_EVALUABLE). Those only exhaustively partition every company
+    # because exactly 4 status strings exist today - status is a plain
+    # string, not an enum (gates_layer-Entscheidung 5). A GateResult with
+    # any other status must raise, not silently land in neither table.
+    db_path = tmp_path / "archive.db"
+    bogus = GateResult(
+        status="pending",
+        flags=(),
+        invalid_reasons=(),
+        roic=0.15,
+        net_debt_ebitda=1.0,
+        cash_conversion=1.5,
+        net_income_margin=0.05,
+    )
+    gate_results = {"BOGUS01": bogus}
+
+    with pytest.raises(ValueError, match="BOGUS01"):
+        save_run_results("2026-09-21T09:00:00", gate_results, db_path=db_path)
 
 
 def test_save_run_results_eliminated_rows_have_expected_columns(tmp_path):
