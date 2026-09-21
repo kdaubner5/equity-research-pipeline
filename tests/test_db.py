@@ -5,7 +5,7 @@ import sqlite3
 import pytest
 
 from conftest import all_company_ids, load_company
-from metrics_layer.cash_conversion import cash_conversion_3yr_average
+from metrics_layer.cash_conversion import cash_conversion_3yr_average, net_income_margin_3yr_average
 from metrics_layer.net_debt_ebitda import net_debt_ebitda_latest
 from metrics_layer.result import MetricResult
 from metrics_layer.roic import roic_3yr_average
@@ -22,6 +22,7 @@ def _simulated_run_gate_results():
             roic=roic_3yr_average(periods),
             net_debt_ebitda=net_debt_ebitda_latest(periods),
             cash_conversion=cash_conversion_3yr_average(periods),
+            net_income_margin=net_income_margin_3yr_average(periods),
         )
     return gate_results
 
@@ -32,6 +33,7 @@ def _zero_survivor_gate_results():
         roic=MetricResult(value=0.01),
         net_debt_ebitda=MetricResult(value=5.0),
         cash_conversion=MetricResult(value=0.1),
+        net_income_margin=MetricResult(value=0.01),
     )
     assert failing.status == "failed"
     return {ticker: failing for ticker in ("ZERO01", "ZERO02", "ZERO03")}

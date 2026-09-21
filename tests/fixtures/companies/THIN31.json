@@ -1,0 +1,44 @@
+{
+  "company_id": "THIN31",
+  "name": "Thinline Retail Corp.",
+  "sector": "Consumer",
+  "currency": "USD",
+  "periods": [
+    {
+      "fiscal_year": 2022,
+      "revenue": 4000,
+      "ebit": 600,
+      "ebitda": 650,
+      "tax_rate": 0.24,
+      "equity": 2000,
+      "net_debt": 800,
+      "total_assets": 8400,
+      "net_income": 40,
+      "cfo": 60
+    },
+    {
+      "fiscal_year": 2023,
+      "revenue": 4200,
+      "ebit": 620,
+      "ebitda": 680,
+      "tax_rate": 0.24,
+      "equity": 2100,
+      "net_debt": 780,
+      "total_assets": 8640,
+      "net_income": 42,
+      "cfo": 63
+    },
+    {
+      "fiscal_year": 2024,
+      "revenue": 4400,
+      "ebit": 640,
+      "ebitda": 800,
+      "tax_rate": 0.23,
+      "equity": 2200,
+      "net_debt": 800,
+      "total_assets": 9000,
+      "net_income": 44,
+      "cfo": 66
+    }
+  ]
+}
