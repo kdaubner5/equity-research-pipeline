@@ -1,10 +1,16 @@
 """Store-Layer: run archive (forward-log) + CSV export, per docs/decisions.md.
 
 Issue #6 scope is the run archive only - raw-data caching is explicitly
-out of scope here (deferred to roadmap Phase 1.1). Only survivors (status
-"passed" or "passed_with_flags") are archived; gates_layer.rank_companies()
-is the single source of truth for who counts as a survivor and their rank
-position, so this module never re-derives that filtering itself.
+out of scope here (deferred to roadmap Phase 1.1). Survivors (status
+"passed" or "passed_with_flags") are archived in run_results;
+gates_layer.rank_companies() is the single source of truth for who counts
+as a survivor and their rank position, so this module never re-derives
+that filtering itself. Eliminated companies (status "failed" or
+"not_evaluable") are archived separately in eliminated_results - the full
+funnel scope from masterplan v1.1 (docs/decisions.md, "Store-Layer -
+voller Trichter-Scope"). No price-at-run column yet (no price client
+exists - Issue #28) and no Stage-3/4 columns (verdict/buy/position size -
+those stages aren't built yet).
 """
 
 import csv
@@ -12,7 +18,7 @@ import sqlite3
 from pathlib import Path
 from typing import Dict
 
-from gates_layer.stage1_gates import GateResult, rank_companies
+from gates_layer.stage1_gates import FAILED, GateResult, NOT_EVALUABLE, rank_companies
 
 # Anchored to the repo root (src/store_layer/db.py -> repo root is two
 # parents up), not the process's current working directory - a cron
@@ -50,7 +56,7 @@ def _require_run_timestamp_str(run_timestamp):
 
 
 def init_db(db_path=DEFAULT_DB_PATH):
-    """Create the run_results and runs schema if it doesn't already exist. Idempotent."""
+    """Create the run_results, eliminated_results and runs schema if they don't already exist. Idempotent."""
     db_path = Path(db_path)
     db_path.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(db_path)
@@ -66,6 +72,21 @@ def init_db(db_path=DEFAULT_DB_PATH):
                 status TEXT NOT NULL,
                 flags TEXT NOT NULL,
                 rank_position INTEGER NOT NULL,
+                PRIMARY KEY (run_timestamp, ticker)
+            )
+            """
+        )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS eliminated_results (
+                run_timestamp TEXT NOT NULL,
+                ticker TEXT NOT NULL,
+                status TEXT NOT NULL,
+                roic REAL,
+                net_debt_ebitda REAL,
+                cash_conversion REAL,
+                net_income_margin REAL,
+                invalid_reasons TEXT NOT NULL,
                 PRIMARY KEY (run_timestamp, ticker)
             )
             """
@@ -106,32 +127,77 @@ def _survivor_rows(gate_results: Dict[str, GateResult]):
     ]
 
 
+def _eliminated_rows(gate_results: Dict[str, GateResult]):
+    """Eliminated rows (status failed/not_evaluable), unranked.
+
+    The four raw values stay None wherever the underlying MetricResult was
+    invalid (only possible for not_evaluable - a failed company always has
+    all four populated, since classification only runs once every metric
+    is valid, see gates_layer.stage1_gates.evaluate_stage1_gates).
+    """
+    return [
+        {
+            "ticker": ticker,
+            "status": result.status,
+            "roic": result.roic,
+            "net_debt_ebitda": result.net_debt_ebitda,
+            "cash_conversion": result.cash_conversion,
+            "net_income_margin": result.net_income_margin,
+            "invalid_reasons": ",".join(result.invalid_reasons),
+        }
+        for ticker, result in gate_results.items()
+        if result.status in (FAILED, NOT_EVALUABLE)
+    ]
+
+
 def save_run_results(run_timestamp, gate_results, db_path=DEFAULT_DB_PATH):
-    """Persist one run: exactly one `runs` row plus its survivors in `run_results`.
+    """Persist one run: exactly one `runs` row, its survivors in `run_results`,
+    and its eliminated companies in `eliminated_results`.
 
     The `runs` row is written on every call, regardless of survivors_count -
     a 0-survivor run is an explicitly expected outcome (masterplan.md §4,
     "Kein Zwangskauf": below 8 qualifiers, cash is held rather than lowering
     the bar), not an edge case, and needs proof it happened at all,
-    independent of whether anyone survived it.
+    independent of whether anyone survived it. The same applies symmetrically
+    to a 0-eliminated run.
 
-    Both inserts share one connection/transaction (single commit): a failed
-    run_results insert (e.g. sqlite3.IntegrityError on a re-saved
-    run_timestamp - a plain INSERT, not INSERT OR REPLACE, since the
-    forward-log is a historical record that must never be silently
-    overwritten) must not leave an orphaned `runs` row with no matching
-    run_results rows, and vice versa.
+    All three inserts share one connection/transaction (single commit): a
+    failed insert into any one of the three (e.g. sqlite3.IntegrityError on
+    a re-saved run_timestamp - a plain INSERT, not INSERT OR REPLACE, since
+    the forward-log is a historical record that must never be silently
+    overwritten) must not leave the other two with orphaned rows for this
+    run_timestamp.
     """
     _require_run_timestamp_str(run_timestamp)
     db_path = Path(db_path)
-    init_db(db_path)
-    rows = _survivor_rows(gate_results)
+    survivor_rows = _survivor_rows(gate_results)
+    eliminated_rows = _eliminated_rows(gate_results)
 
+    # Guard against a silent partition gap (Review-Fund): _survivor_rows()
+    # and _eliminated_rows() each independently check a company's status
+    # against their own fixed set of status strings (PASSED/PASSED_WITH_FLAGS
+    # vs. FAILED/NOT_EVALUABLE). Those two sets only exhaustively partition
+    # every company because exactly four status strings exist today
+    # (gates_layer.stage1_gates deliberately keeps status a plain string,
+    # not an enum - see its Entscheidung 5). An unrecognized status (a
+    # future fifth status added to one filter but not the other, or a
+    # malformed GateResult) would otherwise vanish from both tables with no
+    # exception raised - exactly the silent data loss CLAUDE.md's data-
+    # integrity convention forbids.
+    accounted_for = {row["ticker"] for row in survivor_rows} | {row["ticker"] for row in eliminated_rows}
+    if accounted_for != set(gate_results):
+        raise ValueError(
+            f"gate_results contains companies with an unrecognized status that "
+            f"landed in neither run_results nor eliminated_results: "
+            f"{sorted(set(gate_results) - accounted_for)}"
+        )
+
+    init_db(db_path)
     connection = sqlite3.connect(db_path)
     try:
         connection.execute(
             "INSERT INTO runs (run_timestamp, companies_evaluated, survivors_count) VALUES (?, ?, ?)",
-            (run_timestamp, len(gate_results), len(rows)),
+            (run_timestamp, len(gate_results), len(survivor_rows)),
         )
         connection.executemany(
             """
@@ -151,7 +217,28 @@ def save_run_results(run_timestamp, gate_results, db_path=DEFAULT_DB_PATH):
                     row["flags"],
                     row["rank_position"],
                 )
-                for row in rows
+                for row in survivor_rows
+            ],
+        )
+        connection.executemany(
+            """
+            INSERT INTO eliminated_results (
+                run_timestamp, ticker, status, roic, net_debt_ebitda,
+                cash_conversion, net_income_margin, invalid_reasons
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            [
+                (
+                    run_timestamp,
+                    row["ticker"],
+                    row["status"],
+                    row["roic"],
+                    row["net_debt_ebitda"],
+                    row["cash_conversion"],
+                    row["net_income_margin"],
+                    row["invalid_reasons"],
+                )
+                for row in eliminated_rows
             ],
         )
         connection.commit()

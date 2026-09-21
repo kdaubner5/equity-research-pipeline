@@ -9,7 +9,7 @@ from metrics_layer.cash_conversion import cash_conversion_3yr_average, net_incom
 from metrics_layer.net_debt_ebitda import net_debt_ebitda_latest
 from metrics_layer.result import MetricResult
 from metrics_layer.roic import roic_3yr_average
-from gates_layer.stage1_gates import evaluate_stage1_gates, rank_companies
+from gates_layer.stage1_gates import GateResult, evaluate_stage1_gates, rank_companies
 from store_layer.db import export_survivors_csv, init_db, save_run_results
 
 
@@ -39,6 +39,18 @@ def _zero_survivor_gate_results():
     return {ticker: failing for ticker in ("ZERO01", "ZERO02", "ZERO03")}
 
 
+def _zero_eliminated_gate_results():
+    """Synthetic gate_results where every company passes cleanly - eliminated_results empty."""
+    passing = evaluate_stage1_gates(
+        roic=MetricResult(value=0.15),
+        net_debt_ebitda=MetricResult(value=1.0),
+        cash_conversion=MetricResult(value=1.5),
+        net_income_margin=MetricResult(value=0.05),
+    )
+    assert passing.status == "passed"
+    return {ticker: passing for ticker in ("CLEAN01", "CLEAN02")}
+
+
 def _query_run(db_path, run_timestamp):
     connection = sqlite3.connect(db_path)
     try:
@@ -65,6 +77,19 @@ def _query_runs_table(db_path, run_timestamp):
         connection.close()
 
 
+def _query_eliminated(db_path, run_timestamp):
+    connection = sqlite3.connect(db_path)
+    try:
+        connection.row_factory = sqlite3.Row
+        rows = connection.execute(
+            "SELECT * FROM eliminated_results WHERE run_timestamp = ? ORDER BY ticker",
+            (run_timestamp,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        connection.close()
+
+
 def test_init_db_is_idempotent(tmp_path):
     db_path = tmp_path / "archive.db"
     init_db(db_path)
@@ -73,7 +98,8 @@ def test_init_db_is_idempotent(tmp_path):
     connection = sqlite3.connect(db_path)
     try:
         tables = connection.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('run_results', 'runs')"
+            "SELECT name FROM sqlite_master WHERE type='table' "
+            "AND name IN ('run_results', 'eliminated_results', 'runs')"
         ).fetchall()
     finally:
         connection.close()
@@ -81,6 +107,7 @@ def test_init_db_is_idempotent(tmp_path):
     # either CREATE TABLE non-idempotent, not just "some table exists"
     table_names = [row[0] for row in tables]
     assert table_names.count("run_results") == 1
+    assert table_names.count("eliminated_results") == 1
     assert table_names.count("runs") == 1
 
 
@@ -103,6 +130,96 @@ def test_save_run_results_only_survivors_are_archived(tmp_path):
     assert gate_results["NAKA17"].status == "not_evaluable"
     assert "GEKO12" not in archived_tickers
     assert "NAKA17" not in archived_tickers
+
+
+def test_save_run_results_full_funnel_partitions_every_company_exactly_once(tmp_path):
+    # Every fixture (currently 31 - the whole simulated run's universe) must
+    # land in exactly one of run_results/eliminated_results: never both,
+    # never neither.
+    db_path = tmp_path / "archive.db"
+    gate_results = _simulated_run_gate_results()
+    run_timestamp = "2026-09-21T09:00:00"
+
+    save_run_results(run_timestamp, gate_results, db_path=db_path)
+
+    survivor_tickers = {row["ticker"] for row in _query_run(db_path, run_timestamp)}
+    eliminated_tickers = {row["ticker"] for row in _query_eliminated(db_path, run_timestamp)}
+
+    assert survivor_tickers & eliminated_tickers == set()
+    assert survivor_tickers | eliminated_tickers == set(gate_results.keys())
+    assert len(survivor_tickers) + len(eliminated_tickers) == len(gate_results)
+
+    expected_survivors = {ticker for ticker, _ in rank_companies(gate_results)}
+    expected_eliminated = {
+        ticker for ticker, result in gate_results.items() if result.status in ("failed", "not_evaluable")
+    }
+    assert survivor_tickers == expected_survivors
+    assert eliminated_tickers == expected_eliminated
+
+
+def test_save_run_results_unrecognized_status_raises_instead_of_vanishing(tmp_path):
+    # Review-Fund: _survivor_rows() and _eliminated_rows() each check their
+    # own fixed status set (PASSED/PASSED_WITH_FLAGS vs. FAILED/
+    # NOT_EVALUABLE). Those only exhaustively partition every company
+    # because exactly 4 status strings exist today - status is a plain
+    # string, not an enum (gates_layer-Entscheidung 5). A GateResult with
+    # any other status must raise, not silently land in neither table.
+    db_path = tmp_path / "archive.db"
+    bogus = GateResult(
+        status="pending",
+        flags=(),
+        invalid_reasons=(),
+        roic=0.15,
+        net_debt_ebitda=1.0,
+        cash_conversion=1.5,
+        net_income_margin=0.05,
+    )
+    gate_results = {"BOGUS01": bogus}
+
+    with pytest.raises(ValueError, match="BOGUS01"):
+        save_run_results("2026-09-21T09:00:00", gate_results, db_path=db_path)
+
+
+def test_save_run_results_eliminated_rows_have_expected_columns(tmp_path):
+    db_path = tmp_path / "archive.db"
+    gate_results = _simulated_run_gate_results()
+    run_timestamp = "2026-09-21T09:00:00"
+
+    save_run_results(run_timestamp, gate_results, db_path=db_path)
+    eliminated_by_ticker = {row["ticker"]: row for row in _query_eliminated(db_path, run_timestamp)}
+
+    # NAKA17: not_evaluable via ic_non_positive - roic stays None, its
+    # invalid_reasons is populated.
+    assert gate_results["NAKA17"].status == "not_evaluable"
+    naka17_row = eliminated_by_ticker["NAKA17"]
+    assert naka17_row["status"] == "not_evaluable"
+    assert naka17_row["roic"] is None
+    assert "ic_non_positive" in naka17_row["invalid_reasons"]
+
+    # GEKO12: failed on the Net Debt/EBITDA hard threshold alone - all four
+    # raw values are populated (classification only runs once every metric
+    # is valid), invalid_reasons stays empty.
+    assert gate_results["GEKO12"].status == "failed"
+    geko12_row = eliminated_by_ticker["GEKO12"]
+    assert geko12_row["status"] == "failed"
+    assert geko12_row["roic"] is not None
+    assert geko12_row["net_debt_ebitda"] is not None
+    assert geko12_row["cash_conversion"] is not None
+    assert geko12_row["net_income_margin"] is not None
+    assert geko12_row["invalid_reasons"] == ""
+
+
+def test_zero_eliminated_run_writes_empty_eliminated_table(tmp_path):
+    db_path = tmp_path / "archive.db"
+    gate_results = _zero_eliminated_gate_results()
+    run_timestamp = "2026-09-15T08:00:00"
+
+    save_run_results(run_timestamp, gate_results, db_path=db_path)
+
+    assert _query_eliminated(db_path, run_timestamp) == []
+    run_row = _query_runs_table(db_path, run_timestamp)
+    assert run_row["survivors_count"] == len(gate_results)
+    assert len(_query_run(db_path, run_timestamp)) == len(gate_results)
 
 
 def test_save_run_results_rank_position_matches_rank_companies(tmp_path):
@@ -150,9 +267,15 @@ def test_save_run_results_same_timestamp_twice_raises(tmp_path):
     with pytest.raises(sqlite3.IntegrityError):
         save_run_results(run_timestamp, gate_results, db_path=db_path)
 
-    # the original rows must be untouched by the failed second attempt
+    # the original rows must be untouched by the failed second attempt, in
+    # BOTH run_results and eliminated_results (single shared transaction)
     rows = _query_run(db_path, run_timestamp)
     assert len(rows) == len(rank_companies(gate_results))
+    eliminated_rows = _query_eliminated(db_path, run_timestamp)
+    expected_eliminated_count = sum(
+        1 for result in gate_results.values() if result.status in ("failed", "not_evaluable")
+    )
+    assert len(eliminated_rows) == expected_eliminated_count
 
 
 def test_export_survivors_csv_matches_db_for_same_run(tmp_path):
@@ -224,6 +347,10 @@ def test_zero_survivor_run_still_writes_runs_row_and_header_only_csv(tmp_path):
 
     assert _query_run(db_path, run_timestamp) == []
 
+    # every one of the (synthetically all-failed) companies is eliminated
+    eliminated_tickers = {row["ticker"] for row in _query_eliminated(db_path, run_timestamp)}
+    assert eliminated_tickers == set(gate_results.keys())
+
     assert csv_path.exists()
     with open(csv_path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
@@ -262,6 +389,14 @@ def test_zero_survivor_run_and_survivor_run_coexist(tmp_path):
 
     assert _query_run(db_path, zero_timestamp) == []
     assert len(_query_run(db_path, real_timestamp)) == real_survivor_count
+
+    # the all-failed zero-survivor run's companies are all eliminated; the
+    # real run's eliminated count is whatever isn't a survivor - the two
+    # timestamps' eliminated_results rows must not bleed into each other
+    zero_eliminated = _query_eliminated(db_path, zero_timestamp)
+    real_eliminated = _query_eliminated(db_path, real_timestamp)
+    assert {row["ticker"] for row in zero_eliminated} == set(zero_gate_results.keys())
+    assert len(real_eliminated) == len(real_gate_results) - real_survivor_count
 
     with open(zero_csv_path, newline="", encoding="utf-8") as f:
         assert list(csv.DictReader(f)) == []
