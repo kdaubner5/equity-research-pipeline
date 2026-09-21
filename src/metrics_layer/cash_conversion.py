@@ -56,8 +56,17 @@ def net_income_margin_for_period(net_income, revenue):
     result; that is exactly the case this metric exists to flag as failed
     in the Gates Layer (docs/decisions.md, "Net-Income-Margin-Gate"), not
     as invalid.
+
+    net_income=None and revenue=None/<=0 are guarded before use (Review-
+    Fund, cash-conversion-margin-gate) - otherwise either raises a bare
+    TypeError instead of a MetricResult, the same bug class already fixed
+    for total_assets in roic.py. revenue=None is folded into the existing
+    revenue_non_positive reason (an unusable revenue either way); net_income
+    is a different field with its own reason, net_income_unreliable.
     """
-    if revenue <= 0:
+    if net_income is None:
+        return MetricResult(value=None, invalid_reason="net_income_unreliable")
+    if revenue is None or revenue <= 0:
         return MetricResult(value=None, invalid_reason="revenue_non_positive")
     return MetricResult(value=net_income / revenue)
 

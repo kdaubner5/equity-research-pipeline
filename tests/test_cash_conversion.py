@@ -260,3 +260,20 @@ def test_net_income_margin_different_invalid_reasons_are_distinguishable():
     assert revenue_guard_result.invalid_reason == "revenue_non_positive"
     assert insufficient_years_result.invalid_reason == "insufficient_years"
     assert revenue_guard_result.invalid_reason != insufficient_years_result.invalid_reason
+
+
+def test_net_income_margin_net_income_none_is_treated_as_unreliable():
+    # Mirrors roic.py's total_assets_unreliable guard (Review-Fund on the
+    # previous branch): a missing net_income must not crash the whole
+    # evaluation with a bare TypeError.
+    result = net_income_margin_for_period(net_income=None, revenue=2000)
+    assert result.value is None
+    assert result.invalid_reason == "net_income_unreliable"
+
+
+def test_net_income_margin_revenue_none_is_treated_as_revenue_non_positive():
+    # revenue=None is folded into the existing revenue_non_positive reason
+    # (an unusable revenue either way) rather than a separate reason.
+    result = net_income_margin_for_period(net_income=100, revenue=None)
+    assert result.value is None
+    assert result.invalid_reason == "revenue_non_positive"
