@@ -1,3 +1,4 @@
+import copy
 import json
 from pathlib import Path
 
@@ -5,12 +6,18 @@ import pytest
 
 from data_layer.simfin_client import (
     DEBT_COMPONENT_MISSING_FLAG,
+    DEBT_DATA_COMPLETELY_MISSING_FLAG,
     DEBT_STATEMENT_MISMATCH_FLAG,
     NET_DEBT_UNRELIABLE_FLAG,
+    PL_LAGS_OTHER_STATEMENTS_FLAG,
     SimFinMappingError,
     build_company_record,
     map_simfin_to_periods,
 )
+from gates_layer.stage1_gates import NOT_EVALUABLE, evaluate_stage1_gates
+from metrics_layer.cash_conversion import cash_conversion_3yr_average, net_income_margin_3yr_average
+from metrics_layer.net_debt_ebitda import net_debt_ebitda_latest
+from metrics_layer.roic import roic_3yr_average
 
 SIMFIN_RAW_DIR = Path(__file__).parent / "fixtures" / "simfin_raw"
 
@@ -72,8 +79,9 @@ def test_fiscal_year_anchor_uses_companys_own_most_recent_years():
     # expected to resolve via insufficient_years, analogous to CATO. It
     # does not - all required CF/BS fields are present for exactly its 3
     # most-recent EBIT-having years (docs/decisions.md, "SimFin-Client"
-    # Entscheidung 7). Forcing that outcome would require a PL-staleness-
-    # vs-BS/CF special mechanism the task explicitly says is not needed.
+    # Entscheidung 7). The PL-lags-BS/CF discrepancy is made visible by an
+    # informative flag instead (Entscheidung 11, tests below), not by an
+    # invalid_reason.
     periods = map_simfin_to_periods(_load_raw("SGC"))
     assert [p["fiscal_year"] for p in periods] == [2021, 2022, 2023]
 
@@ -207,6 +215,161 @@ def test_debt_component_missing_and_net_debt_unreliable_can_combine():
     assert period["net_debt"] is None
     assert DEBT_COMPONENT_MISSING_FLAG in period["data_quality_flags"]
     assert NET_DEBT_UNRELIABLE_FLAG in period["data_quality_flags"]
+
+
+def test_rock_fy2024_2025_all_debt_fields_missing_is_flagged_not_assumed_debt_free():
+    # ROCK FY2024/FY2025: Short Term Debt, Long Term Debt (BS Q4) AND CF
+    # "Cash From (Repayment of) Debt" are all null (docs/decisions.md
+    # Entscheidung 10). Before the fix this silently became net_debt = -Cash
+    # (-269,480,000 / -115,724,000), i.e. an unverified "no debt at all".
+    periods = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("ROCK"))}
+    for fiscal_year in (2024, 2025):
+        period = periods[fiscal_year]
+        assert period["net_debt"] is None
+        assert DEBT_DATA_COMPLETELY_MISSING_FLAG in period["data_quality_flags"]
+        # EBITDA > 0 and no debt cash flow to form a ratio from: this flag is
+        # the ONLY reason net_debt is None here, not the ratio/EBITDA guard.
+        assert NET_DEBT_UNRELIABLE_FLAG not in period["data_quality_flags"]
+
+
+def test_rock_fy2023_reported_debt_cash_flow_is_not_completely_missing():
+    # ROCK FY2023: BS debt components are null too, but the debt cash flow is
+    # reported (-91,000,000) - so the flag must NOT fire; net_debt is None
+    # via the ordinary ratio guard (63.87% >= 10%) instead.
+    period = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("ROCK"))}[2023]
+    assert period["net_debt"] is None
+    assert NET_DEBT_UNRELIABLE_FLAG in period["data_quality_flags"]
+    assert DEBT_DATA_COMPLETELY_MISSING_FLAG not in period["data_quality_flags"]
+
+
+def test_reported_zero_debt_cash_flow_is_not_completely_missing():
+    # "Reported 0" vs "absent" (Entscheidung 10). USNA FY2022: both BS debt
+    # components null, but the debt cash flow is an explicit 0 - a reported
+    # value, so the pre-existing behaviour holds (missing components default
+    # to 0, net_debt = -Cash, flagged defaulted_zero only). USNA FY2021 has
+    # all three null - flagged and net_debt None.
+    periods = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("USNA"), max_years=5)}
+
+    reported_zero = periods[2022]
+    assert reported_zero["net_debt"] == -288_420_000
+    assert reported_zero["data_quality_flags"] == [DEBT_COMPONENT_MISSING_FLAG]
+
+    absent = periods[2021]
+    assert absent["net_debt"] is None
+    assert DEBT_DATA_COMPLETELY_MISSING_FLAG in absent["data_quality_flags"]
+
+
+def test_completely_missing_debt_data_and_non_positive_ebitda_set_both_flags():
+    # CULP FY2023: all three debt fields null AND EBITDA <= 0 (-19,799,000).
+    # Both conditions hold, so both flags are set (transparency); which one
+    # the metrics layer reports is covered further down.
+    period = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("CULP"))}[2023]
+    assert period["net_debt"] is None
+    assert DEBT_DATA_COMPLETELY_MISSING_FLAG in period["data_quality_flags"]
+    assert NET_DEBT_UNRELIABLE_FLAG in period["data_quality_flags"]
+
+
+def test_cato_completely_missing_only_where_the_debt_cash_flow_is_also_null():
+    # CATO FY2019: all three null. FY2020: both BS components null but the
+    # debt cash flow is an explicit 0 - not "completely missing".
+    periods = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("CATO"))}
+    assert DEBT_DATA_COMPLETELY_MISSING_FLAG in periods[2019]["data_quality_flags"]
+    assert DEBT_DATA_COMPLETELY_MISSING_FLAG not in periods[2020]["data_quality_flags"]
+
+
+def test_rock_completely_missing_debt_data_makes_net_debt_ebitda_not_evaluable_end_to_end():
+    # ROCK's Stichtag year (FY2025) is completely-missing: Net Debt/EBITDA
+    # was a valid-looking -0.76x before the fix, now it must be invalid with
+    # its own reason, and the company overall not_evaluable.
+    periods = build_company_record("ROCK", _load_raw("ROCK"))["periods"]
+
+    net_debt_ebitda = net_debt_ebitda_latest(periods)
+    assert net_debt_ebitda.value is None
+    assert net_debt_ebitda.invalid_reason == "debt_data_completely_missing"
+
+    gate_result = evaluate_stage1_gates(
+        roic=roic_3yr_average(periods),
+        net_debt_ebitda=net_debt_ebitda,
+        cash_conversion=cash_conversion_3yr_average(periods),
+        net_income_margin=net_income_margin_3yr_average(periods),
+    )
+    assert gate_result.status == NOT_EVALUABLE
+    assert "debt_data_completely_missing" in gate_result.invalid_reasons
+
+
+def test_genc_completely_missing_debt_data_poisons_the_whole_3_year_roic_too():
+    # GENC: all three anchored years (2023-2025) have all three debt fields
+    # null - ROIC and Net Debt/EBITDA both report the own reason.
+    periods = build_company_record("GENC", _load_raw("GENC"))["periods"]
+    assert roic_3yr_average(periods).invalid_reason == "debt_data_completely_missing"
+    assert net_debt_ebitda_latest(periods).invalid_reason == "debt_data_completely_missing"
+
+
+def test_culp_completely_missing_reason_wins_in_roic_but_does_not_leak_into_net_debt_ebitda():
+    periods = build_company_record("CULP", _load_raw("CULP"))["periods"]
+    # ROIC: FY2023 carries both flags (all-null AND EBITDA <= 0) - the
+    # completely-missing reason takes precedence over net_debt_unreliable.
+    assert roic_3yr_average(periods).invalid_reason == "debt_data_completely_missing"
+    # Net Debt/EBITDA reads only the Stichtag year (FY2025), which is merely
+    # unreliable (ratio/EBITDA), not completely missing - the older
+    # FY2023 must not change that.
+    assert net_debt_ebitda_latest(periods).invalid_reason == "net_debt_unreliable"
+
+
+def test_pl_lags_other_statements_flag_on_every_returned_period_for_sgc():
+    # SGC: PL/EBIT ends at FY2023, BS Q4 and CF FY both reach FY2025
+    # (Entscheidung 11). Every returned period carries the flag, so it
+    # survives whichever period a consumer looks at.
+    periods = map_simfin_to_periods(_load_raw("SGC"))
+    assert [p["fiscal_year"] for p in periods] == [2021, 2022, 2023]
+    for period in periods:
+        assert PL_LAGS_OTHER_STATEMENTS_FLAG in period["data_quality_flags"]
+
+
+def test_pl_lags_other_statements_flag_when_only_bs_reaches_further_for_cato():
+    # CATO: PL and CF stop at FY2020, only BS Q4 reaches FY2021 - "BS or CF"
+    # is enough to trigger the flag.
+    periods = map_simfin_to_periods(_load_raw("CATO"))
+    assert [p["fiscal_year"] for p in periods] == [2019, 2020]
+    for period in periods:
+        assert PL_LAGS_OTHER_STATEMENTS_FLAG in period["data_quality_flags"]
+
+
+@pytest.mark.parametrize("ticker", ["ATRO", "CENT", "ROCK", "UFPT", "LAKE"])
+def test_pl_lags_other_statements_flag_absent_when_pl_is_current(ticker):
+    for period in map_simfin_to_periods(_load_raw(ticker)):
+        assert PL_LAGS_OTHER_STATEMENTS_FLAG not in period["data_quality_flags"]
+
+
+def test_pl_lags_flag_is_relative_to_the_newest_pl_year_not_the_truncated_window():
+    # max_years=1 anchors only on SGC's newest PL year (2023) - the check
+    # must compare against that, not against some older year of the window.
+    periods = map_simfin_to_periods(_load_raw("SGC"), max_years=1)
+    assert [p["fiscal_year"] for p in periods] == [2023]
+    assert PL_LAGS_OTHER_STATEMENTS_FLAG in periods[0]["data_quality_flags"]
+
+
+@pytest.mark.parametrize("missing_statement", ["BS", "CF"])
+def test_missing_bs_or_cf_statement_drops_every_year_instead_of_crashing(missing_statement):
+    # docs/decisions.md Entscheidung 12: a whole statement absent is a data
+    # gap like a missing value, not a structural error - every candidate year
+    # lacks its required fields and is dropped (0 periods => not evaluable
+    # downstream), never a silent pass and never a crash.
+    raw = _load_raw("ATRO")
+    raw["statements"] = [s for s in raw["statements"] if s["statement"] != missing_statement]
+    assert map_simfin_to_periods(raw) == []
+
+
+def test_missing_expected_column_still_fails_loudly():
+    # Entscheidung 12: only a missing VALUE (null) in a guaranteed column
+    # drops a year. If SimFin's column structure itself changes (an expected
+    # column absent from `columns`), the structural failure stays loud -
+    # currently a bare ValueError from list.index in _column_index.
+    raw = copy.deepcopy(_load_raw("ATRO"))
+    cf = next(s for s in raw["statements"] if s["statement"] == "CF")
+    cf["columns"][cf["columns"].index("Depreciation & Amortization")] = "Renamed By SimFin"
+    with pytest.raises(ValueError):
+        map_simfin_to_periods(raw)
 
 
 def test_da_sourced_from_cf_not_pl():

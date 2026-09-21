@@ -128,3 +128,43 @@ def test_net_debt_ebitda_point_in_time_not_averaged():
     # (hard-fail territory) instead - make sure we are nowhere near that
     wrong_average = 2.5
     assert result.value != pytest.approx(wrong_average, abs=0.001)
+
+
+def _acme_periods_with_net_debt_none_in_year(fiscal_year, data_quality_flags):
+    periods = [dict(p) for p in load_company("ACME01")["periods"]]
+    period = next(p for p in periods if p["fiscal_year"] == fiscal_year)
+    period["net_debt"] = None
+    period["data_quality_flags"] = data_quality_flags
+    return periods
+
+
+def test_net_debt_ebitda_debt_data_completely_missing_at_stichtag_gives_its_own_reason():
+    # docs/decisions.md "SimFin-Client" Entscheidung 10: net_debt=None plus
+    # the adapter's debt_data_completely_missing flag on the Stichtag year
+    # makes the metric directly invalid, with its own reason.
+    periods = _acme_periods_with_net_debt_none_in_year(2024, ["debt_data_completely_missing"])
+    result = net_debt_ebitda_latest(periods)
+    assert result.value is None
+    assert result.invalid_reason == "debt_data_completely_missing"
+
+
+def test_net_debt_ebitda_debt_data_completely_missing_in_an_older_year_has_no_effect():
+    # Same Stichtag isolation as net_debt_unreliable in an older year (FOGG27).
+    periods = _acme_periods_with_net_debt_none_in_year(2022, ["debt_data_completely_missing"])
+    result = net_debt_ebitda_latest(periods)
+    assert result.invalid_reason is None
+    assert result.value == pytest.approx(800 / 790, abs=0.001)
+
+
+def test_net_debt_ebitda_net_debt_none_without_the_completely_missing_flag_stays_unreliable():
+    for flags in ([], ["debt_statement_mismatch", "pl_lags_other_statements"]):
+        result = net_debt_ebitda_latest(_acme_periods_with_net_debt_none_in_year(2024, flags))
+        assert result.invalid_reason == "net_debt_unreliable"
+
+
+def test_net_debt_ebitda_for_period_net_debt_invalid_reason_parameter():
+    assert net_debt_ebitda_for_period(net_debt=None, ebitda=700).invalid_reason == "net_debt_unreliable"
+    result = net_debt_ebitda_for_period(
+        net_debt=None, ebitda=700, net_debt_invalid_reason="debt_data_completely_missing"
+    )
+    assert result.invalid_reason == "debt_data_completely_missing"

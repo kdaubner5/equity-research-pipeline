@@ -38,9 +38,17 @@ MAX_RETRY_ATTEMPTS = 12
 DEBT_COMPONENT_MISSING_FLAG = "debt_component_missing_defaulted_zero"
 DEBT_STATEMENT_MISMATCH_FLAG = "debt_statement_mismatch"
 NET_DEBT_UNRELIABLE_FLAG = "net_debt_unreliable"
+# Both BS debt components AND the debt cash flow are null (not 0) - no debt
+# information at all, so not verified debt-free (Entscheidung 10).
+DEBT_DATA_COMPLETELY_MISSING_FLAG = "debt_data_completely_missing"
+# BS/CF reach a fiscal year later than the newest PL year the adapter
+# anchored on - informative only, never an invalid_reason (Entscheidung 11).
+PL_LAGS_OTHER_STATEMENTS_FLAG = "pl_lags_other_statements"
 
 # Reliability threshold for the net_debt guard below - docs/decisions.md
-# ("SimFin-Client" Entscheidung 6).
+# ("SimFin-Client" Entscheidung 6). Module constant, not YAML: config-driven
+# thresholds are Phase 1.1 (docs/masterplan.md §7), same Phase-1.0 exception
+# as the Gates-Layer thresholds (Entscheidung 13).
 NET_DEBT_UNRELIABLE_RATIO = 0.10
 
 
@@ -105,7 +113,14 @@ def map_simfin_to_periods(raw_company, max_years=MAX_YEARS):
     EBITDA <= 0 or the fiscal year's debt-related financing cash flow is
     large relative to EBITDA (docs/decisions.md Entscheidung 6) - otherwise
     net_debt is the normal balance-sheet figure, with an informational
-    debt_statement_mismatch flag if that cash flow is nonzero.
+    debt_statement_mismatch flag if that cash flow is nonzero. net_debt is
+    also None (flagged debt_data_completely_missing) when both debt
+    components AND the debt cash flow are all null - no debt information at
+    all is not verified debt-freedom (Entscheidung 10).
+
+    If BS or CF reach a fiscal year later than the newest anchored PL year,
+    every returned period carries an informative pl_lags_other_statements
+    flag (Entscheidung 11) - never an invalid_reason.
 
     Raises SimFinMappingError if there is no PL statement at all, or no
     fiscal year has a non-null anchor value.
@@ -131,6 +146,14 @@ def map_simfin_to_periods(raw_company, max_years=MAX_YEARS):
     bs = _statement(raw_company, "BS")
     cf_fy_rows = _rows_by_fiscal_year(cf, "FY") if cf else {}
     bs_q4_rows = _rows_by_fiscal_year(bs, "Q4") if bs else {}
+
+    # Explicit check after anchoring (Entscheidung 11): does BS or CF reach a
+    # fiscal year later than the newest one PL/EBIT anchored on? Informative
+    # flag on every returned period, not an invalid_reason.
+    latest_anchor_year = anchor_years[0]
+    pl_lags_other_statements = any(
+        rows and max(rows) > latest_anchor_year for rows in (cf_fy_rows, bs_q4_rows)
+    )
 
     da_idx = _column_index(cf["columns"], "Depreciation & Amortization") if cf else None
     cfo_idx = _column_index(cf["columns"], "Cash from Operating Activities") if cf else None
@@ -163,20 +186,34 @@ def map_simfin_to_periods(raw_company, max_years=MAX_YEARS):
         flags = []
         st_debt = bs_row[st_debt_idx]
         lt_debt = bs_row[lt_debt_idx]
+        debt_cf_raw = cf_row[debt_cf_idx]
         if st_debt is None or lt_debt is None:
             flags.append(DEBT_COMPONENT_MISSING_FLAG)
         total_debt = (st_debt or 0) + (lt_debt or 0)
 
+        # A reported 0 is a statement about the company, null is not: all
+        # three debt fields null at once is "no information", not "no debt"
+        # (Entscheidung 10) - the ratio check below cannot see it, since it
+        # looks for a contradiction between two statements and finds none
+        # when both sides are absent.
+        debt_data_missing = st_debt is None and lt_debt is None and debt_cf_raw is None
+
         ebitda = ebit + da
-        debt_cf = (cf_row[debt_cf_idx] if cf_row else None) or 0
+        debt_cf = debt_cf_raw or 0
         unreliable = ebitda <= 0 or (abs(debt_cf) / abs(ebitda)) >= NET_DEBT_UNRELIABLE_RATIO
+        if debt_data_missing:
+            flags.append(DEBT_DATA_COMPLETELY_MISSING_FLAG)
         if unreliable:
-            net_debt = None
             flags.append(NET_DEBT_UNRELIABLE_FLAG)
+        if debt_data_missing or unreliable:
+            net_debt = None
         else:
             net_debt = total_debt - cash
             if debt_cf != 0:
                 flags.append(DEBT_STATEMENT_MISMATCH_FLAG)
+
+        if pl_lags_other_statements:
+            flags.append(PL_LAGS_OTHER_STATEMENTS_FLAG)
 
         periods.append(
             {
