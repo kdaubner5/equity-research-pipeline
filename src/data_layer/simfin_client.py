@@ -133,15 +133,23 @@ def _debt_stock_flow_reconciles(debt_now, debt_prev, debt_cf, total_assets):
     Tolerance per DEBT_RECONCILIATION_TOLERANCE_* above: a share of the debt
     level (non-cash movements - FX translation, discount amortization,
     finance-lease additions - scale with the debt stock, not with the size of
-    the cash flow), with an absolute floor as a share of total assets so a
-    debt level of (nearly) zero does not turn any tiny cash flow into an
-    infinite relative discrepancy.
+    the cash flow). The relative tolerance is degenerate at debt level exactly
+    0 (any nonzero cash flow would be an "infinite" relative discrepancy), so
+    that one case falls back to an absolute floor, a share of total assets
+    (code review of this branch, confirmed against the KELYA FY2020 fixture:
+    combining both terms via max() - the pre-fix behaviour - let the assets
+    floor of an asset-heavy company swamp a real, ~110%-of-debt-level
+    contradiction whenever debt was merely small relative to that company's
+    balance sheet, not actually zero; every "rescued by the floor" case in the
+    23 pilots besides KELYA has debt exactly 0 in both years, so restricting
+    the floor to that case changes no other pilot outcome).
     """
     discrepancy = abs((debt_now - debt_prev) - debt_cf)
-    tolerance = max(
-        DEBT_RECONCILIATION_TOLERANCE_RATIO * max(debt_now, debt_prev),
-        DEBT_RECONCILIATION_TOLERANCE_ASSETS_RATIO * total_assets,
-    )
+    debt_level = max(debt_now, debt_prev)
+    if debt_level == 0:
+        tolerance = DEBT_RECONCILIATION_TOLERANCE_ASSETS_RATIO * total_assets
+    else:
+        tolerance = DEBT_RECONCILIATION_TOLERANCE_RATIO * debt_level
     return discrepancy <= tolerance
 
 
@@ -253,7 +261,8 @@ def map_simfin_to_periods(raw_company, max_years=MAX_YEARS):
         st_debt = bs_row[st_debt_idx]
         lt_debt = bs_row[lt_debt_idx]
         debt_cf_raw = cf_row[debt_cf_idx]
-        if st_debt is None or lt_debt is None:
+        current_component_missing = st_debt is None or lt_debt is None
+        if current_component_missing:
             flags.append(DEBT_COMPONENT_MISSING_FLAG)
         total_debt = (st_debt or 0) + (lt_debt or 0)
 
@@ -274,7 +283,21 @@ def map_simfin_to_periods(raw_company, max_years=MAX_YEARS):
                 flags.extend([DEBT_STOCK_FLOW_UNVERIFIABLE_FLAG, NET_DEBT_UNRELIABLE_FLAG])
                 net_debt = None
             else:
-                prev_debt = (prev_bs_row[st_debt_idx] or 0) + (prev_bs_row[lt_debt_idx] or 0)
+                prev_st_debt = prev_bs_row[st_debt_idx]
+                prev_lt_debt = prev_bs_row[lt_debt_idx]
+                # The reconciliation's own baseline (year t-1) can have the
+                # same missing-component gap as year t - defaulting it to 0
+                # without a flag would make the check look more certain than
+                # it is (code review of this branch; CLAUDE.md: no silent
+                # shortcuts on data integrity). Flagged the same way as the
+                # current year's default, but - unlike the current year - it
+                # does not by itself change net_debt: the reconciliation still
+                # runs against the defaulted value, same as decisions.md's own
+                # worked ROCK/SUPN FY2023 example (`not current_component_missing`
+                # only avoids appending the same flag string twice).
+                if not current_component_missing and (prev_st_debt is None or prev_lt_debt is None):
+                    flags.append(DEBT_COMPONENT_MISSING_FLAG)
+                prev_debt = (prev_st_debt or 0) + (prev_lt_debt or 0)
                 if _debt_stock_flow_reconciles(total_debt, prev_debt, debt_cf_raw or 0, total_assets):
                     net_debt = total_debt - cash
                 else:

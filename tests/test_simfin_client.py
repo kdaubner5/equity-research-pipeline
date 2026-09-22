@@ -224,6 +224,31 @@ def test_missing_prior_year_balance_sheet_is_unverifiable_and_unreliable():
     assert periods[2024]["net_debt"] == 175_925_000
 
 
+def test_prior_year_debt_component_missing_defaults_to_zero_and_flags_it():
+    # Code review of this branch: the reconciliation's own baseline (year
+    # t-1) can have a missing debt component just like year t - silently
+    # defaulting it to 0 without a flag would make the check look more
+    # certain than it is than the symmetric, already-flagged current-year
+    # case. UFPT FY2023's Short Term Debt (4,000,000 in the real fixture) is
+    # nulled out here to isolate the prior-year case: FY2024's OWN components
+    # are both fully known (no flag from that side). net_debt is unaffected -
+    # the reconciliation still holds even under the wrong 0-default
+    # (discrepancy 4,073,000 vs. a 9,468,750 tolerance) - which is exactly why
+    # a flag, not a null, is the right signal here.
+    raw = copy.deepcopy(_load_raw("UFPT"))
+    bs = next(s for s in raw["statements"] if s["statement"] == "BS")
+    fp_idx, fy_idx = bs["columns"].index("Fiscal Period"), bs["columns"].index("Fiscal Year")
+    st_idx = bs["columns"].index("Short Term Debt")
+    for row in bs["data"]:
+        if row[fp_idx] == "Q4" and row[fy_idx] == 2023:
+            row[st_idx] = None
+
+    periods = {p["fiscal_year"]: p for p in map_simfin_to_periods(raw)}
+    assert periods[2024]["net_debt"] == 175_925_000
+    assert DEBT_COMPONENT_MISSING_FLAG in periods[2024]["data_quality_flags"]
+    assert NET_DEBT_UNRELIABLE_FLAG not in periods[2024]["data_quality_flags"]
+
+
 def test_reconciliation_tolerance_boundaries():
     # relative part: 5% of max(debt_t, debt_t-1); total_assets small enough
     # that the absolute floor (0.1%) is not the binding term here
@@ -232,10 +257,36 @@ def test_reconciliation_tolerance_boundaries():
     # symmetric in the debt level: debt fully repaid, level taken from t-1
     assert _debt_stock_flow_reconciles(0, 1000, -950, total_assets=1000)  # diff 50 == 5% of 1000
     assert not _debt_stock_flow_reconciles(0, 1000, -940, total_assets=1000)  # diff 60
-    # absolute floor: 0.1% of total assets when the debt level is (nearly) zero
+    # absolute floor: 0.1% of total assets, but ONLY when the debt level is
+    # exactly 0 - not as an unconditional alternative to the relative term
+    # (code review of this branch: the floor used to win via max() whenever it
+    # was looser than the relative tolerance, regardless of whether debt was
+    # actually near zero).
     assert _debt_stock_flow_reconciles(0, 0, 0, total_assets=1_000_000)  # exact zero always reconciles
     assert _debt_stock_flow_reconciles(0, 0, 1000, total_assets=1_000_000)  # diff 1000 == 0.1% of 1,000,000
     assert not _debt_stock_flow_reconciles(0, 0, 1001, total_assets=1_000_000)
+
+
+def test_absolute_floor_does_not_rescue_a_real_contradiction_at_nonzero_debt():
+    # Code review of this branch, reproduced from the real KELYA FY2020
+    # fixture: debt fell from 1,900,000 to 300,000 (delta -1,600,000) against
+    # a reported debt cash flow of -3,700,000 - a 2,100,000 discrepancy, 110%
+    # of the debt level, a clear stock-flow contradiction. Debt is small only
+    # relative to this company's 2,561,900,000 total assets, not actually
+    # zero, so the assets floor (2,561,900) must NOT apply here - only the 5%
+    # relative tolerance (95,000) is relevant, and the discrepancy fails it.
+    assert not _debt_stock_flow_reconciles(300_000, 1_900_000, -3_700_000, total_assets=2_561_900_000)
+
+
+def test_kelya_fy2020_no_longer_silently_reconciled_by_the_assets_floor():
+    # End-to-end version of the fix above, against the real fixture. FY2020
+    # falls outside KELYA's default 3-year anchor window (it is dropped from
+    # the pilot gates for unrelated reasons - see test_simfin_pilot_gates.py),
+    # so this exercises the mapping directly with a wider window.
+    periods = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("KELYA"), max_years=10)}
+    assert periods[2020]["net_debt"] is None
+    assert DEBT_STOCK_FLOW_MISMATCH_FLAG in periods[2020]["data_quality_flags"]
+    assert NET_DEBT_UNRELIABLE_FLAG in periods[2020]["data_quality_flags"]
 
 
 def test_debt_component_missing_defaults_to_zero_and_flags_it():
@@ -288,11 +339,15 @@ def test_rock_fy2023_reported_debt_cash_flow_is_not_completely_missing_and_recon
     # ROCK FY2023: BS debt components are null too, but the debt cash flow is
     # reported (-91,000,000) - so the completely-missing flag must NOT fire.
     # The stock-flow check then confirms that null meant "fully repaid":
-    # debt fell from 88,762,000 to (null =) 0, cash flow -91,000,000.
+    # debt fell from 88,762,000 to (null =) 0, cash flow -91,000,000. FY2023's
+    # OWN components are both null (current-year flag) AND FY2022's Short Term
+    # Debt is also null (prior-year flag, same flag string) - the two must
+    # collapse into one entry, not a duplicate.
     period = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("ROCK"))}[2023]
     assert period["net_debt"] == -99_426_000
     assert NET_DEBT_UNRELIABLE_FLAG not in period["data_quality_flags"]
     assert DEBT_DATA_COMPLETELY_MISSING_FLAG not in period["data_quality_flags"]
+    assert period["data_quality_flags"].count(DEBT_COMPONENT_MISSING_FLAG) == 1
 
 
 def test_reported_zero_debt_cash_flow_is_not_completely_missing():
