@@ -362,6 +362,7 @@ def test_zero_survivor_run_still_writes_runs_row_and_header_only_csv(tmp_path):
             "roic_3yr",
             "net_debt_ebitda",
             "cash_conversion_3yr",
+            "data_quality_flags",
         ]
         assert list(reader) == []  # header only, no data rows
 
@@ -402,3 +403,132 @@ def test_zero_survivor_run_and_survivor_run_coexist(tmp_path):
         assert list(csv.DictReader(f)) == []
     with open(real_csv_path, newline="", encoding="utf-8") as f:
         assert len(list(csv.DictReader(f))) == real_survivor_count
+
+
+# --- data_quality_flags persistence (docs/decisions.md, "net_debt-Zuverlaessigkeit -
+# Stock-Flow-Abgleich", Entscheidung 5) -----------------------------------------
+
+
+_DQ_FLAGS = ("debt_component_missing_defaulted_zero", "pl_lags_other_statements")
+
+
+def _gate_results_with_data_quality_flags():
+    """One survivor with flags, one survivor without, one failed and one not_evaluable, each with its own flags."""
+    passing = dict(
+        roic=MetricResult(value=0.15),
+        net_debt_ebitda=MetricResult(value=1.0),
+        cash_conversion=MetricResult(value=1.5),
+        net_income_margin=MetricResult(value=0.05),
+    )
+    return {
+        "SURV_FLAGGED": evaluate_stage1_gates(**passing, data_quality_flags=_DQ_FLAGS),
+        "SURV_CLEAN": evaluate_stage1_gates(**passing),
+        "ELIM_FAILED": evaluate_stage1_gates(
+            roic=MetricResult(value=0.01),
+            net_debt_ebitda=MetricResult(value=5.0),
+            cash_conversion=MetricResult(value=0.1),
+            net_income_margin=MetricResult(value=0.01),
+            data_quality_flags=("year_dropped_missing_required_field",),
+        ),
+        "ELIM_NOT_EVALUABLE": evaluate_stage1_gates(
+            roic=MetricResult(value=None, invalid_reason="debt_data_completely_missing"),
+            net_debt_ebitda=MetricResult(value=None, invalid_reason="debt_data_completely_missing"),
+            cash_conversion=MetricResult(value=1.5),
+            net_income_margin=MetricResult(value=0.05),
+            data_quality_flags=("debt_data_completely_missing",) + _DQ_FLAGS,
+        ),
+    }
+
+
+def _table_columns(db_path, table):
+    connection = sqlite3.connect(db_path)
+    try:
+        return [row[1] for row in connection.execute(f"PRAGMA table_info({table})")]
+    finally:
+        connection.close()
+
+
+def test_new_db_has_data_quality_flags_column_in_both_tables(tmp_path):
+    db_path = tmp_path / "archive.db"
+    init_db(db_path)
+    assert _table_columns(db_path, "run_results").count("data_quality_flags") == 1
+    assert _table_columns(db_path, "eliminated_results").count("data_quality_flags") == 1
+
+
+def test_save_run_results_persists_data_quality_flags_in_both_tables(tmp_path):
+    db_path = tmp_path / "archive.db"
+    run_timestamp = "2026-09-21T16:00:00"
+    save_run_results(run_timestamp, _gate_results_with_data_quality_flags(), db_path=db_path)
+
+    survivors = {row["ticker"]: row for row in _query_run(db_path, run_timestamp)}
+    assert survivors["SURV_FLAGGED"]["data_quality_flags"] == ",".join(_DQ_FLAGS)
+    assert survivors["SURV_CLEAN"]["data_quality_flags"] == ""
+
+    eliminated = {row["ticker"]: row for row in _query_eliminated(db_path, run_timestamp)}
+    assert eliminated["ELIM_FAILED"]["data_quality_flags"] == "year_dropped_missing_required_field"
+    assert eliminated["ELIM_NOT_EVALUABLE"]["data_quality_flags"] == "debt_data_completely_missing," + ",".join(
+        _DQ_FLAGS
+    )
+
+
+def test_data_quality_flags_never_change_status_or_ranking(tmp_path):
+    # Informational only: identical metrics with and without flags rank in the
+    # same group (0 metric flags) - only the ticker decides within it.
+    results = _gate_results_with_data_quality_flags()
+    assert results["SURV_FLAGGED"].status == results["SURV_CLEAN"].status == "passed"
+    assert [ticker for ticker, _ in rank_companies(results)] == ["SURV_CLEAN", "SURV_FLAGGED"]
+
+
+def test_export_survivors_csv_carries_data_quality_flags(tmp_path):
+    csv_dir = tmp_path / "runs"
+    csv_path = export_survivors_csv("2026-09-21T16:00:00", _gate_results_with_data_quality_flags(), output_dir=csv_dir)
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        rows = {row["ticker"]: row for row in csv.DictReader(f)}
+    assert set(rows) == {"SURV_FLAGGED", "SURV_CLEAN"}  # survivors only
+    assert rows["SURV_FLAGGED"]["data_quality_flags"] == ",".join(_DQ_FLAGS)
+    assert rows["SURV_CLEAN"]["data_quality_flags"] == ""
+
+
+_OLD_SCHEMA_RUN_RESULTS = """
+    CREATE TABLE run_results (
+        run_timestamp TEXT NOT NULL, ticker TEXT NOT NULL, roic_3yr REAL NOT NULL,
+        net_debt_ebitda REAL NOT NULL, cash_conversion_3yr REAL NOT NULL, status TEXT NOT NULL,
+        flags TEXT NOT NULL, rank_position INTEGER NOT NULL, PRIMARY KEY (run_timestamp, ticker))
+"""
+_OLD_SCHEMA_ELIMINATED = """
+    CREATE TABLE eliminated_results (
+        run_timestamp TEXT NOT NULL, ticker TEXT NOT NULL, status TEXT NOT NULL, roic REAL,
+        net_debt_ebitda REAL, cash_conversion REAL, net_income_margin REAL,
+        invalid_reasons TEXT NOT NULL, PRIMARY KEY (run_timestamp, ticker))
+"""
+
+
+def test_init_db_upgrades_an_existing_archive_and_stays_idempotent(tmp_path):
+    # An archive created before the column existed: init_db() must add it via
+    # ALTER TABLE (old rows read back as ''), not fail, and not add it twice.
+    db_path = tmp_path / "old_archive.db"
+    connection = sqlite3.connect(db_path)
+    try:
+        connection.execute(_OLD_SCHEMA_RUN_RESULTS)
+        connection.execute(_OLD_SCHEMA_ELIMINATED)
+        connection.execute("INSERT INTO run_results VALUES ('2026-09-01T09:00:00', 'OLD1', 0.2, 1.0, 1.1, 'passed', '', 1)")
+        connection.execute(
+            "INSERT INTO eliminated_results VALUES ('2026-09-01T09:00:00', 'OLD2', 'failed', 0.1, 3.0, 0.9, 0.05, '')"
+        )
+        connection.commit()
+    finally:
+        connection.close()
+    assert "data_quality_flags" not in _table_columns(db_path, "run_results")
+
+    init_db(db_path)
+    init_db(db_path)  # a second call must be a no-op, not "duplicate column name"
+
+    assert _table_columns(db_path, "run_results").count("data_quality_flags") == 1
+    assert _table_columns(db_path, "eliminated_results").count("data_quality_flags") == 1
+    assert _query_run(db_path, "2026-09-01T09:00:00")[0]["data_quality_flags"] == ""
+    assert _query_eliminated(db_path, "2026-09-01T09:00:00")[0]["data_quality_flags"] == ""
+
+    # and a new run on the upgraded archive persists flags next to the old rows
+    save_run_results("2026-09-21T16:00:00", _gate_results_with_data_quality_flags(), db_path=db_path)
+    new_rows = {row["ticker"]: row for row in _query_run(db_path, "2026-09-21T16:00:00")}
+    assert new_rows["SURV_FLAGGED"]["data_quality_flags"] == ",".join(_DQ_FLAGS)

@@ -11,6 +11,12 @@ funnel scope from masterplan v1.1 (docs/decisions.md, "Store-Layer -
 voller Trichter-Scope"). No price-at-run column yet (no price client
 exists - Issue #28) and no Stage-3/4 columns (verdict/buy/position size -
 those stages aren't built yet).
+
+Both tables (and the survivors CSV) also carry the company's
+data_quality_flags, read from GateResult.data_quality_flags - the store never
+sees periods, so whoever builds the GateResults passes them in
+(gates_layer.stage1_gates.collect_data_quality_flags). docs/decisions.md,
+"net_debt-Zuverlaessigkeit - Stock-Flow-Abgleich", Entscheidung 5.
 """
 
 import csv
@@ -37,6 +43,7 @@ _CSV_FIELDNAMES = [
     "roic_3yr",
     "net_debt_ebitda",
     "cash_conversion_3yr",
+    "data_quality_flags",
 ]
 
 
@@ -55,8 +62,27 @@ def _require_run_timestamp_str(run_timestamp):
         )
 
 
+def _ensure_data_quality_flags_column(connection, table):
+    """Add data_quality_flags to a table created before the column existed.
+
+    New tables already have it via CREATE TABLE; an older archive's tables
+    (created without it) get it via ALTER TABLE, checked through PRAGMA
+    table_info so a second call is a no-op. Existing rows read back as ''
+    ("not recorded at the time" is indistinguishable from "no flags" for
+    them - accepted, the forward-log is complete from here on).
+    `table` is always one of this module's own table-name constants.
+    """
+    existing_columns = {row[1] for row in connection.execute(f"PRAGMA table_info({table})")}
+    if "data_quality_flags" not in existing_columns:
+        connection.execute(f"ALTER TABLE {table} ADD COLUMN data_quality_flags TEXT NOT NULL DEFAULT ''")
+
+
 def init_db(db_path=DEFAULT_DB_PATH):
-    """Create the run_results, eliminated_results and runs schema if they don't already exist. Idempotent."""
+    """Create the run_results, eliminated_results and runs schema if they don't already exist. Idempotent.
+
+    Also upgrades an existing archive whose run_results/eliminated_results
+    tables predate the data_quality_flags column.
+    """
     db_path = Path(db_path)
     db_path.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(db_path)
@@ -72,6 +98,7 @@ def init_db(db_path=DEFAULT_DB_PATH):
                 status TEXT NOT NULL,
                 flags TEXT NOT NULL,
                 rank_position INTEGER NOT NULL,
+                data_quality_flags TEXT NOT NULL DEFAULT '',
                 PRIMARY KEY (run_timestamp, ticker)
             )
             """
@@ -87,6 +114,7 @@ def init_db(db_path=DEFAULT_DB_PATH):
                 cash_conversion REAL,
                 net_income_margin REAL,
                 invalid_reasons TEXT NOT NULL,
+                data_quality_flags TEXT NOT NULL DEFAULT '',
                 PRIMARY KEY (run_timestamp, ticker)
             )
             """
@@ -100,6 +128,8 @@ def init_db(db_path=DEFAULT_DB_PATH):
             )
             """
         )
+        _ensure_data_quality_flags_column(connection, "run_results")
+        _ensure_data_quality_flags_column(connection, "eliminated_results")
         connection.commit()
     finally:
         connection.close()
@@ -122,6 +152,7 @@ def _survivor_rows(gate_results: Dict[str, GateResult]):
             "status": result.status,
             "flags": ",".join(result.flags),
             "rank_position": position,
+            "data_quality_flags": ",".join(result.data_quality_flags),
         }
         for position, (ticker, result) in enumerate(ranked, start=1)
     ]
@@ -144,6 +175,7 @@ def _eliminated_rows(gate_results: Dict[str, GateResult]):
             "cash_conversion": result.cash_conversion,
             "net_income_margin": result.net_income_margin,
             "invalid_reasons": ",".join(result.invalid_reasons),
+            "data_quality_flags": ",".join(result.data_quality_flags),
         }
         for ticker, result in gate_results.items()
         if result.status in (FAILED, NOT_EVALUABLE)
@@ -203,8 +235,8 @@ def save_run_results(run_timestamp, gate_results, db_path=DEFAULT_DB_PATH):
             """
             INSERT INTO run_results (
                 run_timestamp, ticker, roic_3yr, net_debt_ebitda,
-                cash_conversion_3yr, status, flags, rank_position
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                cash_conversion_3yr, status, flags, rank_position, data_quality_flags
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
                 (
@@ -216,6 +248,7 @@ def save_run_results(run_timestamp, gate_results, db_path=DEFAULT_DB_PATH):
                     row["status"],
                     row["flags"],
                     row["rank_position"],
+                    row["data_quality_flags"],
                 )
                 for row in survivor_rows
             ],
@@ -224,8 +257,8 @@ def save_run_results(run_timestamp, gate_results, db_path=DEFAULT_DB_PATH):
             """
             INSERT INTO eliminated_results (
                 run_timestamp, ticker, status, roic, net_debt_ebitda,
-                cash_conversion, net_income_margin, invalid_reasons
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                cash_conversion, net_income_margin, invalid_reasons, data_quality_flags
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
                 (
@@ -237,6 +270,7 @@ def save_run_results(run_timestamp, gate_results, db_path=DEFAULT_DB_PATH):
                     row["cash_conversion"],
                     row["net_income_margin"],
                     row["invalid_reasons"],
+                    row["data_quality_flags"],
                 )
                 for row in eliminated_rows
             ],

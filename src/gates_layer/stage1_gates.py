@@ -50,6 +50,12 @@ class GateResult:
     flags and invalid_reasons are tuples, not lists: frozen=True only stops
     a field from being reassigned, not a mutable field's contents from being
     changed in place, and a list field would also make GateResult unhashable.
+
+    data_quality_flags is the company's distinct data-quality flags from the
+    data layer (see collect_data_quality_flags), carried through so the store
+    layer can persist them (docs/decisions.md, "net_debt-Zuverlaessigkeit -
+    Stock-Flow-Abgleich", Entscheidung 5). Informational only - they never
+    influence status, flags or invalid_reasons.
     """
 
     status: str
@@ -59,6 +65,22 @@ class GateResult:
     net_debt_ebitda: Optional[float]
     cash_conversion: Optional[float]
     net_income_margin: Optional[float]
+    data_quality_flags: Tuple[str, ...] = ()
+
+
+def collect_data_quality_flags(periods) -> Tuple[str, ...]:
+    """A company's distinct data_quality_flags across all its periods, sorted.
+
+    The year attribution is deliberately dropped (company-level, like
+    flags/invalid_reasons). Periods without a data_quality_flags key (the
+    dummy fixtures) or with a null value contribute nothing. The caller that
+    builds gate results (the future runner, Issue #9) passes the result to
+    evaluate_stage1_gates(); the store layer never sees periods.
+    """
+    collected = set()
+    for period in periods:
+        collected.update(period.get("data_quality_flags") or ())
+    return tuple(sorted(collected))
 
 
 def _classify_roic(value):
@@ -105,6 +127,7 @@ def evaluate_stage1_gates(
     net_debt_ebitda: MetricResult,
     cash_conversion: MetricResult,
     net_income_margin: MetricResult,
+    data_quality_flags: Tuple[str, ...] = (),
 ) -> GateResult:
     """Combine the four Stage-1 MetricResults into one GateResult.
 
@@ -120,7 +143,11 @@ def evaluate_stage1_gates(
     passed_with_flags (listing every flagged metric, not just the first) -
     net_income_margin never contributes a flag, since it has no grey zone;
     else passed.
+
+    data_quality_flags (from collect_data_quality_flags) is passed through
+    to the GateResult unchanged and has no effect on the status.
     """
+    data_quality_flags = tuple(data_quality_flags)
     results = {
         "roic": roic,
         "net_debt_ebitda": net_debt_ebitda,
@@ -137,6 +164,7 @@ def evaluate_stage1_gates(
             status=NOT_EVALUABLE,
             flags=(),
             invalid_reasons=invalid_reasons,
+            data_quality_flags=data_quality_flags,
             **raw_values,
         )
 
@@ -150,7 +178,13 @@ def evaluate_stage1_gates(
     else:
         status = PASSED
 
-    return GateResult(status=status, flags=flags, invalid_reasons=(), **raw_values)
+    return GateResult(
+        status=status,
+        flags=flags,
+        invalid_reasons=(),
+        data_quality_flags=data_quality_flags,
+        **raw_values,
+    )
 
 
 def rank_companies(gate_results: Dict[str, GateResult]) -> List[Tuple[str, GateResult]]:

@@ -9,12 +9,14 @@ from data_layer import simfin_client
 from data_layer.simfin_client import (
     DEBT_COMPONENT_MISSING_FLAG,
     DEBT_DATA_COMPLETELY_MISSING_FLAG,
-    DEBT_STATEMENT_MISMATCH_FLAG,
+    DEBT_STOCK_FLOW_MISMATCH_FLAG,
+    DEBT_STOCK_FLOW_UNVERIFIABLE_FLAG,
     NET_DEBT_UNRELIABLE_FLAG,
     PL_LAGS_OTHER_STATEMENTS_FLAG,
     REQUEST_TIMEOUT_SECONDS,
     YEAR_DROPPED_MISSING_FIELD_FLAG,
     SimFinMappingError,
+    _debt_stock_flow_reconciles,
     build_company_record,
     fetch_statements_batch,
     map_simfin_to_periods,
@@ -122,88 +124,183 @@ def test_kelya_all_years_dropped_returns_empty_periods_not_error():
 @pytest.mark.parametrize(
     "ticker,fiscal_year,expected_net_debt",
     [
-        ("USNA", 2025, None),  # ratio 9,000,000/83,424,000 = 10.79% >= 10%
-        ("CATO", 2020, None),  # EBITDA = -79,249,000 + 14,681,000 = -64,568,000 <= 0
-        ("ROCK", 2023, None),  # ratio 91,000,000/142,476,000 = 63.87% - well above 10%
-        ("UFPT", 2023, None),  # ratio 23,063,000/72,743,000 = 31.70%
-        ("UFPT", 2024, None),  # ratio 157,302,000/99,190,000 = 158.58%
-        ("UFPT", 2025, None),  # ratio 53,983,000/112,121,000 = 48.15%
+        # dBS = change in balance-sheet debt Q4(t) vs Q4(t-1); CF = reported debt cash flow.
+        ("ROCK", 2023, -99_426_000),  # BS debt null after a full repayment: dBS -88,762,000 vs CF -91,000,000 (2.5% of debt level)
+        ("UFPT", 2023, 26_737_000),  # dBS -23,000,000 vs CF -23,063,000 - 31.7% of EBITDA, but the two statements agree
+        ("UFPT", 2024, 175_925_000),  # dBS +157,375,000 vs CF +157,302,000 - 158.6% of EBITDA, agrees to 0.05%
+        ("UFPT", 2025, 115_154_000),  # dBS -53,920,000 vs CF -53,983,000
+        ("USNA", 2025, -144_380_000),  # dBS -9,000,000 vs CF -9,000,000
     ],
 )
-def test_net_debt_unreliable_fires_at_or_above_10_percent_or_non_positive_ebitda(
+def test_net_debt_reliable_when_balance_sheet_and_cash_flow_reconcile_regardless_of_size_vs_ebitda(
     ticker, fiscal_year, expected_net_debt
 ):
-    periods = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw(ticker))}
-    period = periods[fiscal_year]
-    assert period["net_debt"] == expected_net_debt
-    assert NET_DEBT_UNRELIABLE_FLAG in period["data_quality_flags"]
-
-
-@pytest.mark.parametrize(
-    "ticker,fiscal_year,expected_net_debt",
-    [
-        ("MATW", 2023, 748_079_000),  # ratio 18,224,000/184,647,000 = 9.87% - just under 10%
-        ("CENT", 2023, 699_473_000),  # ratio 338,000/298,346,000 = 0.11%
-        ("CENT", 2024, 436_498_000),  # ratio 370,000/276,194,000 = 0.13%
-        ("CENT", 2025, 309_215_000),  # ratio 231,000/334,936,000 = 0.07% - clearly under
-    ],
-)
-def test_net_debt_unreliable_stays_off_below_10_percent(ticker, fiscal_year, expected_net_debt):
-    periods = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw(ticker))}
-    period = periods[fiscal_year]
+    # docs/decisions.md "net_debt-Zuverlässigkeit - Stock-Flow-Abgleich",
+    # Entscheidung 1: the old rule (|debt cash flow| / EBITDA >= 10%) rejected
+    # every one of these years for being a big movement, although nothing
+    # contradicted anything.
+    period = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw(ticker))}[fiscal_year]
     assert period["net_debt"] == expected_net_debt
     assert NET_DEBT_UNRELIABLE_FLAG not in period["data_quality_flags"]
-    # both cases have a nonzero debt cash flow despite the small ratio
-    assert DEBT_STATEMENT_MISMATCH_FLAG in period["data_quality_flags"]
+    assert DEBT_STOCK_FLOW_MISMATCH_FLAG not in period["data_quality_flags"]
 
 
 @pytest.mark.parametrize(
     "ticker,fiscal_year",
     [
-        ("LAKE", 2023),  # ratio 1,791,000/8,103,000 = 22.1%
-        ("LAKE", 2024),  # ratio 15,295,000/4,589,000 = 333.3%
-        ("LAKE", 2025),  # EBITDA = -8,601,000 <= 0
-        ("CULP", 2024),  # EBITDA = -10,672,000 + 6,911,000 = -3,761,000 <= 0, despite a tiny debt_cf of 20,000
+        ("LAKE", 2023),  # dBS +624,000 vs CF -1,791,000: opposite signs, 235% of the debt level, 1.57% of total assets
+        ("FOSL", 2025),  # dBS +12,988,000 vs CF +35,414,000: 12.6% of the debt level
+        ("ATRO", 2025),  # dBS +165,782,000 with NO reported debt cash flow (null counts as 0)
     ],
 )
-def test_lake_and_culp_fy2024_are_not_actually_under_10_percent_examples(ticker, fiscal_year):
-    # Correction to an assumption in the task for this branch: LAKE and
-    # CULP's FY2024 were expected to demonstrate net_debt_unreliable
-    # staying OFF (ratio < 10%). Checked against the real committed
-    # fixtures, neither holds up - LAKE has no year under the 10%
-    # threshold at all (all 3 of its anchored years are unreliable, for a
-    # mix of ratio and non-positive-EBITDA reasons), and CULP FY2024's
-    # EBITDA is itself negative, which triggers unreliability regardless
-    # of its debt cash flow being tiny (20,000). See docs/decisions.md,
-    # "SimFin-Client" Entscheidung 7, and
-    # test_net_debt_unreliable_stays_off_below_10_percent above for the
-    # verified replacements (MATW FY2023, CENT).
-    periods = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw(ticker))}
-    period = periods[fiscal_year]
+def test_net_debt_unreliable_when_balance_sheet_and_cash_flow_contradict(ticker, fiscal_year):
+    period = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw(ticker))}[fiscal_year]
     assert period["net_debt"] is None
+    assert DEBT_STOCK_FLOW_MISMATCH_FLAG in period["data_quality_flags"]
     assert NET_DEBT_UNRELIABLE_FLAG in period["data_quality_flags"]
+    assert DEBT_STOCK_FLOW_UNVERIFIABLE_FLAG not in period["data_quality_flags"]
 
 
-def test_lake_every_year_inside_the_3_year_window_is_net_debt_unreliable():
-    # LAKE's window is FY2023-2025 (its own 3 most recent EBIT-having
-    # years); none of the three is under the 10% threshold (22.1% / 333.3% /
-    # EBITDA <= 0). LAKE's <10% ratios exist only in FY2019-2022, which the
-    # adapter never evaluates - outside the window, not an exception to it.
-    periods = map_simfin_to_periods(_load_raw("LAKE"))
-    assert [p["fiscal_year"] for p in periods] == [2023, 2024, 2025]
-    for period in periods:
-        assert period["net_debt"] is None
-        assert NET_DEBT_UNRELIABLE_FLAG in period["data_quality_flags"]
+def test_reconciliation_tolerance_is_bracketed_by_real_data_around_5_percent_of_debt_level():
+    # No natural gap exists in the 23 pilots (docs/decisions.md, Entscheidung
+    # 2) - these two real cases just pin which side of the chosen 5% each
+    # falls on, so a tolerance change is a visible, deliberate act.
+    cvgi_2025 = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("CVGI"))}[2025]
+    assert cvgi_2025["net_debt"] == 73_093_000  # dBS -29,125,000 vs CF -22,707,000: 4.7% - inside
+    lake_2024 = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("LAKE"))}[2024]
+    assert lake_2024["net_debt"] is None  # dBS +16,336,000 vs CF +15,295,000: 6.0% - just outside
+    assert DEBT_STOCK_FLOW_MISMATCH_FLAG in lake_2024["data_quality_flags"]
+
+
+def test_absolute_floor_keeps_a_tiny_cash_flow_at_zero_debt_reliable():
+    # CULP FY2024: no balance-sheet debt in either year, but a reported debt
+    # cash flow of +20,000 - 0.015% of total assets. A purely relative
+    # tolerance would be degenerate at debt level 0 (Entscheidung 2).
+    period = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("CULP"))}[2024]
+    assert period["net_debt"] == -10_012_000
+    assert NET_DEBT_UNRELIABLE_FLAG not in period["data_quality_flags"]
+
+
+@pytest.mark.parametrize(
+    "ticker,fiscal_year,expected_net_debt",
+    [
+        ("CATO", 2020, -17_510_000),  # EBITDA = -79,249,000 + 14,681,000 = -64,568,000
+        ("LAKE", 2025, 19_758_000),  # EBITDA = -8,601,000
+        ("CULP", 2024, -10_012_000),  # EBITDA = -3,761,000
+        ("CULP", 2025, 7_085_000),  # EBITDA = -4,793,000
+    ],
+)
+def test_non_positive_ebitda_does_not_make_net_debt_unreliable(ticker, fiscal_year, expected_net_debt):
+    # Entscheidung 3: whether net_debt is right does not depend on EBITDA's
+    # sign - the old rule coupled two independent questions.
+    period = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw(ticker))}[fiscal_year]
+    assert period["ebitda"] <= 0
+    assert period["net_debt"] == expected_net_debt
+    assert NET_DEBT_UNRELIABLE_FLAG not in period["data_quality_flags"]
+
+
+def test_lake_window_mixes_unreliable_and_reliable_years():
+    periods = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("LAKE"))}
+    assert sorted(periods) == [2023, 2024, 2025]
+    assert periods[2023]["net_debt"] is None
+    assert periods[2024]["net_debt"] is None
+    assert periods[2025]["net_debt"] == 19_758_000  # EBITDA <= 0 no longer matters
+
+
+def test_missing_prior_year_balance_sheet_is_unverifiable_and_unreliable():
+    # No BS Q4 row for t-1 -> the reconciliation can neither find nor rule
+    # out a contradiction. UFPT with its FY2022 BS row removed: FY2023 loses
+    # its prior year, FY2024 (prior year 2023 still present) is unaffected.
+    raw = copy.deepcopy(_load_raw("UFPT"))
+    bs = next(s for s in raw["statements"] if s["statement"] == "BS")
+    fp_idx, fy_idx = bs["columns"].index("Fiscal Period"), bs["columns"].index("Fiscal Year")
+    bs["data"] = [row for row in bs["data"] if not (row[fp_idx] == "Q4" and row[fy_idx] == 2022)]
+
+    periods = {p["fiscal_year"]: p for p in map_simfin_to_periods(raw)}
+    assert periods[2023]["net_debt"] is None
+    assert DEBT_STOCK_FLOW_UNVERIFIABLE_FLAG in periods[2023]["data_quality_flags"]
+    assert NET_DEBT_UNRELIABLE_FLAG in periods[2023]["data_quality_flags"]
+    assert DEBT_STOCK_FLOW_MISMATCH_FLAG not in periods[2023]["data_quality_flags"]
+    assert periods[2024]["net_debt"] == 175_925_000
+
+
+def test_prior_year_debt_component_missing_defaults_to_zero_and_flags_it():
+    # Code review of this branch: the reconciliation's own baseline (year
+    # t-1) can have a missing debt component just like year t - silently
+    # defaulting it to 0 without a flag would make the check look more
+    # certain than it is than the symmetric, already-flagged current-year
+    # case. UFPT FY2023's Short Term Debt (4,000,000 in the real fixture) is
+    # nulled out here to isolate the prior-year case: FY2024's OWN components
+    # are both fully known (no flag from that side). net_debt is unaffected -
+    # the reconciliation still holds even under the wrong 0-default
+    # (discrepancy 4,073,000 vs. a 9,468,750 tolerance) - which is exactly why
+    # a flag, not a null, is the right signal here.
+    raw = copy.deepcopy(_load_raw("UFPT"))
+    bs = next(s for s in raw["statements"] if s["statement"] == "BS")
+    fp_idx, fy_idx = bs["columns"].index("Fiscal Period"), bs["columns"].index("Fiscal Year")
+    st_idx = bs["columns"].index("Short Term Debt")
+    for row in bs["data"]:
+        if row[fp_idx] == "Q4" and row[fy_idx] == 2023:
+            row[st_idx] = None
+
+    periods = {p["fiscal_year"]: p for p in map_simfin_to_periods(raw)}
+    assert periods[2024]["net_debt"] == 175_925_000
+    assert DEBT_COMPONENT_MISSING_FLAG in periods[2024]["data_quality_flags"]
+    assert NET_DEBT_UNRELIABLE_FLAG not in periods[2024]["data_quality_flags"]
+
+
+def test_reconciliation_tolerance_boundaries():
+    # relative part: 5% of max(debt_t, debt_t-1); total_assets small enough
+    # that the absolute floor (0.1%) is not the binding term here
+    assert _debt_stock_flow_reconciles(1000, 800, 150, total_assets=1000)  # diff 50 == 5% of 1000: inclusive
+    assert not _debt_stock_flow_reconciles(1000, 800, 149, total_assets=1000)  # diff 51
+    # symmetric in the debt level: debt fully repaid, level taken from t-1
+    assert _debt_stock_flow_reconciles(0, 1000, -950, total_assets=1000)  # diff 50 == 5% of 1000
+    assert not _debt_stock_flow_reconciles(0, 1000, -940, total_assets=1000)  # diff 60
+    # absolute floor: 0.1% of total assets, but ONLY when the debt level is
+    # exactly 0 - not as an unconditional alternative to the relative term
+    # (code review of this branch: the floor used to win via max() whenever it
+    # was looser than the relative tolerance, regardless of whether debt was
+    # actually near zero).
+    assert _debt_stock_flow_reconciles(0, 0, 0, total_assets=1_000_000)  # exact zero always reconciles
+    assert _debt_stock_flow_reconciles(0, 0, 1000, total_assets=1_000_000)  # diff 1000 == 0.1% of 1,000,000
+    assert not _debt_stock_flow_reconciles(0, 0, 1001, total_assets=1_000_000)
+
+
+def test_absolute_floor_does_not_rescue_a_real_contradiction_at_nonzero_debt():
+    # Code review of this branch, reproduced from the real KELYA FY2020
+    # fixture: debt fell from 1,900,000 to 300,000 (delta -1,600,000) against
+    # a reported debt cash flow of -3,700,000 - a 2,100,000 discrepancy, 110%
+    # of the debt level, a clear stock-flow contradiction. Debt is small only
+    # relative to this company's 2,561,900,000 total assets, not actually
+    # zero, so the assets floor (2,561,900) must NOT apply here - only the 5%
+    # relative tolerance (95,000) is relevant, and the discrepancy fails it.
+    assert not _debt_stock_flow_reconciles(300_000, 1_900_000, -3_700_000, total_assets=2_561_900_000)
+
+
+def test_kelya_fy2020_no_longer_silently_reconciled_by_the_assets_floor():
+    # End-to-end version of the fix above, against the real fixture. FY2020
+    # falls outside KELYA's default 3-year anchor window (it is dropped from
+    # the pilot gates for unrelated reasons - see test_simfin_pilot_gates.py),
+    # so this exercises the mapping directly with a wider window.
+    periods = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("KELYA"), max_years=10)}
+    assert periods[2020]["net_debt"] is None
+    assert DEBT_STOCK_FLOW_MISMATCH_FLAG in periods[2020]["data_quality_flags"]
+    assert NET_DEBT_UNRELIABLE_FLAG in periods[2020]["data_quality_flags"]
 
 
 def test_debt_component_missing_defaults_to_zero_and_flags_it():
     # ATRO: Short Term Debt is null in FY2024/FY2025 but present in FY2023 -
-    # same fixture isolates both the "missing, defaulted" and the "fully
-    # reported, no flag" branch.
+    # same fixture isolates the "missing, defaulted" and the "fully
+    # reported, no flag" branch. FY2025 additionally has NO reported debt cash
+    # flow while the balance-sheet debt rose by 165,782,000: the default-to-0
+    # is then not corroborated, so net_debt is None (mismatch), not the
+    # 334,451,000 - 18,180,000 the old rule would have used.
     periods = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("ATRO"))}
 
-    assert periods[2025]["net_debt"] == 334_451_000 - 18_180_000
+    assert periods[2025]["net_debt"] is None
     assert DEBT_COMPONENT_MISSING_FLAG in periods[2025]["data_quality_flags"]
+    assert DEBT_STOCK_FLOW_MISMATCH_FLAG in periods[2025]["data_quality_flags"]
     assert periods[2024]["net_debt"] == 168_669_000 - 9_285_000
     assert DEBT_COMPONENT_MISSING_FLAG in periods[2024]["data_quality_flags"]
 
@@ -211,49 +308,54 @@ def test_debt_component_missing_defaults_to_zero_and_flags_it():
     assert DEBT_COMPONENT_MISSING_FLAG not in periods[2023]["data_quality_flags"]
 
 
-def test_debt_component_missing_and_net_debt_unreliable_can_combine():
-    # CATO FY2020: both Short Term Debt AND Long Term Debt are null, AND
-    # EBITDA is negative - both flags fire together, net_debt stays None
-    # (the unreliability guard, not the debt-component default, decides
-    # net_debt's final value).
-    periods = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("CATO"))}
-    period = periods[2020]
-    assert period["net_debt"] is None
+def test_debt_component_missing_defaulted_zero_and_reconciled_stays_reliable():
+    # CATO FY2020: both Short Term Debt AND Long Term Debt are null, the debt
+    # cash flow is a reported 0, and the prior year's balance sheet is null
+    # too: dBS 0 vs CF 0 reconciles, so the default-to-0 stands (flagged
+    # defaulted_zero only) - even though EBITDA is negative (Entscheidung 3).
+    period = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("CATO"))}[2020]
+    assert period["net_debt"] == -17_510_000
     assert DEBT_COMPONENT_MISSING_FLAG in period["data_quality_flags"]
-    assert NET_DEBT_UNRELIABLE_FLAG in period["data_quality_flags"]
+    assert NET_DEBT_UNRELIABLE_FLAG not in period["data_quality_flags"]
 
 
 def test_rock_fy2024_2025_all_debt_fields_missing_is_flagged_not_assumed_debt_free():
     # ROCK FY2024/FY2025: Short Term Debt, Long Term Debt (BS Q4) AND CF
     # "Cash From (Repayment of) Debt" are all null (docs/decisions.md
-    # Entscheidung 10). Before the fix this silently became net_debt = -Cash
-    # (-269,480,000 / -115,724,000), i.e. an unverified "no debt at all".
+    # SimFin-Client Entscheidung 10). Before that fix this silently became
+    # net_debt = -Cash (-269,480,000 / -115,724,000), i.e. an unverified "no
+    # debt at all".
     periods = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("ROCK"))}
     for fiscal_year in (2024, 2025):
         period = periods[fiscal_year]
         assert period["net_debt"] is None
         assert DEBT_DATA_COMPLETELY_MISSING_FLAG in period["data_quality_flags"]
-        # EBITDA > 0 and no debt cash flow to form a ratio from: this flag is
-        # the ONLY reason net_debt is None here, not the ratio/EBITDA guard.
+        # this flag is the ONLY reason here - no stock-flow verdict is attempted
         assert NET_DEBT_UNRELIABLE_FLAG not in period["data_quality_flags"]
+        assert DEBT_STOCK_FLOW_MISMATCH_FLAG not in period["data_quality_flags"]
 
 
-def test_rock_fy2023_reported_debt_cash_flow_is_not_completely_missing():
+def test_rock_fy2023_reported_debt_cash_flow_is_not_completely_missing_and_reconciles():
     # ROCK FY2023: BS debt components are null too, but the debt cash flow is
-    # reported (-91,000,000) - so the flag must NOT fire; net_debt is None
-    # via the ordinary ratio guard (63.87% >= 10%) instead.
+    # reported (-91,000,000) - so the completely-missing flag must NOT fire.
+    # The stock-flow check then confirms that null meant "fully repaid":
+    # debt fell from 88,762,000 to (null =) 0, cash flow -91,000,000. FY2023's
+    # OWN components are both null (current-year flag) AND FY2022's Short Term
+    # Debt is also null (prior-year flag, same flag string) - the two must
+    # collapse into one entry, not a duplicate.
     period = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("ROCK"))}[2023]
-    assert period["net_debt"] is None
-    assert NET_DEBT_UNRELIABLE_FLAG in period["data_quality_flags"]
+    assert period["net_debt"] == -99_426_000
+    assert NET_DEBT_UNRELIABLE_FLAG not in period["data_quality_flags"]
     assert DEBT_DATA_COMPLETELY_MISSING_FLAG not in period["data_quality_flags"]
+    assert period["data_quality_flags"].count(DEBT_COMPONENT_MISSING_FLAG) == 1
 
 
 def test_reported_zero_debt_cash_flow_is_not_completely_missing():
-    # "Reported 0" vs "absent" (Entscheidung 10). USNA FY2022: both BS debt
-    # components null, but the debt cash flow is an explicit 0 - a reported
-    # value, so the pre-existing behaviour holds (missing components default
-    # to 0, net_debt = -Cash, flagged defaulted_zero only). USNA FY2021 has
-    # all three null - flagged and net_debt None.
+    # "Reported 0" vs "absent" (SimFin-Client Entscheidung 10). USNA FY2022:
+    # both BS debt components null, but the debt cash flow is an explicit 0 - a
+    # reported value, so missing components default to 0 (net_debt = -Cash,
+    # flagged defaulted_zero only) and dBS 0 vs CF 0 reconciles. USNA FY2021
+    # has all three null - flagged and net_debt None.
     periods = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("USNA"), max_years=5)}
 
     reported_zero = periods[2022]
@@ -265,14 +367,15 @@ def test_reported_zero_debt_cash_flow_is_not_completely_missing():
     assert DEBT_DATA_COMPLETELY_MISSING_FLAG in absent["data_quality_flags"]
 
 
-def test_completely_missing_debt_data_and_non_positive_ebitda_set_both_flags():
+def test_completely_missing_debt_data_stands_alone_even_with_non_positive_ebitda():
     # CULP FY2023: all three debt fields null AND EBITDA <= 0 (-19,799,000).
-    # Both conditions hold, so both flags are set (transparency); which one
-    # the metrics layer reports is covered further down.
+    # EBITDA no longer couples to net_debt, so the completely-missing flag is
+    # the only verdict - no net_debt_unreliable alongside it.
     period = {p["fiscal_year"]: p for p in map_simfin_to_periods(_load_raw("CULP"))}[2023]
+    assert period["ebitda"] <= 0
     assert period["net_debt"] is None
     assert DEBT_DATA_COMPLETELY_MISSING_FLAG in period["data_quality_flags"]
-    assert NET_DEBT_UNRELIABLE_FLAG in period["data_quality_flags"]
+    assert NET_DEBT_UNRELIABLE_FLAG not in period["data_quality_flags"]
 
 
 def test_cato_completely_missing_only_where_the_debt_cash_flow_is_also_null():
@@ -285,20 +388,17 @@ def test_cato_completely_missing_only_where_the_debt_cash_flow_is_also_null():
 
 def test_rock_completely_missing_debt_data_makes_net_debt_ebitda_not_evaluable_end_to_end():
     # ROCK's Stichtag year (FY2025) is completely-missing: Net Debt/EBITDA
-    # was a valid-looking -0.76x before the fix, now it must be invalid with
-    # its own reason, and the company overall not_evaluable.
+    # was a valid-looking -0.76x before that fix, now it must be invalid with
+    # its own reason, and the company overall not_evaluable. ROIC's first
+    # invalid year (FY2024, FY2023 now reconciles) carries the same reason.
     periods = build_company_record("ROCK", _load_raw("ROCK"))["periods"]
 
     net_debt_ebitda = net_debt_ebitda_latest(periods)
     assert net_debt_ebitda.value is None
     assert net_debt_ebitda.invalid_reason == "debt_data_completely_missing"
 
-    # ROIC reports the first invalid year in fiscal-year order, like every
-    # ROIC guard: FY2023 (ratio guard) precedes the completely-missing FY2024/25,
-    # so ROIC says net_debt_unreliable while Net Debt/EBITDA (Stichtag FY2025
-    # only) says debt_data_completely_missing (docs/decisions.md Entscheidung 10).
     roic = roic_3yr_average(periods)
-    assert roic.invalid_reason == "net_debt_unreliable"
+    assert roic.invalid_reason == "debt_data_completely_missing"
 
     gate_result = evaluate_stage1_gates(
         roic=roic,
@@ -318,15 +418,39 @@ def test_genc_completely_missing_debt_data_poisons_the_whole_3_year_roic_too():
     assert net_debt_ebitda_latest(periods).invalid_reason == "debt_data_completely_missing"
 
 
-def test_culp_completely_missing_reason_wins_in_roic_but_does_not_leak_into_net_debt_ebitda():
+def test_culp_older_completely_missing_year_poisons_roic_but_not_net_debt_ebitda():
     periods = build_company_record("CULP", _load_raw("CULP"))["periods"]
-    # ROIC: FY2023 carries both flags (all-null AND EBITDA <= 0) - the
-    # completely-missing reason takes precedence over net_debt_unreliable.
+    # ROIC: FY2023 is completely missing - the whole 3-year value is flagged.
     assert roic_3yr_average(periods).invalid_reason == "debt_data_completely_missing"
-    # Net Debt/EBITDA reads only the Stichtag year (FY2025), which is merely
-    # unreliable (ratio/EBITDA), not completely missing - the older
-    # FY2023 must not change that.
-    assert net_debt_ebitda_latest(periods).invalid_reason == "net_debt_unreliable"
+    # Net Debt/EBITDA reads only the Stichtag year (FY2025): net_debt is fine
+    # there (dBS +12,714,000 vs CF +12,741,000), so the only problem is the
+    # non-positive EBITDA - reported under its own, specific reason instead
+    # of the former net_debt_unreliable.
+    assert net_debt_ebitda_latest(periods).invalid_reason == "ebitda_non_positive"
+
+
+def test_non_positive_ebitda_year_does_not_block_roic_end_to_end():
+    # CENT with FY2025 EBIT forced to -500,000,000 (EBITDA < 0): net_debt is
+    # unchanged, ROIC is computed (a negative ROIC is a valid value, the
+    # ROIC guards are untouched), and only Net Debt/EBITDA reports the
+    # specific ebitda_non_positive (docs/decisions.md Entscheidung 3).
+    raw = copy.deepcopy(_load_raw("CENT"))
+    pl = next(s for s in raw["statements"] if s["statement"] == "PL")
+    fp_idx, fy_idx = pl["columns"].index("Fiscal Period"), pl["columns"].index("Fiscal Year")
+    ebit_idx = pl["columns"].index("Operating Income (Loss)")
+    for row in pl["data"]:
+        if row[fp_idx] == "FY" and row[fy_idx] == 2025:
+            row[ebit_idx] = -500_000_000
+
+    periods = build_company_record("CENT", raw)["periods"]
+    assert periods[-1]["fiscal_year"] == 2025
+    assert periods[-1]["ebitda"] < 0
+    assert periods[-1]["net_debt"] == 309_215_000
+
+    roic = roic_3yr_average(periods)
+    assert roic.invalid_reason is None
+    assert roic.value < 0
+    assert net_debt_ebitda_latest(periods).invalid_reason == "ebitda_non_positive"
 
 
 def test_pl_lags_other_statements_flag_on_every_returned_period_for_sgc():
