@@ -361,22 +361,34 @@ def build_company_record(ticker, raw_company, max_years=MAX_YEARS, currency="USD
     }
 
 
+def fetch_companies_list(api_key):
+    """Fetch the full companies/list catalogue (one JSON list, all companies).
+
+    Network call. Split out of resolve_simfin_id() (Issue #9) so a caller
+    resolving many tickers - the run_stage1.py runner - can fetch this once
+    and pass the result to every resolve_simfin_id() call via company_list=,
+    instead of resolve_simfin_id() re-fetching the whole catalogue per
+    ticker (docs/decisions.md, "Issue #9 - CLI/Cron-Wrapper").
+    """
+    req = urllib.request.Request(
+        SIMFIN_COMPANIES_LIST_URL, headers={"Authorization": api_key, "Accept": "application/json"}
+    )
+    with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SECONDS) as resp:
+        return json.load(resp)
+
+
 def resolve_simfin_id(ticker, api_key, company_list=None):
     """Look up a ticker's SimFin company id.
 
     companies/list ignores ticker/tickers/search filter params entirely
     (docs/decisions.md, "SimFin-Wechsel") - the full company list must be
     fetched and filtered client-side. Pass an already-fetched company_list
-    (as returned by json-decoding that endpoint) to avoid re-fetching it for
-    every ticker in a batch; otherwise it is fetched fresh. Network call
+    (e.g. from fetch_companies_list()) to avoid re-fetching it for every
+    ticker in a batch; otherwise it is fetched fresh here. Network call
     unless company_list is given.
     """
     if company_list is None:
-        req = urllib.request.Request(
-            SIMFIN_COMPANIES_LIST_URL, headers={"Authorization": api_key, "Accept": "application/json"}
-        )
-        with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SECONDS) as resp:
-            company_list = json.load(resp)
+        company_list = fetch_companies_list(api_key)
 
     ticker_upper = ticker.upper()
     for entry in company_list:

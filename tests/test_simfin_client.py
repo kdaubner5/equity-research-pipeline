@@ -18,6 +18,7 @@ from data_layer.simfin_client import (
     SimFinMappingError,
     _debt_stock_flow_reconciles,
     build_company_record,
+    fetch_companies_list,
     fetch_statements_batch,
     map_simfin_to_periods,
     resolve_simfin_id,
@@ -594,6 +595,22 @@ def test_network_calls_pass_a_request_timeout(monkeypatch):
     assert resolve_simfin_id("ATRO", "key") == 7
     assert fetch_statements_batch([7], "key") == [{"id": 7, "ticker": "ATRO"}]
     assert seen == [REQUEST_TIMEOUT_SECONDS, REQUEST_TIMEOUT_SECONDS]
+
+
+def test_fetch_companies_list_returns_the_decoded_json(monkeypatch):
+    # Issue #9: split out of resolve_simfin_id() so run_stage1.py can fetch
+    # this once and reuse it across every ticker via resolve_simfin_id(...,
+    # company_list=...) instead of resolve_simfin_id() re-fetching per call.
+    def fake_urlopen(req, timeout=None):
+        assert req.full_url == simfin_client.SIMFIN_COMPANIES_LIST_URL
+        assert timeout == REQUEST_TIMEOUT_SECONDS
+        return _FakeResponse(b'[{"id": 7, "ticker": "ATRO"}, {"id": 8, "ticker": "CATO"}]')
+
+    monkeypatch.setattr(simfin_client.urllib.request, "urlopen", fake_urlopen)
+    company_list = fetch_companies_list("key")
+    assert company_list == [{"id": 7, "ticker": "ATRO"}, {"id": 8, "ticker": "CATO"}]
+    # resolve_simfin_id(..., company_list=...) then does no network call at all
+    assert resolve_simfin_id("CATO", "key", company_list=company_list) == 8
 
 
 def test_da_sourced_from_cf_not_pl():
