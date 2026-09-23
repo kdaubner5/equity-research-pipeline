@@ -37,6 +37,16 @@ class RoicThresholds:
                 f"roic.clean_pass_above ({self.clean_pass_above}) must be greater than "
                 f"roic.fail_below ({self.fail_below})"
             )
+        # implausible_above caps a single year's ROIC (roic_implausibly_high
+        # invalidates the whole 3yr value), and a 3yr mean above
+        # clean_pass_above contains at least one single year above it: a cap
+        # at or below clean_pass_above would make a clean pass impossible
+        # (docs/decisions.md, "Nachtrag zu Entscheidung 3").
+        if not self.implausible_above > self.clean_pass_above:
+            raise ThresholdsConfigError(
+                f"roic.implausible_above ({self.implausible_above}) must be greater than "
+                f"roic.clean_pass_above ({self.clean_pass_above})"
+            )
 
 
 @dataclass(frozen=True)
@@ -145,13 +155,65 @@ def _validate_number(group, key, value):
     return float(value)
 
 
+_YAML_MERGE_TAG = "tag:yaml.org,2002:merge"
+
+
+def _reject_duplicates_within(mapping_node, prefix, path):
+    seen = {}
+    for key_node, _ in mapping_node.value:
+        # Merge keys ("<<") override by design; a non-scalar key is left to
+        # PyYAML / the schema checks below.
+        if not isinstance(key_node, yaml.ScalarNode) or key_node.tag == _YAML_MERGE_TAG:
+            continue
+        line = key_node.start_mark.line + 1
+        identity = (key_node.tag, key_node.value)
+        if identity in seen:
+            raise ThresholdsConfigError(
+                f"{path} has duplicate key {prefix + key_node.value!r} (lines {seen[identity]} and {line})"
+            )
+        seen[identity] = line
+
+
+def _reject_duplicate_keys(root_node, path):
+    """Reject a key that appears twice in the same mapping, at group level
+    ("roic") or leaf level ("roic.fail_below").
+
+    yaml.safe_load silently keeps the last of two equal keys, so a second
+    "roic:" block would override the first without any error while the
+    file's hash still looked legitimate (docs/decisions.md, "Nachtrag zu
+    Entscheidung 3"). Only the two schema levels are checked: anything
+    nested deeper is not a valid threshold anyway.
+    """
+    if not isinstance(root_node, yaml.MappingNode):
+        return
+    _reject_duplicates_within(root_node, "", path)
+    for key_node, value_node in root_node.value:
+        if isinstance(key_node, yaml.ScalarNode) and isinstance(value_node, yaml.MappingNode):
+            _reject_duplicates_within(value_node, f"{key_node.value}.", path)
+
+
+def _parse_yaml(raw_text, path):
+    """yaml.safe_load(raw_text), except that a duplicate key is rejected
+    (same SafeLoader, same get_single_node -> construct_document steps)."""
+    loader = yaml.SafeLoader(raw_text)
+    try:
+        node = loader.get_single_node()
+        if node is None:
+            return None
+        _reject_duplicate_keys(node, path)
+        return loader.construct_document(node)
+    finally:
+        loader.dispose()
+
+
 def load_thresholds(path: Path = DEFAULT_THRESHOLDS_PATH) -> Thresholds:
     """Load, validate and return config/thresholds.yaml's Stage-1 thresholds.
 
     Raises ThresholdsConfigError - naming the exact dotted key - for a
     missing file, a missing or unrecognized top-level group or leaf key, a
-    non-numeric value, a value outside its plausibility range, or a
-    grey-zone pair on the wrong side of its hard threshold. There are no
+    duplicate key, a non-numeric value, a value outside its plausibility
+    range, a grey-zone pair on the wrong side of its hard threshold, or
+    roic.implausible_above not above roic.clean_pass_above. There are no
     defaults anywhere in this function: every one of the twelve leaf keys is
     required.
     """
@@ -162,7 +224,7 @@ def load_thresholds(path: Path = DEFAULT_THRESHOLDS_PATH) -> Thresholds:
         raise ThresholdsConfigError(f"could not read {path}: {exc}") from exc
 
     try:
-        data = yaml.safe_load(raw_text)
+        data = _parse_yaml(raw_text, path)
     except yaml.YAMLError as exc:
         raise ThresholdsConfigError(f"{path} is not valid YAML: {exc}") from exc
 
