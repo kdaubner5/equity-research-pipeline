@@ -1,0 +1,4 @@
+# Direct third-party imports (AST import scan over src/, run_stage1.py, tests/).
+# Minimum versions = the versions installed locally when this file was created.
+PyYAML>=6.0.1  # runtime: src/config_layer/thresholds.py (Stage-1 thresholds loader)
+pytest>=7.4.4  # tests only

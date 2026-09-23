@@ -25,6 +25,8 @@ from pathlib import Path
 if __name__ == "__main__":  # allow running as a plain script, outside pytest's pythonpath setting
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
+from conftest import DEFAULT_THRESHOLDS
+from config_layer.thresholds import compute_config_hash
 from gates_layer.stage1_gates import FAILED, NOT_EVALUABLE, PASSED, PASSED_WITH_FLAGS, rank_companies
 from pipeline import evaluate_company
 from store_layer.db import save_run_results
@@ -70,7 +72,7 @@ def evaluate_pilot(ticker):
     that run_stage1.py (Issue #9) uses - one shared wiring, not two independent copies."""
     with open(SIMFIN_RAW_DIR / f"{ticker}.json", encoding="utf-8") as f:
         raw = json.load(f)
-    return evaluate_company(ticker, raw)
+    return evaluate_company(ticker, raw, thresholds=DEFAULT_THRESHOLDS)
 
 
 def evaluate_all_pilots():
@@ -122,7 +124,7 @@ def test_pilot_distribution_matches_the_snapshot():
 def test_pilot_run_round_trips_through_the_store_with_data_quality_flags(tmp_path):
     gate_results = evaluate_all_pilots()
     db_path = tmp_path / "pilots.db"
-    save_run_results("2026-09-21T18:00:00", gate_results, db_path=db_path)
+    save_run_results("2026-09-21T18:00:00", gate_results, config_hash=compute_config_hash(), db_path=db_path)
 
     connection = sqlite3.connect(db_path)
     try:

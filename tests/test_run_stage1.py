@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from conftest import FakeUrlopenResponse
+from conftest import DEFAULT_THRESHOLDS, FakeUrlopenResponse
 from data_layer import simfin_client
 from metrics_layer.result import MetricInputError
 
@@ -155,11 +155,11 @@ def test_evaluate_ticker_isolates_a_metric_input_error(monkeypatch):
     # alongside SimFinMappingError - evaluate_ticker() must isolate it the
     # same way (metric_input_error), not let it propagate and abort the
     # whole run (code review of PR #32).
-    def _raise(ticker, raw_company):
+    def _raise(ticker, raw_company, *, thresholds):
         raise MetricInputError("duplicate fiscal_year entries in periods")
 
     monkeypatch.setattr(run_stage1, "evaluate_company", _raise)
-    result = run_stage1.evaluate_ticker("ATRO", {})
+    result = run_stage1.evaluate_ticker("ATRO", {}, thresholds=DEFAULT_THRESHOLDS)
     assert result.status == run_stage1.NOT_EVALUABLE
     assert result.invalid_reasons == (run_stage1.METRIC_INPUT_ERROR,)
 

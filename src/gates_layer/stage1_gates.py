@@ -10,24 +10,14 @@ never a composite score.
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
+from config_layer.thresholds import (
+    CashConversionThresholds,
+    NetDebtEbitdaThresholds,
+    NetIncomeMarginThresholds,
+    RoicThresholds,
+    Thresholds,
+)
 from metrics_layer.result import MetricResult
-
-# Thresholds per docs/decisions.md ("Grenzwert-Konvention" + per-metric grey
-# zones). Module constants, not YAML - config-driven thresholds are Phase 1.1
-# (docs/masterplan.md §7), Issue #5 is Phase 1.0.
-ROIC_CLEAN_PASS_ABOVE = 0.12
-ROIC_FAIL_BELOW = 0.10
-
-NET_DEBT_EBITDA_CLEAN_PASS_BELOW = 2.3
-NET_DEBT_EBITDA_FAIL_AT_OR_ABOVE = 2.5
-
-CASH_CONVERSION_CLEAN_PASS_AT_OR_ABOVE = 1.0
-CASH_CONVERSION_FAIL_BELOW = 0.8
-
-# Net Income Margin (masterplan v1.1) has no grey zone, unlike the other
-# three criteria - a single hard threshold, per docs/decisions.md
-# ("Net-Income-Margin-Gate", explicit assumption).
-NET_INCOME_MARGIN_FAIL_BELOW = 0.02
 
 PASSED = "passed"
 PASSED_WITH_FLAGS = "passed_with_flags"
@@ -83,33 +73,33 @@ def collect_data_quality_flags(periods) -> Tuple[str, ...]:
     return tuple(sorted(collected))
 
 
-def _classify_roic(value):
-    if value > ROIC_CLEAN_PASS_ABOVE:
+def _classify_roic(value, thresholds: RoicThresholds):
+    if value > thresholds.clean_pass_above:
         return PASSED
-    if value < ROIC_FAIL_BELOW:
+    if value < thresholds.fail_below:
         return FAILED
     return PASSED_WITH_FLAGS
 
 
-def _classify_net_debt_ebitda(value):
-    if value < NET_DEBT_EBITDA_CLEAN_PASS_BELOW:
+def _classify_net_debt_ebitda(value, thresholds: NetDebtEbitdaThresholds):
+    if value < thresholds.clean_pass_below:
         return PASSED
-    if value >= NET_DEBT_EBITDA_FAIL_AT_OR_ABOVE:
+    if value >= thresholds.fail_at_or_above:
         return FAILED
     return PASSED_WITH_FLAGS
 
 
-def _classify_cash_conversion(value):
-    if value >= CASH_CONVERSION_CLEAN_PASS_AT_OR_ABOVE:
+def _classify_cash_conversion(value, thresholds: CashConversionThresholds):
+    if value >= thresholds.clean_pass_at_or_above:
         return PASSED
-    if value < CASH_CONVERSION_FAIL_BELOW:
+    if value < thresholds.fail_below:
         return FAILED
     return PASSED_WITH_FLAGS
 
 
-def _classify_net_income_margin(value):
-    """Binary classification, no grey zone - see NET_INCOME_MARGIN_FAIL_BELOW."""
-    if value < NET_INCOME_MARGIN_FAIL_BELOW:
+def _classify_net_income_margin(value, thresholds: NetIncomeMarginThresholds):
+    """Binary classification, no grey zone - see NetIncomeMarginThresholds.fail_below."""
+    if value < thresholds.fail_below:
         return FAILED
     return PASSED
 
@@ -127,6 +117,8 @@ def evaluate_stage1_gates(
     net_debt_ebitda: MetricResult,
     cash_conversion: MetricResult,
     net_income_margin: MetricResult,
+    *,
+    thresholds: Thresholds,
     data_quality_flags: Tuple[str, ...] = (),
 ) -> GateResult:
     """Combine the four Stage-1 MetricResults into one GateResult.
@@ -168,7 +160,9 @@ def evaluate_stage1_gates(
             **raw_values,
         )
 
-    classifications = {name: _CLASSIFIERS[name](raw_values[name]) for name in _METRIC_NAMES}
+    classifications = {
+        name: _CLASSIFIERS[name](raw_values[name], getattr(thresholds, name)) for name in _METRIC_NAMES
+    }
     flags = tuple(name for name in _METRIC_NAMES if classifications[name] == PASSED_WITH_FLAGS)
 
     if any(classification == FAILED for classification in classifications.values()):

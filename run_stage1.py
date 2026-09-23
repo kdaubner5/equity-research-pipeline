@@ -36,6 +36,12 @@ _REPO_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(_REPO_ROOT / "src"))  # run_stage1.py lives outside src/, same fixup as
 # tests/test_simfin_pilot_gates.py uses to run as a plain script.
 
+from config_layer.thresholds import (  # noqa: E402
+    DEFAULT_THRESHOLDS_PATH,
+    ThresholdsConfigError,
+    compute_config_hash,
+    load_thresholds,
+)
 from data_layer.simfin_client import (  # noqa: E402
     MAX_BATCH_SIZE,
     SimFinMappingError,
@@ -120,6 +126,22 @@ def resolve_api_key():
     return api_key
 
 
+def resolve_thresholds(path=DEFAULT_THRESHOLDS_PATH):
+    """Load and validate config/thresholds.yaml, and its config_hash.
+
+    Raises Stage1RunError (Entscheidung 3: technical failure, aborts the
+    whole run before any per-ticker work) if the file is missing or fails
+    validation - a bad thresholds file is a run-level infrastructure
+    problem, exactly like a missing SIMFIN_API_KEY, never a per-ticker
+    invalid_reason (docs/decisions.md, "Schwellen nach config/thresholds.yaml").
+    """
+    try:
+        thresholds = load_thresholds(path)
+    except ThresholdsConfigError as exc:
+        raise Stage1RunError(f"config/thresholds.yaml invalid: {exc}") from exc
+    return thresholds, compute_config_hash(path)
+
+
 def _eliminated(reason):
     """A GateResult for a ticker whose data could not even be mapped - no
     metric was ever computed, so all four raw values stay None (same shape
@@ -142,7 +164,7 @@ def _chunk(items, size):
         yield items[i : i + size]
 
 
-def evaluate_ticker(ticker, raw_company):
+def evaluate_ticker(ticker, raw_company, *, thresholds):
     """One ticker through the whole Stage-1 chain, from already-fetched raw
     SimFin JSON to a GateResult, via the same pipeline.evaluate_company()
     that tests/test_simfin_pilot_gates.py uses - one shared wiring, not two
@@ -150,14 +172,14 @@ def evaluate_ticker(ticker, raw_company):
     (SimFinMappingError, MetricInputError) become an eliminated GateResult
     (Entscheidung 2) instead of propagating and aborting the whole run."""
     try:
-        return evaluate_company(ticker, raw_company)
+        return evaluate_company(ticker, raw_company, thresholds=thresholds)
     except SimFinMappingError:
         return _eliminated(SIMFIN_MAPPING_ERROR)
     except MetricInputError:
         return _eliminated(METRIC_INPUT_ERROR)
 
 
-def evaluate_universe(tickers, api_key, company_list):
+def evaluate_universe(tickers, api_key, company_list, *, thresholds):
     """Resolve, fetch and evaluate every ticker. Returns {ticker: GateResult},
     covering every ticker in `tickers` exactly once - resolved-and-evaluated
     or eliminated (Entscheidung 2), never silently dropped."""
@@ -204,7 +226,7 @@ def evaluate_universe(tickers, api_key, company_list):
             if raw_company is None:
                 gate_results[ticker] = _eliminated(SIMFIN_STATEMENTS_MISSING)
                 continue
-            gate_results[ticker] = evaluate_ticker(ticker, raw_company)
+            gate_results[ticker] = evaluate_ticker(ticker, raw_company, thresholds=thresholds)
 
     return gate_results
 
@@ -225,6 +247,7 @@ def run(
     csv_dir=DEFAULT_CSV_DIR,
     api_key=None,
     run_timestamp=None,
+    thresholds_path=DEFAULT_THRESHOLDS_PATH,
     out=sys.stdout,
 ):
     """One full Stage-1 run. Returns an exit code (Entscheidung 3) - never
@@ -233,6 +256,7 @@ def run(
     try:
         if api_key is None:
             api_key = resolve_api_key()
+        thresholds, config_hash = resolve_thresholds(thresholds_path)
         tickers = load_universe(universe_path)
         try:
             company_list = fetch_companies_list(api_key)
@@ -248,7 +272,7 @@ def run(
                 f"companies/list returned an unexpected shape: {type(company_list).__name__}, expected a list"
             )
 
-        gate_results = evaluate_universe(tickers, api_key, company_list)
+        gate_results = evaluate_universe(tickers, api_key, company_list, thresholds=thresholds)
 
         run_timestamp = run_timestamp or datetime.now().isoformat(timespec="seconds")
         # CSV first, DB write last: save_run_results() is the authoritative,
@@ -264,7 +288,7 @@ def run(
         csv_path = None
         try:
             csv_path = export_survivors_csv(run_timestamp, gate_results, output_dir=csv_dir)
-            save_run_results(run_timestamp, gate_results, db_path=db_path)
+            save_run_results(run_timestamp, gate_results, config_hash=config_hash, db_path=db_path)
         except Exception as exc:
             if csv_path is not None:
                 csv_path.unlink(missing_ok=True)

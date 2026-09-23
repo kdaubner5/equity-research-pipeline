@@ -13,6 +13,8 @@ import time
 import urllib.error
 import urllib.request
 
+from config_layer.thresholds import DataQualityReconciliationThresholds
+
 SIMFIN_BASE_URL = "https://backend.simfin.com/api/v3"
 SIMFIN_COMPANIES_LIST_URL = f"{SIMFIN_BASE_URL}/companies/list"
 SIMFIN_STATEMENTS_URL = f"{SIMFIN_BASE_URL}/companies/statements/compact"
@@ -59,19 +61,6 @@ PL_LAGS_OTHER_STATEMENTS_FLAG = "pl_lags_other_statements"
 # (Entscheidung 14) - tells a data gap (this) apart from a genuinely short
 # history (fewer EBIT-having years exist at all, no flag).
 YEAR_DROPPED_MISSING_FIELD_FLAG = "year_dropped_missing_required_field"
-
-# Tolerance of the stock-flow reconciliation (balance-sheet debt change vs.
-# reported debt cash flow) - docs/decisions.md, "net_debt-Zuverlässigkeit -
-# Stock-Flow-Abgleich", Entscheidung 2: a year reconciles if
-#   |delta_debt - debt_cf| <= max(RATIO * max(debt_t, debt_t-1),
-#                                 ASSETS_RATIO * total_assets_t)
-# Module constants, not YAML: config-driven thresholds are Phase 1.1
-# (docs/masterplan.md §7), same Phase-1.0 exception as the Gates-Layer
-# thresholds (SimFin-Client Entscheidung 13). Fixed before the gates
-# distribution was recomputed - do not tune them to that result.
-DEBT_RECONCILIATION_TOLERANCE_RATIO = 0.05
-DEBT_RECONCILIATION_TOLERANCE_ASSETS_RATIO = 0.001
-
 
 class SimFinMappingError(Exception):
     """Raised when raw SimFin statements data cannot be mapped at all.
@@ -127,33 +116,34 @@ def _rows_by_fiscal_year(stmt, fiscal_period):
     return rows
 
 
-def _debt_stock_flow_reconciles(debt_now, debt_prev, debt_cf, total_assets):
+def _debt_stock_flow_reconciles(debt_now, debt_prev, debt_cf, total_assets, *, tolerance_ratio, tolerance_assets_ratio):
     """True if the balance-sheet debt change agrees with the reported debt cash flow.
 
-    Tolerance per DEBT_RECONCILIATION_TOLERANCE_* above: a share of the debt
-    level (non-cash movements - FX translation, discount amortization,
-    finance-lease additions - scale with the debt stock, not with the size of
-    the cash flow). The relative tolerance is degenerate at debt level exactly
-    0 (any nonzero cash flow would be an "infinite" relative discrepancy), so
-    that one case falls back to an absolute floor, a share of total assets
-    (code review of this branch, confirmed against the KELYA FY2020 fixture:
-    combining both terms via max() - the pre-fix behaviour - let the assets
-    floor of an asset-heavy company swamp a real, ~110%-of-debt-level
-    contradiction whenever debt was merely small relative to that company's
-    balance sheet, not actually zero; every "rescued by the floor" case in the
-    23 pilots besides KELYA has debt exactly 0 in both years, so restricting
-    the floor to that case changes no other pilot outcome).
+    Tolerance (docs/decisions.md, "net_debt-Zuverlässigkeit - Stock-Flow-
+    Abgleich", Entscheidung 2): a share of the debt level (non-cash movements
+    - FX translation, discount amortization, finance-lease additions - scale
+    with the debt stock, not with the size of the cash flow). The relative
+    tolerance is degenerate at debt level exactly 0 (any nonzero cash flow
+    would be an "infinite" relative discrepancy), so that one case falls back
+    to an absolute floor, a share of total assets (code review of this
+    branch, confirmed against the KELYA FY2020 fixture: combining both terms
+    via max() - the pre-fix behaviour - let the assets floor of an
+    asset-heavy company swamp a real, ~110%-of-debt-level contradiction
+    whenever debt was merely small relative to that company's balance sheet,
+    not actually zero; every "rescued by the floor" case in the 23 pilots
+    besides KELYA has debt exactly 0 in both years, so restricting the floor
+    to that case changes no other pilot outcome).
     """
     discrepancy = abs((debt_now - debt_prev) - debt_cf)
     debt_level = max(debt_now, debt_prev)
     if debt_level == 0:
-        tolerance = DEBT_RECONCILIATION_TOLERANCE_ASSETS_RATIO * total_assets
+        tolerance = tolerance_assets_ratio * total_assets
     else:
-        tolerance = DEBT_RECONCILIATION_TOLERANCE_RATIO * debt_level
+        tolerance = tolerance_ratio * debt_level
     return discrepancy <= tolerance
 
 
-def map_simfin_to_periods(raw_company, max_years=MAX_YEARS):
+def map_simfin_to_periods(raw_company, *, thresholds: DataQualityReconciliationThresholds, max_years=MAX_YEARS):
     """Map one company's raw SimFin statements JSON into internal-schema periods.
 
     Pure/network-free - operates only on already-fetched JSON (one entry of
@@ -298,7 +288,14 @@ def map_simfin_to_periods(raw_company, max_years=MAX_YEARS):
                 if not current_component_missing and (prev_st_debt is None or prev_lt_debt is None):
                     flags.append(DEBT_COMPONENT_MISSING_FLAG)
                 prev_debt = (prev_st_debt or 0) + (prev_lt_debt or 0)
-                if _debt_stock_flow_reconciles(total_debt, prev_debt, debt_cf_raw or 0, total_assets):
+                if _debt_stock_flow_reconciles(
+                    total_debt,
+                    prev_debt,
+                    debt_cf_raw or 0,
+                    total_assets,
+                    tolerance_ratio=thresholds.debt_tolerance_ratio,
+                    tolerance_assets_ratio=thresholds.debt_tolerance_assets_ratio,
+                ):
                     net_debt = total_debt - cash
                 else:
                     flags.extend([DEBT_STOCK_FLOW_MISMATCH_FLAG, NET_DEBT_UNRELIABLE_FLAG])
@@ -329,7 +326,9 @@ def map_simfin_to_periods(raw_company, max_years=MAX_YEARS):
     return periods
 
 
-def build_company_record(ticker, raw_company, max_years=MAX_YEARS, currency="USD"):
+def build_company_record(
+    ticker, raw_company, *, thresholds: DataQualityReconciliationThresholds, max_years=MAX_YEARS, currency="USD"
+):
     """Wrap map_simfin_to_periods() into the full internal schema shape.
 
     sector is left as None, same as edgar_client.py - no classification
@@ -357,7 +356,7 @@ def build_company_record(ticker, raw_company, max_years=MAX_YEARS, currency="USD
         "name": raw_company.get("name", ticker),
         "sector": None,
         "currency": currency,
-        "periods": map_simfin_to_periods(raw_company, max_years=max_years),
+        "periods": map_simfin_to_periods(raw_company, thresholds=thresholds, max_years=max_years),
     }
 
 
