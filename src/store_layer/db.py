@@ -62,6 +62,19 @@ def _require_run_timestamp_str(run_timestamp):
         )
 
 
+def _ensure_config_hash_column(connection, table):
+    """Add config_hash to the runs table if it predates the column.
+
+    Deliberately no NOT NULL DEFAULT (unlike _ensure_data_quality_flags_column
+    below): NULL is the intended, meaningful value for a pre-migration run
+    ("its config_hash was never recorded"), not just an ALTER TABLE artifact
+    like data_quality_flags's '' sentinel.
+    """
+    existing_columns = {row[1] for row in connection.execute(f"PRAGMA table_info({table})")}
+    if "config_hash" not in existing_columns:
+        connection.execute(f"ALTER TABLE {table} ADD COLUMN config_hash TEXT")
+
+
 def _ensure_data_quality_flags_column(connection, table):
     """Add data_quality_flags to a table created before the column existed.
 
@@ -124,12 +137,14 @@ def init_db(db_path=DEFAULT_DB_PATH):
             CREATE TABLE IF NOT EXISTS runs (
                 run_timestamp TEXT PRIMARY KEY,
                 companies_evaluated INTEGER NOT NULL,
-                survivors_count INTEGER NOT NULL
+                survivors_count INTEGER NOT NULL,
+                config_hash TEXT
             )
             """
         )
         _ensure_data_quality_flags_column(connection, "run_results")
         _ensure_data_quality_flags_column(connection, "eliminated_results")
+        _ensure_config_hash_column(connection, "runs")
         connection.commit()
     finally:
         connection.close()
@@ -182,9 +197,17 @@ def _eliminated_rows(gate_results: Dict[str, GateResult]):
     ]
 
 
-def save_run_results(run_timestamp, gate_results, db_path=DEFAULT_DB_PATH):
+def save_run_results(run_timestamp, gate_results, *, config_hash, db_path=DEFAULT_DB_PATH):
     """Persist one run: exactly one `runs` row, its survivors in `run_results`,
     and its eliminated companies in `eliminated_results`.
+
+    config_hash (docs/decisions.md, "Schwellen nach config/thresholds.yaml")
+    is the SHA-256 of the thresholds file that produced this run's
+    gate_results, or None for a caller with no real config to report (e.g. a
+    test exercising archiving mechanics in isolation). Required, no default -
+    a silent default here would undercut the same "no defaults" principle the
+    thresholds themselves are loaded under. Pre-migration runs read back NULL
+    (see _ensure_config_hash_column).
 
     The `runs` row is written on every call, regardless of survivors_count -
     a 0-survivor run is an explicitly expected outcome (masterplan.md §4,
@@ -228,8 +251,8 @@ def save_run_results(run_timestamp, gate_results, db_path=DEFAULT_DB_PATH):
     connection = sqlite3.connect(db_path)
     try:
         connection.execute(
-            "INSERT INTO runs (run_timestamp, companies_evaluated, survivors_count) VALUES (?, ?, ?)",
-            (run_timestamp, len(gate_results), len(survivor_rows)),
+            "INSERT INTO runs (run_timestamp, companies_evaluated, survivors_count, config_hash) VALUES (?, ?, ?, ?)",
+            (run_timestamp, len(gate_results), len(survivor_rows), config_hash),
         )
         connection.executemany(
             """

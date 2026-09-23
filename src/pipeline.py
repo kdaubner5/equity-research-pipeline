@@ -12,6 +12,7 @@ the runner and this test's evaluate_pilot() call" - this module is that
 extraction).
 """
 
+from config_layer.thresholds import Thresholds
 from data_layer.simfin_client import build_company_record
 from gates_layer.stage1_gates import collect_data_quality_flags, evaluate_stage1_gates
 from metrics_layer.cash_conversion import cash_conversion_3yr_average, net_income_margin_3yr_average
@@ -19,7 +20,7 @@ from metrics_layer.net_debt_ebitda import net_debt_ebitda_latest
 from metrics_layer.roic import roic_3yr_average
 
 
-def evaluate_company(ticker, raw_company):
+def evaluate_company(ticker, raw_company, *, thresholds: Thresholds):
     """One company's raw SimFin JSON through the whole Stage-1 chain.
 
     Raises SimFinMappingError (from build_company_record) or MetricInputError
@@ -31,11 +32,12 @@ def evaluate_company(ticker, raw_company):
     Entscheidung 2); the pilot snapshot test lets it propagate, since a
     mapping failure there is a test-fixture bug, not a runtime data problem.
     """
-    periods = build_company_record(ticker, raw_company)["periods"]
+    periods = build_company_record(ticker, raw_company, thresholds=thresholds.data_quality_reconciliation)["periods"]
     return evaluate_stage1_gates(
-        roic=roic_3yr_average(periods),
+        roic=roic_3yr_average(periods, thresholds=thresholds.roic),
         net_debt_ebitda=net_debt_ebitda_latest(periods),
         cash_conversion=cash_conversion_3yr_average(periods),
         net_income_margin=net_income_margin_3yr_average(periods),
+        thresholds=thresholds,
         data_quality_flags=collect_data_quality_flags(periods),
     )

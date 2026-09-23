@@ -4,7 +4,7 @@ import sqlite3
 
 import pytest
 
-from conftest import all_company_ids, load_company
+from conftest import DEFAULT_THRESHOLDS, all_company_ids, load_company
 from metrics_layer.cash_conversion import cash_conversion_3yr_average, net_income_margin_3yr_average
 from metrics_layer.net_debt_ebitda import net_debt_ebitda_latest
 from metrics_layer.result import MetricResult
@@ -19,10 +19,11 @@ def _simulated_run_gate_results():
     for company_id in all_company_ids():
         periods = load_company(company_id)["periods"]
         gate_results[company_id] = evaluate_stage1_gates(
-            roic=roic_3yr_average(periods),
+            roic=roic_3yr_average(periods, thresholds=DEFAULT_THRESHOLDS.roic),
             net_debt_ebitda=net_debt_ebitda_latest(periods),
             cash_conversion=cash_conversion_3yr_average(periods),
             net_income_margin=net_income_margin_3yr_average(periods),
+            thresholds=DEFAULT_THRESHOLDS,
         )
     return gate_results
 
@@ -34,6 +35,7 @@ def _zero_survivor_gate_results():
         net_debt_ebitda=MetricResult(value=5.0),
         cash_conversion=MetricResult(value=0.1),
         net_income_margin=MetricResult(value=0.01),
+        thresholds=DEFAULT_THRESHOLDS,
     )
     assert failing.status == "failed"
     return {ticker: failing for ticker in ("ZERO01", "ZERO02", "ZERO03")}
@@ -46,6 +48,7 @@ def _zero_eliminated_gate_results():
         net_debt_ebitda=MetricResult(value=1.0),
         cash_conversion=MetricResult(value=1.5),
         net_income_margin=MetricResult(value=0.05),
+        thresholds=DEFAULT_THRESHOLDS,
     )
     assert passing.status == "passed"
     return {ticker: passing for ticker in ("CLEAN01", "CLEAN02")}
@@ -116,7 +119,7 @@ def test_save_run_results_only_survivors_are_archived(tmp_path):
     gate_results = _simulated_run_gate_results()
     run_timestamp = "2026-09-15T14:30:00"
 
-    save_run_results(run_timestamp, gate_results, db_path=db_path)
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
 
     rows = _query_run(db_path, run_timestamp)
     archived_tickers = {row["ticker"] for row in rows}
@@ -140,7 +143,7 @@ def test_save_run_results_full_funnel_partitions_every_company_exactly_once(tmp_
     gate_results = _simulated_run_gate_results()
     run_timestamp = "2026-09-21T09:00:00"
 
-    save_run_results(run_timestamp, gate_results, db_path=db_path)
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
 
     survivor_tickers = {row["ticker"] for row in _query_run(db_path, run_timestamp)}
     eliminated_tickers = {row["ticker"] for row in _query_eliminated(db_path, run_timestamp)}
@@ -177,7 +180,7 @@ def test_save_run_results_unrecognized_status_raises_instead_of_vanishing(tmp_pa
     gate_results = {"BOGUS01": bogus}
 
     with pytest.raises(ValueError, match="BOGUS01"):
-        save_run_results("2026-09-21T09:00:00", gate_results, db_path=db_path)
+        save_run_results("2026-09-21T09:00:00", gate_results, config_hash=None, db_path=db_path)
 
 
 def test_save_run_results_eliminated_rows_have_expected_columns(tmp_path):
@@ -185,7 +188,7 @@ def test_save_run_results_eliminated_rows_have_expected_columns(tmp_path):
     gate_results = _simulated_run_gate_results()
     run_timestamp = "2026-09-21T09:00:00"
 
-    save_run_results(run_timestamp, gate_results, db_path=db_path)
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
     eliminated_by_ticker = {row["ticker"]: row for row in _query_eliminated(db_path, run_timestamp)}
 
     # NAKA17: not_evaluable via ic_non_positive - roic stays None, its
@@ -214,7 +217,7 @@ def test_zero_eliminated_run_writes_empty_eliminated_table(tmp_path):
     gate_results = _zero_eliminated_gate_results()
     run_timestamp = "2026-09-15T08:00:00"
 
-    save_run_results(run_timestamp, gate_results, db_path=db_path)
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
 
     assert _query_eliminated(db_path, run_timestamp) == []
     run_row = _query_runs_table(db_path, run_timestamp)
@@ -227,7 +230,7 @@ def test_save_run_results_rank_position_matches_rank_companies(tmp_path):
     gate_results = _simulated_run_gate_results()
     run_timestamp = "2026-09-15T14:30:00"
 
-    save_run_results(run_timestamp, gate_results, db_path=db_path)
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
 
     rows = _query_run(db_path, run_timestamp)
     rank_by_ticker = {row["ticker"]: row["rank_position"] for row in rows}
@@ -242,8 +245,8 @@ def test_save_run_results_two_timestamps_do_not_overwrite_each_other(tmp_path):
     db_path = tmp_path / "archive.db"
     gate_results = _simulated_run_gate_results()
 
-    save_run_results("2026-09-15T14:30:00", gate_results, db_path=db_path)
-    save_run_results("2026-09-16T09:00:00", gate_results, db_path=db_path)
+    save_run_results("2026-09-15T14:30:00", gate_results, config_hash=None, db_path=db_path)
+    save_run_results("2026-09-16T09:00:00", gate_results, config_hash=None, db_path=db_path)
 
     rows_day1 = _query_run(db_path, "2026-09-15T14:30:00")
     rows_day2 = _query_run(db_path, "2026-09-16T09:00:00")
@@ -259,13 +262,13 @@ def test_save_run_results_same_timestamp_twice_raises(tmp_path):
     gate_results = _simulated_run_gate_results()
     run_timestamp = "2026-09-15T14:30:00"
 
-    save_run_results(run_timestamp, gate_results, db_path=db_path)
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
 
     # a forward-log is a historical record: re-saving the same run_timestamp
     # is a caller bug that must raise (composite primary key violation),
     # never silently overwrite the already-archived run
     with pytest.raises(sqlite3.IntegrityError):
-        save_run_results(run_timestamp, gate_results, db_path=db_path)
+        save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
 
     # the original rows must be untouched by the failed second attempt, in
     # BOTH run_results and eliminated_results (single shared transaction)
@@ -284,7 +287,7 @@ def test_export_survivors_csv_matches_db_for_same_run(tmp_path):
     gate_results = _simulated_run_gate_results()
     run_timestamp = "2026-09-15T14:30:00"
 
-    save_run_results(run_timestamp, gate_results, db_path=db_path)
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
     csv_path = export_survivors_csv(run_timestamp, gate_results, output_dir=csv_dir)
 
     db_rows = {row["ticker"]: row for row in _query_run(db_path, run_timestamp)}
@@ -324,7 +327,11 @@ def test_non_string_run_timestamp_raises_typeerror(tmp_path, func_name):
     run_timestamp = datetime.datetime(2026, 9, 15, 14, 30, 0)
 
     func = {"save_run_results": save_run_results, "export_survivors_csv": export_survivors_csv}[func_name]
-    kwargs = {"db_path": tmp_path / "archive.db"} if func_name == "save_run_results" else {"output_dir": tmp_path / "runs"}
+    kwargs = (
+        {"config_hash": None, "db_path": tmp_path / "archive.db"}
+        if func_name == "save_run_results"
+        else {"output_dir": tmp_path / "runs"}
+    )
 
     with pytest.raises(TypeError):
         func(run_timestamp, gate_results, **kwargs)
@@ -337,7 +344,7 @@ def test_zero_survivor_run_still_writes_runs_row_and_header_only_csv(tmp_path):
     run_timestamp = "2026-09-15T08:00:00"
     assert rank_companies(gate_results) == []  # sanity: genuinely 0 survivors
 
-    save_run_results(run_timestamp, gate_results, db_path=db_path)
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
     csv_path = export_survivors_csv(run_timestamp, gate_results, output_dir=csv_dir)
 
     run_row = _query_runs_table(db_path, run_timestamp)
@@ -373,12 +380,12 @@ def test_zero_survivor_run_and_survivor_run_coexist(tmp_path):
 
     zero_gate_results = _zero_survivor_gate_results()
     zero_timestamp = "2026-09-15T08:00:00"
-    save_run_results(zero_timestamp, zero_gate_results, db_path=db_path)
+    save_run_results(zero_timestamp, zero_gate_results, config_hash=None, db_path=db_path)
     zero_csv_path = export_survivors_csv(zero_timestamp, zero_gate_results, output_dir=csv_dir)
 
     real_gate_results = _simulated_run_gate_results()
     real_timestamp = "2026-09-15T14:30:00"
-    save_run_results(real_timestamp, real_gate_results, db_path=db_path)
+    save_run_results(real_timestamp, real_gate_results, config_hash=None, db_path=db_path)
     real_csv_path = export_survivors_csv(real_timestamp, real_gate_results, output_dir=csv_dir)
 
     zero_run_row = _query_runs_table(db_path, zero_timestamp)
@@ -419,6 +426,7 @@ def _gate_results_with_data_quality_flags():
         net_debt_ebitda=MetricResult(value=1.0),
         cash_conversion=MetricResult(value=1.5),
         net_income_margin=MetricResult(value=0.05),
+        thresholds=DEFAULT_THRESHOLDS,
     )
     return {
         "SURV_FLAGGED": evaluate_stage1_gates(**passing, data_quality_flags=_DQ_FLAGS),
@@ -428,6 +436,7 @@ def _gate_results_with_data_quality_flags():
             net_debt_ebitda=MetricResult(value=5.0),
             cash_conversion=MetricResult(value=0.1),
             net_income_margin=MetricResult(value=0.01),
+            thresholds=DEFAULT_THRESHOLDS,
             data_quality_flags=("year_dropped_missing_required_field",),
         ),
         "ELIM_NOT_EVALUABLE": evaluate_stage1_gates(
@@ -435,6 +444,7 @@ def _gate_results_with_data_quality_flags():
             net_debt_ebitda=MetricResult(value=None, invalid_reason="debt_data_completely_missing"),
             cash_conversion=MetricResult(value=1.5),
             net_income_margin=MetricResult(value=0.05),
+            thresholds=DEFAULT_THRESHOLDS,
             data_quality_flags=("debt_data_completely_missing",) + _DQ_FLAGS,
         ),
     }
@@ -455,10 +465,24 @@ def test_new_db_has_data_quality_flags_column_in_both_tables(tmp_path):
     assert _table_columns(db_path, "eliminated_results").count("data_quality_flags") == 1
 
 
+def test_new_db_has_config_hash_column_in_runs_table(tmp_path):
+    db_path = tmp_path / "archive.db"
+    init_db(db_path)
+    assert _table_columns(db_path, "runs").count("config_hash") == 1
+
+
+def test_save_run_results_persists_config_hash_in_runs_table(tmp_path):
+    db_path = tmp_path / "archive.db"
+    run_timestamp = "2026-09-23T18:00:00"
+    save_run_results(run_timestamp, _zero_eliminated_gate_results(), config_hash="abc123", db_path=db_path)
+    run_row = _query_runs_table(db_path, run_timestamp)
+    assert run_row["config_hash"] == "abc123"
+
+
 def test_save_run_results_persists_data_quality_flags_in_both_tables(tmp_path):
     db_path = tmp_path / "archive.db"
     run_timestamp = "2026-09-21T16:00:00"
-    save_run_results(run_timestamp, _gate_results_with_data_quality_flags(), db_path=db_path)
+    save_run_results(run_timestamp, _gate_results_with_data_quality_flags(), config_hash=None, db_path=db_path)
 
     survivors = {row["ticker"]: row for row in _query_run(db_path, run_timestamp)}
     assert survivors["SURV_FLAGGED"]["data_quality_flags"] == ",".join(_DQ_FLAGS)
@@ -529,6 +553,44 @@ def test_init_db_upgrades_an_existing_archive_and_stays_idempotent(tmp_path):
     assert _query_eliminated(db_path, "2026-09-01T09:00:00")[0]["data_quality_flags"] == ""
 
     # and a new run on the upgraded archive persists flags next to the old rows
-    save_run_results("2026-09-21T16:00:00", _gate_results_with_data_quality_flags(), db_path=db_path)
+    save_run_results("2026-09-21T16:00:00", _gate_results_with_data_quality_flags(), config_hash=None, db_path=db_path)
     new_rows = {row["ticker"]: row for row in _query_run(db_path, "2026-09-21T16:00:00")}
     assert new_rows["SURV_FLAGGED"]["data_quality_flags"] == ",".join(_DQ_FLAGS)
+
+
+_OLD_SCHEMA_RUNS = """
+    CREATE TABLE runs (
+        run_timestamp TEXT PRIMARY KEY, companies_evaluated INTEGER NOT NULL,
+        survivors_count INTEGER NOT NULL)
+"""
+
+
+def test_init_db_upgrades_an_existing_runs_table_and_stays_idempotent(tmp_path):
+    # An archive whose runs table predates config_hash: init_db() must add it
+    # via ALTER TABLE, not fail, and not add it twice. Unlike
+    # data_quality_flags's '' sentinel, old rows must read back NULL - a
+    # config_hash was genuinely never recorded for them, not "recorded as
+    # empty" (docs/decisions.md, "Schwellen nach config/thresholds.yaml").
+    db_path = tmp_path / "old_archive.db"
+    connection = sqlite3.connect(db_path)
+    try:
+        connection.execute(_OLD_SCHEMA_RUNS)
+        connection.execute("INSERT INTO runs VALUES ('2026-09-01T09:00:00', 3, 1)")
+        connection.commit()
+    finally:
+        connection.close()
+    assert "config_hash" not in _table_columns(db_path, "runs")
+
+    init_db(db_path)
+    init_db(db_path)  # a second call must be a no-op, not "duplicate column name"
+
+    assert _table_columns(db_path, "runs").count("config_hash") == 1
+    old_row = _query_runs_table(db_path, "2026-09-01T09:00:00")
+    assert old_row["config_hash"] is None
+
+    # a new run on the upgraded archive persists its own config_hash next to the old, NULL row
+    save_run_results(
+        "2026-09-23T18:00:00", _zero_eliminated_gate_results(), config_hash="def456", db_path=db_path
+    )
+    new_row = _query_runs_table(db_path, "2026-09-23T18:00:00")
+    assert new_row["config_hash"] == "def456"

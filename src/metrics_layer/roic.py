@@ -1,22 +1,12 @@
 """ROIC (Return on Invested Capital) per docs/decisions.md."""
 
+from config_layer.thresholds import RoicThresholds
 from metrics_layer.result import NET_DEBT_UNRELIABLE, MetricInputError, MetricResult, net_debt_none_reason
 
-# Fixed, normalized tax rate for NOPAT (masterplan v1.1, docs/decisions.md
-# "Masterplan v1.1 uebernommen") - replaces the effective per-company rate,
-# which would overstate NOPAT for small caps with loss carryforwards
-# (effective rate often near 0%). Module constant, not YAML, per the same
-# Phase-1.0 exception as the Gates-Layer thresholds (gates_layer/stage1_gates.py).
-NOPAT_TAX_RATE = 0.25
 
-# Invested-Capital/Bilanzsummen-Guard (masterplan v1.1, docs/decisions.md
-# "ROIC - Invested-Capital/Bilanzsummen-Guard") - same Phase-1.0 module-
-# constant exception as NOPAT_TAX_RATE above.
-IC_ASSET_FLOOR_RATIO = 0.10
-ROIC_IMPLAUSIBLE_ABOVE = 0.60
-
-
-def roic_for_period(ebit, equity, net_debt, total_assets, net_debt_invalid_reason=NET_DEBT_UNRELIABLE):
+def roic_for_period(
+    ebit, equity, net_debt, total_assets, *, thresholds: RoicThresholds, net_debt_invalid_reason=NET_DEBT_UNRELIABLE
+):
     """ROIC for a single fiscal year.
 
     net_debt=None is the sentinel for "unreliable" (per docs/decisions.md,
@@ -50,16 +40,16 @@ def roic_for_period(ebit, equity, net_debt, total_assets, net_debt_invalid_reaso
         return MetricResult(value=None, invalid_reason="ic_non_positive")
     if total_assets is None or total_assets <= 0:
         return MetricResult(value=None, invalid_reason="total_assets_unreliable")
-    if invested_capital < IC_ASSET_FLOOR_RATIO * total_assets:
+    if invested_capital < thresholds.ic_asset_floor_ratio * total_assets:
         return MetricResult(value=None, invalid_reason="ic_below_asset_floor")
-    nopat = ebit * (1 - NOPAT_TAX_RATE)
+    nopat = ebit * (1 - thresholds.nopat_tax_rate)
     roic = nopat / invested_capital
-    if roic > ROIC_IMPLAUSIBLE_ABOVE:
+    if roic > thresholds.implausible_above:
         return MetricResult(value=None, invalid_reason="roic_implausibly_high")
     return MetricResult(value=roic)
 
 
-def roic_3yr_average(periods):
+def roic_3yr_average(periods, *, thresholds: RoicThresholds):
     """3-year ROIC: mean of the three independently computed yearly ROICs.
 
     Invalid (fewer than 3 periods, e.g. recent IPO; invested capital <= 0;
@@ -94,6 +84,7 @@ def roic_3yr_average(periods):
             equity=period["equity"],
             net_debt=period["net_debt"],
             total_assets=period["total_assets"],
+            thresholds=thresholds,
             net_debt_invalid_reason=net_debt_none_reason(period),
         )
         if result.invalid_reason is not None:

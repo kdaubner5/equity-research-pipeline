@@ -2,7 +2,16 @@ import io
 import json
 from pathlib import Path
 
+from config_layer.thresholds import load_thresholds
+
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "companies"
+
+# Loaded once from the real config/thresholds.yaml, not a re-hardcoded
+# literal copy - keeps every test that needs thresholds honest against the
+# actual production config instead of silently drifting from it after a
+# future recalibration (docs/decisions.md, "Schwellen nach
+# config/thresholds.yaml").
+DEFAULT_THRESHOLDS = load_thresholds()
 
 
 class FakeUrlopenResponse(io.BytesIO):

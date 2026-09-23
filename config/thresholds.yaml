@@ -1,0 +1,28 @@
+# Stage-1 gate and metric-computation thresholds (docs/masterplan.md §7,
+# docs/decisions.md "Schwellen nach config/thresholds.yaml", Issue #33).
+# Loaded and validated once per run by config_layer.thresholds.load_thresholds()
+# before any company is evaluated - every key below is required, no defaults
+# exist anywhere in code. Changing a value here changes Stage-1
+# classification on the very next run.
+
+roic:
+  nopat_tax_rate: 0.25          # fixed NOPAT tax rate (docs/decisions.md "Masterplan v1.1")
+  ic_asset_floor_ratio: 0.10    # Invested Capital must be >= this share of Total Assets
+  implausible_above: 0.60       # single-year ROIC cap -> invalid_reason=roic_implausibly_high
+  clean_pass_above: 0.12        # 3yr-avg ROIC strictly above -> clean pass
+  fail_below: 0.10              # 3yr-avg ROIC strictly below -> hard fail; [fail_below, clean_pass_above] is the grey zone
+
+net_debt_ebitda:
+  clean_pass_below: 2.3         # latest-year Net Debt/EBITDA strictly below -> clean pass
+  fail_at_or_above: 2.5         # at or above -> hard fail; [clean_pass_below, fail_at_or_above) is the grey zone
+
+cash_conversion:
+  clean_pass_at_or_above: 1.0   # 3yr-avg Cash Conversion at or above -> clean pass
+  fail_below: 0.8               # strictly below -> hard fail; [fail_below, clean_pass_at_or_above) is the grey zone
+
+net_income_margin:
+  fail_below: 0.02              # 3yr-avg Net Income Margin strictly below -> hard fail; no grey zone
+
+data_quality_reconciliation:
+  debt_tolerance_ratio: 0.05         # stock-flow reconciliation tolerance, share of debt level
+  debt_tolerance_assets_ratio: 0.001 # fallback floor when debt level is exactly 0, share of total assets

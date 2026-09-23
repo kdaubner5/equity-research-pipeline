@@ -1,6 +1,6 @@
 import pytest
 
-from conftest import load_company
+from conftest import DEFAULT_THRESHOLDS, load_company
 from metrics_layer.cash_conversion import cash_conversion_3yr_average, net_income_margin_3yr_average
 from metrics_layer.net_debt_ebitda import net_debt_ebitda_latest
 from metrics_layer.result import MetricResult
@@ -12,10 +12,11 @@ def _gate_result_for(company_id):
     company = load_company(company_id)
     periods = company["periods"]
     return evaluate_stage1_gates(
-        roic=roic_3yr_average(periods),
+        roic=roic_3yr_average(periods, thresholds=DEFAULT_THRESHOLDS.roic),
         net_debt_ebitda=net_debt_ebitda_latest(periods),
         cash_conversion=cash_conversion_3yr_average(periods),
         net_income_margin=net_income_margin_3yr_average(periods),
+        thresholds=DEFAULT_THRESHOLDS,
     )
 
 
@@ -190,6 +191,7 @@ def test_evaluate_stage1_gates_invalid_takes_precedence_over_margin_failure_synt
         net_debt_ebitda=MetricResult(value=1.0),
         cash_conversion=MetricResult(value=None, invalid_reason="ni_non_positive"),
         net_income_margin=MetricResult(value=0.01),
+        thresholds=DEFAULT_THRESHOLDS,
     )
     assert result.status == "not_evaluable"
     assert result.status != "failed"
@@ -237,6 +239,7 @@ def test_evaluate_stage1_gates_passes_data_quality_flags_through_without_affecti
         net_debt_ebitda=MetricResult(value=1.0),
         cash_conversion=MetricResult(value=1.5),
         net_income_margin=MetricResult(value=0.05),
+        thresholds=DEFAULT_THRESHOLDS,
     )
     plain = evaluate_stage1_gates(**inputs)
     flagged = evaluate_stage1_gates(**inputs, data_quality_flags=("pl_lags_other_statements",))
