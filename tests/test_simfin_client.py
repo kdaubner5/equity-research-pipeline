@@ -1,10 +1,10 @@
 import copy
-import io
 import json
 from pathlib import Path
 
 import pytest
 
+from conftest import FakeUrlopenResponse
 from data_layer import simfin_client
 from data_layer.simfin_client import (
     DEBT_COMPONENT_MISSING_FLAG,
@@ -579,17 +579,13 @@ def test_resolve_simfin_id_unknown_ticker_raises():
         resolve_simfin_id("NOPE", "key", company_list=[{"id": 1, "ticker": "ATRO"}])
 
 
-class _FakeResponse(io.BytesIO):
-    pass
-
-
 def test_network_calls_pass_a_request_timeout(monkeypatch):
     # Without a timeout a stalled connection blocks a cron batch forever.
     seen = []
 
     def fake_urlopen(req, timeout=None):
         seen.append(timeout)
-        return _FakeResponse(b'[{"id": 7, "ticker": "ATRO"}]')
+        return FakeUrlopenResponse(b'[{"id": 7, "ticker": "ATRO"}]')
 
     monkeypatch.setattr(simfin_client.urllib.request, "urlopen", fake_urlopen)
     assert resolve_simfin_id("ATRO", "key") == 7
@@ -604,7 +600,7 @@ def test_fetch_companies_list_returns_the_decoded_json(monkeypatch):
     def fake_urlopen(req, timeout=None):
         assert req.full_url == simfin_client.SIMFIN_COMPANIES_LIST_URL
         assert timeout == REQUEST_TIMEOUT_SECONDS
-        return _FakeResponse(b'[{"id": 7, "ticker": "ATRO"}, {"id": 8, "ticker": "CATO"}]')
+        return FakeUrlopenResponse(b'[{"id": 7, "ticker": "ATRO"}, {"id": 8, "ticker": "CATO"}]')
 
     monkeypatch.setattr(simfin_client.urllib.request, "urlopen", fake_urlopen)
     company_list = fetch_companies_list("key")

@@ -38,7 +38,6 @@ sys.path.insert(0, str(_REPO_ROOT / "src"))  # run_stage1.py lives outside src/,
 from data_layer.simfin_client import (  # noqa: E402
     MAX_BATCH_SIZE,
     SimFinMappingError,
-    build_company_record,
     fetch_companies_list,
     fetch_statements_batch,
     resolve_simfin_id,
@@ -49,12 +48,8 @@ from gates_layer.stage1_gates import (  # noqa: E402
     PASSED,
     PASSED_WITH_FLAGS,
     GateResult,
-    collect_data_quality_flags,
-    evaluate_stage1_gates,
 )
-from metrics_layer.cash_conversion import cash_conversion_3yr_average, net_income_margin_3yr_average  # noqa: E402
-from metrics_layer.net_debt_ebitda import net_debt_ebitda_latest  # noqa: E402
-from metrics_layer.roic import roic_3yr_average  # noqa: E402
+from pipeline import evaluate_company  # noqa: E402
 from store_layer.db import DEFAULT_CSV_DIR, DEFAULT_DB_PATH, export_survivors_csv, save_run_results  # noqa: E402
 
 DEFAULT_UNIVERSE_PATH = _REPO_ROOT / "config" / "universe.txt"
@@ -140,20 +135,14 @@ def _chunk(items, size):
 
 def evaluate_ticker(ticker, raw_company):
     """One ticker through the whole Stage-1 chain, from already-fetched raw
-    SimFin JSON to a GateResult. Mapping failures become an eliminated
-    GateResult (Entscheidung 2) instead of propagating."""
+    SimFin JSON to a GateResult, via the same pipeline.evaluate_company()
+    that tests/test_simfin_pilot_gates.py uses - one shared wiring, not two
+    independent copies. Mapping failures become an eliminated GateResult
+    (Entscheidung 2) instead of propagating."""
     try:
-        periods = build_company_record(ticker, raw_company)["periods"]
+        return evaluate_company(ticker, raw_company)
     except SimFinMappingError:
         return _eliminated(SIMFIN_MAPPING_ERROR)
-
-    return evaluate_stage1_gates(
-        roic=roic_3yr_average(periods),
-        net_debt_ebitda=net_debt_ebitda_latest(periods),
-        cash_conversion=cash_conversion_3yr_average(periods),
-        net_income_margin=net_income_margin_3yr_average(periods),
-        data_quality_flags=collect_data_quality_flags(periods),
-    )
 
 
 def evaluate_universe(tickers, api_key, company_list):
