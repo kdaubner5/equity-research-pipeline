@@ -25,19 +25,8 @@ from pathlib import Path
 if __name__ == "__main__":  # allow running as a plain script, outside pytest's pythonpath setting
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from data_layer.simfin_client import build_company_record
-from gates_layer.stage1_gates import (
-    FAILED,
-    NOT_EVALUABLE,
-    PASSED,
-    PASSED_WITH_FLAGS,
-    collect_data_quality_flags,
-    evaluate_stage1_gates,
-    rank_companies,
-)
-from metrics_layer.cash_conversion import cash_conversion_3yr_average, net_income_margin_3yr_average
-from metrics_layer.net_debt_ebitda import net_debt_ebitda_latest
-from metrics_layer.roic import roic_3yr_average
+from gates_layer.stage1_gates import FAILED, NOT_EVALUABLE, PASSED, PASSED_WITH_FLAGS, rank_companies
+from pipeline import evaluate_company
 from store_layer.db import save_run_results
 
 SIMFIN_RAW_DIR = Path(__file__).parent / "fixtures" / "simfin_raw"
@@ -77,17 +66,11 @@ def pilot_tickers():
 
 
 def evaluate_pilot(ticker):
-    """One pilot through the whole Stage-1 chain, exactly as a runner would wire it."""
+    """One pilot through the whole Stage-1 chain, via the same pipeline.evaluate_company()
+    that run_stage1.py (Issue #9) uses - one shared wiring, not two independent copies."""
     with open(SIMFIN_RAW_DIR / f"{ticker}.json", encoding="utf-8") as f:
         raw = json.load(f)
-    periods = build_company_record(ticker, raw)["periods"]
-    return evaluate_stage1_gates(
-        roic=roic_3yr_average(periods),
-        net_debt_ebitda=net_debt_ebitda_latest(periods),
-        cash_conversion=cash_conversion_3yr_average(periods),
-        net_income_margin=net_income_margin_3yr_average(periods),
-        data_quality_flags=collect_data_quality_flags(periods),
-    )
+    return evaluate_company(ticker, raw)
 
 
 def evaluate_all_pilots():

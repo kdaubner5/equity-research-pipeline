@@ -1,7 +1,14 @@
+import io
 import json
 from pathlib import Path
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "companies"
+
+
+class FakeUrlopenResponse(io.BytesIO):
+    """A urllib.request.urlopen() response stand-in for offline network mocks
+    (test_simfin_client.py, test_run_stage1.py) - a context-managed,
+    read()-able byte stream is all json.load(resp) needs."""
 
 
 def load_company(company_id):
