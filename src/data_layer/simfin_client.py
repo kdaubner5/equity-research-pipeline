@@ -395,7 +395,16 @@ def resolve_simfin_id(ticker, api_key, company_list=None):
         # `or ""`: an entry with a null ticker (key present, value None) must
         # be skipped, not crash every lookup that scans past it.
         if (entry.get("ticker") or "").upper() == ticker_upper:
-            return entry["id"]
+            company_id = entry.get("id")
+            if company_id is None:
+                # Matches by ticker but has no usable id (key missing, or
+                # present-and-null) - a malformed/schema-drifted
+                # companies/list entry, not a lookup miss. Treated the same
+                # as "not found" instead of a bare KeyError, which callers
+                # isolating one ticker via SimFinMappingError would not
+                # catch (code review of PR #32).
+                raise SimFinMappingError(f"companies/list entry for ticker {ticker!r} has no usable id")
+            return company_id
     raise SimFinMappingError(f"ticker {ticker!r} not found in companies/list")
 
 

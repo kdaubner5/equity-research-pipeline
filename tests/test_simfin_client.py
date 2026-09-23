@@ -579,6 +579,18 @@ def test_resolve_simfin_id_unknown_ticker_raises():
         resolve_simfin_id("NOPE", "key", company_list=[{"id": 1, "ticker": "ATRO"}])
 
 
+def test_resolve_simfin_id_matched_entry_without_an_id_raises_mapping_error():
+    # A companies/list entry that matches by ticker but has no usable id
+    # (missing key, or present-and-null) is malformed/schema-drifted, not a
+    # lookup miss - it must raise SimFinMappingError like any other mapping
+    # failure, not a bare KeyError a per-ticker caller wouldn't catch
+    # (code review of PR #32).
+    with pytest.raises(SimFinMappingError, match="ATRO"):
+        resolve_simfin_id("ATRO", "key", company_list=[{"ticker": "ATRO"}])
+    with pytest.raises(SimFinMappingError, match="ATRO"):
+        resolve_simfin_id("ATRO", "key", company_list=[{"id": None, "ticker": "ATRO"}])
+
+
 def test_network_calls_pass_a_request_timeout(monkeypatch):
     # Without a timeout a stalled connection blocks a cron batch forever.
     seen = []

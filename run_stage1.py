@@ -13,8 +13,8 @@ Stage-1 gates, and archives the whole funnel via the existing Store-Layer.
 Per-ticker/per-batch failures are caught and turned into an eliminated
 company with a runner-level invalid_reason (simfin_id_not_found,
 simfin_statements_fetch_failed, simfin_statements_missing,
-simfin_mapping_error) - one bad ticker never aborts the run for the rest
-(docs/decisions.md, Entscheidung 2). Exit code is 0 whenever the run
+simfin_mapping_error, metric_input_error) - one bad ticker never aborts the
+run for the rest (docs/decisions.md, Entscheidung 2). Exit code is 0 whenever the run
 completed and wrote its results, regardless of how many companies survived;
 non-zero only for a technical failure that prevented the run from producing
 results at all (missing API key, companies/list unreachable, the store
@@ -27,6 +27,7 @@ main() just calls run() with every default.
 """
 
 import sys
+import urllib.error
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -49,6 +50,7 @@ from gates_layer.stage1_gates import (  # noqa: E402
     PASSED_WITH_FLAGS,
     GateResult,
 )
+from metrics_layer.result import MetricInputError  # noqa: E402
 from pipeline import evaluate_company  # noqa: E402
 from store_layer.db import DEFAULT_CSV_DIR, DEFAULT_DB_PATH, export_survivors_csv, save_run_results  # noqa: E402
 
@@ -62,6 +64,13 @@ SIMFIN_ID_NOT_FOUND = "simfin_id_not_found"
 SIMFIN_STATEMENTS_FETCH_FAILED = "simfin_statements_fetch_failed"
 SIMFIN_STATEMENTS_MISSING = "simfin_statements_missing"
 SIMFIN_MAPPING_ERROR = "simfin_mapping_error"
+# Unlike the four reasons above, this one fires *during* metric computation,
+# not before it: a metrics_layer input-shape guard (duplicate fiscal_year,
+# more than 3 periods) tripping instead of the usual gates_layer reasons
+# (insufficient_years, ...). pipeline.evaluate_company() documents this as
+# raisable alongside SimFinMappingError; code review of PR #32 found
+# evaluate_ticker() wasn't catching it.
+METRIC_INPUT_ERROR = "metric_input_error"
 
 EXIT_OK = 0
 EXIT_TECHNICAL_FAILURE = 1
@@ -137,12 +146,15 @@ def evaluate_ticker(ticker, raw_company):
     """One ticker through the whole Stage-1 chain, from already-fetched raw
     SimFin JSON to a GateResult, via the same pipeline.evaluate_company()
     that tests/test_simfin_pilot_gates.py uses - one shared wiring, not two
-    independent copies. Mapping failures become an eliminated GateResult
-    (Entscheidung 2) instead of propagating."""
+    independent copies. Both failure modes evaluate_company() documents
+    (SimFinMappingError, MetricInputError) become an eliminated GateResult
+    (Entscheidung 2) instead of propagating and aborting the whole run."""
     try:
         return evaluate_company(ticker, raw_company)
     except SimFinMappingError:
         return _eliminated(SIMFIN_MAPPING_ERROR)
+    except MetricInputError:
+        return _eliminated(METRIC_INPUT_ERROR)
 
 
 def evaluate_universe(tickers, api_key, company_list):
@@ -162,16 +174,33 @@ def evaluate_universe(tickers, api_key, company_list):
         ids = [resolved_ids[ticker] for ticker in batch]
         try:
             raw_records = fetch_statements_batch(ids, api_key)
-        except Exception:  # noqa: BLE001 - any network failure poisons this whole batch, not just one call type
+        except (urllib.error.URLError, TimeoutError, ValueError):
+            # URLError also covers HTTPError; ValueError also covers
+            # json.JSONDecodeError - the genuine network/malformed-response
+            # failure modes fetch_statements_batch() can raise, isolated to
+            # this whole batch (not just one call type). Deliberately
+            # narrower than a bare `except Exception` (code review of PR
+            # #32): a programming bug elsewhere in that call should surface,
+            # not be silently relabeled as an ordinary data problem.
             for ticker in batch:
                 gate_results[ticker] = _eliminated(SIMFIN_STATEMENTS_FETCH_FAILED)
             continue
 
-        raw_by_ticker = {
-            record.get("ticker", "").upper(): record for record in raw_records if isinstance(record, dict)
+        # Keyed by the id we actually requested for each ticker, not by the
+        # record's own self-reported "ticker" field: two records could
+        # otherwise collide on the same ticker string (silently dropping
+        # one), and a record with a null "ticker" (key present, value None)
+        # would crash .upper() instead of being handled explicitly (code
+        # review of PR #32). build_company_record()'s own ticker-mismatch
+        # check (SimFinMappingError, now caught in evaluate_ticker()) is
+        # still the last line of defense against a mispaired record.
+        raw_by_id = {
+            record["id"]: record
+            for record in raw_records
+            if isinstance(record, dict) and record.get("id") is not None
         }
         for ticker in batch:
-            raw_company = raw_by_ticker.get(ticker.upper())
+            raw_company = raw_by_id.get(resolved_ids[ticker])
             if raw_company is None:
                 gate_results[ticker] = _eliminated(SIMFIN_STATEMENTS_MISSING)
                 continue
@@ -209,14 +238,36 @@ def run(
             company_list = fetch_companies_list(api_key)
         except Exception as exc:
             raise Stage1RunError(f"companies/list unreachable: {exc}") from exc
+        if not isinstance(company_list, list):
+            # An HTTP-200 response that isn't the expected JSON list (e.g. an
+            # error envelope like {"error": "..."}) isn't an exception, so
+            # the try/except above wouldn't catch it - it would otherwise
+            # only surface later, mid-ticker-loop, as a confusing crash
+            # (code review of PR #32).
+            raise Stage1RunError(
+                f"companies/list returned an unexpected shape: {type(company_list).__name__}, expected a list"
+            )
 
         gate_results = evaluate_universe(tickers, api_key, company_list)
 
         run_timestamp = run_timestamp or datetime.now().isoformat(timespec="seconds")
+        # CSV first, DB write last: save_run_results() is the authoritative,
+        # append-only archive (a plain INSERT, never overwritten - its own
+        # docstring), so it must be the step that only ever happens once the
+        # rest of the run is known-good. If export_survivors_csv() fails,
+        # nothing has touched the DB yet. If save_run_results() then fails
+        # after the CSV already landed, the CSV is removed again - either
+        # way "nonzero exit code" keeps meaning "nothing was written"
+        # (Entscheidung 3), instead of leaving a committed DB run with no
+        # CSV, or a CSV with no corresponding archive entry (code review of
+        # PR #32).
+        csv_path = None
         try:
-            save_run_results(run_timestamp, gate_results, db_path=db_path)
             csv_path = export_survivors_csv(run_timestamp, gate_results, output_dir=csv_dir)
+            save_run_results(run_timestamp, gate_results, db_path=db_path)
         except Exception as exc:
+            if csv_path is not None:
+                csv_path.unlink(missing_ok=True)
             raise Stage1RunError(f"could not write run results: {exc}") from exc
 
         print(f"run_timestamp={run_timestamp}  survivors_csv={csv_path}", file=out)
