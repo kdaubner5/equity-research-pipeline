@@ -25,7 +25,7 @@ Alle Beträge in Millionen USD.
 | `revenue` | Umsatz | Kontext/Grauzonen; Net Income Margin = net_income / revenue (Guard `revenue_non_positive`) |
 | `ebit` | Operatives Ergebnis | ROIC (NOPAT), Cash-Conversion-Kontext |
 | `ebitda` | EBIT + D&A | Net Debt/EBITDA |
-| `tax_rate` | Effektiver Steuersatz | historisch (ROIC nutzt seit Masterplan v1.1 den festen `NOPAT_TAX_RATE`, siehe `docs/decisions.md`) |
+| `tax_rate` | Effektiver Steuersatz | historisch (ROIC nutzt seit Masterplan v1.1 den festen Steuersatz `roic.nopat_tax_rate` aus `config/thresholds.yaml`, siehe `docs/decisions.md`) |
 | `equity` | Eigenkapital | Invested Capital = equity + net_debt für ROIC |
 | `net_debt` | Nettoverschuldung | Net Debt/EBITDA, Invested Capital |
 | `total_assets` | Bilanzsumme | ROIC-Guard `ic_below_asset_floor` (Invested Capital muss ≥ 10 % der Bilanzsumme sein) |
