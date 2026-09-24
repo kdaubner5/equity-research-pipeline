@@ -35,13 +35,17 @@ the prices endpoint. At most --max-requeries of the ids missing from a batch
 response are re-queried alone, spread evenly (docs/decisions.md, "Nachtrag zu
 Entscheidung 3").
 
-Rate-limit guard (docs/decisions.md, "Zweiter Nachtrag zu Entscheidung 3"):
-after --max-consecutive-429 HTTP 429 in a row without a success in between
-the run stops making requests (rate_limit_abort, limit suspected). It is then
-treated like an exhausted --max-calls budget: the ids not yet fetched are
-archived as not_fetched (cached responses are still used), INCOMPLETE, no
-survivors file, exit 0 - or exit 1 if it happens while the universe listing is
-being loaded, as with an exhausted budget there. The cache stays for a resume.
+Failure guard (docs/decisions.md, "Zweiter" and "Dritter Nachtrag zu
+Entscheidung 3"): after --max-consecutive-failures failed requests in a row
+(HTTP 429, 5xx or any other HTTP error, timeout, network error, unreadable or
+contract-violating response) without a successful response in between, the run
+stops making requests (consecutive_failures_abort, systemic failure suspected).
+It is then treated like an exhausted --max-calls budget: the ids not yet
+fetched are archived as not_fetched (cached responses are still used),
+INCOMPLETE, no survivors file, exit 0 - or exit 1 if it happens while the
+universe listing is being loaded, as with an exhausted budget there. The cache
+stays for a resume. One company whose own price record is invalid fails only
+that company (price_fetch_failed), not the rest of its batch.
 """
 
 import argparse
@@ -72,9 +76,10 @@ EXIT_TECHNICAL_FAILURE = 1
 
 PROGRESS_EVERY_BATCHES = 50
 DEFAULT_MAX_REQUERIES = 20
-# Operating parameter of the run (CLI --max-consecutive-429), not a business
-# threshold: consecutive HTTP 429 without a success before the run stops.
-DEFAULT_MAX_CONSECUTIVE_429 = 5
+# Operating parameter of the run (CLI --max-consecutive-failures), not a
+# business threshold: consecutive failed requests without a success before the
+# run stops.
+DEFAULT_MAX_CONSECUTIVE_FAILURES = 5
 
 
 class UniverseRunError(Exception):
@@ -135,7 +140,7 @@ def _print_summary(out, *, run_timestamp, as_of, snapshot, results, stats, clien
     classified = len(snapshot.classified())
     unknown_underscore = pf.unknown_underscore_tickers(entry.ticker for entry in snapshot.entries)
     check = snapshot.crosscheck
-    abort = "  abort_reason=rate_limit_abort" if client.rate_limit_abort else ""
+    abort = "  abort_reason=consecutive_failures_abort" if client.failure_abort else ""
     print(f"run_timestamp={run_timestamp}  as_of={as_of}  complete={complete}{abort}", file=out)
     print(
         f"universe: listed={snapshot.total_listed} us={len(snapshot.entries)} non_us={snapshot.non_us} "
@@ -156,7 +161,7 @@ def _print_summary(out, *, run_timestamp, as_of, snapshot, results, stats, clien
         f"requeried={stats.missing_requeried} not_requeried={stats.missing_not_requeried} | requeries: "
         f"network={stats.requeries_network} cached={stats.requeries_cached} with_data={stats.requery_with_data} "
         f"empty={stats.requery_empty} failed={stats.requery_failed} not_fetched={stats.requery_not_fetched} "
-        f"| cache_invalid={stats.cache_invalid} non_usd={stats.non_usd}",
+        f"| cache_invalid={stats.cache_invalid} non_usd={stats.non_usd} companies_invalid={stats.companies_invalid}",
         file=out,
     )
     print(f"status: passed={statuses[pf.PASSED]} excluded={statuses[pf.EXCLUDED]}", file=out)
@@ -171,11 +176,11 @@ def _print_summary(out, *, run_timestamp, as_of, snapshot, results, stats, clien
         print(f"... and {len(stats.errors) - 10} more isolated errors", file=out)
     if complete:
         print(f"survivors_file={survivors_path}", file=out)
-    elif client.rate_limit_abort:
+    elif client.failure_abort:
         print(
-            f"INCOMPLETE ({client.rate_limit_abort}): the ids not yet fetched are archived as not_fetched; "
+            f"INCOMPLETE ({client.failure_abort}): the ids not yet fetched are archived as not_fetched; "
             "the cache stays. Rerun with the same --as-of to resume (cached responses are skipped) once the "
-            "limit has lifted. No survivors file written.",
+            "cause has cleared. No survivors file written.",
             file=out,
         )
     else:
@@ -194,7 +199,7 @@ def run(
     as_of=None,
     max_calls=None,
     max_requeries=DEFAULT_MAX_REQUERIES,
-    max_consecutive_429=DEFAULT_MAX_CONSECUTIVE_429,
+    max_consecutive_failures=DEFAULT_MAX_CONSECUTIVE_FAILURES,
     run_timestamp=None,
     thresholds_path=DEFAULT_THRESHOLDS_PATH,
     priority_tickers=None,
@@ -219,17 +224,17 @@ def run(
             client = su.RateLimitedClient(
                 api_key,
                 max_calls=max_calls,
-                max_consecutive_429=max_consecutive_429,
+                max_consecutive_failures=max_consecutive_failures,
                 call_log_path=run_cache_dir / "call_log.jsonl",
                 sleep=sleep,
                 clock=clock,
             )
-        except ValueError as exc:  # an invalid --max-consecutive-429 (>= 1 required, no way to switch it off)
+        except ValueError as exc:  # an invalid --max-consecutive-failures (>= 1 required, no way to switch it off)
             raise UniverseRunError(str(exc)) from exc
 
         try:
             snapshot = su.load_universe(client, run_cache_dir, stats=stats)
-        except (su.CallBudgetExhausted, su.RateLimitAbort, su.UniverseDataError, OSError, ValueError) as exc:
+        except (su.CallBudgetExhausted, su.ConsecutiveFailuresAbort, su.UniverseDataError, OSError, ValueError) as exc:
             # OSError also covers urllib's URLError/HTTPError/TimeoutError and a
             # non-writable cache directory; ValueError covers a JSON decode error.
             raise UniverseRunError(f"universe listing unavailable: {type(exc).__name__}: {exc}") from exc
@@ -341,12 +346,13 @@ def build_parser():
         "A re-query that returns prices is a silent cap: exit 1.",
     )
     parser.add_argument(
-        "--max-consecutive-429",
+        "--max-consecutive-failures",
         type=_positive_int,
-        default=DEFAULT_MAX_CONSECUTIVE_429,
-        help="stop the run cleanly after this many HTTP 429 in a row without a success in between "
-        f"(default {DEFAULT_MAX_CONSECUTIVE_429}): rate_limit_abort, limit suspected; the ids not yet fetched are "
-        "archived as not_fetched, INCOMPLETE, no survivors file, the cache stays.",
+        default=DEFAULT_MAX_CONSECUTIVE_FAILURES,
+        help="stop the run cleanly after this many failed requests in a row (HTTP 429, 5xx or any other HTTP "
+        "error, timeout, network error, unreadable or contract-violating response) without a successful response "
+        f"in between (default {DEFAULT_MAX_CONSECUTIVE_FAILURES}): consecutive_failures_abort; the ids not yet "
+        "fetched are archived as not_fetched, INCOMPLETE, no survivors file, the cache stays.",
     )
     parser.add_argument("--as-of", type=date.fromisoformat, default=None, help="price date reference, YYYY-MM-DD (default: today)")
     parser.add_argument("--db-path", type=Path, default=DEFAULT_DB_PATH)
@@ -371,7 +377,7 @@ def main(argv=None):
         as_of=args.as_of,
         max_calls=args.max_calls,
         max_requeries=args.max_requeries,
-        max_consecutive_429=args.max_consecutive_429,
+        max_consecutive_failures=args.max_consecutive_failures,
         priority_tickers=priority,
     )
 

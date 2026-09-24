@@ -26,12 +26,21 @@ Data-integrity rules (CLAUDE.md, docs/decisions.md "Entscheidung 3a"):
 - A batch that fails (network error, HTTP error, response violating the
   contract) marks exactly its own ids "fetch_failed" and is not cached, so a
   rerun retries it; one bad batch never aborts the run.
-- A rate limit is not one bad batch: it hits every request. After
-  `max_consecutive_429` HTTP 429 in a row without a success in between the
-  client raises RateLimitAbort and makes no further request (rate_limit_abort,
-  docs/decisions.md "Zweiter Nachtrag zu Entscheidung 3"). The remaining ids
-  are "not_fetched" (responses already in the cache are still used), so the
-  run ends INCOMPLETE like an exhausted budget and a rerun resumes.
+- One company whose own record violates the contract (a duplicate date, a
+  missing column, ...) fails only that company ("fetch_failed"); the rest of
+  its batch is evaluated normally. Such a response is not cached, so a rerun
+  fetches the batch again (docs/decisions.md "Dritter Nachtrag zu Entscheidung
+  3", (b)). A violation of the response itself (not a list, an id that is
+  missing, not requested or twice) still fails the whole batch.
+- A rate limit or an outage is not one bad batch: it hits every request. After
+  `max_consecutive_failures` failed requests in a row without a successful
+  response in between (HTTP 429 - every retry counts -, 5xx or any other HTTP
+  error, timeout, network error, unreadable body, a response violating the
+  contract) the client raises ConsecutiveFailuresAbort and makes no further
+  request (consecutive_failures_abort, docs/decisions.md "Zweiter" and
+  "Dritter Nachtrag zu Entscheidung 3", (a)). The remaining ids are
+  "not_fetched" (responses already in the cache are still used), so the run
+  ends INCOMPLETE like an exhausted budget and a rerun resumes.
 """
 
 import hashlib
@@ -42,6 +51,7 @@ import os
 import time
 import urllib.error
 import urllib.request
+from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -91,10 +101,11 @@ class CallBudgetExhausted(Exception):
     """The --max-calls budget is used up; no further HTTP request is made."""
 
 
-class RateLimitAbort(Exception):
-    """`max_consecutive_429` HTTP 429 in a row without a success in between: a
-    rate limit is suspected and the client makes no further request. Not one of
-    the NETWORK_ERRORS on purpose - it must not be isolated as one failed batch."""
+class ConsecutiveFailuresAbort(Exception):
+    """`max_consecutive_failures` failed requests in a row without a successful
+    response in between: a rate limit or an outage is suspected and the client
+    makes no further request. Not one of the NETWORK_ERRORS on purpose - it must
+    not be isolated as one failed batch."""
 
 
 class UniverseDataError(Exception):
@@ -123,6 +134,7 @@ class LoaderStats:
     requery_empty: int = 0
     requery_failed: int = 0
     requery_not_fetched: int = 0
+    companies_invalid: int = 0  # companies whose own record violated the contract (batch-mates unaffected)
     missing_total: int = 0  # ids absent from a successful batch response
     missing_requeried: int = 0  # of those, selected for a single-id re-query
     missing_not_requeried: int = 0  # the rest: no_data without a re-query
@@ -133,30 +145,39 @@ class LoaderStats:
 
 
 class RateLimitedClient:
-    """GET-JSON client with a call budget, request spacing, 429 retry and a call log.
+    """GET-JSON client with a call budget, request spacing, 429 retry, a call log
+    and a guard against a systemic failure.
 
     `max_calls=None` means unlimited (the caller states it explicitly, no
-    default). `max_consecutive_429` is likewise explicit: None = no abort, else
-    an integer >= 1 - the RateLimitAbort threshold (see the module docstring).
-    `sleep`/`clock` are injectable so tests run without waiting.
+    default). `max_consecutive_failures` is likewise explicit: None = no abort,
+    else an integer >= 1 - the ConsecutiveFailuresAbort threshold (see the
+    module docstring). Every failed request counts one failure (HTTP 429 incl.
+    each retry, 5xx and any other HTTP error, timeout, network error, unreadable
+    body); a caller whose response passed its own validation calls
+    record_success(), one whose response failed it calls record_failure() -
+    only record_success() ends the series. `sleep`/`clock` are injectable so
+    tests run without waiting.
     """
 
-    def __init__(self, api_key, *, max_calls, max_consecutive_429, call_log_path, sleep=time.sleep, clock=time.monotonic):
-        if max_consecutive_429 is not None and (
-            isinstance(max_consecutive_429, bool) or not isinstance(max_consecutive_429, int) or max_consecutive_429 < 1
+    def __init__(self, api_key, *, max_calls, max_consecutive_failures, call_log_path, sleep=time.sleep, clock=time.monotonic):
+        if max_consecutive_failures is not None and (
+            isinstance(max_consecutive_failures, bool)
+            or not isinstance(max_consecutive_failures, int)
+            or max_consecutive_failures < 1
         ):
-            raise ValueError(f"max_consecutive_429 must be None or an integer >= 1, got {max_consecutive_429!r}")
+            raise ValueError(f"max_consecutive_failures must be None or an integer >= 1, got {max_consecutive_failures!r}")
         self._api_key = api_key
         self.max_calls = max_calls
-        self.max_consecutive_429 = max_consecutive_429
+        self.max_consecutive_failures = max_consecutive_failures
         self._call_log_path = Path(call_log_path) if call_log_path is not None else None
         self._sleep = sleep
         self._clock = clock
         self._last_start = None
         self.calls = 0
         self.http_429 = 0
-        self.consecutive_429 = 0  # 429s since the last successful response
-        self.rate_limit_abort = None  # message once RateLimitAbort was raised
+        self.consecutive_failures = 0  # failures since the last successful response
+        self._failure_kinds = Counter()  # what the current series consists of
+        self.failure_abort = None  # message once ConsecutiveFailuresAbort was raised
         self.rate_limit_values_seen = set()
         self.started_at = clock()
         if self._call_log_path is not None:
@@ -165,9 +186,27 @@ class RateLimitedClient:
     def has_budget(self):
         return self.max_calls is None or self.calls < self.max_calls
 
+    def record_success(self):
+        """A successful, valid response ends the series of failures."""
+        self.consecutive_failures = 0
+        self._failure_kinds.clear()
+
+    def record_failure(self, kind, cause=None):
+        """Count one failure of `kind`; raises ConsecutiveFailuresAbort (and
+        makes every later request raise it too) at max_consecutive_failures."""
+        self.consecutive_failures += 1
+        self._failure_kinds[kind] += 1
+        if self.max_consecutive_failures is not None and self.consecutive_failures >= self.max_consecutive_failures:
+            kinds = ", ".join(f"{name} x{count}" for name, count in sorted(self._failure_kinds.items(), key=lambda kv: (-kv[1], kv[0])))
+            self.failure_abort = (
+                f"consecutive_failures_abort: {self.consecutive_failures} consecutive failures without a successful "
+                f"response in between ({kinds}) - systemic failure suspected, no further request"
+            )
+            raise ConsecutiveFailuresAbort(self.failure_abort) from cause
+
     def _reserve_call(self):
-        if self.rate_limit_abort is not None:
-            raise RateLimitAbort(self.rate_limit_abort)  # aborted: no further request
+        if self.failure_abort is not None:
+            raise ConsecutiveFailuresAbort(self.failure_abort)  # aborted: no further request
         if not self.has_budget():
             raise CallBudgetExhausted(f"call budget of {self.max_calls} exhausted")
         if self._last_start is not None:
@@ -199,8 +238,10 @@ class RateLimitedClient:
         Raises CallBudgetExhausted before a request that would exceed the
         budget, the underlying urllib/JSON error for a failed request (after
         MAX_RETRY_ATTEMPTS for HTTP 429, each retry a counted call), and
-        RateLimitAbort at the max_consecutive_429-th HTTP 429 in a row (before
-        the retry wait) and for every request after that.
+        ConsecutiveFailuresAbort at the max_consecutive_failures-th failure in
+        a row (before a retry wait) and for every request after that. A
+        successful return does NOT end the series of failures: the caller does
+        that with record_success() once it has validated the response.
         """
         req = urllib.request.Request(url, headers={"Authorization": self._api_key, "Accept": "application/json"})
         for attempt in range(1, MAX_RETRY_ATTEMPTS + 1):
@@ -215,21 +256,16 @@ class RateLimitedClient:
                 self._log(endpoint, n_ids, exc.code, self._clock() - started, _header(exc, RATE_LIMIT_HEADER))
                 if exc.code == 429:
                     self.http_429 += 1
-                    self.consecutive_429 += 1
-                    if self.max_consecutive_429 is not None and self.consecutive_429 >= self.max_consecutive_429:
-                        self.rate_limit_abort = (
-                            f"rate_limit_abort: {self.consecutive_429} consecutive HTTP 429 without a success in "
-                            "between - rate limit suspected, no further request"
-                        )
-                        raise RateLimitAbort(self.rate_limit_abort) from exc
-                    if attempt < MAX_RETRY_ATTEMPTS:
-                        if not self.has_budget():
-                            raise CallBudgetExhausted(f"call budget of {self.max_calls} exhausted") from exc
-                        self._sleep(RETRY_DELAY_SECONDS)
-                        continue
+                self.record_failure(_failure_kind(exc), exc)
+                if exc.code == 429 and attempt < MAX_RETRY_ATTEMPTS:
+                    if not self.has_budget():
+                        raise CallBudgetExhausted(f"call budget of {self.max_calls} exhausted") from exc
+                    self._sleep(RETRY_DELAY_SECONDS)
+                    continue
                 raise
             except (urllib.error.URLError, TimeoutError, ValueError) as exc:
                 self._log(endpoint, n_ids, f"error:{type(exc).__name__}", self._clock() - started, None)
+                self.record_failure(_failure_kind(exc), exc)
                 raise
             except (OSError, http.client.HTTPException) as exc:
                 # A connection reset / truncated read while reading the body is
@@ -237,11 +273,24 @@ class RateLimitedClient:
                 # as any other network error (cache writes happen outside this
                 # method, so a local OSError there still propagates).
                 self._log(endpoint, n_ids, f"error:{type(exc).__name__}", self._clock() - started, None)
+                self.record_failure("network", exc)
                 raise urllib.error.URLError(exc) from exc
-            self.consecutive_429 = 0  # a success ends the series
             self._log(endpoint, n_ids, status, self._clock() - started, remaining)
             return data, remaining
         raise AssertionError("unreachable: the retry loop either returns or raises")  # pragma: no cover
+
+
+def _failure_kind(exc):
+    """The kind a failed request is counted as in the abort message."""
+    if isinstance(exc, urllib.error.HTTPError):
+        if exc.code == 429:
+            return "http_429"
+        return "http_5xx" if exc.code >= 500 else f"http_{exc.code}"
+    if isinstance(exc, TimeoutError) or (isinstance(exc, urllib.error.URLError) and isinstance(exc.reason, TimeoutError)):
+        return "timeout"
+    if isinstance(exc, urllib.error.URLError):
+        return "network"
+    return "unreadable_body"  # ValueError: the body is not decodable JSON
 
 
 def _header(resp, name):
@@ -433,6 +482,7 @@ def _cached_bulk(client, path, *, kind, url, endpoint, stats):
     if envelope is not None:
         return envelope["response"]
     response, remaining = client.get_json(url, endpoint=endpoint)
+    client.record_success()
     _write_envelope(
         path,
         {"kind": kind, "url": url, "fetched_at_utc": _now_utc(), "rate_limit_remaining": remaining, "response": response},
@@ -515,19 +565,62 @@ def _parse_price_date(value):
         raise PriceResponseError(f"unparseable price date {value!r}") from None
 
 
-def parse_price_response(response, requested_ids, *, start, end):
-    """Validate a prices/compact response and return {id: (currency, rows)}.
+@dataclass(frozen=True)
+class ParsedPrices:
+    """A validated prices/compact response, split by company."""
 
-    Raises PriceResponseError if it violates the contract: not a list, an id
-    that was not requested (or twice), a missing required column, a row that
-    does not match its columns, an unparseable or duplicate or out-of-window
-    date, a non-numeric value. Ids absent from the response are simply not in
-    the result (the caller re-queries them).
+    companies: dict  # {id: (currency, rows)} - records that satisfy the contract
+    invalid: dict  # {id: message} - companies whose OWN record violates it; the others are unaffected
+
+
+def _parse_company_record(item, company_id, *, start, end):
+    """(currency, rows) of one company's record; raises PriceResponseError if
+    that record violates the contract."""
+    columns, data = item.get("columns"), item.get("data")
+    if not isinstance(columns, list) or not isinstance(data, list):
+        raise PriceResponseError(f"prices record {company_id} lacks columns/data")
+    missing = [name for name in REQUIRED_PRICE_COLUMNS if name not in columns]
+    if missing:
+        raise PriceResponseError(f"prices record {company_id} lacks column(s) {missing}")
+    i_date, i_close, i_volume, i_shares = (columns.index(name) for name in REQUIRED_PRICE_COLUMNS)
+    rows, seen_dates = [], set()
+    for raw in data:
+        if not isinstance(raw, list) or len(raw) != len(columns):
+            raise PriceResponseError(f"prices record {company_id} has a row that does not match its columns")
+        row_date = _parse_price_date(raw[i_date])
+        if not start <= row_date <= end:
+            raise PriceResponseError(f"prices record {company_id} has a row dated {row_date}, outside {start}..{end}")
+        if row_date in seen_dates:
+            raise PriceResponseError(f"prices record {company_id} has date {row_date} twice")
+        seen_dates.add(row_date)
+        rows.append(
+            PriceRow(
+                date=row_date,
+                close=_num(raw[i_close], "Last Closing Price"),
+                volume=_num(raw[i_volume], "Trading Volume"),
+                shares=_num(raw[i_shares], "Common Shares Outstanding"),
+            )
+        )
+    rows.sort(key=lambda r: r.date)
+    return item.get("currency"), tuple(rows)
+
+
+def parse_price_response(response, requested_ids, *, start, end):
+    """Validate a prices/compact response -> ParsedPrices.
+
+    Raises PriceResponseError if the RESPONSE violates the contract: not a
+    list, a record that is not an object, an id that is missing, was not
+    requested or occurs twice - then it is unclear which record belongs to
+    which company, so the whole batch fails. A company whose own record
+    violates the contract (a missing column, a row that does not match its
+    columns, an unparseable or duplicate or out-of-window date, a non-numeric
+    value) lands in `invalid` and does not affect the others. Ids absent from
+    the response are simply in neither (the caller re-queries them).
     """
     if not isinstance(response, list):
         raise PriceResponseError(f"prices response is {type(response).__name__}, expected a list")
     requested = set(requested_ids)
-    parsed = {}
+    companies, invalid, seen = {}, {}, set()
     for item in response:
         if not isinstance(item, dict):
             raise PriceResponseError("prices response contains a non-object record")
@@ -536,43 +629,22 @@ def parse_price_response(response, requested_ids, *, start, end):
             raise PriceResponseError(f"prices record without an integer id: {company_id!r}")
         if company_id not in requested:
             raise PriceResponseError(f"prices response contains id {company_id} that was not requested")
-        if company_id in parsed:
+        if company_id in seen:
             raise PriceResponseError(f"prices response contains id {company_id} twice")
-        columns, data = item.get("columns"), item.get("data")
-        if not isinstance(columns, list) or not isinstance(data, list):
-            raise PriceResponseError(f"prices record {company_id} lacks columns/data")
-        missing = [name for name in REQUIRED_PRICE_COLUMNS if name not in columns]
-        if missing:
-            raise PriceResponseError(f"prices record {company_id} lacks column(s) {missing}")
-        i_date, i_close, i_volume, i_shares = (columns.index(name) for name in REQUIRED_PRICE_COLUMNS)
-        rows, seen_dates = [], set()
-        for raw in data:
-            if not isinstance(raw, list) or len(raw) != len(columns):
-                raise PriceResponseError(f"prices record {company_id} has a row that does not match its columns")
-            row_date = _parse_price_date(raw[i_date])
-            if not start <= row_date <= end:
-                raise PriceResponseError(f"prices record {company_id} has a row dated {row_date}, outside {start}..{end}")
-            if row_date in seen_dates:
-                raise PriceResponseError(f"prices record {company_id} has date {row_date} twice")
-            seen_dates.add(row_date)
-            rows.append(
-                PriceRow(
-                    date=row_date,
-                    close=_num(raw[i_close], "Last Closing Price"),
-                    volume=_num(raw[i_volume], "Trading Volume"),
-                    shares=_num(raw[i_shares], "Common Shares Outstanding"),
-                )
-            )
-        rows.sort(key=lambda r: r.date)
-        parsed[company_id] = (item.get("currency"), tuple(rows))
-    return parsed
+        seen.add(company_id)
+        try:
+            companies[company_id] = _parse_company_record(item, company_id, start=start, end=end)
+        except PriceResponseError as exc:
+            invalid[company_id] = str(exc)
+    return ParsedPrices(companies=companies, invalid=invalid)
 
 
 def _request_prices(client, ids, *, start, end, cache_path, kind, stats, cached_counter, network_counter):
     """One prices call (batch or single id), served from the cache if a valid
-    envelope exists, else fetched, validated and cached. Returns {id: (currency,
-    rows)}. Raises CallBudgetExhausted or a NETWORK_ERRORS member; a response
-    that fails validation is never cached."""
+    envelope exists, else fetched, validated and cached. Returns ParsedPrices.
+    Raises CallBudgetExhausted, ConsecutiveFailuresAbort or a NETWORK_ERRORS
+    member; a response that fails validation - or holds a company that does -
+    is never cached, so a rerun fetches it again."""
     expect = {"ids": sorted(ids), "start": start.isoformat(), "end": end.isoformat()}
     envelope = _read_envelope(cache_path, kind=kind, expect=expect, stats=stats)
     if envelope is not None:
@@ -581,15 +653,24 @@ def _request_prices(client, ids, *, start, end, cache_path, kind, stats, cached_
         except PriceResponseError:
             stats.cache_invalid += 1  # a cached file that no longer validates is refetched
         else:
-            setattr(stats, cached_counter, getattr(stats, cached_counter) + 1)
-            return parsed
+            if parsed.invalid:
+                stats.cache_invalid += 1  # never written by this code, but not trusted either: refetched
+            else:
+                setattr(stats, cached_counter, getattr(stats, cached_counter) + 1)
+                return parsed
     url = f"{SIMFIN_PRICES_URL}?id={','.join(str(i) for i in ids)}&start={start.isoformat()}&end={end.isoformat()}"
     response, remaining = client.get_json(url, endpoint="prices/compact", n_ids=len(ids))
-    parsed = parse_price_response(response, ids, start=start, end=end)
-    _write_envelope(
-        cache_path,
-        {**expect, "kind": kind, "fetched_at_utc": _now_utc(), "rate_limit_remaining": remaining, "response": response},
-    )
+    try:
+        parsed = parse_price_response(response, ids, start=start, end=end)
+    except PriceResponseError as exc:
+        client.record_failure("invalid_response", exc)  # raises ConsecutiveFailuresAbort at the limit
+        raise
+    client.record_success()
+    if not parsed.invalid:
+        _write_envelope(
+            cache_path,
+            {**expect, "kind": kind, "fetched_at_utc": _now_utc(), "rate_limit_remaining": remaining, "response": response},
+        )
     setattr(stats, network_counter, getattr(stats, network_counter) + 1)
     return parsed
 
@@ -624,17 +705,22 @@ def _requery_single(client, company_id, *, start, end, run_cache_dir, stats):
     except CallBudgetExhausted:
         stats.requery_not_fetched += 1
         return PriceOutcome(PRICES_NOT_FETCHED, detail="requery_budget_exhausted")
-    except RateLimitAbort:
+    except ConsecutiveFailuresAbort:
         stats.requery_not_fetched += 1
-        return PriceOutcome(PRICES_NOT_FETCHED, detail="requery_rate_limit_abort")
+        return PriceOutcome(PRICES_NOT_FETCHED, detail="requery_failure_abort")
     except NETWORK_ERRORS as exc:
         stats.requery_failed += 1
         stats.errors.append((f"requery id {company_id}", f"{type(exc).__name__}: {exc}"))
         return PriceOutcome(PRICES_FETCH_FAILED, detail=f"requery_error:{type(exc).__name__}")
-    if company_id not in parsed:
+    if company_id in parsed.invalid:
+        stats.requery_failed += 1
+        stats.companies_invalid += 1
+        stats.errors.append((f"company {company_id}", parsed.invalid[company_id]))
+        return PriceOutcome(PRICES_FETCH_FAILED, detail="company_record_invalid")
+    if company_id not in parsed.companies:
         stats.requery_empty += 1
         return PriceOutcome(PRICES_NO_DATA, detail="confirmed_empty_after_requery")
-    currency, rows = parsed[company_id]
+    currency, rows = parsed.companies[company_id]
     outcome = _outcome(currency, rows, stats)
     if outcome.status == PRICES_OK:
         stats.requery_with_data += 1
@@ -658,8 +744,8 @@ def fetch_prices(client, ids, *, as_of, adv_window_trading_days, max_requeries, 
     -> {id: PriceOutcome}, covering every id exactly once.
 
     Resumable: a batch or single-id response already in the cache is used
-    without a call (also after a RateLimitAbort, which turns every id that
-    would need a request into "not_fetched"). One call per batch; then,
+    without a call (also after a ConsecutiveFailuresAbort, which turns every id
+    that would need a request into "not_fetched"). One call per batch; then,
     after all batches, at most `max_requeries` of the ids missing from their
     batch response are re-queried alone (see the module docstring), the rest
     are "no_data".
@@ -694,20 +780,24 @@ def fetch_prices(client, ids, *, as_of, adv_window_trading_days, max_requeries, 
             stats.batches_not_fetched += 1
             for company_id in batch:
                 outcomes[company_id] = PriceOutcome(PRICES_NOT_FETCHED, detail="batch_budget_exhausted")
-        except RateLimitAbort:
+        except ConsecutiveFailuresAbort:
             # the batch that hit the abort and every later one that is not in the cache
             stats.batches_not_fetched += 1
             for company_id in batch:
-                outcomes[company_id] = PriceOutcome(PRICES_NOT_FETCHED, detail="batch_rate_limit_abort")
+                outcomes[company_id] = PriceOutcome(PRICES_NOT_FETCHED, detail="batch_failure_abort")
         except NETWORK_ERRORS as exc:
             stats.batches_failed += 1
             stats.errors.append((f"batch {batch[0]}..{batch[-1]}", f"{type(exc).__name__}: {exc}"))
             for company_id in batch:
                 outcomes[company_id] = PriceOutcome(PRICES_FETCH_FAILED, detail=f"batch_error:{type(exc).__name__}")
         else:
+            stats.companies_invalid += len(parsed.invalid)
             for company_id in batch:
-                if company_id in parsed:
-                    outcomes[company_id] = _outcome(*parsed[company_id], stats)
+                if company_id in parsed.invalid:
+                    stats.errors.append((f"company {company_id}", parsed.invalid[company_id]))
+                    outcomes[company_id] = PriceOutcome(PRICES_FETCH_FAILED, detail="company_record_invalid")
+                elif company_id in parsed.companies:
+                    outcomes[company_id] = _outcome(*parsed.companies[company_id], stats)
                 else:
                     missing.append(company_id)
         if progress is not None:

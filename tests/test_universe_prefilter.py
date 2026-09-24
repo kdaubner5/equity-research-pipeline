@@ -153,6 +153,34 @@ def test_rows_without_volume_or_with_a_non_positive_close_are_skipped_not_counte
     assert result.median_window_rows == 5 and result.reason is None
 
 
+# A row with close 0 (SLNM type: SimFin keeps writing rows with volume but a price of 0) is never a price -
+# also when it is the LAST row of the window, not only when it lies outside it.
+
+
+def test_rows_that_all_have_close_zero_are_no_price_data_with_every_value_missing():
+    result = evaluate(rows(5, close=0.0))
+    assert (result.status, result.reason) == (pf.EXCLUDED, pf.NO_PRICE_DATA)
+    assert (result.market_cap_usd, result.price_date, result.median_dollar_volume_usd, result.median_window_rows) == (None, None, None, None)
+
+
+@pytest.mark.parametrize("n_zero", [1, 3], ids=["last_row", "last_three_rows"])
+def test_a_last_row_with_close_zero_after_stale_valid_rows_is_price_stale_priced_at_the_last_valid_row(n_zero):
+    stale_end = AS_OF - timedelta(days=10)  # limit 3 days
+    result = evaluate(rows(5, last=stale_end) + rows(n_zero, close=0.0))  # then rows up to yesterday with close 0
+    assert (result.status, result.reason) == (pf.EXCLUDED, pf.PRICE_STALE)
+    assert result.price_date == stale_end  # not the zero row
+    assert result.market_cap_usd == 10.0 * 20_000_000  # valued at the last valid price, not at 0
+    assert (result.median_dollar_volume_usd, result.median_window_rows) == (10_000_000.0, 5)  # the zero rows are not in the window
+
+
+def test_a_zero_last_row_after_a_recent_valid_row_takes_price_date_and_market_cap_from_the_valid_row():
+    # the price age counts from the last row WITH a price (docs/decisions.md, Entscheidung 3); the status is not asserted here
+    result = evaluate(rows(5, last=AS_OF - timedelta(days=2)) + rows(1, close=0.0))
+    assert result.price_date == AS_OF - timedelta(days=2)
+    assert result.market_cap_usd == 10.0 * 20_000_000
+    assert (result.median_dollar_volume_usd, result.median_window_rows) == (10_000_000.0, 5)
+
+
 def test_input_order_does_not_matter_and_the_price_date_is_the_latest_priced_row():
     shuffled = list(reversed(rows(5)))
     result = evaluate(shuffled)
