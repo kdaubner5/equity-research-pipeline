@@ -440,3 +440,84 @@ def test_the_parser_has_max_requeries_with_default_20_and_main_passes_it_on(monk
     assert captured["max_requeries"] == 7
     run_universe.main([])
     assert captured["max_requeries"] == 20
+
+
+# --- rate-limit abort (--max-consecutive-429) -----------------------------------------
+
+CANDIDATES = (1, 2, 3, 4, 5, 6, 7, 10)  # classified, not delisted-marked: the ids that need prices
+
+
+def limit_after_the_listings(fake):
+    fake.fail_calls = {n: 429 for n in range(3, 200)}  # the two listings work, every later request is a 429
+
+
+def test_a_rate_limit_abort_is_archived_incomplete_without_a_survivors_file_and_exits_ok(monkeypatch, tmp_path, clock):
+    fake, expected = scenario(monkeypatch)
+    limit_after_the_listings(fake)
+    code, output = do_run(tmp_path, clock, max_consecutive_429=3)
+    assert code == run_universe.EXIT_OK  # like an exhausted --max-calls budget
+    rows = read_archive(tmp_path / "archive.db")
+    assert {cid: rows[cid]["reason"] for cid in CANDIDATES} == {cid: pf.NOT_FETCHED for cid in CANDIDATES}  # never no_price_data
+    assert rows[8]["reason"] == pf.NO_CLASSIFICATION and rows[11]["reason"] == pf.DELISTED_MARKER  # no price needed for these
+    assert survivors_files(tmp_path) == []
+    assert "complete=False" in output and "abort_reason=rate_limit_abort" in output
+    assert "INCOMPLETE (rate_limit_abort:" in output and "3 consecutive HTTP 429" in output and "limit suspected" in output
+    assert len(fake.requests) == 2 + 3 and clock.sleeps.count(90) == 2  # 3 x 429, two waits, no fourth request
+
+
+def test_a_rate_limit_abort_keeps_the_cache_and_the_run_resumes_from_it(monkeypatch, tmp_path, clock):
+    fake, expected = scenario(monkeypatch)
+    limit_after_the_listings(fake)
+    do_run(tmp_path, clock, max_consecutive_429=3)
+    run_dir = tmp_path / "cache" / AS_OF.isoformat()
+    assert (run_dir / "general_bulk.json").exists() and (run_dir / "companies_list.json").exists()
+    assert len((run_dir / "call_log.jsonl").read_text(encoding="utf-8").splitlines()) == 5
+
+    fake.fail_calls = {}  # the limit has lifted
+    before = len(fake.requests)
+    code, output = do_run(tmp_path, clock, run_timestamp="2026-09-24T11:00:00")
+    assert code == run_universe.EXIT_OK
+    assert len(fake.requests) - before == 2  # the listings came from the cache; only the batch and the re-query are new
+    second = read_archive(tmp_path / "archive.db", "2026-09-24T11:00:00")
+    assert {cid: row["reason"] for cid, row in second.items()} == expected
+    assert "complete=True" in output and "abort_reason" not in output and len(survivors_files(tmp_path)) == 1
+
+
+def test_the_default_limit_is_five_consecutive_429(monkeypatch, tmp_path, clock):
+    assert run_universe.DEFAULT_MAX_CONSECUTIVE_429 == 5
+    fake, _ = scenario(monkeypatch)
+    limit_after_the_listings(fake)
+    code, output = do_run(tmp_path, clock)  # no max_consecutive_429 given
+    assert code == run_universe.EXIT_OK and len(fake.requests) == 2 + 5
+    assert "5 consecutive HTTP 429" in output
+
+
+def test_a_rate_limit_abort_while_loading_the_listing_is_a_technical_failure(monkeypatch, tmp_path, clock, capsys):
+    fake, _ = scenario(monkeypatch)
+    fake.fail_calls = {n: 429 for n in range(1, 200)}
+    code, _ = do_run(tmp_path, clock, max_consecutive_429=3)
+    assert code == run_universe.EXIT_TECHNICAL_FAILURE  # no universe to archive, like an exhausted budget there
+    assert "universe listing unavailable" in capsys.readouterr().err and _nothing_written(tmp_path)
+    assert len(fake.requests) == 3
+
+
+@pytest.mark.parametrize("bad", [0, -1, 2.5, True])
+def test_an_invalid_limit_is_a_technical_failure_before_any_request(monkeypatch, tmp_path, clock, capsys, bad):
+    fake, _ = scenario(monkeypatch)
+    code, _ = do_run(tmp_path, clock, max_consecutive_429=bad)
+    assert code == run_universe.EXIT_TECHNICAL_FAILURE
+    assert "max_consecutive_429" in capsys.readouterr().err and fake.requests == [] and _nothing_written(tmp_path)
+
+
+def test_the_parser_has_max_consecutive_429_with_default_5_and_main_passes_it_on(monkeypatch):
+    assert run_universe.build_parser().parse_args([]).max_consecutive_429 == 5
+    assert run_universe.build_parser().parse_args(["--max-consecutive-429", "12"]).max_consecutive_429 == 12
+    for bad in ("0", "-2", "abc", "2.5"):  # no way to switch the guard off
+        with pytest.raises(SystemExit):
+            run_universe.build_parser().parse_args(["--max-consecutive-429", bad])
+    captured = {}
+    monkeypatch.setattr(run_universe, "run", lambda **kwargs: captured.update(kwargs) or 0)
+    run_universe.main(["--max-consecutive-429", "9"])
+    assert captured["max_consecutive_429"] == 9
+    run_universe.main([])
+    assert captured["max_consecutive_429"] == 5

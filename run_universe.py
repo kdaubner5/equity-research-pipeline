@@ -34,6 +34,14 @@ Tickers with a SimFin delisted/old suffix (delisted_marker) are never sent to
 the prices endpoint. At most --max-requeries of the ids missing from a batch
 response are re-queried alone, spread evenly (docs/decisions.md, "Nachtrag zu
 Entscheidung 3").
+
+Rate-limit guard (docs/decisions.md, "Zweiter Nachtrag zu Entscheidung 3"):
+after --max-consecutive-429 HTTP 429 in a row without a success in between
+the run stops making requests (rate_limit_abort, limit suspected). It is then
+treated like an exhausted --max-calls budget: the ids not yet fetched are
+archived as not_fetched (cached responses are still used), INCOMPLETE, no
+survivors file, exit 0 - or exit 1 if it happens while the universe listing is
+being loaded, as with an exhausted budget there. The cache stays for a resume.
 """
 
 import argparse
@@ -64,6 +72,9 @@ EXIT_TECHNICAL_FAILURE = 1
 
 PROGRESS_EVERY_BATCHES = 50
 DEFAULT_MAX_REQUERIES = 20
+# Operating parameter of the run (CLI --max-consecutive-429), not a business
+# threshold: consecutive HTTP 429 without a success before the run stops.
+DEFAULT_MAX_CONSECUTIVE_429 = 5
 
 
 class UniverseRunError(Exception):
@@ -124,7 +135,8 @@ def _print_summary(out, *, run_timestamp, as_of, snapshot, results, stats, clien
     classified = len(snapshot.classified())
     unknown_underscore = pf.unknown_underscore_tickers(entry.ticker for entry in snapshot.entries)
     check = snapshot.crosscheck
-    print(f"run_timestamp={run_timestamp}  as_of={as_of}  complete={complete}", file=out)
+    abort = "  abort_reason=rate_limit_abort" if client.rate_limit_abort else ""
+    print(f"run_timestamp={run_timestamp}  as_of={as_of}  complete={complete}{abort}", file=out)
     print(
         f"universe: listed={snapshot.total_listed} us={len(snapshot.entries)} non_us={snapshot.non_us} "
         f"without_id={snapshot.without_id} classified={classified} unclassified={len(snapshot.entries) - classified} "
@@ -159,6 +171,13 @@ def _print_summary(out, *, run_timestamp, as_of, snapshot, results, stats, clien
         print(f"... and {len(stats.errors) - 10} more isolated errors", file=out)
     if complete:
         print(f"survivors_file={survivors_path}", file=out)
+    elif client.rate_limit_abort:
+        print(
+            f"INCOMPLETE ({client.rate_limit_abort}): the ids not yet fetched are archived as not_fetched; "
+            "the cache stays. Rerun with the same --as-of to resume (cached responses are skipped) once the "
+            "limit has lifted. No survivors file written.",
+            file=out,
+        )
     else:
         print(
             "INCOMPLETE: some companies were not fetched (budget or failed batch) and are archived as "
@@ -175,6 +194,7 @@ def run(
     as_of=None,
     max_calls=None,
     max_requeries=DEFAULT_MAX_REQUERIES,
+    max_consecutive_429=DEFAULT_MAX_CONSECUTIVE_429,
     run_timestamp=None,
     thresholds_path=DEFAULT_THRESHOLDS_PATH,
     priority_tickers=None,
@@ -195,13 +215,21 @@ def run(
         as_of = as_of or date.today()
         run_cache_dir = Path(cache_dir) / as_of.isoformat()
         stats = su.LoaderStats()
-        client = su.RateLimitedClient(
-            api_key, max_calls=max_calls, call_log_path=run_cache_dir / "call_log.jsonl", sleep=sleep, clock=clock
-        )
+        try:
+            client = su.RateLimitedClient(
+                api_key,
+                max_calls=max_calls,
+                max_consecutive_429=max_consecutive_429,
+                call_log_path=run_cache_dir / "call_log.jsonl",
+                sleep=sleep,
+                clock=clock,
+            )
+        except ValueError as exc:  # an invalid --max-consecutive-429 (>= 1 required, no way to switch it off)
+            raise UniverseRunError(str(exc)) from exc
 
         try:
             snapshot = su.load_universe(client, run_cache_dir, stats=stats)
-        except (su.CallBudgetExhausted, su.UniverseDataError, OSError, ValueError) as exc:
+        except (su.CallBudgetExhausted, su.RateLimitAbort, su.UniverseDataError, OSError, ValueError) as exc:
             # OSError also covers urllib's URLError/HTTPError/TimeoutError and a
             # non-writable cache directory; ValueError covers a JSON decode error.
             raise UniverseRunError(f"universe listing unavailable: {type(exc).__name__}: {exc}") from exc
@@ -288,6 +316,13 @@ def _non_negative_int(text):
     return value
 
 
+def _positive_int(text):
+    value = int(text)
+    if value < 1:
+        raise argparse.ArgumentTypeError("must be >= 1")
+    return value
+
+
 def build_parser():
     parser = argparse.ArgumentParser(description="SimFin universe pre-filter (Issue #39).")
     parser.add_argument(
@@ -304,6 +339,14 @@ def build_parser():
         help="at most this many of the ids missing from a batch response are re-queried alone, spread evenly "
         f"over the missing ids (default {DEFAULT_MAX_REQUERIES}); the rest count as no_price_data without a re-query. "
         "A re-query that returns prices is a silent cap: exit 1.",
+    )
+    parser.add_argument(
+        "--max-consecutive-429",
+        type=_positive_int,
+        default=DEFAULT_MAX_CONSECUTIVE_429,
+        help="stop the run cleanly after this many HTTP 429 in a row without a success in between "
+        f"(default {DEFAULT_MAX_CONSECUTIVE_429}): rate_limit_abort, limit suspected; the ids not yet fetched are "
+        "archived as not_fetched, INCOMPLETE, no survivors file, the cache stays.",
     )
     parser.add_argument("--as-of", type=date.fromisoformat, default=None, help="price date reference, YYYY-MM-DD (default: today)")
     parser.add_argument("--db-path", type=Path, default=DEFAULT_DB_PATH)
@@ -328,6 +371,7 @@ def main(argv=None):
         as_of=args.as_of,
         max_calls=args.max_calls,
         max_requeries=args.max_requeries,
+        max_consecutive_429=args.max_consecutive_429,
         priority_tickers=priority,
     )
 

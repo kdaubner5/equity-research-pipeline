@@ -26,6 +26,12 @@ Data-integrity rules (CLAUDE.md, docs/decisions.md "Entscheidung 3a"):
 - A batch that fails (network error, HTTP error, response violating the
   contract) marks exactly its own ids "fetch_failed" and is not cached, so a
   rerun retries it; one bad batch never aborts the run.
+- A rate limit is not one bad batch: it hits every request. After
+  `max_consecutive_429` HTTP 429 in a row without a success in between the
+  client raises RateLimitAbort and makes no further request (rate_limit_abort,
+  docs/decisions.md "Zweiter Nachtrag zu Entscheidung 3"). The remaining ids
+  are "not_fetched" (responses already in the cache are still used), so the
+  run ends INCOMPLETE like an exhausted budget and a rerun resumes.
 """
 
 import hashlib
@@ -85,6 +91,12 @@ class CallBudgetExhausted(Exception):
     """The --max-calls budget is used up; no further HTTP request is made."""
 
 
+class RateLimitAbort(Exception):
+    """`max_consecutive_429` HTTP 429 in a row without a success in between: a
+    rate limit is suspected and the client makes no further request. Not one of
+    the NETWORK_ERRORS on purpose - it must not be isolated as one failed batch."""
+
+
 class UniverseDataError(Exception):
     """The company listing has a shape the loader cannot use - a whole-run
     failure (not one company's data problem)."""
@@ -124,18 +136,27 @@ class RateLimitedClient:
     """GET-JSON client with a call budget, request spacing, 429 retry and a call log.
 
     `max_calls=None` means unlimited (the caller states it explicitly, no
-    default). `sleep`/`clock` are injectable so tests run without waiting.
+    default). `max_consecutive_429` is likewise explicit: None = no abort, else
+    an integer >= 1 - the RateLimitAbort threshold (see the module docstring).
+    `sleep`/`clock` are injectable so tests run without waiting.
     """
 
-    def __init__(self, api_key, *, max_calls, call_log_path, sleep=time.sleep, clock=time.monotonic):
+    def __init__(self, api_key, *, max_calls, max_consecutive_429, call_log_path, sleep=time.sleep, clock=time.monotonic):
+        if max_consecutive_429 is not None and (
+            isinstance(max_consecutive_429, bool) or not isinstance(max_consecutive_429, int) or max_consecutive_429 < 1
+        ):
+            raise ValueError(f"max_consecutive_429 must be None or an integer >= 1, got {max_consecutive_429!r}")
         self._api_key = api_key
         self.max_calls = max_calls
+        self.max_consecutive_429 = max_consecutive_429
         self._call_log_path = Path(call_log_path) if call_log_path is not None else None
         self._sleep = sleep
         self._clock = clock
         self._last_start = None
         self.calls = 0
         self.http_429 = 0
+        self.consecutive_429 = 0  # 429s since the last successful response
+        self.rate_limit_abort = None  # message once RateLimitAbort was raised
         self.rate_limit_values_seen = set()
         self.started_at = clock()
         if self._call_log_path is not None:
@@ -145,6 +166,8 @@ class RateLimitedClient:
         return self.max_calls is None or self.calls < self.max_calls
 
     def _reserve_call(self):
+        if self.rate_limit_abort is not None:
+            raise RateLimitAbort(self.rate_limit_abort)  # aborted: no further request
         if not self.has_budget():
             raise CallBudgetExhausted(f"call budget of {self.max_calls} exhausted")
         if self._last_start is not None:
@@ -175,7 +198,9 @@ class RateLimitedClient:
 
         Raises CallBudgetExhausted before a request that would exceed the
         budget, the underlying urllib/JSON error for a failed request (after
-        MAX_RETRY_ATTEMPTS for HTTP 429, each retry a counted call).
+        MAX_RETRY_ATTEMPTS for HTTP 429, each retry a counted call), and
+        RateLimitAbort at the max_consecutive_429-th HTTP 429 in a row (before
+        the retry wait) and for every request after that.
         """
         req = urllib.request.Request(url, headers={"Authorization": self._api_key, "Accept": "application/json"})
         for attempt in range(1, MAX_RETRY_ATTEMPTS + 1):
@@ -190,6 +215,13 @@ class RateLimitedClient:
                 self._log(endpoint, n_ids, exc.code, self._clock() - started, _header(exc, RATE_LIMIT_HEADER))
                 if exc.code == 429:
                     self.http_429 += 1
+                    self.consecutive_429 += 1
+                    if self.max_consecutive_429 is not None and self.consecutive_429 >= self.max_consecutive_429:
+                        self.rate_limit_abort = (
+                            f"rate_limit_abort: {self.consecutive_429} consecutive HTTP 429 without a success in "
+                            "between - rate limit suspected, no further request"
+                        )
+                        raise RateLimitAbort(self.rate_limit_abort) from exc
                     if attempt < MAX_RETRY_ATTEMPTS:
                         if not self.has_budget():
                             raise CallBudgetExhausted(f"call budget of {self.max_calls} exhausted") from exc
@@ -206,6 +238,7 @@ class RateLimitedClient:
                 # method, so a local OSError there still propagates).
                 self._log(endpoint, n_ids, f"error:{type(exc).__name__}", self._clock() - started, None)
                 raise urllib.error.URLError(exc) from exc
+            self.consecutive_429 = 0  # a success ends the series
             self._log(endpoint, n_ids, status, self._clock() - started, remaining)
             return data, remaining
         raise AssertionError("unreachable: the retry loop either returns or raises")  # pragma: no cover
@@ -591,6 +624,9 @@ def _requery_single(client, company_id, *, start, end, run_cache_dir, stats):
     except CallBudgetExhausted:
         stats.requery_not_fetched += 1
         return PriceOutcome(PRICES_NOT_FETCHED, detail="requery_budget_exhausted")
+    except RateLimitAbort:
+        stats.requery_not_fetched += 1
+        return PriceOutcome(PRICES_NOT_FETCHED, detail="requery_rate_limit_abort")
     except NETWORK_ERRORS as exc:
         stats.requery_failed += 1
         stats.errors.append((f"requery id {company_id}", f"{type(exc).__name__}: {exc}"))
@@ -622,9 +658,11 @@ def fetch_prices(client, ids, *, as_of, adv_window_trading_days, max_requeries, 
     -> {id: PriceOutcome}, covering every id exactly once.
 
     Resumable: a batch or single-id response already in the cache is used
-    without a call. One call per batch; then, after all batches, at most
-    `max_requeries` of the ids missing from their batch response are
-    re-queried alone (see the module docstring), the rest are "no_data".
+    without a call (also after a RateLimitAbort, which turns every id that
+    would need a request into "not_fetched"). One call per batch; then,
+    after all batches, at most `max_requeries` of the ids missing from their
+    batch response are re-queried alone (see the module docstring), the rest
+    are "no_data".
     `progress(done, total)` is called after each batch if given.
     """
     ids = list(ids)
@@ -656,6 +694,11 @@ def fetch_prices(client, ids, *, as_of, adv_window_trading_days, max_requeries, 
             stats.batches_not_fetched += 1
             for company_id in batch:
                 outcomes[company_id] = PriceOutcome(PRICES_NOT_FETCHED, detail="batch_budget_exhausted")
+        except RateLimitAbort:
+            # the batch that hit the abort and every later one that is not in the cache
+            stats.batches_not_fetched += 1
+            for company_id in batch:
+                outcomes[company_id] = PriceOutcome(PRICES_NOT_FETCHED, detail="batch_rate_limit_abort")
         except NETWORK_ERRORS as exc:
             stats.batches_failed += 1
             stats.errors.append((f"batch {batch[0]}..{batch[-1]}", f"{type(exc).__name__}: {exc}"))

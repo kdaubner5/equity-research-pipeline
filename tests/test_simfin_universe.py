@@ -24,9 +24,14 @@ from universe_fakes import (  # noqa: F401  (clock is a fixture)
 )
 
 
-def make_client(tmp_path, clock, *, max_calls=None):
+def make_client(tmp_path, clock, *, max_calls=None, max_consecutive_429=None):
     return su.RateLimitedClient(
-        "test-key", max_calls=max_calls, call_log_path=tmp_path / "call_log.jsonl", sleep=clock.sleep, clock=clock
+        "test-key",
+        max_calls=max_calls,
+        max_consecutive_429=max_consecutive_429,
+        call_log_path=tmp_path / "call_log.jsonl",
+        sleep=clock.sleep,
+        clock=clock,
     )
 
 
@@ -268,12 +273,90 @@ def test_the_call_log_records_status_ids_and_the_rate_limit_header(monkeypatch, 
     assert client.rate_limit_values_seen == {"0"}
 
 
+# --- client: rate-limit abort (max_consecutive_429) --------------------------
+
+PRICES_URL_1 = f"{su.SIMFIN_PRICES_URL}?id=1"
+
+
+def get_one(client):
+    return client.get_json(PRICES_URL_1, endpoint="prices/compact", n_ids=1)
+
+
+def test_the_client_aborts_at_the_nth_consecutive_429_without_waiting_or_asking_again(monkeypatch, tmp_path, clock):
+    fake = FakeSimFin(monkeypatch, records={1: price_record(1)})
+    fake.fail_calls = {n: 429 for n in range(1, 50)}
+    client = make_client(tmp_path, clock, max_consecutive_429=5)
+    with pytest.raises(su.RateLimitAbort) as excinfo:
+        get_one(client)
+    assert len(fake.requests) == 5 and client.calls == 5 and client.http_429 == 5
+    assert clock.sleeps == [RETRY_DELAY_SECONDS] * 4  # no 90 s wait after the 5th 429
+    assert "rate_limit_abort" in str(excinfo.value) and "5 consecutive" in str(excinfo.value)
+    assert client.rate_limit_abort == str(excinfo.value)
+    with pytest.raises(su.RateLimitAbort):  # after the abort no request goes out at all
+        get_one(client)
+    assert len(fake.requests) == 5 and client.calls == 5 and clock.sleeps == [RETRY_DELAY_SECONDS] * 4
+
+
+def test_the_aborting_429_is_still_written_to_the_call_log(monkeypatch, tmp_path, clock):
+    fake = FakeSimFin(monkeypatch)
+    fake.fail_calls = {n: 429 for n in range(1, 50)}
+    client = make_client(tmp_path, clock, max_consecutive_429=3)
+    with pytest.raises(su.RateLimitAbort):
+        get_one(client)
+    lines = [json.loads(line) for line in (tmp_path / "call_log.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert [line["status"] for line in lines] == [429, 429, 429]
+
+
+def test_one_429_fewer_than_the_limit_followed_by_a_success_does_not_abort(monkeypatch, tmp_path, clock):
+    fake = FakeSimFin(monkeypatch, records={1: price_record(1)})
+    fake.fail_calls = {1: 429, 2: 429, 3: 429, 4: 429}
+    client = make_client(tmp_path, clock, max_consecutive_429=5)
+    data, _ = get_one(client)  # the 5th attempt succeeds
+    assert data[0]["id"] == 1 and client.rate_limit_abort is None
+    assert client.consecutive_429 == 0 and client.http_429 == 4
+
+
+def test_a_success_resets_the_consecutive_count(monkeypatch, tmp_path, clock):
+    fake = FakeSimFin(monkeypatch, records={1: price_record(1)})
+    fake.fail_calls = {**{n: 429 for n in range(1, 5)}, **{n: 429 for n in range(6, 10)}}  # 4 x 429, ok, 4 x 429, ok
+    client = make_client(tmp_path, clock, max_consecutive_429=5)
+    get_one(client)
+    get_one(client)  # 8 429s in total, never 5 in a row
+    assert client.http_429 == 8 and client.rate_limit_abort is None and client.consecutive_429 == 0
+
+
+def test_another_error_between_the_429s_does_not_reset_the_count(monkeypatch, tmp_path, clock):
+    fake = FakeSimFin(monkeypatch)
+    fake.fail_calls = {1: 429, 2: 429, 3: 500, 4: 429, 5: 429, 6: 429, 7: 429}
+    client = make_client(tmp_path, clock, max_consecutive_429=5)
+    with pytest.raises(urllib.error.HTTPError) as excinfo:
+        get_one(client)  # 429, 429, then a 500 that is not retried
+    assert excinfo.value.code == 500 and client.consecutive_429 == 2
+    with pytest.raises(su.RateLimitAbort):
+        get_one(client)  # 3 more 429 -> 5 in a row with only a 500 in between
+    assert len(fake.requests) == 6
+
+
+def test_without_a_limit_the_client_never_aborts_on_429(monkeypatch, tmp_path, clock):
+    fake = FakeSimFin(monkeypatch, records={1: price_record(1)})
+    fake.fail_calls = {n: 429 for n in range(1, MAX_RETRY_ATTEMPTS)}  # every attempt but the last
+    client = make_client(tmp_path, clock, max_consecutive_429=None)
+    data, _ = get_one(client)
+    assert data[0]["id"] == 1 and client.http_429 == MAX_RETRY_ATTEMPTS - 1 and client.rate_limit_abort is None
+
+
+@pytest.mark.parametrize("bad", [0, -1, 2.5, True, "5"])
+def test_max_consecutive_429_must_be_none_or_an_integer_of_at_least_one(tmp_path, clock, bad):
+    with pytest.raises(ValueError, match="max_consecutive_429"):
+        make_client(tmp_path, clock, max_consecutive_429=bad)
+
+
 # --- fetch_prices ------------------------------------------------------------
 
 
-def run_fetch(_fake, tmp_path, clock, ids, *, max_calls=None, stats=None, cache="run", max_requeries=20):
+def run_fetch(_fake, tmp_path, clock, ids, *, max_calls=None, stats=None, cache="run", max_requeries=20, max_consecutive_429=None):
     stats = stats if stats is not None else su.LoaderStats()
-    client = make_client(tmp_path, clock, max_calls=max_calls)
+    client = make_client(tmp_path, clock, max_calls=max_calls, max_consecutive_429=max_consecutive_429)
     outcomes = su.fetch_prices(
         client,
         ids,
@@ -524,3 +607,67 @@ def test_the_response_headers_are_stored_with_the_raw_response(monkeypatch, tmp_
     assert envelope["kind"] == "prices_batch" and envelope["rate_limit_remaining"] == "0"
     assert envelope["response"][0]["id"] == 1  # the untouched raw response
     assert envelope["ids"] == [1] and envelope["end"] == AS_OF.isoformat()
+
+
+# --- fetch_prices: rate-limit abort ---------------------------------------------
+
+
+def limit_from(fake, first_call):
+    """Every request from `first_call` on (1-based) answers HTTP 429."""
+    fake.fail_calls = {n: 429 for n in range(first_call, first_call + 200)}
+
+
+def test_a_rate_limit_abort_turns_the_rest_into_not_fetched_and_stops_asking(monkeypatch, tmp_path, clock):
+    ids = list(range(1, 36))  # batches of 10, 10, 10, 5
+    fake = FakeSimFin(monkeypatch, records={i: price_record(i) for i in ids})
+    limit_from(fake, 3)  # the first two batches work, then only 429
+    outcomes, client, stats = run_fetch(fake, tmp_path, clock, ids, max_consecutive_429=5)
+    assert all(outcomes[i].status == su.PRICES_OK for i in range(1, 21))
+    assert all(outcomes[i].status == su.PRICES_NOT_FETCHED and outcomes[i].detail == "batch_rate_limit_abort" for i in range(21, 36))
+    assert len(fake.requests) == 2 + 5 and client.calls == 7  # the 4th batch is not even attempted
+    assert (stats.batches_network, stats.batches_not_fetched, stats.batches_failed) == (2, 2, 0)
+    assert client.rate_limit_abort is not None and stats.missing_total == 0
+
+
+def test_after_a_rate_limit_abort_batches_already_in_the_cache_are_still_used(monkeypatch, tmp_path, clock):
+    ids = list(range(1, 36))
+    fake = FakeSimFin(monkeypatch, records={i: price_record(i) for i in ids})
+    run_fetch(fake, tmp_path, clock, list(range(21, 31)))  # caches exactly the third batch of the full list
+    limit_from(fake, len(fake.requests) + 1)
+    outcomes, client, stats = run_fetch(fake, tmp_path, clock, ids, max_consecutive_429=5)
+    assert all(outcomes[i].status == su.PRICES_NOT_FETCHED for i in list(range(1, 21)) + list(range(31, 36)))
+    assert all(outcomes[i].status == su.PRICES_OK for i in range(21, 31))  # served from the cache, no request
+    assert (stats.batches_cached, stats.batches_network, stats.batches_not_fetched) == (1, 0, 3)
+    assert client.calls == 5
+
+
+def test_the_consecutive_429_count_runs_across_a_batch_that_used_up_its_retries(monkeypatch, tmp_path, clock):
+    limit = MAX_RETRY_ATTEMPTS + 3  # more than one batch's retries
+    ids = list(range(1, 26))
+    fake = FakeSimFin(monkeypatch, records={i: price_record(i) for i in ids})
+    limit_from(fake, 1)
+    outcomes, client, stats = run_fetch(fake, tmp_path, clock, ids, max_consecutive_429=limit)
+    assert all(outcomes[i].status == su.PRICES_FETCH_FAILED for i in range(1, 11))  # batch 1 ran out of retries
+    assert all(outcomes[i].status == su.PRICES_NOT_FETCHED for i in range(11, 26))  # the abort hit batch 2
+    assert (stats.batches_failed, stats.batches_not_fetched) == (1, 2)
+    assert len(fake.requests) == limit and client.calls == limit
+    assert f"{limit} consecutive" in client.rate_limit_abort
+
+
+def test_a_rate_limit_abort_in_the_requery_phase_leaves_the_requery_not_fetched(monkeypatch, tmp_path, clock):
+    fake = FakeSimFin(monkeypatch, records={1: price_record(1), 2: price_record(2)})  # id 3 has no prices
+    limit_from(fake, 2)  # the batch works, the re-query of id 3 meets the limit
+    outcomes, client, stats = run_fetch(fake, tmp_path, clock, [1, 2, 3], max_consecutive_429=5)
+    assert outcomes[1].status == outcomes[2].status == su.PRICES_OK
+    assert outcomes[3].status == su.PRICES_NOT_FETCHED and outcomes[3].detail == "requery_rate_limit_abort"  # never no_data
+    assert (stats.requery_not_fetched, stats.requery_failed, stats.requery_empty) == (1, 0, 0)
+    assert client.calls == 1 + 5
+
+
+def test_one_success_between_the_429_series_keeps_the_batches_going(monkeypatch, tmp_path, clock):
+    ids = list(range(1, 26))
+    fake = FakeSimFin(monkeypatch, records={i: price_record(i) for i in ids})
+    fake.fail_calls = {1: 429, 2: 429, 3: 429, 4: 429, 6: 429, 7: 429, 8: 429, 9: 429}  # 4 x 429 before batch 1 and batch 2
+    outcomes, client, stats = run_fetch(fake, tmp_path, clock, ids, max_consecutive_429=5)
+    assert all(o.status == su.PRICES_OK for o in outcomes.values())
+    assert client.http_429 == 8 and client.rate_limit_abort is None and stats.batches_network == 3
