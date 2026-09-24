@@ -594,3 +594,178 @@ def test_init_db_upgrades_an_existing_runs_table_and_stays_idempotent(tmp_path):
     )
     new_row = _query_runs_table(db_path, "2026-09-23T18:00:00")
     assert new_row["config_hash"] == "def456"
+
+
+# --- universe pre-filter archive (Issue #39) ----------------------------------
+
+from gates_layer import universe_prefilter as _pf  # noqa: E402
+from store_layer.db import export_universe_survivors, save_universe_prefilter  # noqa: E402
+
+_PF_TS = "2026-09-24T14:30:00"
+
+
+def _pf_result(
+    simfin_id, ticker="ABC", *, status=_pf.PASSED, reason=None, cap=2e8, median=1e7, rows=60, price_date="default", sector=106005
+):
+    if price_date == "default":  # None must stay expressible: a company with no price date at all
+        price_date = datetime.date(2026, 9, 23)
+    return _pf.PrefilterResult(simfin_id, ticker, sector, status, reason, cap, median, rows, price_date)
+
+
+def _pf_mixed_results():
+    return [
+        _pf_result(1, "AAA"),
+        _pf_result(2, "BBB", status=_pf.EXCLUDED, reason=_pf.MARKET_CAP_ABOVE_MAX, cap=2e10, median=5e7),
+        _pf_result(3, "CCC", status=_pf.EXCLUDED, reason=_pf.NO_SHARES, cap=None, median=3e6),
+        _pf_result(
+            4, None, status=_pf.EXCLUDED, reason=_pf.NO_CLASSIFICATION, cap=None, median=None, rows=None, price_date=None, sector=None
+        ),
+        _pf_result(5, "EEE", status=_pf.EXCLUDED, reason=_pf.NOT_FETCHED, cap=None, median=None, rows=None, price_date=None),
+    ]
+
+
+def _query_prefilter(db_path, run_timestamp=_PF_TS):
+    connection = sqlite3.connect(db_path)
+    try:
+        connection.row_factory = sqlite3.Row
+        return {
+            row["simfin_id"]: dict(row)
+            for row in connection.execute("SELECT * FROM universe_prefilter WHERE run_timestamp = ?", (run_timestamp,))
+        }
+    finally:
+        connection.close()
+
+
+def test_init_db_creates_the_universe_prefilter_table_idempotently(tmp_path):
+    db_path = tmp_path / "archive.db"
+    init_db(db_path)
+    init_db(db_path)
+    assert _table_columns(db_path, "universe_prefilter") == [
+        "run_timestamp",
+        "simfin_id",
+        "ticker",
+        "sector_code",
+        "market_cap_usd",
+        "median_dollar_volume_usd",
+        "median_window_rows",
+        "price_date",
+        "status",
+        "reason",
+        "config_hash",
+    ]
+
+
+def test_an_archive_from_before_the_table_gets_it_without_touching_old_data(tmp_path):
+    db_path = tmp_path / "old_archive.db"
+    connection = sqlite3.connect(db_path)
+    try:
+        connection.execute(_OLD_SCHEMA_RUNS)
+        connection.execute("INSERT INTO runs VALUES ('2026-09-01T09:00:00', 3, 1)")
+        connection.commit()
+    finally:
+        connection.close()
+    assert _table_columns(db_path, "universe_prefilter") == []  # PRAGMA on a missing table is empty
+
+    init_db(db_path)
+    assert "config_hash" in _table_columns(db_path, "universe_prefilter")
+    assert _query_runs_table(db_path, "2026-09-01T09:00:00")["companies_evaluated"] == 3
+    save_universe_prefilter(_PF_TS, _pf_mixed_results(), config_hash="abc123", db_path=db_path)
+    assert len(_query_prefilter(db_path)) == 5
+
+
+def test_save_universe_prefilter_archives_passed_and_excluded_with_their_values(tmp_path):
+    db_path = tmp_path / "archive.db"
+    save_universe_prefilter(_PF_TS, _pf_mixed_results(), config_hash="abc123", db_path=db_path)
+    rows = _query_prefilter(db_path)
+    assert set(rows) == {1, 2, 3, 4, 5}
+    assert rows[1]["status"] == "passed" and rows[1]["reason"] is None
+    assert rows[1]["price_date"] == "2026-09-23" and rows[1]["median_window_rows"] == 60
+    # an excluded company keeps its computed values - the point of archiving them
+    assert (rows[2]["status"], rows[2]["reason"]) == ("excluded", "market_cap_above_max")
+    assert rows[2]["market_cap_usd"] == 2e10 and rows[2]["median_dollar_volume_usd"] == 5e7
+    assert rows[3]["market_cap_usd"] is None and rows[3]["median_dollar_volume_usd"] == 3e6
+    # no ticker / no classification / nothing computed is stored as NULL, not dropped
+    assert rows[4]["ticker"] is None and rows[4]["sector_code"] is None and rows[4]["price_date"] is None
+    assert rows[5]["reason"] == "not_fetched" and rows[5]["market_cap_usd"] is None
+    assert {row["config_hash"] for row in rows.values()} == {"abc123"}
+    assert rows[1]["sector_code"] == 106005 and rows[1]["ticker"] == "AAA"
+
+
+def test_save_universe_prefilter_never_overwrites_and_leaves_no_partial_run(tmp_path):
+    db_path = tmp_path / "archive.db"
+    save_universe_prefilter(_PF_TS, _pf_mixed_results(), config_hash="abc123", db_path=db_path)
+    with pytest.raises(sqlite3.IntegrityError):
+        save_universe_prefilter(_PF_TS, [_pf_result(9, "NEW"), _pf_result(1, "AAA")], config_hash="other", db_path=db_path)
+    rows = _query_prefilter(db_path)
+    assert set(rows) == {1, 2, 3, 4, 5}  # the new company 9 was rolled back with the failing insert
+    assert {row["config_hash"] for row in rows.values()} == {"abc123"}
+    # a later run under a new timestamp is fine, and both runs coexist
+    save_universe_prefilter("2026-09-25T14:30:00", [_pf_result(1, "AAA")], config_hash="def456", db_path=db_path)
+    assert len(_query_prefilter(db_path, "2026-09-25T14:30:00")) == 1 and len(_query_prefilter(db_path)) == 5
+
+
+@pytest.mark.parametrize(
+    "results,message",
+    [
+        ([], "no pre-filter results"),
+        ([_pf_result(1), _pf_result(1, "DUP")], "appears twice"),
+        ([_pf_result(1, status="maybe")], "unrecognized status"),
+        ([_pf_result(1, reason=_pf.PRICE_STALE)], "carries reason"),
+        ([_pf_result(1, status=_pf.EXCLUDED, reason=None)], "unrecognized reason"),
+        ([_pf_result(1, status=_pf.EXCLUDED, reason="made_up")], "unrecognized reason"),
+    ],
+    ids=["empty", "duplicate_id", "bad_status", "reason_on_passed", "excluded_without_reason", "unknown_reason"],
+)
+def test_save_universe_prefilter_refuses_inconsistent_input_and_writes_nothing(tmp_path, results, message):
+    db_path = tmp_path / "archive.db"
+    with pytest.raises(ValueError, match=message):
+        save_universe_prefilter(_PF_TS, results, config_hash="abc123", db_path=db_path)
+    assert not db_path.exists()  # validation runs before the archive is even opened
+
+
+@pytest.mark.parametrize("bad_hash", [None, "", 123])
+def test_save_universe_prefilter_requires_a_real_config_hash(tmp_path, bad_hash):
+    with pytest.raises(ValueError, match="config_hash"):
+        save_universe_prefilter(_PF_TS, [_pf_result(1)], config_hash=bad_hash, db_path=tmp_path / "a.db")
+
+
+def test_save_universe_prefilter_requires_a_string_timestamp(tmp_path):
+    with pytest.raises(TypeError):
+        save_universe_prefilter(datetime.datetime(2026, 9, 24), [_pf_result(1)], config_hash="h", db_path=tmp_path / "a.db")
+
+
+def test_export_universe_survivors_lists_only_passed_tickers_sorted_one_per_line(tmp_path):
+    results = _pf_mixed_results() + [_pf_result(6, "bbb2"), _pf_result(7, "AAB")]
+    path = export_universe_survivors(_PF_TS, results, output_dir=tmp_path / "universe")
+    assert path.name == "survivors_2026-09-24T143000.txt"
+    assert path.read_bytes() == b"AAA\nAAB\nbbb2\n"  # LF, sorted case-insensitively, no excluded ticker
+    assert not list(path.parent.glob("*.tmp"))
+
+
+def test_export_universe_survivors_writes_an_empty_file_for_zero_survivors(tmp_path):
+    only_excluded = [_pf_result(1, "AAA", status=_pf.EXCLUDED, reason=_pf.PRICE_STALE)]
+    path = export_universe_survivors(_PF_TS, only_excluded, output_dir=tmp_path)
+    assert path.exists() and path.read_bytes() == b""
+
+
+@pytest.mark.parametrize(
+    "results,message",
+    [
+        ([_pf_result(1, "AAA"), _pf_result(2, "aaa")], "appears twice"),
+        ([_pf_result(1, None)], "no ticker"),
+    ],
+    ids=["duplicate_ticker", "passed_without_ticker"],
+)
+def test_export_universe_survivors_refuses_an_ambiguous_list(tmp_path, results, message):
+    with pytest.raises(ValueError, match=message):
+        export_universe_survivors(_PF_TS, results, output_dir=tmp_path)
+    assert not list(tmp_path.glob("survivors_*"))
+
+
+def test_export_universe_survivors_never_touches_config_universe_txt(tmp_path):
+    from pathlib import Path
+
+    universe_txt = Path(__file__).resolve().parent.parent / "config" / "universe.txt"
+    before = universe_txt.read_bytes()
+    export_universe_survivors(_PF_TS, _pf_mixed_results(), output_dir=tmp_path)
+    assert universe_txt.read_bytes() == before

@@ -20,11 +20,13 @@ sees periods, so whoever builds the GateResults passes them in
 """
 
 import csv
+import os
 import sqlite3
 from pathlib import Path
 from typing import Dict
 
 from gates_layer.stage1_gates import FAILED, GateResult, NOT_EVALUABLE, rank_companies
+from gates_layer.universe_prefilter import EXCLUDED, PASSED, PREFILTER_REASONS
 
 # Anchored to the repo root (src/store_layer/db.py -> repo root is two
 # parents up), not the process's current working directory - a cron
@@ -34,6 +36,7 @@ from gates_layer.stage1_gates import FAILED, GateResult, NOT_EVALUABLE, rank_com
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_DB_PATH = _REPO_ROOT / "data" / "run_archive.db"
 DEFAULT_CSV_DIR = _REPO_ROOT / "data" / "runs"
+DEFAULT_UNIVERSE_DIR = _REPO_ROOT / "data" / "universe"
 
 _CSV_FIELDNAMES = [
     "rank_position",
@@ -91,7 +94,7 @@ def _ensure_data_quality_flags_column(connection, table):
 
 
 def init_db(db_path=DEFAULT_DB_PATH):
-    """Create the run_results, eliminated_results and runs schema if they don't already exist. Idempotent.
+    """Create the run_results, eliminated_results, runs and universe_prefilter schema if they don't already exist. Idempotent.
 
     Also upgrades an existing archive whose run_results/eliminated_results
     tables predate the data_quality_flags column.
@@ -139,6 +142,30 @@ def init_db(db_path=DEFAULT_DB_PATH):
                 companies_evaluated INTEGER NOT NULL,
                 survivors_count INTEGER NOT NULL,
                 config_hash TEXT
+            )
+            """
+        )
+        # Universe pre-filter archive (docs/decisions.md, "Phase 2.0a"): the
+        # whole pre-filtered universe incl. excluded companies, with the
+        # computed values kept for them too. A table added after the others
+        # exists, so IF NOT EXISTS is its migration - an older archive gets
+        # it on the next init_db(). ticker/sector_code are nullable because
+        # SimFin lists entries without either; simfin_id is the stable key.
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS universe_prefilter (
+                run_timestamp TEXT NOT NULL,
+                simfin_id INTEGER NOT NULL,
+                ticker TEXT,
+                sector_code INTEGER,
+                market_cap_usd REAL,
+                median_dollar_volume_usd REAL,
+                median_window_rows INTEGER,
+                price_date TEXT,
+                status TEXT NOT NULL,
+                reason TEXT,
+                config_hash TEXT NOT NULL,
+                PRIMARY KEY (run_timestamp, simfin_id)
             )
             """
         )
@@ -328,3 +355,113 @@ def export_survivors_csv(run_timestamp, gate_results, output_dir=DEFAULT_CSV_DIR
             writer.writerow({name: row[name] for name in _CSV_FIELDNAMES})
 
     return csv_path
+
+
+def _prefilter_rows(results):
+    """Validate a universe pre-filter run and return its INSERT rows.
+
+    Refuses (ValueError) an empty run - it would leave no trace that it
+    happened, and an empty universe is a run failure, not an archivable
+    outcome -, a company listed twice, an unrecognized status, a reason on a
+    passed company, and a reason outside the documented vocabulary. Nothing
+    is silently dropped or coerced.
+    """
+    results = list(results)
+    if not results:
+        raise ValueError("no pre-filter results to archive")
+    seen, rows = set(), []
+    for result in results:
+        if result.simfin_id in seen:
+            raise ValueError(f"simfin_id {result.simfin_id} appears twice in the pre-filter results")
+        seen.add(result.simfin_id)
+        if result.status == PASSED:
+            if result.reason is not None:
+                raise ValueError(f"passed company {result.simfin_id} carries reason {result.reason!r}")
+        elif result.status == EXCLUDED:
+            if result.reason not in PREFILTER_REASONS:
+                raise ValueError(f"company {result.simfin_id} has unrecognized reason {result.reason!r}")
+        else:
+            raise ValueError(f"company {result.simfin_id} has unrecognized status {result.status!r}")
+        rows.append(
+            (
+                result.simfin_id,
+                result.ticker,
+                result.sector_code,
+                result.market_cap_usd,
+                result.median_dollar_volume_usd,
+                result.median_window_rows,
+                result.price_date.isoformat() if result.price_date is not None else None,
+                result.status,
+                result.reason,
+            )
+        )
+    return rows
+
+
+def save_universe_prefilter(run_timestamp, results, *, config_hash, db_path=DEFAULT_DB_PATH):
+    """Persist one universe pre-filter run: one universe_prefilter row per
+    company - passed and excluded alike, with market cap / median dollar
+    volume / price date kept for the excluded ones too.
+
+    config_hash is the SHA-256 of the thresholds file that produced the
+    results (docs/decisions.md, "Schwellen nach config/thresholds.yaml");
+    required, no default, and - unlike runs.config_hash, whose NULL means
+    "run predates the column" - never NULL here, since this table is new.
+    Plain INSERT in one transaction, never REPLACE: the archive is a
+    historical record, so re-saving a (run_timestamp, simfin_id) fails
+    (sqlite3.IntegrityError) and leaves the run's other rows unwritten.
+    """
+    _require_run_timestamp_str(run_timestamp)
+    if not isinstance(config_hash, str) or not config_hash:
+        raise ValueError("config_hash must be a non-empty string")
+    rows = _prefilter_rows(results)
+
+    init_db(db_path)
+    connection = sqlite3.connect(Path(db_path))
+    try:
+        connection.executemany(
+            """
+            INSERT INTO universe_prefilter (
+                run_timestamp, simfin_id, ticker, sector_code, market_cap_usd,
+                median_dollar_volume_usd, median_window_rows, price_date,
+                status, reason, config_hash
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            [(run_timestamp, *row, config_hash) for row in rows],
+        )
+        connection.commit()
+    finally:
+        connection.close()
+
+
+def export_universe_survivors(run_timestamp, results, output_dir=DEFAULT_UNIVERSE_DIR):
+    """Write the passed companies' tickers, one per line, to a timestamped
+    file and return its path - the same format as config/universe.txt, so it
+    can be used as a universe file. Never touches config/universe.txt.
+
+    Filename survivors_<run_timestamp>.txt with colons stripped (like the
+    survivors CSV). Always written, even with 0 survivors (empty file), so a
+    missing file never reads as "no run happened". Refuses (ValueError) a
+    passed company without a ticker or a ticker appearing twice (compared
+    case-insensitively) - the file would be ambiguous. Written atomically.
+    """
+    _require_run_timestamp_str(run_timestamp)
+    tickers = []
+    for result in results:
+        if result.status != PASSED:
+            continue
+        if not result.ticker:
+            raise ValueError(f"passed company {result.simfin_id} has no ticker - cannot be listed")
+        tickers.append(result.ticker)
+    tickers.sort(key=str.upper)
+    upper = [ticker.upper() for ticker in tickers]
+    if len(set(upper)) != len(upper):
+        raise ValueError("a ticker appears twice among the passed companies")
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    path = output_dir / f"survivors_{run_timestamp.replace(':', '')}.txt"
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text("".join(f"{ticker}\n" for ticker in tickers), encoding="utf-8", newline="\n")
+    os.replace(tmp, path)
+    return path
