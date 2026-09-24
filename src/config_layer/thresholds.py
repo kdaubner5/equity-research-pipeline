@@ -1,5 +1,6 @@
-"""Stage-1 threshold loading/validation, per docs/decisions.md ("Schwellen
-nach config/thresholds.yaml", Issue #33).
+"""Stage-1 and universe-prefilter threshold loading/validation, per
+docs/decisions.md ("Schwellen nach config/thresholds.yaml", Issue #33; "Phase
+2.0a", Issue #39).
 
 Every numeric threshold used by the metrics_layer/gates_layer/data_layer
 modules lives in config/thresholds.yaml, never as a Python constant with a
@@ -89,12 +90,37 @@ class DataQualityReconciliationThresholds:
 
 
 @dataclass(frozen=True)
+class PrefilterThresholds:
+    """Universe pre-filter (docs/decisions.md, "Phase 2.0a").
+
+    Boundary convention: exactly on a threshold = passed (market cap >= min
+    and <= max, median dollar volume >= min, price age <= max).
+    """
+
+    min_market_cap_usd: float
+    max_market_cap_usd: float
+    min_median_dollar_volume_usd: float
+    adv_window_trading_days: int
+    max_price_age_days: int
+
+    def __post_init__(self):
+        # Strict, like the grey-zone pairs: with max == min only one exact
+        # market cap could pass, which is a data-entry slip, not a filter.
+        if not self.max_market_cap_usd > self.min_market_cap_usd:
+            raise ThresholdsConfigError(
+                f"prefilter.max_market_cap_usd ({self.max_market_cap_usd}) must be greater than "
+                f"prefilter.min_market_cap_usd ({self.min_market_cap_usd})"
+            )
+
+
+@dataclass(frozen=True)
 class Thresholds:
     roic: RoicThresholds
     net_debt_ebitda: NetDebtEbitdaThresholds
     cash_conversion: CashConversionThresholds
     net_income_margin: NetIncomeMarginThresholds
     data_quality_reconciliation: DataQualityReconciliationThresholds
+    prefilter: PrefilterThresholds
 
 
 # (group, key) -> (dataclass field, (min, max)). Range bounds are a coarse
@@ -125,6 +151,23 @@ _SCHEMA = {
         "debt_tolerance_ratio": (0.0, 1.0),
         "debt_tolerance_assets_ratio": (0.0, 1.0),
     },
+    # USD amounts have a lower bound above 0 (a 0 minimum would silently
+    # switch its check off) and generous upper bounds - a guardrail against a
+    # slipped zero, not a business limit. The two day-count keys are integers.
+    "prefilter": {
+        "min_market_cap_usd": (1.0, 1e13),
+        "max_market_cap_usd": (1.0, 1e13),
+        "min_median_dollar_volume_usd": (1.0, 1e11),
+        "adv_window_trading_days": (1, 260),
+        "max_price_age_days": (0, 30),
+    },
+}
+
+# (group, key) pairs that must be integers, not merely numbers: a fractional
+# window or age has no meaning, and float(60.5) must not be coerced silently.
+_INTEGER_KEYS = {
+    ("prefilter", "adv_window_trading_days"),
+    ("prefilter", "max_price_age_days"),
 }
 
 _GROUP_DATACLASSES = {
@@ -133,6 +176,7 @@ _GROUP_DATACLASSES = {
     "cash_conversion": CashConversionThresholds,
     "net_income_margin": NetIncomeMarginThresholds,
     "data_quality_reconciliation": DataQualityReconciliationThresholds,
+    "prefilter": PrefilterThresholds,
 }
 
 
@@ -149,10 +193,12 @@ def _validate_number(group, key, value):
     # "clean_pass_above: yes" would otherwise silently become 1.0.
     if not isinstance(value, (int, float)) or isinstance(value, bool):
         raise ThresholdsConfigError(f"{dotted} must be a number, got {value!r} ({type(value).__name__})")
+    if (group, key) in _INTEGER_KEYS and not isinstance(value, int):
+        raise ThresholdsConfigError(f"{dotted} must be an integer, got {value!r} ({type(value).__name__})")
     low, high = _SCHEMA[group][key]
     if not low <= value <= high:
         raise ThresholdsConfigError(f"{dotted} ({value}) must be between {low} and {high}")
-    return float(value)
+    return int(value) if (group, key) in _INTEGER_KEYS else float(value)
 
 
 _YAML_MERGE_TAG = "tag:yaml.org,2002:merge"
@@ -207,14 +253,14 @@ def _parse_yaml(raw_text, path):
 
 
 def load_thresholds(path: Path = DEFAULT_THRESHOLDS_PATH) -> Thresholds:
-    """Load, validate and return config/thresholds.yaml's Stage-1 thresholds.
+    """Load, validate and return config/thresholds.yaml's thresholds (Stage-1 and prefilter).
 
     Raises ThresholdsConfigError - naming the exact dotted key - for a
     missing file, a missing or unrecognized top-level group or leaf key, a
     duplicate key, a non-numeric value, a value outside its plausibility
     range, a grey-zone pair on the wrong side of its hard threshold, or
     roic.implausible_above not above roic.clean_pass_above. There are no
-    defaults anywhere in this function: every one of the twelve leaf keys is
+    defaults anywhere in this function: every one of the seventeen leaf keys is
     required.
     """
     path = Path(path)
