@@ -12,11 +12,15 @@ Boundary convention: exactly on a threshold = passed (market cap >= min and
 <= max, median dollar volume >= min, price age <= max).
 
 Precedence (first applicable reason wins):
-  no_classification, no_price_data, price_stale, no_shares,
+  no_classification, delisted_marker, no_price_data, price_stale, no_shares,
   market_cap_below_min, market_cap_above_max, insufficient_price_history,
   median_dollar_volume_below_min.
 price_fetch_failed and not_fetched are assigned by the runner (the price
 request itself did not complete) via runner_excluded(), outside this order.
+
+delisted_marker (docs/decisions.md, "Nachtrag zu Entscheidung 3"): SimFin marks
+delisted/old entries itself with a ticker suffix; the runner asks no prices
+for them, so their values stay empty.
 """
 
 from dataclasses import dataclass
@@ -25,12 +29,20 @@ from statistics import median
 
 from config_layer.thresholds import PrefilterThresholds
 
+# Ticker suffixes SimFin uses for delisted/old entries. Determined from the
+# listing of 2026-09-24 (docs/decisions.md, "Nachtrag zu Entscheidung 3"): of
+# the 6.307 classified US entries 42 have an underscore - 27 x "_delisted",
+# 15 x "_old" - and no other underscore form occurs among all 6.697 entries. A
+# vendor naming convention, not a threshold, hence a code constant.
+DELISTED_TICKER_SUFFIXES = ("_delisted", "_old")
+
 # status
 PASSED = "passed"
 EXCLUDED = "excluded"
 
 # reasons decided by evaluate_prefilter(), in precedence order
 NO_CLASSIFICATION = "no_classification"
+DELISTED_MARKER = "delisted_marker"
 NO_PRICE_DATA = "no_price_data"
 PRICE_STALE = "price_stale"
 NO_SHARES = "no_shares"
@@ -46,6 +58,7 @@ NOT_FETCHED = "not_fetched"
 RUNNER_REASONS = (PRICE_FETCH_FAILED, NOT_FETCHED)
 PREFILTER_REASONS = (
     NO_CLASSIFICATION,
+    DELISTED_MARKER,
     NO_PRICE_DATA,
     PRICE_STALE,
     NO_SHARES,
@@ -67,6 +80,18 @@ class PrefilterResult:
     median_dollar_volume_usd: float | None
     median_window_rows: int | None  # rows that went into the median; None if no row qualified
     price_date: date | None
+
+
+def has_delisted_marker(ticker):
+    """True if the ticker ends with one of DELISTED_TICKER_SUFFIXES (case-insensitive)."""
+    return bool(ticker) and ticker.lower().endswith(DELISTED_TICKER_SUFFIXES)
+
+
+def unknown_underscore_tickers(tickers):
+    """Tickers containing an underscore that end on none of the known
+    suffixes - not excluded, but the run report counts them so a new SimFin
+    marker form cannot slip through unnoticed."""
+    return sorted(t for t in tickers if t and "_" in t and not has_delisted_marker(t))
 
 
 def _has_price(row):
@@ -130,6 +155,8 @@ def _first_reason(
 ):
     if not entry.has_classification:
         return NO_CLASSIFICATION
+    if has_delisted_marker(entry.ticker):
+        return DELISTED_MARKER
     if not priced:
         return NO_PRICE_DATA
     if (as_of - price_date).days > thresholds.max_price_age_days:

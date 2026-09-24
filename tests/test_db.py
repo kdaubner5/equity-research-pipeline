@@ -769,3 +769,14 @@ def test_export_universe_survivors_never_touches_config_universe_txt(tmp_path):
     before = universe_txt.read_bytes()
     export_universe_survivors(_PF_TS, _pf_mixed_results(), output_dir=tmp_path)
     assert universe_txt.read_bytes() == before
+
+
+def test_a_delisted_marker_row_is_archived_with_no_values(tmp_path):
+    db_path = tmp_path / "archive.db"
+    marked = _pf_result(
+        6, "OLD_old", status=_pf.EXCLUDED, reason=_pf.DELISTED_MARKER, cap=None, median=None, rows=None, price_date=None
+    )
+    save_universe_prefilter(_PF_TS, [_pf_result(1, "AAA"), marked], config_hash="abc123", db_path=db_path)
+    row = _query_prefilter(db_path)[6]
+    assert (row["status"], row["reason"]) == ("excluded", "delisted_marker")
+    assert row["market_cap_usd"] is None and row["median_dollar_volume_usd"] is None and row["price_date"] is None

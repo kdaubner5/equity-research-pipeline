@@ -54,7 +54,8 @@ def good(cid, **overrides):
 
 def scenario(monkeypatch):
     """One company per outcome; ids 6 (no prices), 8 (unclassified) and 9 (DE)
-    get no price record. Returns (fake, expected reason by id)."""
+    get no price record. Id 11 is a delisted-marked ticker that HAS a price
+    record - which must never be asked for. Returns (fake, expected reason by id)."""
     rows = [
         general_row(1, "PASS"),
         general_row(2, "SMALL"),
@@ -66,6 +67,7 @@ def scenario(monkeypatch):
         general_row(8, "NOCLS", sector=None),
         general_row(9, "DEUT", market="DE"),
         general_row(10, "SHORT"),
+        general_row(11, "OLDCO_old"),
     ]
     records = {
         1: good(1),
@@ -75,6 +77,7 @@ def scenario(monkeypatch):
         5: good(5, shares=None),
         7: good(7, volume=1),
         10: good(10, days=2),
+        11: good(11),  # would pass every threshold - but the marker keeps it from ever being requested
     }
     fake = FakeSimFin(monkeypatch, records=records, general=general_response(rows), companies_list=list_response(rows))
     expected = {
@@ -87,6 +90,7 @@ def scenario(monkeypatch):
         7: pf.MEDIAN_DOLLAR_VOLUME_BELOW_MIN,
         8: pf.NO_CLASSIFICATION,
         10: pf.INSUFFICIENT_PRICE_HISTORY,
+        11: pf.DELISTED_MARKER,
     }
     return fake, expected
 
@@ -134,7 +138,7 @@ def test_a_complete_run_archives_every_us_company_with_its_reason_and_lists_the_
     assert code == run_universe.EXIT_OK
 
     rows = read_archive(tmp_path / "archive.db")
-    assert set(rows) == set(expected)  # all 9 US companies; the DE one (id 9) is counted, not archived
+    assert set(rows) == set(expected)  # all 10 US companies; the DE one (id 9) is counted, not archived
     assert {cid: row["reason"] for cid, row in rows.items()} == expected
     assert {cid: row["status"] for cid, row in rows.items()} == {
         cid: (pf.PASSED if reason is None else pf.EXCLUDED) for cid, reason in expected.items()
@@ -146,16 +150,19 @@ def test_a_complete_run_archives_every_us_company_with_its_reason_and_lists_the_
     assert rows[4]["price_date"] == (AS_OF - timedelta(days=10)).isoformat() and rows[4]["market_cap_usd"] == 200_000_000.0
     assert rows[10]["median_window_rows"] == 2 and rows[6]["market_cap_usd"] is None
     assert rows[8]["market_cap_usd"] is None and rows[8]["sector_code"] is None
+    # delisted_marker: no price was requested, so no value exists - although a price record was on offer
+    assert rows[11]["market_cap_usd"] is None and rows[11]["price_date"] is None and rows[11]["sector_code"] == 106
 
     (survivors,) = survivors_files(tmp_path)
     assert survivors.read_text(encoding="utf-8") == "PASS\n"
 
-    # calls: 2 listings + 1 batch of the 8 classified candidates (the unclassified and the non-US company are
-    # never asked for) + 1 single-id re-query of the one without prices
+    # calls: 2 listings + 1 batch of the 8 fetchable candidates (the unclassified, the non-US and the delisted-marked
+    # company are never asked for) + 1 single-id re-query of the one without prices
     endpoints = [endpoint for endpoint, _ in fake.requests]
     assert endpoints == ["general", "list", "prices", "prices"]
     assert fake.price_requests() == [[1, 2, 3, 4, 5, 6, 7, 10], [6]]  # then the single-id re-query of the empty one
-    assert "complete=True" in output and "passed=1 excluded=8" in output
+    assert 11 not in sum(fake.price_requests(), [])  # the delisted-marked id was never asked for
+    assert "complete=True" in output and "passed=1 excluded=9" in output and "delisted_marker=1" in output
     assert "non_us=1" in output and "unclassified=1" in output and f"survivors_file={survivors}" in output
     assert "no_price_data=1" in output and "INCOMPLETE" not in output
 
@@ -362,3 +369,74 @@ def test_load_priority_tickers_skips_blank_lines(tmp_path):
     path = tmp_path / "p.txt"
     path.write_text("\nAAA\n  \nBBB\n", encoding="utf-8")
     assert run_universe.load_priority_tickers(path) == ["AAA", "BBB"]
+
+
+# --- delisted_marker, max_requeries, silent cap -------------------------------------
+
+
+def test_max_requeries_zero_leaves_the_missing_id_as_no_price_data_without_any_single_call(monkeypatch, tmp_path, clock):
+    fake, expected = scenario(monkeypatch)
+    code, output = do_run(tmp_path, clock, max_requeries=0)
+    assert code == run_universe.EXIT_OK
+    assert [endpoint for endpoint, _ in fake.requests] == ["general", "list", "prices"]  # no single-id call
+    rows = read_archive(tmp_path / "archive.db")
+    assert {cid: row["reason"] for cid, row in rows.items()} == expected
+    assert "complete=True" in output and "missing_in_batches=1 requeried=0 not_requeried=1" in output
+
+
+def test_the_summary_reports_how_many_missing_ids_were_requeried(monkeypatch, tmp_path, clock):
+    rows = [general_row(i, f"T{i}") for i in range(1, 41)]
+    fake = FakeSimFin(
+        monkeypatch, records={i: good(i) for i in range(1, 11)}, general=general_response(rows), companies_list=list_response(rows)
+    )
+    code, output = do_run(tmp_path, clock, max_requeries=5)
+    assert code == run_universe.EXIT_OK
+    assert "missing_in_batches=30 requeried=5 not_requeried=25" in output
+    assert len([ids for ids in fake.price_requests() if len(ids) == 1]) == 5
+    archived = read_archive(tmp_path / "archive.db")
+    assert sum(1 for row in archived.values() if row["reason"] == pf.NO_PRICE_DATA) == 30
+
+
+def test_a_requery_that_returns_prices_is_a_silent_cap_exit_1_and_nothing_is_written(monkeypatch, tmp_path, clock, capsys):
+    fake, _ = scenario(monkeypatch)
+    fake.records[6] = good(6)  # id 6 does have prices ...
+    fake.hide_in_batches = {6}  # ... but the batch response drops it; only a single-id request returns it
+    code, _ = do_run(tmp_path, clock)
+    assert code == run_universe.EXIT_TECHNICAL_FAILURE
+    assert "silent cap" in capsys.readouterr().err
+    assert _nothing_written(tmp_path)  # no archive rows, no survivors file
+    assert list((tmp_path / "cache" / AS_OF.isoformat() / "prices").glob("*.json"))  # raw responses kept for diagnosis
+
+
+def test_delisted_marked_tickers_are_never_requested_even_when_listed_as_priority(monkeypatch, tmp_path, clock):
+    fake, _ = scenario(monkeypatch)
+    code, output = do_run(tmp_path, clock, priority_tickers=["OLDCO_old", "PASS"])
+    assert code == run_universe.EXIT_OK
+    assert 11 not in sum(fake.price_requests(), [])
+    assert "priority tickers not found among the fetchable candidates: ['OLDCO_old']" in output
+    assert fake.price_requests()[0][0] == 1  # PASS (id 1) first, as asked
+
+
+def test_a_new_underscore_form_is_not_excluded_but_counted_in_the_report(monkeypatch, tmp_path, clock):
+    rows = [general_row(1, "PASS"), general_row(2, "NEWFORM_merged")]
+    FakeSimFin(monkeypatch, records={1: good(1), 2: good(2)}, general=general_response(rows), companies_list=list_response(rows))
+    code, output = do_run(tmp_path, clock)
+    assert code == run_universe.EXIT_OK
+    assert read_archive(tmp_path / "archive.db")[2]["reason"] is None  # passes: only the two known suffixes exclude
+    assert "unknown_underscore_tickers=1" in output and "NEWFORM_merged" in output
+    (survivors,) = survivors_files(tmp_path)
+    assert survivors.read_text(encoding="utf-8") == "NEWFORM_merged" + chr(10) + "PASS" + chr(10)
+
+
+def test_the_parser_has_max_requeries_with_default_20_and_main_passes_it_on(monkeypatch):
+    assert run_universe.DEFAULT_MAX_REQUERIES == 20
+    assert run_universe.build_parser().parse_args([]).max_requeries == 20
+    assert run_universe.build_parser().parse_args(["--max-requeries", "0"]).max_requeries == 0
+    with pytest.raises(SystemExit):
+        run_universe.build_parser().parse_args(["--max-requeries", "-3"])
+    captured = {}
+    monkeypatch.setattr(run_universe, "run", lambda **kwargs: captured.update(kwargs) or 0)
+    run_universe.main(["--max-requeries", "7"])
+    assert captured["max_requeries"] == 7
+    run_universe.main([])
+    assert captured["max_requeries"] == 20

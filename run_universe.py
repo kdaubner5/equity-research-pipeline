@@ -26,7 +26,14 @@ result (also when incomplete because of --max-calls or failed batches, which
 the summary states as INCOMPLETE, or with 0 survivors); non-zero (1) = a
 technical failure that stopped the run before anything was written (no API
 key, invalid config, universe listing unavailable or unusable, duplicate
-tickers among the candidates, cache/archive not writable).
+tickers among the candidates, a single-id re-query that returned prices for a
+company its batch response had dropped - a silent cap -, cache/archive not
+writable).
+
+Tickers with a SimFin delisted/old suffix (delisted_marker) are never sent to
+the prices endpoint. At most --max-requeries of the ids missing from a batch
+response are re-queried alone, spread evenly (docs/decisions.md, "Nachtrag zu
+Entscheidung 3").
 """
 
 import argparse
@@ -56,6 +63,7 @@ EXIT_OK = 0
 EXIT_TECHNICAL_FAILURE = 1
 
 PROGRESS_EVERY_BATCHES = 50
+DEFAULT_MAX_REQUERIES = 20
 
 
 class UniverseRunError(Exception):
@@ -90,7 +98,8 @@ def build_results(snapshot, outcomes, *, as_of, thresholds):
     not, priced or not - so nothing is silently skipped."""
     results = []
     for entry in snapshot.entries:
-        if not entry.has_classification:
+        if not entry.has_classification or pf.has_delisted_marker(entry.ticker):
+            # no_classification / delisted_marker: no price was ever requested
             results.append(pf.evaluate_prefilter(entry, None, as_of=as_of, thresholds=thresholds.prefilter))
             continue
         outcome = outcomes.get(entry.simfin_id)
@@ -113,11 +122,13 @@ def _print_summary(out, *, run_timestamp, as_of, snapshot, results, stats, clien
     reasons = Counter(result.reason for result in results if result.reason is not None)
     statuses = Counter(result.status for result in results)
     classified = len(snapshot.classified())
+    unknown_underscore = pf.unknown_underscore_tickers(entry.ticker for entry in snapshot.entries)
     check = snapshot.crosscheck
     print(f"run_timestamp={run_timestamp}  as_of={as_of}  complete={complete}", file=out)
     print(
         f"universe: listed={snapshot.total_listed} us={len(snapshot.entries)} non_us={snapshot.non_us} "
         f"without_id={snapshot.without_id} classified={classified} unclassified={len(snapshot.entries) - classified} "
+        f"delisted_marker={reasons[pf.DELISTED_MARKER]} unknown_underscore_tickers={len(unknown_underscore)} "
         f"| list_vs_general: only_in_list={check.only_in_list} only_in_general={check.only_in_general} "
         f"field_mismatches={check.field_mismatches}",
         file=out,
@@ -129,7 +140,8 @@ def _print_summary(out, *, run_timestamp, as_of, snapshot, results, stats, clien
     )
     print(
         f"batches: total={stats.batches_total} cached={stats.batches_cached} network={stats.batches_network} "
-        f"failed={stats.batches_failed} not_fetched={stats.batches_not_fetched} | requeries: "
+        f"failed={stats.batches_failed} not_fetched={stats.batches_not_fetched} | missing_in_batches={stats.missing_total} "
+        f"requeried={stats.missing_requeried} not_requeried={stats.missing_not_requeried} | requeries: "
         f"network={stats.requeries_network} cached={stats.requeries_cached} with_data={stats.requery_with_data} "
         f"empty={stats.requery_empty} failed={stats.requery_failed} not_fetched={stats.requery_not_fetched} "
         f"| cache_invalid={stats.cache_invalid} non_usd={stats.non_usd}",
@@ -137,8 +149,10 @@ def _print_summary(out, *, run_timestamp, as_of, snapshot, results, stats, clien
     )
     print(f"status: passed={statuses[pf.PASSED]} excluded={statuses[pf.EXCLUDED]}", file=out)
     print("reasons: " + " ".join(f"{reason}={reasons[reason]}" for reason in pf.PREFILTER_REASONS if reasons[reason]), file=out)
+    if unknown_underscore:
+        print(f"unknown underscore tickers (not excluded): {unknown_underscore[:10]}", file=out)
     if priority_missing:
-        print(f"priority tickers not found among the classified candidates: {priority_missing}", file=out)
+        print(f"priority tickers not found among the fetchable candidates: {priority_missing}", file=out)
     for context, message in stats.errors[:10]:
         print(f"error ({context}): {message}", file=out)
     if len(stats.errors) > 10:
@@ -160,6 +174,7 @@ def run(
     api_key=None,
     as_of=None,
     max_calls=None,
+    max_requeries=DEFAULT_MAX_REQUERIES,
     run_timestamp=None,
     thresholds_path=DEFAULT_THRESHOLDS_PATH,
     priority_tickers=None,
@@ -197,7 +212,8 @@ def run(
                 f"(ids {blanks[:10]}) - the survivors file would be ambiguous"
             )
 
-        candidates = snapshot.classified()
+        # delisted_marker entries are never asked for prices (decisions.md)
+        candidates = [entry for entry in snapshot.classified() if not pf.has_delisted_marker(entry.ticker)]
         ordered_ids, priority_missing = _order_ids(candidates, priority_tickers)
 
         def progress(done, total):
@@ -210,12 +226,23 @@ def run(
                 ordered_ids,
                 as_of=as_of,
                 adv_window_trading_days=thresholds.prefilter.adv_window_trading_days,
+                max_requeries=max_requeries,
                 run_cache_dir=run_cache_dir,
                 stats=stats,
                 progress=progress,
             )
         except OSError as exc:  # network errors are isolated per batch; what reaches here is the cache/log on disk
             raise UniverseRunError(f"price cache/log not writable: {exc}") from exc
+
+        if stats.silent_cap_ids:
+            # A company absent from its batch response DID have prices when asked
+            # alone: the batch responses silently drop companies and cannot be
+            # trusted, so nothing is archived and no survivors file is written.
+            raise UniverseRunError(
+                f"silent cap: {len(stats.silent_cap_ids)} id(s) missing from their batch response returned prices "
+                f"when re-queried alone (first ids {stats.silent_cap_ids[:10]}); nothing was archived - the raw "
+                f"responses stay in {run_cache_dir} for diagnosis"
+            )
 
         results = build_results(snapshot, outcomes, as_of=as_of, thresholds=thresholds)
         complete = not any(result.reason in pf.RUNNER_REASONS for result in results)
@@ -270,6 +297,14 @@ def build_parser():
         help="budget of HTTP requests for this run (every request counts, incl. 429 retries and single-id "
         "re-queries); omit for no limit. Cached responses cost nothing.",
     )
+    parser.add_argument(
+        "--max-requeries",
+        type=_non_negative_int,
+        default=DEFAULT_MAX_REQUERIES,
+        help="at most this many of the ids missing from a batch response are re-queried alone, spread evenly "
+        f"over the missing ids (default {DEFAULT_MAX_REQUERIES}); the rest count as no_price_data without a re-query. "
+        "A re-query that returns prices is a silent cap: exit 1.",
+    )
     parser.add_argument("--as-of", type=date.fromisoformat, default=None, help="price date reference, YYYY-MM-DD (default: today)")
     parser.add_argument("--db-path", type=Path, default=DEFAULT_DB_PATH)
     parser.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE_DIR)
@@ -292,6 +327,7 @@ def main(argv=None):
         survivors_dir=args.survivors_dir,
         as_of=args.as_of,
         max_calls=args.max_calls,
+        max_requeries=args.max_requeries,
         priority_tickers=priority,
     )
 

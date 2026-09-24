@@ -271,11 +271,17 @@ def test_the_call_log_records_status_ids_and_the_rate_limit_header(monkeypatch, 
 # --- fetch_prices ------------------------------------------------------------
 
 
-def run_fetch(_fake, tmp_path, clock, ids, *, max_calls=None, stats=None, cache="run"):
+def run_fetch(_fake, tmp_path, clock, ids, *, max_calls=None, stats=None, cache="run", max_requeries=20):
     stats = stats if stats is not None else su.LoaderStats()
     client = make_client(tmp_path, clock, max_calls=max_calls)
     outcomes = su.fetch_prices(
-        client, ids, as_of=AS_OF, adv_window_trading_days=WINDOW, run_cache_dir=tmp_path / cache, stats=stats
+        client,
+        ids,
+        as_of=AS_OF,
+        adv_window_trading_days=WINDOW,
+        max_requeries=max_requeries,
+        run_cache_dir=tmp_path / cache,
+        stats=stats,
     )
     return outcomes, client, stats
 
@@ -301,12 +307,94 @@ def test_a_missing_id_is_requeried_once_alone_and_confirmed_empty_is_no_data(mon
     assert client.calls == 2  # the re-query counted
 
 
-def test_a_requery_that_returns_data_replaces_the_batch_gap(monkeypatch, tmp_path, clock):
+def test_a_requery_that_returns_prices_is_recorded_as_a_silent_cap(monkeypatch, tmp_path, clock):
     fake = FakeSimFin(monkeypatch, records={1: price_record(1), 2: price_record(2, close=7.0)})
     fake.hide_in_batches = {2}  # only shows up when asked for alone: the "silent cap" case
     outcomes, _, stats = run_fetch(fake, tmp_path, clock, [1, 2])
-    assert outcomes[2].status == su.PRICES_OK and outcomes[2].rows[-1].close == 7.0
+    assert outcomes[2].status == su.PRICES_OK and outcomes[2].rows[-1].close == 7.0  # the data is kept ...
+    assert stats.silent_cap_ids == [2]  # ... and flagged: the runner aborts on this
     assert (stats.requery_with_data, stats.requery_empty) == (1, 0)
+
+
+def test_a_confirmed_empty_requery_is_not_a_silent_cap(monkeypatch, tmp_path, clock):
+    fake = FakeSimFin(monkeypatch, records={1: price_record(1)})
+    _, _, stats = run_fetch(fake, tmp_path, clock, [1, 2])
+    assert stats.silent_cap_ids == []
+
+
+# --- capped, evenly spread re-queries ---------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "ids,n,expected",
+    [
+        (list(range(100)), 5, [0, 20, 40, 60, 80]),
+        (list(range(10)), 3, [0, 3, 6]),
+        ([1, 2, 3], 5, [1, 2, 3]),
+        ([1, 2, 3], 3, [1, 2, 3]),
+        ([1, 2, 3], 0, []),
+        ([], 4, []),
+    ],
+)
+def test_select_evenly_spreads_over_the_sorted_ids(ids, n, expected):
+    assert su.select_evenly(ids, n) == expected
+
+
+def test_select_evenly_never_repeats_an_id_and_stays_within_the_list():
+    for total in range(1, 60):
+        for n in range(1, total + 1):
+            picked = su.select_evenly(list(range(total)), n)
+            assert len(picked) == n == len(set(picked)) and picked == sorted(picked) and picked[0] == 0
+
+
+def test_only_max_requeries_of_the_missing_ids_are_asked_for_and_they_are_spread_evenly(monkeypatch, tmp_path, clock):
+    ids = list(range(1, 41))  # 1..10 have prices, 11..40 (30 ids) are missing from their batch responses
+    fake = FakeSimFin(monkeypatch, records={i: price_record(i) for i in range(1, 11)})
+    outcomes, client, stats = run_fetch(fake, tmp_path, clock, ids, max_requeries=5)
+    singles = [batch[0] for batch in fake.price_requests() if len(batch) == 1]
+    assert singles == [11, 17, 23, 29, 35]  # indices 0, 6, 12, 18, 24 of the 30 sorted missing ids
+    assert client.calls == 4 + 5  # 4 batches + 5 single-id re-queries, not 30
+    assert (stats.missing_total, stats.missing_requeried, stats.missing_not_requeried) == (30, 5, 25)
+    assert all(outcomes[i].status == su.PRICES_NO_DATA for i in range(11, 41))
+    assert {outcomes[i].detail for i in singles} == {"confirmed_empty_after_requery"}
+    assert {outcomes[i].detail for i in range(11, 41) if i not in singles} == {"missing_in_batch_not_requeried"}
+
+
+def test_zero_max_requeries_asks_no_single_id_at_all(monkeypatch, tmp_path, clock):
+    fake = FakeSimFin(monkeypatch, records={1: price_record(1)})
+    outcomes, client, stats = run_fetch(fake, tmp_path, clock, [1, 2, 3], max_requeries=0)
+    assert fake.price_requests() == [[1, 2, 3]] and client.calls == 1
+    assert outcomes[2].status == outcomes[3].status == su.PRICES_NO_DATA
+    assert stats.missing_total == 2 and stats.missing_requeried == 0 and stats.missing_not_requeried == 2
+
+
+def test_the_requery_selection_is_repeatable_so_a_resumed_run_finds_its_singles_in_the_cache(monkeypatch, tmp_path, clock):
+    ids = list(range(1, 41))
+    fake = FakeSimFin(monkeypatch, records={i: price_record(i) for i in range(1, 11)})
+    run_fetch(fake, tmp_path, clock, ids, max_requeries=5)
+    calls_before = len(fake.requests)
+    _, client, stats = run_fetch(fake, tmp_path, clock, ids, max_requeries=5)
+    assert len(fake.requests) == calls_before and client.calls == 0 and stats.requeries_cached == 5
+
+
+def test_requeries_that_do_not_fit_the_budget_are_not_fetched_while_unselected_missing_ids_stay_no_data(monkeypatch, tmp_path, clock):
+    ids = list(range(1, 21))  # 1..10 have prices, 11..20 are missing from their batch responses
+    fake = FakeSimFin(monkeypatch, records={i: price_record(i) for i in range(1, 11)})
+    # 2 batches + 1 single-id call fit into the budget of 3; 4 of the 10 missing ids are selected: 11, 13, 16, 18
+    outcomes, client, stats = run_fetch(fake, tmp_path, clock, ids, max_requeries=4, max_calls=3)
+    assert client.calls == 3
+    assert outcomes[11].status == su.PRICES_NO_DATA and outcomes[11].detail == "confirmed_empty_after_requery"
+    assert [outcomes[i].status for i in (13, 16, 18)] == [su.PRICES_NOT_FETCHED] * 3  # selected, but no budget left
+    assert stats.requery_not_fetched == 3
+    for i in (12, 14, 15, 17, 19, 20):  # never selected: no_data without a re-query, not "not_fetched"
+        assert outcomes[i].status == su.PRICES_NO_DATA and outcomes[i].detail == "missing_in_batch_not_requeried"
+
+
+@pytest.mark.parametrize("bad", [-1, 2.5, True, None, "20"])
+def test_max_requeries_must_be_a_non_negative_integer(monkeypatch, tmp_path, clock, bad):
+    fake = FakeSimFin(monkeypatch, records={1: price_record(1)})
+    with pytest.raises(ValueError, match="max_requeries"):
+        run_fetch(fake, tmp_path, clock, [1], max_requeries=bad)
 
 
 def test_a_requery_that_no_longer_fits_the_budget_is_not_fetched_never_no_data(monkeypatch, tmp_path, clock):
@@ -409,7 +497,13 @@ def test_a_different_window_does_not_reuse_the_cache(monkeypatch, tmp_path, cloc
     run_fetch(fake, tmp_path, clock, [1])
     client = make_client(tmp_path, clock)
     su.fetch_prices(
-        client, [1], as_of=AS_OF, adv_window_trading_days=90, run_cache_dir=tmp_path / "run", stats=su.LoaderStats()
+        client,
+        [1],
+        as_of=AS_OF,
+        adv_window_trading_days=90,
+        max_requeries=20,
+        run_cache_dir=tmp_path / "run",
+        stats=su.LoaderStats(),
     )
     assert client.calls == 1  # 90-day window is a different request
 

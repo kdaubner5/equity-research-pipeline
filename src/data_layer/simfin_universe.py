@@ -13,9 +13,16 @@ Data-integrity rules (CLAUDE.md, docs/decisions.md "Entscheidung 3a"):
   serves at most 10 ids per call. Records are matched by `id`, never by
   position (the response order differs from the request order).
 - A company without prices in the window is simply absent from the response
-  (no empty entry). Such an id is re-queried once on its own; only if that is
-  empty too is it "no_data". If the re-query no longer fits the call budget it
-  is "not_fetched", never silently "no_data".
+  (no empty entry). The D-1 live run showed 0 of 114 such ids returning data
+  when asked alone, and the re-queries cost 114 of 148 price calls
+  (docs/decisions.md, "Nachtrag zu Entscheidung 3"). So after all batches at
+  most `max_requeries` of the missing ids - spread evenly over the ids sorted
+  ascending - are re-queried once on their own, as a control; every other
+  missing id is "no_data" without a re-query. A re-query that DOES return
+  price data means the batch response silently dropped a company: it is
+  recorded in stats.silent_cap_ids and the runner aborts (exit 1). A re-query
+  that no longer fits the call budget is "not_fetched", never silently
+  "no_data".
 - A batch that fails (network error, HTTP error, response violating the
   contract) marks exactly its own ids "fetch_failed" and is not cached, so a
   rerun retries it; one bad batch never aborts the run.
@@ -104,6 +111,10 @@ class LoaderStats:
     requery_empty: int = 0
     requery_failed: int = 0
     requery_not_fetched: int = 0
+    missing_total: int = 0  # ids absent from a successful batch response
+    missing_requeried: int = 0  # of those, selected for a single-id re-query
+    missing_not_requeried: int = 0  # the rest: no_data without a re-query
+    silent_cap_ids: list = field(default_factory=list)  # re-queried ids that DID return prices
     cache_invalid: int = 0
     non_usd: int = 0
     errors: list = field(default_factory=list)  # (context, message) of isolated failures
@@ -596,22 +607,36 @@ def _requery_single(client, company_id, *, start, end, run_cache_dir, stats):
     return outcome
 
 
-def fetch_prices(client, ids, *, as_of, adv_window_trading_days, run_cache_dir, stats, progress=None):
+def select_evenly(sorted_ids, n):
+    """At most n ids spread evenly over sorted_ids (all of them if n >= len,
+    none if n == 0). Deterministic for a given list, so a resumed run picks
+    the same ids and finds their single-id responses in the cache."""
+    total = len(sorted_ids)
+    if n >= total:
+        return list(sorted_ids)
+    return [sorted_ids[i * total // n] for i in range(n)]
+
+
+def fetch_prices(client, ids, *, as_of, adv_window_trading_days, max_requeries, run_cache_dir, stats, progress=None):
     """Prices for `ids` (in the given order, batches of MAX_PRICE_BATCH_SIZE)
     -> {id: PriceOutcome}, covering every id exactly once.
 
     Resumable: a batch or single-id response already in the cache is used
-    without a call. Per batch: one call, then a single-id re-query for each id
-    missing from the response. `progress(done, total)` is called after each
-    batch if given.
+    without a call. One call per batch; then, after all batches, at most
+    `max_requeries` of the ids missing from their batch response are
+    re-queried alone (see the module docstring), the rest are "no_data".
+    `progress(done, total)` is called after each batch if given.
     """
     ids = list(ids)
     if len(set(ids)) != len(ids):
         raise ValueError("fetch_prices requires unique ids")
+    if isinstance(max_requeries, bool) or not isinstance(max_requeries, int) or max_requeries < 0:
+        raise ValueError(f"max_requeries must be an integer >= 0, got {max_requeries!r}")
     start, end = price_window(as_of, adv_window_trading_days)
     run_cache_dir = Path(run_cache_dir)
     batches = [ids[i : i + MAX_PRICE_BATCH_SIZE] for i in range(0, len(ids), MAX_PRICE_BATCH_SIZE)]
     outcomes = {}
+    missing = []
     for number, batch in enumerate(batches, start=1):
         stats.batches_total += 1
         cache_path = run_cache_dir / "prices" / f"{_key(start, end, *sorted(batch))}.json"
@@ -641,9 +666,21 @@ def fetch_prices(client, ids, *, as_of, adv_window_trading_days, run_cache_dir, 
                 if company_id in parsed:
                     outcomes[company_id] = _outcome(*parsed[company_id], stats)
                 else:
-                    outcomes[company_id] = _requery_single(
-                        client, company_id, start=start, end=end, run_cache_dir=run_cache_dir, stats=stats
-                    )
+                    missing.append(company_id)
         if progress is not None:
             progress(number, len(batches))
+
+    missing.sort()
+    selected = set(select_evenly(missing, max_requeries))
+    stats.missing_total += len(missing)
+    stats.missing_requeried += len(selected)
+    for company_id in missing:
+        if company_id not in selected:
+            stats.missing_not_requeried += 1
+            outcomes[company_id] = PriceOutcome(PRICES_NO_DATA, detail="missing_in_batch_not_requeried")
+            continue
+        outcome = _requery_single(client, company_id, start=start, end=end, run_cache_dir=run_cache_dir, stats=stats)
+        if outcome.status == PRICES_OK:
+            stats.silent_cap_ids.append(company_id)
+        outcomes[company_id] = outcome
     return outcomes

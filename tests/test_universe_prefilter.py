@@ -286,6 +286,7 @@ def test_runner_excluded_refuses_a_decided_reason():
 def test_the_reason_vocabulary_is_exactly_the_documented_one():
     assert pf.PREFILTER_REASONS == (
         "no_classification",
+        "delisted_marker",
         "no_price_data",
         "price_stale",
         "no_shares",
@@ -296,3 +297,54 @@ def test_the_reason_vocabulary_is_exactly_the_documented_one():
         "price_fetch_failed",
         "not_fetched",
     )
+
+
+# --- delisted_marker ---------------------------------------------------------------
+
+
+def entry_with_ticker(ticker, *, classified=True):
+    sector = (106005, "Drug Manufacturers", "Healthcare") if classified else (None, None, None)
+    return UniverseEntry(77, ticker, "Some Co", "US", sector[0], sector[1], sector[2])
+
+
+def test_the_suffix_list_is_the_two_forms_found_in_the_listing():
+    assert pf.DELISTED_TICKER_SUFFIXES == ("_delisted", "_old")
+
+
+@pytest.mark.parametrize("ticker", ["AVGO_old", "EE_delisted", "abc_OLD", "Abc_Delisted", "BRK-B_old"])
+def test_a_ticker_with_a_delisted_or_old_suffix_has_the_marker(ticker):
+    assert pf.has_delisted_marker(ticker)
+    assert evaluate(rows(), entry=entry_with_ticker(ticker)).reason == pf.DELISTED_MARKER
+
+
+@pytest.mark.parametrize("ticker", ["OLD", "GOLD", "A_OLDER", "BRK-B", "ABC.A", "_old_x", "", None])
+def test_only_a_real_suffix_counts_not_a_similar_substring(ticker):
+    assert not pf.has_delisted_marker(ticker)
+
+
+def test_the_marker_comes_right_after_no_classification_and_before_every_other_reason():
+    # would otherwise be: stale, tiny cap, thin history
+    stale_tiny = rows(2, last=AS_OF - timedelta(days=30), shares=1, volume=1)
+    marked = entry_with_ticker("DEAD_delisted")
+    assert evaluate(stale_tiny, entry=marked).reason == pf.DELISTED_MARKER
+    assert evaluate(None, entry=marked).reason == pf.DELISTED_MARKER  # even with no price data at all
+    # classification is checked first
+    assert evaluate(rows(), entry=entry_with_ticker("DEAD_old", classified=False)).reason == pf.NO_CLASSIFICATION
+
+
+def test_a_marked_company_passed_prices_still_reports_its_values_a_marked_one_without_prices_has_none():
+    with_rows = evaluate(rows(), entry=entry_with_ticker("X_old"))
+    assert with_rows.status == pf.EXCLUDED and with_rows.market_cap_usd == 200_000_000.0
+    without = evaluate(None, entry=entry_with_ticker("X_old"))
+    assert (without.market_cap_usd, without.median_dollar_volume_usd, without.median_window_rows, without.price_date) == (
+        None,
+        None,
+        None,
+        None,
+    )
+
+
+def test_unknown_underscore_tickers_are_listed_but_not_treated_as_marked():
+    tickers = ["A_x", "B_old", "C", None, "D_delisted", "E_merged", "F_OLD"]
+    assert pf.unknown_underscore_tickers(tickers) == ["A_x", "E_merged"]
+    assert evaluate(rows(), entry=entry_with_ticker("E_merged")).reason is None  # a new marker form is not excluded
