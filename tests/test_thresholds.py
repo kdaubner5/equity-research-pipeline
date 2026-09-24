@@ -30,6 +30,12 @@ net_income_margin:
 data_quality_reconciliation:
   debt_tolerance_ratio: 0.05
   debt_tolerance_assets_ratio: 0.001
+prefilter:
+  min_market_cap_usd: 300000000
+  max_market_cap_usd: 10000000000
+  min_median_dollar_volume_usd: 1000000
+  adv_window_trading_days: 60
+  max_price_age_days: 5
 """
 
 
@@ -53,6 +59,15 @@ def test_valid_file_loads_correctly(tmp_path):
     assert thresholds.net_income_margin.fail_below == 0.02
     assert thresholds.data_quality_reconciliation.debt_tolerance_ratio == 0.05
     assert thresholds.data_quality_reconciliation.debt_tolerance_assets_ratio == 0.001
+    assert thresholds.prefilter.min_market_cap_usd == 300_000_000
+    assert thresholds.prefilter.max_market_cap_usd == 10_000_000_000
+    assert thresholds.prefilter.min_median_dollar_volume_usd == 1_000_000
+    assert thresholds.prefilter.adv_window_trading_days == 60
+    assert thresholds.prefilter.max_price_age_days == 5
+    # the two day-count keys are real integers, the USD amounts floats
+    assert type(thresholds.prefilter.adv_window_trading_days) is int
+    assert type(thresholds.prefilter.max_price_age_days) is int
+    assert type(thresholds.prefilter.min_market_cap_usd) is float
 
 
 def test_the_committed_thresholds_yaml_is_itself_valid():
@@ -74,6 +89,11 @@ def test_the_committed_thresholds_yaml_is_itself_valid():
         ("  fail_at_or_above: 2.5\n", "net_debt_ebitda.fail_at_or_above"),
         ("  clean_pass_at_or_above: 1.0\n", "cash_conversion.clean_pass_at_or_above"),
         ("  debt_tolerance_ratio: 0.05\n", "data_quality_reconciliation.debt_tolerance_ratio"),
+        ("  min_market_cap_usd: 300000000\n", "prefilter.min_market_cap_usd"),
+        ("  max_market_cap_usd: 10000000000\n", "prefilter.max_market_cap_usd"),
+        ("  min_median_dollar_volume_usd: 1000000\n", "prefilter.min_median_dollar_volume_usd"),
+        ("  adv_window_trading_days: 60\n", "prefilter.adv_window_trading_days"),
+        ("  max_price_age_days: 5\n", "prefilter.max_price_age_days"),
     ],
 )
 def test_missing_key_aborts_naming_the_dotted_key(tmp_path, missing_line, dotted_key):
@@ -154,10 +174,11 @@ def test_out_of_range_value_aborts_naming_the_key(tmp_path, bad_value):
         load_thresholds(_write(tmp_path, text))
 
 
-# One out-of-range value per key (all twelve; net_income_margin.fail_below
-# twice, since it is the one key whose lower bound is negative). Each value is
-# outside its bound by itself, so the range check - not an ordering check -
-# must be what rejects it.
+# One out-of-range value per key (all seventeen; net_income_margin.fail_below
+# twice, since it is the one key whose lower bound is negative, and every
+# prefilter key once below and once above its range). Each value is outside
+# its bound by itself, so the range check - not an ordering check - must be
+# what rejects it.
 _OUT_OF_RANGE_CASES = [
     ("roic", "nopat_tax_rate", 1.5),
     ("roic", "ic_asset_floor_ratio", 1.5),
@@ -172,6 +193,16 @@ _OUT_OF_RANGE_CASES = [
     ("net_income_margin", "fail_below", -1.5),
     ("data_quality_reconciliation", "debt_tolerance_ratio", 1.5),
     ("data_quality_reconciliation", "debt_tolerance_assets_ratio", 1.5),
+    ("prefilter", "min_market_cap_usd", 0.5),
+    ("prefilter", "min_market_cap_usd", 2e13),
+    ("prefilter", "max_market_cap_usd", 0.5),
+    ("prefilter", "max_market_cap_usd", 2e13),
+    ("prefilter", "min_median_dollar_volume_usd", 0.5),
+    ("prefilter", "min_median_dollar_volume_usd", 2e11),
+    ("prefilter", "adv_window_trading_days", 0),
+    ("prefilter", "adv_window_trading_days", 261),
+    ("prefilter", "max_price_age_days", -1),
+    ("prefilter", "max_price_age_days", 31),
 ]
 
 
@@ -243,6 +274,55 @@ def test_implausible_above_not_above_clean_pass_above_aborts_naming_both_keys(tm
 def test_implausible_above_above_clean_pass_above_loads(tmp_path, value):
     text = VALID_YAML.replace("  implausible_above: 0.60\n", f"  implausible_above: {value}\n")
     assert load_thresholds(_write(tmp_path, text)).roic.implausible_above == float(value)
+
+
+@pytest.mark.parametrize("key", ["adv_window_trading_days", "max_price_age_days"])
+@pytest.mark.parametrize("bad_value", ["60.5", "60.0"])
+def test_prefilter_day_count_keys_reject_a_float_naming_the_key(tmp_path, key, bad_value):
+    # 60.0 is numerically an integer but a YAML float: rejected, not silently
+    # coerced - a window/age is a count, and the type is part of the contract.
+    text = VALID_YAML
+    old_line = f"  {key}: {yaml.safe_load(VALID_YAML)['prefilter'][key]}\n"
+    assert old_line in text
+    text = text.replace(old_line, f"  {key}: {bad_value}\n")
+    with pytest.raises(ThresholdsConfigError, match=rf"prefilter\.{key} must be an integer"):
+        load_thresholds(_write(tmp_path, text))
+
+
+@pytest.mark.parametrize("key", ["adv_window_trading_days", "max_price_age_days"])
+def test_prefilter_day_count_keys_reject_a_bool_naming_the_key(tmp_path, key):
+    data = yaml.safe_load(VALID_YAML)
+    data["prefilter"][key] = True
+    with pytest.raises(ThresholdsConfigError, match=rf"prefilter\.{key} must be a number"):
+        load_thresholds(_write(tmp_path, yaml.safe_dump(data, sort_keys=False)))
+
+
+@pytest.mark.parametrize(
+    "min_value,max_value",
+    [(300_000_000, 300_000_000), (300_000_000, 299_999_999), (500_000_000, 300_000_000)],
+    ids=["equal", "one_below", "far_below"],
+)
+def test_prefilter_max_market_cap_not_above_min_aborts_naming_both_keys(tmp_path, min_value, max_value):
+    data = yaml.safe_load(VALID_YAML)
+    data["prefilter"]["min_market_cap_usd"] = min_value
+    data["prefilter"]["max_market_cap_usd"] = max_value
+    with pytest.raises(ThresholdsConfigError, match=r"prefilter\.max_market_cap_usd.*prefilter\.min_market_cap_usd"):
+        load_thresholds(_write(tmp_path, yaml.safe_dump(data, sort_keys=False)))
+
+
+def test_prefilter_max_market_cap_one_above_min_loads(tmp_path):
+    data = yaml.safe_load(VALID_YAML)
+    data["prefilter"]["max_market_cap_usd"] = data["prefilter"]["min_market_cap_usd"] + 1
+    prefilter = load_thresholds(_write(tmp_path, yaml.safe_dump(data, sort_keys=False))).prefilter
+    assert prefilter.max_market_cap_usd == prefilter.min_market_cap_usd + 1
+
+
+def test_prefilter_boundary_values_of_the_integer_ranges_load(tmp_path):
+    data = yaml.safe_load(VALID_YAML)
+    data["prefilter"]["adv_window_trading_days"] = 1
+    data["prefilter"]["max_price_age_days"] = 0
+    prefilter = load_thresholds(_write(tmp_path, yaml.safe_dump(data, sort_keys=False))).prefilter
+    assert (prefilter.adv_window_trading_days, prefilter.max_price_age_days) == (1, 0)
 
 
 def test_missing_file_raises(tmp_path):
