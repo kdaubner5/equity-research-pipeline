@@ -11,6 +11,7 @@ from datetime import date, timedelta
 import pytest
 
 from data_layer import simfin_universe as su
+from data_layer.simfin_client import SIMFIN_STATEMENTS_URL
 
 AS_OF = date(2026, 9, 24)
 WINDOW = 60
@@ -70,10 +71,11 @@ class FakeSimFin:
     """Scripted SimFin: prices for `records` ids only (absent ids stay absent,
     like the real API), optional per-call-number failures."""
 
-    def __init__(self, monkeypatch, records=None, general=None, companies_list=None):
+    def __init__(self, monkeypatch, records=None, general=None, companies_list=None, statements=None):
         self.records = dict(records or {})
         self.general = general
         self.companies_list = companies_list
+        self.statements = dict(statements or {})  # {id: raw statements record}
         self.requests = []  # (endpoint, [ids])
         self.fail_calls = {}  # 1-based call number -> exception or HTTP code
         self.hide_in_batches = set()  # ids that only show up when requested alone
@@ -89,6 +91,10 @@ class FakeSimFin:
             params = dict(part.split("=", 1) for part in url.split("?", 1)[1].split("&"))
             ids = [int(i) for i in params["id"].split(",")]
             self.requests.append(("prices", ids))
+        elif url.startswith(SIMFIN_STATEMENTS_URL):
+            params = dict(part.split("=", 1) for part in url.split("?", 1)[1].split("&"))
+            ids = [int(i) for i in params["id"].split(",")]
+            self.requests.append(("statements", ids))
         elif url == su.SIMFIN_GENERAL_BULK_URL:
             self.requests.append(("general", []))
         else:
@@ -110,11 +116,36 @@ class FakeSimFin:
             if self.extra_id_in_batch is not None and len(ids) > 1:
                 out.append(price_record(self.extra_id_in_batch))
             return FakeResponse(out, self.headers)
+        if url.startswith(SIMFIN_STATEMENTS_URL):
+            out = [self.statements[i] for i in ids if i in self.statements]
+            if self.shuffle:
+                out.reverse()
+            if self.extra_id_in_batch is not None and len(ids) > 1:
+                out.append(statements_record(self.extra_id_in_batch))
+            return FakeResponse(out, self.headers)
         return FakeResponse(self.general if url == su.SIMFIN_GENERAL_BULK_URL else self.companies_list, self.headers)
 
     def price_requests(self):
         return [ids for endpoint, ids in self.requests if endpoint == "prices"]
 
+    def statements_requests(self):
+        return [ids for endpoint, ids in self.requests if endpoint == "statements"]
+
+
+
+def statements_record(company_id, *, ticker=None, name=None, currency="USD", statement_codes=("PL", "BS", "CF")):
+    """A minimal raw companies/statements/compact per-company record (the
+    shape of tests/fixtures/simfin_raw/*.json): only `id`/`ticker` matter to
+    simfin_fundamentals.py, which caches the record as-is without inspecting
+    its statement contents."""
+    return {
+        "name": name or f"CO{company_id}",
+        "id": company_id,
+        "ticker": ticker or f"T{company_id}",
+        "currency": currency,
+        "isin": None,
+        "statements": [{"statement": code, "columns": [], "data": []} for code in statement_codes],
+    }
 
 
 GENERAL_COLUMNS = ["companyDescription", "endFy", "id", "industryName", "isin", "market", "name", "numEmployees", "sectorCode", "sectorName", "ticker"]
