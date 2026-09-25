@@ -188,7 +188,28 @@ def test_the_summary_reports_a_clean_check_when_no_full_batch_has_a_gap(monkeypa
     FakeSimFin(monkeypatch, statements={1: statements_record(1), 2: statements_record(2)})
     code, output = do_run(tmp_path, clock)
     assert code == rf.EXIT_OK
-    assert "voller-Batch-Pruefung: 0 von 1 vollen 2er-Batches mit fehlender ID" in output
+    assert "voller-Batch-Pruefung: 0 von 1 vollen 2er-Batches" in output
+    assert "mit fehlender ID (kein Hinweis auf eine stille Kappung)." in output
+
+
+def test_the_full_batch_check_persists_and_accumulates_across_two_resumed_runs(monkeypatch, tmp_path, clock):
+    # Mirrors the real 2026-09-25 live backfill: run 1 is cut short (here via
+    # --max-calls, same effect as a consecutive_failures_abort) after one
+    # full batch with a gap; run 2 resumes and finishes. Run 2's own summary
+    # must report BOTH runs' full batches, not just its own (docs/decisions.md
+    # "Phase 2.0b" Entscheidung 2, Review-Nachtrag).
+    seed_db(tmp_path / "archive.db", survivor_ids=(1, 2, 3, 4))
+    fake = FakeSimFin(monkeypatch, statements={1: statements_record(1), 3: statements_record(3), 4: statements_record(4)})
+    # id 2 is absent from its (run 1) full batch [1, 2] - a flagged gap.
+    code1, output1 = do_run(tmp_path, clock, max_calls=1)
+    assert code1 == rf.EXIT_OK and "complete=False" in output1
+    assert "ACHTUNG: 1 von 1 vollen 2er-Batches" in output1
+
+    code2, output2 = do_run(tmp_path, clock)
+    assert code2 == rf.EXIT_OK and "complete=True" in output2
+    # cumulative: run 1's full batch [1, 2] (1 gap) + run 2's full batch [3, 4] (clean) = 2 total, 1 with a gap
+    assert "ACHTUNG: 1 von 2 vollen 2er-Batches" in output2
+    assert "batch=[1, 2] missing=[2]" in output2  # run 1's gap is still visible from run 2's summary
 
 
 # --- abort after consecutive failures ---------------------------------------------

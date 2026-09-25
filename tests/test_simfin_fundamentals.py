@@ -200,6 +200,76 @@ def test_a_trailing_undersized_batch_is_never_flagged_even_if_its_id_is_absent(m
     assert stats.partial_full_batches == []
 
 
+# --- persisted, cumulative full-batch check (call_log_path) --------------------
+
+
+def test_fetch_fundamentals_logs_a_full_batch_check_line_for_a_clean_batch(monkeypatch, tmp_path, clock):
+    fake, client, stats, outcomes = run_fetch(monkeypatch, tmp_path, clock, [1, 2], call_log_path=tmp_path / "call_log.jsonl")
+    checks = sf.read_full_batch_checks(tmp_path / "call_log.jsonl")
+    assert checks == [{"batch": [1, 2], "missing": []}]
+
+
+def test_fetch_fundamentals_logs_a_full_batch_check_line_for_a_batch_with_a_gap(monkeypatch, tmp_path, clock):
+    fake = FakeSimFin(monkeypatch, statements={1: statements_record(1)})
+    client = make_client(tmp_path, clock)
+    stats = sf.FundamentalsStats()
+    sf.fetch_fundamentals(client, [1, 2], cache_dir=tmp_path / "cache", stats=stats, call_log_path=tmp_path / "call_log.jsonl")
+    checks = sf.read_full_batch_checks(tmp_path / "call_log.jsonl")
+    assert checks == [{"batch": [1, 2], "missing": [2]}]
+
+
+def test_a_trailing_undersized_batch_is_never_logged(monkeypatch, tmp_path, clock):
+    fake = FakeSimFin(monkeypatch, statements={1: statements_record(1), 2: statements_record(2)})  # id 3 absent
+    client = make_client(tmp_path, clock)
+    stats = sf.FundamentalsStats()
+    sf.fetch_fundamentals(client, [1, 2, 3], cache_dir=tmp_path / "cache", stats=stats, call_log_path=tmp_path / "call_log.jsonl")
+    checks = sf.read_full_batch_checks(tmp_path / "call_log.jsonl")
+    assert checks == [{"batch": [1, 2], "missing": []}]  # nothing logged for the trailing [3]
+
+
+def test_full_batch_checks_accumulate_across_two_separate_fetch_calls(monkeypatch, tmp_path, clock):
+    call_log_path = tmp_path / "call_log.jsonl"
+    fake = FakeSimFin(monkeypatch, statements={1: statements_record(1), 3: statements_record(3), 4: statements_record(4)})
+    client1 = make_client(tmp_path, clock, max_calls=1)
+    stats1 = sf.FundamentalsStats()
+    sf.fetch_fundamentals(client1, [1, 2, 3, 4], cache_dir=tmp_path / "cache", stats=stats1, call_log_path=call_log_path)
+    assert sf.read_full_batch_checks(call_log_path) == [{"batch": [1, 2], "missing": [2]}]
+
+    client2 = make_client(tmp_path, clock)
+    stats2 = sf.FundamentalsStats()
+    sf.fetch_fundamentals(client2, [1, 2, 3, 4], cache_dir=tmp_path / "cache", stats=stats2, call_log_path=call_log_path)
+    checks = sf.read_full_batch_checks(call_log_path)
+    assert checks == [{"batch": [1, 2], "missing": [2]}, {"batch": [3, 4], "missing": []}]
+    # the second run's OWN stats only ever sees its own batch, not run 1's - the
+    # log, not stats.partial_full_batches, is what the caller must read for a
+    # cumulative view (docs/decisions.md "Phase 2.0b" Entscheidung 2)
+    assert stats2.partial_full_batches == []
+
+
+def test_read_full_batch_checks_ignores_the_clients_own_call_log_lines(tmp_path):
+    call_log_path = tmp_path / "call_log.jsonl"
+    call_log_path.write_text(
+        json.dumps({"utc": "x", "endpoint": "statements/compact", "n_ids": 2, "status": 200, "seconds": 0.1, "rate_limit_remaining": "0"})
+        + "\n",
+        encoding="utf-8",
+    )
+    assert sf.read_full_batch_checks(call_log_path) == []
+
+
+def test_read_full_batch_checks_skips_a_corrupt_line_without_raising(tmp_path):
+    call_log_path = tmp_path / "call_log.jsonl"
+    call_log_path.write_text("{ not json\n" + json.dumps({"kind": "full_batch_check", "batch": [1, 2], "missing": []}) + "\n", encoding="utf-8")
+    assert sf.read_full_batch_checks(call_log_path) == [{"batch": [1, 2], "missing": []}]
+
+
+def test_read_full_batch_checks_of_a_missing_file_is_empty(tmp_path):
+    assert sf.read_full_batch_checks(tmp_path / "does_not_exist.jsonl") == []
+
+
+def test_log_full_batch_check_is_a_noop_without_a_path():
+    sf._log_full_batch_check(None, [1, 2], [])  # must not raise
+
+
 # --- absent ids (no requery logic) ----------------------------------------------
 
 

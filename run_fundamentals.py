@@ -107,7 +107,7 @@ def load_survivor_ids(db_path, run_timestamp=None):
     return run_timestamp, rows
 
 
-def _print_summary(out, *, run_timestamp, as_of, rows, outcomes, stats, client, complete, duration):
+def _print_summary(out, *, run_timestamp, as_of, rows, outcomes, stats, client, complete, duration, full_batch_checks):
     statuses = Counter(outcomes.values())
     abort = "  abort_reason=consecutive_failures_abort" if client.failure_abort else ""
     print(f"run_timestamp={run_timestamp}  as_of={as_of}  complete={complete}{abort}", file=out)
@@ -126,22 +126,28 @@ def _print_summary(out, *, run_timestamp, as_of, rows, outcomes, stats, client, 
     # cap like the one fetch_prices guards against (docs/decisions.md "Phase
     # 2.0b" Entscheidung 2 is confirmed at a single 2-id probe, not at
     # scale): check every full MAX_BATCH_SIZE batch explicitly, not just the
-    # aggregate absent count.
-    if stats.partial_full_batches:
+    # aggregate absent count. Computed from the PERSISTED, cumulative log
+    # (read_full_batch_checks), not from this process's own stats, so a
+    # resumed backfill's earlier runs are not silently dropped from the count
+    # (docs/decisions.md "Phase 2.0b" Entscheidung 2, Review-Nachtrag).
+    gaps = [entry for entry in full_batch_checks if entry["missing"]]
+    if gaps:
         print(
-            f"ACHTUNG: {len(stats.partial_full_batches)} von {stats.batches_network} vollen "
-            f"{sf.MAX_BATCH_SIZE}er-Batches enthielten eine fehlende ID trotz erfolgreicher Antwort - "
-            "moeglicher Hinweis auf eine stille Kappung wie bei den Preisen. Vor dem Vollauf einzeln pruefen:",
+            f"ACHTUNG: {len(gaps)} von {len(full_batch_checks)} vollen {sf.MAX_BATCH_SIZE}er-Batches (ueber "
+            "alle bisherigen Laeufe mit diesem --run-timestamp/--as-of) enthielten eine fehlende ID trotz "
+            "erfolgreicher Antwort - moeglicher Hinweis auf eine stille Kappung wie bei den Preisen. Vor dem "
+            "Vollauf einzeln pruefen:",
             file=out,
         )
-        for entry in stats.partial_full_batches[:10]:
+        for entry in gaps[:10]:
             print(f"  batch={entry['batch']} missing={entry['missing']}", file=out)
-        if len(stats.partial_full_batches) > 10:
-            print(f"  ... und {len(stats.partial_full_batches) - 10} weitere", file=out)
+        if len(gaps) > 10:
+            print(f"  ... und {len(gaps) - 10} weitere", file=out)
     else:
         print(
-            f"voller-Batch-Pruefung: 0 von {stats.batches_network} vollen {sf.MAX_BATCH_SIZE}er-Batches mit "
-            "fehlender ID (kein Hinweis auf eine stille Kappung in diesem Lauf).",
+            f"voller-Batch-Pruefung: 0 von {len(full_batch_checks)} vollen {sf.MAX_BATCH_SIZE}er-Batches (ueber "
+            "alle bisherigen Laeufe mit diesem --run-timestamp/--as-of) mit fehlender ID (kein Hinweis auf eine "
+            "stille Kappung).",
             file=out,
         )
     for context, message in stats.errors[:10]:
@@ -204,13 +210,16 @@ def run(
 
         stats = sf.FundamentalsStats()
         survivor_ids = [simfin_id for simfin_id, _ in rows]
+        call_log_path = run_cache_dir / "call_log.jsonl"
 
         def progress(done, total):
             if done % PROGRESS_EVERY_BATCHES == 0 or done == total:
                 print(f"batches {done}/{total}  calls={client.calls}  http_429={client.http_429}", file=out, flush=True)
 
         try:
-            outcomes = sf.fetch_fundamentals(client, survivor_ids, cache_dir=run_cache_dir, stats=stats, progress=progress)
+            outcomes = sf.fetch_fundamentals(
+                client, survivor_ids, cache_dir=run_cache_dir, stats=stats, call_log_path=call_log_path, progress=progress
+            )
         except OSError as exc:  # network errors are isolated per batch; what reaches here is the cache/log on disk
             raise FundamentalsRunError(f"fundamentals cache/log not writable: {exc}") from exc
 
@@ -226,6 +235,7 @@ def run(
             client=client,
             complete=complete,
             duration=clock() - client.started_at,
+            full_batch_checks=sf.read_full_batch_checks(call_log_path),
         )
         return EXIT_OK
     except FundamentalsRunError as exc:

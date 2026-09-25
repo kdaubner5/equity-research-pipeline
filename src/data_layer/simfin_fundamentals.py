@@ -137,6 +137,52 @@ def _now_utc():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def _log_full_batch_check(call_log_path, batch, missing):
+    """Append one JSONL line recording whether a full (MAX_BATCH_SIZE-sized)
+    batch's response contained every requested id - to the SAME call_log.jsonl
+    RateLimitedClient itself already appends its own per-request lines to
+    (docs/decisions.md "Phase 2.0b"; same append-only JSONL pattern as
+    RateLimitedClient._log in simfin_universe.py, Issue #39/#41). Persisting
+    this here, not only in FundamentalsStats, is what makes the check survive
+    across separate process runs of a resumed backfill - see
+    read_full_batch_checks(). A no-op if call_log_path is None, matching
+    RateLimitedClient's own optional call_log_path."""
+    if call_log_path is None:
+        return
+    call_log_path = Path(call_log_path)
+    call_log_path.parent.mkdir(parents=True, exist_ok=True)
+    record = {"kind": "full_batch_check", "utc": _now_utc(), "batch": list(batch), "missing": list(missing)}
+    with open(call_log_path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(record) + "\n")
+
+
+def read_full_batch_checks(call_log_path):
+    """Every full-batch check ever logged to call_log_path, across every
+    process run that shares this cache dir - [{"batch": [...], "missing":
+    [...]}, ...] (utc/kind bookkeeping stripped; callers only ever need
+    these two). The file also holds RateLimitedClient's own HTTP call-log
+    lines (no "kind" key) and, if corrupted, unreadable lines - both are
+    skipped, not raised on: this reads back a log another writer already
+    validated line-by-line as it was written, not a fresh envelope. Returns
+    [] if the file does not exist yet (nothing has been fetched over the
+    network for this cache dir)."""
+    call_log_path = Path(call_log_path)
+    if not call_log_path.exists():
+        return []
+    checks = []
+    for line in call_log_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            record = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(record, dict) and record.get("kind") == "full_batch_check":
+            checks.append({"batch": record.get("batch"), "missing": record.get("missing")})
+    return checks
+
+
 def ids_to_fetch(survivor_ids, cache_dir, *, statements=DEFAULT_STATEMENTS, stats):
     """survivor_ids (in the given order) that do not already have a valid
     cache file for `statements` under cache_dir."""
@@ -195,7 +241,9 @@ def _fetch_batch(client, batch, *, statements):
     return records, remaining
 
 
-def fetch_fundamentals(client, survivor_ids, *, cache_dir, statements=DEFAULT_STATEMENTS, stats, progress=None):
+def fetch_fundamentals(
+    client, survivor_ids, *, cache_dir, statements=DEFAULT_STATEMENTS, stats, call_log_path=None, progress=None
+):
     """Fetch and cache raw companies/statements/compact data for every id in
     survivor_ids not already validly cached under cache_dir - one file per
     id, independent of any pre-filter status. Resumable: batches are built
@@ -208,6 +256,11 @@ def fetch_fundamentals(client, survivor_ids, *, cache_dir, statements=DEFAULT_ST
     stats/outcomes): once CallBudgetExhausted or ConsecutiveFailuresAbort is
     seen, every remaining batch is marked FETCH_NOT_FETCHED without another
     request.
+
+    call_log_path, if given, additionally persists each full batch's
+    presence check via _log_full_batch_check - see read_full_batch_checks()
+    for why this must be a file, not just stats.partial_full_batches, to
+    remain meaningful across a resumed backfill's separate process runs.
     """
     survivor_ids = list(survivor_ids)
     if len(set(survivor_ids)) != len(survivor_ids):
@@ -267,8 +320,10 @@ def fetch_fundamentals(client, survivor_ids, *, cache_dir, statements=DEFAULT_ST
                         },
                     )
                     outcomes[simfin_id] = outcome
-                if len(batch) == MAX_BATCH_SIZE and missing_in_batch:
-                    stats.partial_full_batches.append({"batch": list(batch), "missing": missing_in_batch})
+                if len(batch) == MAX_BATCH_SIZE:
+                    _log_full_batch_check(call_log_path, batch, missing_in_batch)
+                    if missing_in_batch:
+                        stats.partial_full_batches.append({"batch": list(batch), "missing": missing_in_batch})
         if progress is not None:
             progress(number, len(batches))
 
