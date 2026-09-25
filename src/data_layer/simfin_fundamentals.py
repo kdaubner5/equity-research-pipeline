@@ -80,6 +80,15 @@ class FundamentalsStats:
     ids_already_cached: int = 0
     cache_invalid: int = 0
     errors: list = field(default_factory=list)  # (context, message) of isolated failures
+    # Full (MAX_BATCH_SIZE-sized) batches where the response was structurally
+    # valid (HTTP 200, contract intact) but at least one requested id was
+    # still absent - the one signal that would indicate a silent cap like the
+    # one fetch_prices guards against (docs/decisions.md "Phase 2.0b"
+    # Entscheidung 2: confirmed absent at a single 2-id probe, not at scale).
+    # A batch smaller than MAX_BATCH_SIZE (the possible trailing batch of
+    # size 1) is never appended here: a lone id simply missing says nothing
+    # about pairing-related drops. {"batch": [...], "missing": [...]}
+    partial_full_batches: list = field(default_factory=list)
 
 
 def cache_path(cache_dir, simfin_id):
@@ -236,6 +245,7 @@ def fetch_fundamentals(client, survivor_ids, *, cache_dir, statements=DEFAULT_ST
                     outcomes[simfin_id] = FETCH_FAILED
             else:
                 stats.batches_network += 1
+                missing_in_batch = []
                 for simfin_id in batch:
                     if simfin_id in records:
                         outcome, response_value = FETCH_OK, records[simfin_id]
@@ -243,6 +253,7 @@ def fetch_fundamentals(client, survivor_ids, *, cache_dir, statements=DEFAULT_ST
                     else:
                         outcome, response_value = FETCH_ABSENT, None
                         stats.ids_absent += 1
+                        missing_in_batch.append(simfin_id)
                     _write_envelope(
                         cache_path(cache_dir, simfin_id),
                         {
@@ -256,6 +267,8 @@ def fetch_fundamentals(client, survivor_ids, *, cache_dir, statements=DEFAULT_ST
                         },
                     )
                     outcomes[simfin_id] = outcome
+                if len(batch) == MAX_BATCH_SIZE and missing_in_batch:
+                    stats.partial_full_batches.append({"batch": list(batch), "missing": missing_in_batch})
         if progress is not None:
             progress(number, len(batches))
 

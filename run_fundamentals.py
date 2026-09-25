@@ -122,6 +122,28 @@ def _print_summary(out, *, run_timestamp, as_of, rows, outcomes, stats, client, 
         f"fetch_failed={statuses[sf.FETCH_FAILED]} not_fetched={statuses[sf.FETCH_NOT_FETCHED]}",
         file=out,
     )
+    # "absent" alone does not distinguish "genuinely no data" from a silent
+    # cap like the one fetch_prices guards against (docs/decisions.md "Phase
+    # 2.0b" Entscheidung 2 is confirmed at a single 2-id probe, not at
+    # scale): check every full MAX_BATCH_SIZE batch explicitly, not just the
+    # aggregate absent count.
+    if stats.partial_full_batches:
+        print(
+            f"ACHTUNG: {len(stats.partial_full_batches)} von {stats.batches_network} vollen "
+            f"{sf.MAX_BATCH_SIZE}er-Batches enthielten eine fehlende ID trotz erfolgreicher Antwort - "
+            "moeglicher Hinweis auf eine stille Kappung wie bei den Preisen. Vor dem Vollauf einzeln pruefen:",
+            file=out,
+        )
+        for entry in stats.partial_full_batches[:10]:
+            print(f"  batch={entry['batch']} missing={entry['missing']}", file=out)
+        if len(stats.partial_full_batches) > 10:
+            print(f"  ... und {len(stats.partial_full_batches) - 10} weitere", file=out)
+    else:
+        print(
+            f"voller-Batch-Pruefung: 0 von {stats.batches_network} vollen {sf.MAX_BATCH_SIZE}er-Batches mit "
+            "fehlender ID (kein Hinweis auf eine stille Kappung in diesem Lauf).",
+            file=out,
+        )
     for context, message in stats.errors[:10]:
         print(f"error ({context}): {message}", file=out)
     if len(stats.errors) > 10:

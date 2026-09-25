@@ -173,6 +173,33 @@ def test_the_rate_limit_header_is_stored_in_each_ids_envelope(monkeypatch, tmp_p
     assert envelope["rate_limit_remaining"] == "0"  # FakeSimFin's default header
 
 
+# --- partial_full_batches (explicit silent-cap check on full batches) ----------
+
+
+def test_a_full_batch_with_one_id_absent_is_flagged_in_partial_full_batches(monkeypatch, tmp_path, clock):
+    fake = FakeSimFin(monkeypatch, statements={1: statements_record(1)})  # id 2 has no data
+    client = make_client(tmp_path, clock)
+    stats = sf.FundamentalsStats()
+    sf.fetch_fundamentals(client, [1, 2], cache_dir=tmp_path / "cache", stats=stats)
+    assert stats.partial_full_batches == [{"batch": [1, 2], "missing": [2]}]
+
+
+def test_a_full_batch_with_both_ids_present_is_not_flagged(monkeypatch, tmp_path, clock):
+    fake, client, stats, outcomes = run_fetch(monkeypatch, tmp_path, clock, [1, 2])
+    assert stats.partial_full_batches == []
+
+
+def test_a_trailing_undersized_batch_is_never_flagged_even_if_its_id_is_absent(monkeypatch, tmp_path, clock):
+    # batch 1 is full [1, 2] and clean; batch 2 is the odd trailing [3] alone -
+    # a lone id missing says nothing about pairing-related drops.
+    fake = FakeSimFin(monkeypatch, statements={1: statements_record(1), 2: statements_record(2)})  # id 3 absent
+    client = make_client(tmp_path, clock)
+    stats = sf.FundamentalsStats()
+    outcomes = sf.fetch_fundamentals(client, [1, 2, 3], cache_dir=tmp_path / "cache", stats=stats)
+    assert outcomes[3] == sf.FETCH_ABSENT
+    assert stats.partial_full_batches == []
+
+
 # --- absent ids (no requery logic) ----------------------------------------------
 
 

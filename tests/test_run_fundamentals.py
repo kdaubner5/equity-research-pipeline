@@ -171,6 +171,26 @@ def test_a_failing_batch_is_isolated_and_retried_on_the_next_run(monkeypatch, tm
     assert code == rf.EXIT_OK and "complete=True" in output
 
 
+# --- explicit full-batch silent-cap check -------------------------------------------
+
+
+def test_the_summary_flags_a_full_batch_with_an_absent_id(monkeypatch, tmp_path, clock):
+    seed_db(tmp_path / "archive.db", survivor_ids=(1, 2))
+    FakeSimFin(monkeypatch, statements={1: statements_record(1)})  # id 2 absent from its full batch
+    code, output = do_run(tmp_path, clock)
+    assert code == rf.EXIT_OK
+    assert "ACHTUNG: 1 von 1 vollen 2er-Batches" in output
+    assert "batch=[1, 2] missing=[2]" in output
+
+
+def test_the_summary_reports_a_clean_check_when_no_full_batch_has_a_gap(monkeypatch, tmp_path, clock):
+    seed_db(tmp_path / "archive.db", survivor_ids=(1, 2))
+    FakeSimFin(monkeypatch, statements={1: statements_record(1), 2: statements_record(2)})
+    code, output = do_run(tmp_path, clock)
+    assert code == rf.EXIT_OK
+    assert "voller-Batch-Pruefung: 0 von 1 vollen 2er-Batches mit fehlender ID" in output
+
+
 # --- abort after consecutive failures ---------------------------------------------
 
 
