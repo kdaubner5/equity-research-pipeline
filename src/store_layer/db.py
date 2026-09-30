@@ -12,6 +12,12 @@ voller Trichter-Scope"). No price-at-run column yet (no price client
 exists - Issue #28) and no Stage-3/4 columns (verdict/buy/position size -
 those stages aren't built yet).
 
+A "failed" eliminated company is not necessarily complete: since docs/decisions.md
+"Phase 2.0d" (Issue #35) a valid hard fail in ROIC, Net Debt/EBITDA or Cash
+Conversion makes a company "failed" even if another metric is invalid, so a
+"failed" row can carry invalid_reasons and None raw values, just like a
+"not_evaluable" one.
+
 Both tables (and the survivors CSV) also carry the company's
 data_quality_flags, read from GateResult.data_quality_flags - the store never
 sees periods, so whoever builds the GateResults passes them in
@@ -204,9 +210,13 @@ def _eliminated_rows(gate_results: Dict[str, GateResult]):
     """Eliminated rows (status failed/not_evaluable), unranked.
 
     The four raw values stay None wherever the underlying MetricResult was
-    invalid (only possible for not_evaluable - a failed company always has
-    all four populated, since classification only runs once every metric
-    is valid, see gates_layer.stage1_gates.evaluate_stage1_gates).
+    invalid, and invalid_reasons lists every such reason. That holds for
+    not_evaluable and, since docs/decisions.md "Phase 2.0d" (Issue #35),
+    also for a failed company whose valid ROIC / Net Debt/EBITDA / Cash
+    Conversion is in its hard-fail zone next to an invalid metric (see
+    gates_layer.stage1_gates.evaluate_stage1_gates). A failed company
+    without any invalid metric still has all four values and an empty
+    invalid_reasons.
     """
     return [
         {
