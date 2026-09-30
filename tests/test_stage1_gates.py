@@ -109,19 +109,219 @@ def test_evaluate_stage1_gates_point_in_time_not_averaged():
 @pytest.mark.parametrize(
     "company_id,expected_reason",
     [
-        ("NAKA17", "ic_non_positive"),
         ("ORBT18", "insufficient_years"),
-        ("WEYL19", "ebitda_non_positive"),
-        ("MDYN06", "ni_non_positive"),
         ("MURK26", "net_debt_unreliable"),
         ("VOID32", "revenue_non_positive"),
     ],
 )
 def test_evaluate_stage1_gates_not_evaluable(company_id, expected_reason):
+    # Only fixtures whose valid metrics are all outside the hard-fail zone
+    # stay not_evaluable. NAKA17, MDYN06 and WEYL19 moved to
+    # test_evaluate_stage1_gates_valid_hard_fail_beats_invalid_reason_on_fixtures
+    # (docs/decisions.md, "Phase 2.0d", Entscheidung 1).
     result = _gate_result_for(company_id)
     assert result.status == "not_evaluable"
     assert result.flags == ()
     assert expected_reason in result.invalid_reasons
+
+
+def _in_hard_fail_zone(metric_name, value):
+    """Whether value is in the metric's hard-fail zone, derived from DEFAULT_THRESHOLDS
+    (independent of the gate's own classifiers, no hard-coded numbers)."""
+    if metric_name == "roic":
+        return value < DEFAULT_THRESHOLDS.roic.fail_below
+    if metric_name == "net_debt_ebitda":
+        return value >= DEFAULT_THRESHOLDS.net_debt_ebitda.fail_at_or_above
+    if metric_name == "cash_conversion":
+        return value < DEFAULT_THRESHOLDS.cash_conversion.fail_below
+    raise ValueError(metric_name)
+
+
+@pytest.mark.parametrize(
+    "company_id,expected_reason,hard_fail_metrics",
+    [
+        ("NAKA17", "ic_non_positive", ("net_debt_ebitda",)),  # roic invalid; Net Debt/EBITDA 2.86x
+        ("MDYN06", "ni_non_positive", ("roic", "net_debt_ebitda")),  # cash_conversion invalid
+        ("WEYL19", "ebitda_non_positive", ("roic",)),  # net_debt_ebitda and cash_conversion invalid
+    ],
+)
+def test_evaluate_stage1_gates_valid_hard_fail_beats_invalid_reason_on_fixtures(
+    company_id, expected_reason, hard_fail_metrics
+):
+    # Phase 2.0d, Entscheidung 1: a valid metric in the hard-fail zone makes the
+    # company failed even though another metric carries an invalid_reason. The
+    # guard stays visible in invalid_reasons (Entscheidung 2).
+    result = _gate_result_for(company_id)
+    assert result.status == "failed"
+    assert expected_reason in result.invalid_reasons
+    for metric_name in hard_fail_metrics:
+        value = getattr(result, metric_name)
+        assert value is not None
+        assert _in_hard_fail_zone(metric_name, value)
+
+
+@pytest.mark.parametrize(
+    "invalid_metric,reason",
+    [
+        ("roic", "ic_non_positive"),
+        ("net_debt_ebitda", "ebitda_non_positive"),
+        ("cash_conversion", "ni_non_positive"),
+    ],
+)
+def test_evaluate_stage1_gates_single_guard_with_healthy_other_metrics_is_not_evaluable(invalid_metric, reason):
+    # Gates-level coverage of each guard in isolation (the fixtures for these
+    # guards also carry valid hard fails, see the fixture test above).
+    inputs = {
+        "roic": MetricResult(value=0.15),
+        "net_debt_ebitda": MetricResult(value=1.0),
+        "cash_conversion": MetricResult(value=1.5),
+        "net_income_margin": MetricResult(value=0.05),
+    }
+    inputs[invalid_metric] = MetricResult(value=None, invalid_reason=reason)
+    result = evaluate_stage1_gates(**inputs, thresholds=DEFAULT_THRESHOLDS)
+    assert result.status == "not_evaluable"
+    assert result.flags == ()
+    assert result.invalid_reasons == (reason,)
+
+
+_HEALTHY = {
+    "roic": MetricResult(value=0.15),
+    "net_debt_ebitda": MetricResult(value=1.0),
+    "cash_conversion": MetricResult(value=1.5),
+    "net_income_margin": MetricResult(value=0.05),
+}
+
+
+def _hard_fail_result(metric_name):
+    """A valid MetricResult inside metric_name's hard-fail zone, derived from DEFAULT_THRESHOLDS."""
+    if metric_name == "roic":
+        return MetricResult(value=DEFAULT_THRESHOLDS.roic.fail_below - 0.05)
+    if metric_name == "net_debt_ebitda":
+        return MetricResult(value=DEFAULT_THRESHOLDS.net_debt_ebitda.fail_at_or_above + 1.0)
+    if metric_name == "cash_conversion":
+        return MetricResult(value=DEFAULT_THRESHOLDS.cash_conversion.fail_below - 0.3)
+    raise ValueError(metric_name)
+
+
+@pytest.mark.parametrize("hard_fail_metric", ["roic", "net_debt_ebitda", "cash_conversion"])
+def test_evaluate_stage1_gates_valid_hard_fail_wins_over_another_metrics_invalid_reason(hard_fail_metric):
+    # Phase 2.0d, Entscheidung 1: once per metric that can trigger the precedence.
+    invalid_metric = next(name for name in ("roic", "net_debt_ebitda", "cash_conversion") if name != hard_fail_metric)
+    inputs = {
+        **_HEALTHY,
+        hard_fail_metric: _hard_fail_result(hard_fail_metric),
+        invalid_metric: MetricResult(value=None, invalid_reason="some_guard"),
+    }
+    result = evaluate_stage1_gates(**inputs, thresholds=DEFAULT_THRESHOLDS)
+    assert result.status == "failed"
+    assert result.invalid_reasons == ("some_guard",)
+    assert getattr(result, hard_fail_metric) == inputs[hard_fail_metric].value
+    assert getattr(result, invalid_metric) is None
+
+
+def test_evaluate_stage1_gates_hard_fail_exactly_at_the_net_debt_threshold_counts():
+    # Boundary direction of Net Debt/EBITDA (at or above -> hard fail) carries over.
+    result = evaluate_stage1_gates(
+        **{
+            **_HEALTHY,
+            "net_debt_ebitda": MetricResult(value=DEFAULT_THRESHOLDS.net_debt_ebitda.fail_at_or_above),
+            "cash_conversion": MetricResult(value=None, invalid_reason="ni_non_positive"),
+        },
+        thresholds=DEFAULT_THRESHOLDS,
+    )
+    assert result.status == "failed"
+
+
+@pytest.mark.parametrize("invalid_metric", ["roic", "net_debt_ebitda", "cash_conversion"])
+def test_evaluate_stage1_gates_invalid_metric_alone_is_never_a_hard_fail(invalid_metric):
+    # Präzisierung 1: only a metric with its own invalid_reason == None counts. An
+    # invalid metric has no value (MetricResult forbids both), so with the other
+    # metrics healthy there is no valid hard fail and the company stays not_evaluable.
+    inputs = {**_HEALTHY, invalid_metric: MetricResult(value=None, invalid_reason="net_debt_unreliable")}
+    result = evaluate_stage1_gates(**inputs, thresholds=DEFAULT_THRESHOLDS)
+    assert result.status == "not_evaluable"
+    assert result.flags == ()
+    assert getattr(result, invalid_metric) is None
+
+
+def test_evaluate_stage1_gates_two_invalid_metrics_and_no_valid_hard_fail_stays_not_evaluable():
+    result = evaluate_stage1_gates(
+        **{
+            **_HEALTHY,
+            "roic": MetricResult(value=None, invalid_reason="net_debt_unreliable"),
+            "net_debt_ebitda": MetricResult(value=None, invalid_reason="net_debt_unreliable"),
+        },
+        thresholds=DEFAULT_THRESHOLDS,
+    )
+    assert result.status == "not_evaluable"
+    assert result.invalid_reasons == ("net_debt_unreliable", "net_debt_unreliable")
+
+
+def test_evaluate_stage1_gates_grey_zone_next_to_an_invalid_metric_stays_not_evaluable():
+    # The grey zone is not a hard fail: cash_conversion exactly at fail_below is a
+    # flag, so an invalid ROIC still makes the company not_evaluable, flags empty.
+    result = evaluate_stage1_gates(
+        **{
+            **_HEALTHY,
+            "roic": MetricResult(value=None, invalid_reason="ic_non_positive"),
+            "cash_conversion": MetricResult(value=DEFAULT_THRESHOLDS.cash_conversion.fail_below),
+        },
+        thresholds=DEFAULT_THRESHOLDS,
+    )
+    assert result.status == "not_evaluable"
+    assert result.flags == ()
+
+
+@pytest.mark.parametrize("invalid_metric", ["roic", "net_debt_ebitda", "cash_conversion"])
+def test_evaluate_stage1_gates_margin_hard_fail_never_triggers_the_precedence(invalid_metric):
+    # Präzisierung 2: only the margin is below its threshold and another metric is
+    # invalid -> not_evaluable (Net-Income-Margin-Gate, Entscheidung 4, unchanged).
+    inputs = {
+        **_HEALTHY,
+        "net_income_margin": MetricResult(value=DEFAULT_THRESHOLDS.net_income_margin.fail_below / 2),
+        invalid_metric: MetricResult(value=None, invalid_reason="ni_non_positive"),
+    }
+    result = evaluate_stage1_gates(**inputs, thresholds=DEFAULT_THRESHOLDS)
+    assert result.status == "not_evaluable"
+    assert result.flags == ()
+    assert result.invalid_reasons == ("ni_non_positive",)
+
+
+def test_evaluate_stage1_gates_invalid_margin_next_to_a_valid_hard_fail_is_failed():
+    # An invalid margin is "another metric with an invalid_reason" like any other.
+    result = evaluate_stage1_gates(
+        **{
+            **_HEALTHY,
+            "roic": _hard_fail_result("roic"),
+            "net_income_margin": MetricResult(value=None, invalid_reason="revenue_non_positive"),
+        },
+        thresholds=DEFAULT_THRESHOLDS,
+    )
+    assert result.status == "failed"
+    assert result.invalid_reasons == ("revenue_non_positive",)
+    assert result.net_income_margin is None
+
+
+def test_evaluate_stage1_gates_failed_with_invalid_reasons_keeps_reasons_raw_values_and_valid_flags():
+    # Entscheidung 2: invalid_reasons in the fixed metric order, raw values None
+    # where invalid, flags only from the valid metrics' grey zones.
+    grey_cash_conversion = DEFAULT_THRESHOLDS.cash_conversion.fail_below  # grey zone, lower boundary
+    result = evaluate_stage1_gates(
+        roic=MetricResult(value=None, invalid_reason="ic_non_positive"),
+        net_debt_ebitda=_hard_fail_result("net_debt_ebitda"),
+        cash_conversion=MetricResult(value=grey_cash_conversion),
+        net_income_margin=MetricResult(value=None, invalid_reason="revenue_non_positive"),
+        thresholds=DEFAULT_THRESHOLDS,
+        data_quality_flags=("pl_lags_other_statements",),
+    )
+    assert result.status == "failed"
+    assert result.invalid_reasons == ("ic_non_positive", "revenue_non_positive")
+    assert result.flags == ("cash_conversion",)
+    assert result.roic is None
+    assert result.net_debt_ebitda == _hard_fail_result("net_debt_ebitda").value
+    assert result.cash_conversion == grey_cash_conversion
+    assert result.net_income_margin is None
+    assert result.data_quality_flags == ("pl_lags_other_statements",)
 
 
 def test_evaluate_stage1_gates_margin_boundary_exactly_2_percent_passes():
@@ -164,20 +364,37 @@ def test_evaluate_stage1_gates_margin_revenue_guard_isolated():
 def test_evaluate_stage1_gates_invalid_takes_precedence_over_margin_failure():
     # HOOL07: net_income<0 and cfo<0 in 2024 triggers the EXISTING
     # ni_non_positive guard on cash_conversion. Its net_income_margin 3yr
-    # average (~0.57%) is itself well below the new 2% threshold - would
-    # be "failed" in isolation - but the company must stay "not_evaluable",
-    # never "failed", since invalid_reason still takes precedence over any
-    # failed/passed classification (Gates-Layer-Entscheidung 2, unchanged).
+    # average (~0.57%) is well below the 2% threshold.
+    #
+    # Since docs/decisions.md "Phase 2.0d" (Entscheidung 1) this fixture is
+    # "failed" - but because ROIC (~4.2%) and Net Debt/EBITDA (~5.7x) are valid
+    # and in their own hard-fail zones, NOT because of the margin: the margin
+    # is excluded from the precedence rule (Praezisierung 2). The regression
+    # "a margin below 2% does not override ni_non_positive" is carried by the
+    # _synthetic test below, whose other metrics are healthy.
     company = load_company("HOOL07")
     periods = company["periods"]
     margin_result = net_income_margin_3yr_average(periods)
     assert margin_result.invalid_reason is None
-    assert margin_result.value < 0.02  # would fail the margin gate in isolation
+    assert margin_result.value < DEFAULT_THRESHOLDS.net_income_margin.fail_below  # would fail the margin gate in isolation
 
     result = _gate_result_for("HOOL07")
-    assert result.status == "not_evaluable"
-    assert result.status != "failed"
+    assert result.status == "failed"
     assert result.invalid_reasons == ("ni_non_positive",)
+    assert result.roic is not None and result.roic < DEFAULT_THRESHOLDS.roic.fail_below
+    assert result.net_debt_ebitda is not None
+    assert result.net_debt_ebitda >= DEFAULT_THRESHOLDS.net_debt_ebitda.fail_at_or_above
+    assert result.cash_conversion is None
+
+    # the margin is not needed for this verdict: with a healthy margin it stays failed
+    without_margin_failure = evaluate_stage1_gates(
+        roic=roic_3yr_average(periods, thresholds=DEFAULT_THRESHOLDS.roic),
+        net_debt_ebitda=net_debt_ebitda_latest(periods),
+        cash_conversion=cash_conversion_3yr_average(periods),
+        net_income_margin=MetricResult(value=0.05),
+        thresholds=DEFAULT_THRESHOLDS,
+    )
+    assert without_margin_failure.status == "failed"
 
 
 def test_evaluate_stage1_gates_invalid_takes_precedence_over_margin_failure_synthetic():
