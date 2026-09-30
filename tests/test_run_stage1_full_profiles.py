@@ -190,3 +190,36 @@ def test_summary_of_a_run_without_profiles_says_not_checked_and_has_a_zero_for_t
     text = out.getvalue()
     assert "unsupported_business_model=1" in text
     assert "profile check: not checked" not in text
+
+
+# --- hardening from the /code-review of PR #53 ----------------------------------------
+
+
+def test_sector_codes_can_be_read_from_a_path_containing_hash_and_percent(tmp_path):
+    # the read-only SQLite URI must be built with a percent-encoded path (Path.as_uri()), else '#'
+    # starts the URI fragment and '%41' would decode to 'A'
+    odd_dir = tmp_path / "run#2 %41 dir"
+    odd_dir.mkdir()
+    db_path = odd_dir / "archive.db"
+    save_universe_prefilter(
+        RUN_TS, [prefilter_row(1, "AAA", STANDARD), prefilter_row(2, "BBB", BANK)], config_hash="deadbeef", db_path=db_path
+    )
+    assert rsf.load_survivor_sector_codes(db_path, RUN_TS) == {1: STANDARD, 2: BANK}
+
+
+def test_the_loop_guard_raises_a_run_error_with_the_simfin_id_if_the_coverage_check_was_bypassed(
+    monkeypatch, tmp_path, capsys
+):
+    # The coverage check catches an unlisted/NULL code before the loop today; the guard in the loop is
+    # only a safeguard. Trigger it directly: a sector-code source that lacks one survivor, with the
+    # coverage check disabled.
+    ufpt = _load_raw("UFPT")
+    profiles_path, db_path = setup_run(tmp_path, [(ufpt["id"], "UFPT", STANDARD), (900, "GHOST", STANDARD)], cached=["UFPT"])
+    monkeypatch.setattr(rsf, "load_survivor_sector_codes", lambda *args, **kwargs: {ufpt["id"]: STANDARD})
+    monkeypatch.setattr(rsf, "check_sector_profile_coverage", lambda *args, **kwargs: None)
+
+    exit_code, _ = do_run(tmp_path, profiles_path, db_path)
+
+    assert exit_code == rsf.EXIT_TECHNICAL_FAILURE  # a run error, not an AttributeError traceback
+    assert "900" in capsys.readouterr().err
+    _archive_is_untouched(tmp_path, db_path)

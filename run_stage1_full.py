@@ -137,7 +137,9 @@ def load_survivor_sector_codes(db_path, source_run_timestamp):
     it cannot be read.
     """
     try:
-        connection = sqlite3.connect(f"file:{Path(db_path).as_posix()}?mode=ro", uri=True)
+        # Path.as_uri() percent-encodes the path ('#', '%', spaces ...); a hand-built "file:..." URI
+        # would treat '#' as the start of the fragment.
+        connection = sqlite3.connect(Path(db_path).resolve().as_uri() + "?mode=ro", uri=True)
         try:
             return dict(
                 connection.execute(
@@ -269,6 +271,14 @@ def run(
         missing_ticker_ids = []
         for simfin_id, ticker in rows:
             assignment = profiles.assignment(sector_codes.get(simfin_id))
+            if assignment is None:
+                # check_sector_profile_coverage() above already aborts for any survivor without a listed
+                # code, so this cannot happen today; it is only a safeguard (two separate queries feed
+                # rows and sector_codes) that keeps "no silent skip" local to this loop.
+                raise Stage1FullRunError(
+                    f"no sector profile for survivor simfin_id {simfin_id} (sectorCode {sector_codes.get(simfin_id)!r}) "
+                    f"- the coverage check should have aborted the run before any evaluation"
+                )
             if not assignment.profile.supported:
                 # excluded business model: not evaluated at all, so no cache read either
                 result = unsupported_business_model_result(assignment.profile.name)

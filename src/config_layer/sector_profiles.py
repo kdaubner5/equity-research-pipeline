@@ -67,35 +67,51 @@ class SectorProfiles:
         return sorted(unknown), null_count
 
 
-def _reject_duplicates_within(mapping_node, prefix, path):
+def _key_identity(loader, key_node):
+    """The key as YAML will construct it, so that 104002 and 104_002 (or 0x19632) are the same key.
+
+    Falls back to the raw (tag, text) pair if the key cannot be constructed or is not hashable.
+    """
+    try:
+        value = loader.construct_object(key_node, deep=True)
+        hash(value)
+        return value
+    except Exception:  # noqa: BLE001 - any construction problem just means "compare the raw text"
+        return (key_node.tag, key_node.value)
+
+
+def _reject_duplicates_within(loader, mapping_node, prefix, path):
     seen = {}
     for key_node, _ in mapping_node.value:
         if not isinstance(key_node, yaml.ScalarNode):
             continue
         line = key_node.start_mark.line + 1
-        identity = (key_node.tag, key_node.value)
+        identity = _key_identity(loader, key_node)
         if identity in seen:
+            first_line, first_text = seen[identity]
+            spelling = f" (written {first_text!r} and {key_node.value!r})" if first_text != key_node.value else ""
             raise SectorProfilesConfigError(
-                f"{path} has duplicate key {prefix + key_node.value!r} (lines {seen[identity]} and {line})"
+                f"{path} has duplicate key {prefix + str(identity)!r}{spelling} (lines {first_line} and {line})"
             )
-        seen[identity] = line
+        seen[identity] = (line, key_node.value)
 
 
-def _reject_duplicate_keys(root_node, path):
+def _reject_duplicate_keys(loader, root_node, path):
     """Reject a key that appears twice in the same mapping at any of the schema's
     levels (top level, profile/sector names, their attributes): yaml.safe_load
     silently keeps the last of two equal keys, so a second `104002:` line would
-    override the first without any error."""
+    override the first without any error. Keys are compared by their PARSED value,
+    not their spelling (104002 == 104_002 == 0x19632)."""
     if not isinstance(root_node, yaml.MappingNode):
         return
-    _reject_duplicates_within(root_node, "", path)
+    _reject_duplicates_within(loader, root_node, "", path)
     for key_node, value_node in root_node.value:
         if not (isinstance(key_node, yaml.ScalarNode) and isinstance(value_node, yaml.MappingNode)):
             continue
-        _reject_duplicates_within(value_node, f"{key_node.value}.", path)
+        _reject_duplicates_within(loader, value_node, f"{key_node.value}.", path)
         for inner_key, inner_value in value_node.value:
             if isinstance(inner_key, yaml.ScalarNode) and isinstance(inner_value, yaml.MappingNode):
-                _reject_duplicates_within(inner_value, f"{key_node.value}.{inner_key.value}.", path)
+                _reject_duplicates_within(loader, inner_value, f"{key_node.value}.{inner_key.value}.", path)
 
 
 def _parse_yaml(raw_text, path):
@@ -105,7 +121,7 @@ def _parse_yaml(raw_text, path):
         node = loader.get_single_node()
         if node is None:
             return None
-        _reject_duplicate_keys(node, path)
+        _reject_duplicate_keys(loader, node, path)
         return loader.construct_document(node)
     finally:
         loader.dispose()
@@ -155,6 +171,10 @@ def _parse_sector(code, data, profiles, path):
     data = _require_mapping(data, f"{path}: sectors.{code}")
     _check_keys(data, _SECTOR_KEYS, _SECTOR_KEYS, f"{path}", f"sectors.{code}.")
     profile_name = data["profile"]
+    if not isinstance(profile_name, str):
+        raise SectorProfilesConfigError(
+            f"{path}: sectors.{code}.profile must be a profile name (a string), got {profile_name!r} ({type(profile_name).__name__})"
+        )
     if profile_name not in profiles:
         raise SectorProfilesConfigError(
             f"{path}: sectors.{code}.profile {profile_name!r} is not a defined profile ({sorted(profiles)})"

@@ -4,6 +4,7 @@ required, no code-side defaults, any problem aborts loading with a message that
 names the offending key."""
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -193,3 +194,29 @@ def test_real_config_lists_every_sector_code_of_the_universe_bulk_file():
     codes = {row[index] for row in response["data"] if row[index] is not None}
     config = load_sector_profiles(DEFAULT_SECTOR_PROFILES_PATH)
     assert set(config.sectors) == codes
+
+
+# --- hardening from the /code-review of PR #53 ----------------------------------------
+
+
+@pytest.mark.parametrize("profile_value", ["[banks]", "5", "null", "{a: b}", "true"])
+def test_a_sector_profile_that_is_not_a_string_is_a_config_error_naming_the_key_not_a_type_error(tmp_path, profile_value):
+    text = (
+        "profiles:\n  non_financial: {supported: true}\n  banks: {supported: false, reason: r}\nsectors:\n"
+        f"  104002: {{profile: {profile_value}, borderline: false}}\n"
+    )
+    with pytest.raises(SectorProfilesConfigError, match=r"sectors\.104002\.profile"):
+        load_sector_profiles(write(tmp_path, text))
+
+
+@pytest.mark.parametrize("second_spelling", ["104_002", "0x19642", "+104002"])
+def test_the_same_sector_code_in_another_spelling_is_a_duplicate(tmp_path, second_spelling):
+    # YAML resolves all of these to the integer 104002; the dict would silently keep only the last
+    text = VALID_YAML + f"  {second_spelling}: {{profile: non_financial, borderline: false}}\n"
+    with pytest.raises(SectorProfilesConfigError) as excinfo:
+        load_sector_profiles(write(tmp_path, text))
+    message = str(excinfo.value)
+    assert "duplicate" in message and "104002" in message
+    match = re.search(r"lines (\d+) and (\d+)", message)  # the message names both lines
+    assert match and int(match.group(1)) != int(match.group(2))
+    assert second_spelling in message  # ... and the second spelling, which differs from the first
