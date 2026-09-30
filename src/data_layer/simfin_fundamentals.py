@@ -133,6 +133,73 @@ def _read_envelope(path, *, simfin_id, statements, stats):
     return envelope
 
 
+class CachedStatementsError(ValueError):
+    """The cached envelope for a simfin_id exists but is corrupt/unreadable
+    or fails the same contract _read_envelope enforces on the write path -
+    distinct from "nothing to evaluate" (no file, or outcome=="absent"),
+    which read_cached_statements() reports as None instead. A caller must
+    eliminate the company with a reason distinguishable from "SimFin has no
+    data for this id" (docs/decisions.md "Phase 2.0c" (2026-09-30),
+    CLAUDE.md data-integrity convention)."""
+
+
+def read_cached_statements(cache_dir, simfin_id, *, statements):
+    """The cached raw companies/statements/compact record for simfin_id -
+    the same dict shape one element of fetch_statements_batch()'s live
+    response has (docs/decisions.md "Phase 2.0c" Entscheidung 3) - or None
+    if there is nothing to evaluate: no cache file at all, or the cached
+    envelope's outcome=="absent". Raises CachedStatementsError if a cache
+    file exists but fails validation.
+
+    Duplicates _read_envelope's checks (this module's own docstring: small
+    private envelope helpers are duplicated, not shared, to stay
+    independent of a future format change) but reports a validation
+    failure via an exception to its own caller instead of a
+    FundamentalsStats counter - there is no run-level stats object here.
+    """
+    path = cache_path(cache_dir, simfin_id)
+    try:
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return None
+    except OSError as exc:
+        raise CachedStatementsError(f"cache file unreadable for simfin_id {simfin_id} at {path}: {exc}") from exc
+    try:
+        envelope = json.loads(text)
+    except ValueError as exc:
+        raise CachedStatementsError(f"cache file for simfin_id {simfin_id} at {path} is not valid JSON: {exc}") from exc
+    if not isinstance(envelope, dict):
+        raise CachedStatementsError(f"cache file for simfin_id {simfin_id} at {path} is not a JSON object")
+    if envelope.get("kind") != "fundamentals_raw":
+        raise CachedStatementsError(
+            f"cache file for simfin_id {simfin_id} at {path} has kind {envelope.get('kind')!r}, "
+            "expected 'fundamentals_raw'"
+        )
+    if envelope.get("simfin_id") != simfin_id:
+        raise CachedStatementsError(
+            f"cache file for simfin_id {simfin_id} at {path} carries simfin_id {envelope.get('simfin_id')!r}"
+        )
+    if envelope.get("statements") != list(statements):
+        raise CachedStatementsError(
+            f"cache file for simfin_id {simfin_id} at {path} was cached for statements "
+            f"{envelope.get('statements')!r}, expected {list(statements)!r}"
+        )
+    outcome = envelope.get("outcome")
+    if outcome == FETCH_ABSENT:
+        return None
+    if outcome != FETCH_OK:
+        raise CachedStatementsError(
+            f"cache file for simfin_id {simfin_id} at {path} has outcome {outcome!r}, expected 'ok' or 'absent'"
+        )
+    response = envelope.get("response")
+    if not isinstance(response, dict):
+        raise CachedStatementsError(
+            f"cache file for simfin_id {simfin_id} at {path} has outcome 'ok' but response is "
+            f"{type(response).__name__}, expected an object"
+        )
+    return response
+
+
 def _now_utc():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
