@@ -26,6 +26,17 @@ ticker (universe_prefilter has no ticker-uniqueness constraint, unlike the
 archive's (run_timestamp, ticker) key) abort the whole run rather than
 silently overwrite one with the other (review fix, 2026-09-30).
 
+Before any evaluation the run checks every survivor's sectorCode
+(universe_prefilter.sector_code of the chosen run_timestamp, read-only)
+against config/sector_profiles.yaml (docs/decisions.md "Phase 2.0e", Issue
+#51): a code that is not listed, or NULL, aborts the whole run naming the
+missing codes and writes nothing - an incomplete config, not a data problem
+of the company. A survivor whose profile is excluded (banks, insurers,
+REITs, biotech) gets the status "unsupported_business_model" without being
+evaluated; every other result carries its profile and the borderline_sector
+marker (informational only). run_stage1.py, the pilot runner, applies no
+profile check.
+
 --run-timestamp selects only the universe_prefilter run survivors are
 sourced from (same meaning as run_fundamentals.py's identically-named
 flag); the archive run_timestamp this run writes under is generated fresh
@@ -40,6 +51,8 @@ write) - same contract as run_stage1.py/run_fundamentals.py.
 """
 
 import argparse
+import dataclasses
+import sqlite3
 import sys
 from datetime import date, datetime
 from pathlib import Path
@@ -47,8 +60,13 @@ from pathlib import Path
 _REPO_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(_REPO_ROOT / "src"))  # same fixup as run_stage1.py/run_universe.py/run_fundamentals.py
 
+from config_layer.sector_profiles import (  # noqa: E402
+    DEFAULT_SECTOR_PROFILES_PATH,
+    SectorProfilesConfigError,
+    load_sector_profiles,
+)
 from data_layer import simfin_fundamentals as sf  # noqa: E402
-from gates_layer.stage1_gates import GateResult, NOT_EVALUABLE  # noqa: E402
+from gates_layer.stage1_gates import GateResult, NOT_EVALUABLE, unsupported_business_model_result  # noqa: E402
 from store_layer.db import DEFAULT_CSV_DIR, DEFAULT_DB_PATH, export_survivors_csv, save_run_results  # noqa: E402
 
 from run_fundamentals import DEFAULT_CACHE_DIR as DEFAULT_FUNDAMENTALS_CACHE_DIR  # noqa: E402
@@ -111,6 +129,51 @@ def load_survivors(db_path, run_timestamp=None):
         raise Stage1FullRunError(str(exc)) from exc
 
 
+def load_survivor_sector_codes(db_path, source_run_timestamp):
+    """{simfin_id: sector_code (or None)} of the passed rows of one universe_prefilter run.
+
+    Read-only (SQLite mode=ro) and a local query like load_survivors()'s
+    delegate - the archive is never written here. Raises Stage1FullRunError if
+    it cannot be read.
+    """
+    try:
+        connection = sqlite3.connect(f"file:{Path(db_path).as_posix()}?mode=ro", uri=True)
+        try:
+            return dict(
+                connection.execute(
+                    "SELECT simfin_id, sector_code FROM universe_prefilter WHERE run_timestamp = ? AND status = 'passed'",
+                    (source_run_timestamp,),
+                ).fetchall()
+            )
+        finally:
+            connection.close()
+    except sqlite3.Error as exc:
+        raise Stage1FullRunError(f"could not read sector codes from {db_path}: {exc}") from exc
+
+
+def check_sector_profile_coverage(rows, sector_codes, profiles, source_run_timestamp, profiles_path):
+    """Abort (Stage1FullRunError) if any survivor's sectorCode is missing from the profile config.
+
+    Names every missing code (and the survivors carrying a NULL code) and
+    is called before any evaluation, so nothing has been written yet
+    (docs/decisions.md "Phase 2.0e", Entscheidung 2).
+    """
+    unknown, null_count = profiles.find_uncovered(sector_codes.get(simfin_id) for simfin_id, _ in rows)
+    if not unknown and not null_count:
+        return
+    problems = []
+    if unknown:
+        problems.append(f"sectorCode(s) not listed in {profiles_path}: {unknown}")
+    if null_count:
+        null_ids = [simfin_id for simfin_id, _ in rows if sector_codes.get(simfin_id) is None]
+        problems.append(f"{null_count} survivor(s) with a NULL sectorCode (simfin_ids: {null_ids})")
+    raise Stage1FullRunError(
+        f"sector_profiles coverage incomplete for universe_prefilter run {source_run_timestamp!r} - "
+        + "; ".join(problems)
+        + ". Add the missing code(s) to the profile config; nothing was evaluated or written."
+    )
+
+
 def evaluate_from_cache(ticker, simfin_id, *, cache_dir, thresholds):
     """One survivor through the cache-sourced Stage-1 chain: read its
     cached raw statements and hand them to the exact same
@@ -151,6 +214,7 @@ def run(
     run_timestamp=None,
     as_of=None,
     thresholds_path=DEFAULT_THRESHOLDS_PATH,
+    sector_profiles_path=DEFAULT_SECTOR_PROFILES_PATH,
     out=sys.stdout,
 ):
     """One full Stage-1 run over the fundamentals cache - 0 SimFin calls
@@ -162,6 +226,10 @@ def run(
             thresholds, config_hash = resolve_thresholds(thresholds_path)
         except Stage1RunError as exc:
             raise Stage1FullRunError(str(exc)) from exc
+        try:
+            profiles = load_sector_profiles(sector_profiles_path)
+        except SectorProfilesConfigError as exc:
+            raise Stage1FullRunError(f"sector profiles config invalid: {exc}") from exc
 
         source_run_timestamp, rows = load_survivors(db_path, run_timestamp)
 
@@ -184,6 +252,11 @@ def run(
                 f"(ticker is the archive key): {duplicates}"
             )
 
+        # Coverage check BEFORE any evaluation or write (docs/decisions.md "Phase 2.0e",
+        # Entscheidung 2): a code missing from the config aborts the run.
+        sector_codes = load_survivor_sector_codes(db_path, source_run_timestamp)
+        check_sector_profile_coverage(rows, sector_codes, profiles, source_run_timestamp, sector_profiles_path)
+
         as_of = as_of or date.fromisoformat(source_run_timestamp[:10])
         cache_dir = Path(fundamentals_cache_dir) / as_of.isoformat()
 
@@ -195,7 +268,15 @@ def run(
         gate_results = {}
         missing_ticker_ids = []
         for simfin_id, ticker in rows:
-            result = evaluate_from_cache(ticker, simfin_id, cache_dir=cache_dir, thresholds=thresholds)
+            assignment = profiles.assignment(sector_codes.get(simfin_id))
+            if not assignment.profile.supported:
+                # excluded business model: not evaluated at all, so no cache read either
+                result = unsupported_business_model_result(assignment.profile.name)
+            else:
+                result = evaluate_from_cache(ticker, simfin_id, cache_dir=cache_dir, thresholds=thresholds)
+                result = dataclasses.replace(
+                    result, profile=assignment.profile.name, borderline_sector=assignment.borderline
+                )
             if ticker is None:
                 missing_ticker_ids.append(simfin_id)
                 continue
@@ -276,6 +357,13 @@ def build_parser():
         "file as --db-path by default, independently settable",
     )
     parser.add_argument("--csv-dir", type=Path, default=DEFAULT_CSV_DIR)
+    parser.add_argument(
+        "--sector-profiles-path",
+        type=Path,
+        default=DEFAULT_SECTOR_PROFILES_PATH,
+        help="business-model profile config (sectorCode -> profile); a survivor sectorCode missing "
+        "from it aborts the run before any evaluation (default: config/sector_profiles.yaml)",
+    )
     return parser
 
 
@@ -288,6 +376,7 @@ def main(argv=None):
         fundamentals_cache_dir=args.fundamentals_cache_dir,
         run_timestamp=args.run_timestamp,
         as_of=args.as_of,
+        sector_profiles_path=args.sector_profiles_path,
     )
 
 

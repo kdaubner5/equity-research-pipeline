@@ -9,7 +9,13 @@ from metrics_layer.cash_conversion import cash_conversion_3yr_average, net_incom
 from metrics_layer.net_debt_ebitda import net_debt_ebitda_latest
 from metrics_layer.result import MetricResult
 from metrics_layer.roic import roic_3yr_average
-from gates_layer.stage1_gates import GateResult, evaluate_stage1_gates, rank_companies
+from gates_layer.stage1_gates import (
+    GateResult,
+    UNSUPPORTED_BUSINESS_MODEL,
+    evaluate_stage1_gates,
+    rank_companies,
+    unsupported_business_model_result,
+)
 from store_layer.db import export_survivors_csv, init_db, save_run_results
 
 
@@ -443,6 +449,7 @@ def test_zero_survivor_run_still_writes_runs_row_and_header_only_csv(tmp_path):
             "net_debt_ebitda",
             "cash_conversion_3yr",
             "data_quality_flags",
+            "borderline_sector",
         ]
         assert list(reader) == []  # header only, no data rows
 
@@ -629,6 +636,153 @@ def test_init_db_upgrades_an_existing_archive_and_stays_idempotent(tmp_path):
     save_run_results("2026-09-21T16:00:00", _gate_results_with_data_quality_flags(), config_hash=None, db_path=db_path)
     new_rows = {row["ticker"]: row for row in _query_run(db_path, "2026-09-21T16:00:00")}
     assert new_rows["SURV_FLAGGED"]["data_quality_flags"] == ",".join(_DQ_FLAGS)
+
+
+
+# --- business-model profile columns (Issue #51, docs/decisions.md "Phase 2.0e") ------
+
+
+def _profiled_gate_results():
+    """One clean survivor per borderline value, a failed and a not_evaluable company, an unsupported one, and one never profile-checked."""
+    import dataclasses
+
+    base = _simulated_run_gate_results()
+    return {
+        "SURV_PLAIN": dataclasses.replace(base["ACME01"], profile="non_financial", borderline_sector=False),
+        "SURV_BORDER": dataclasses.replace(base["APRT11"], profile="non_financial", borderline_sector=True),
+        "ELIM_FAILED": dataclasses.replace(base["GEKO12"], profile="non_financial", borderline_sector=True),
+        "ELIM_NOEV": dataclasses.replace(base["ORBT18"], profile="non_financial", borderline_sector=False),
+        "ELIM_BANK": unsupported_business_model_result("banks"),
+        "UNCHECKED": base["DUFF22"],  # profile None / borderline None: pilot-runner style, not checked
+    }
+
+
+def test_unsupported_business_model_is_archived_as_eliminated_and_the_partition_still_holds(tmp_path):
+    db_path = tmp_path / "archive.db"
+    gate_results = _profiled_gate_results()
+    save_run_results("2026-09-30T10:00:00", gate_results, config_hash=None, db_path=db_path)
+
+    survivors = {row["ticker"] for row in _query_run(db_path, "2026-09-30T10:00:00")}
+    eliminated = {row["ticker"]: row for row in _query_eliminated(db_path, "2026-09-30T10:00:00")}
+    assert survivors & set(eliminated) == set()
+    assert survivors | set(eliminated) == set(gate_results)
+    assert eliminated["ELIM_BANK"]["status"] == UNSUPPORTED_BUSINESS_MODEL
+    assert eliminated["ELIM_BANK"]["invalid_reasons"] == ""  # not a data gap
+    assert eliminated["ELIM_BANK"]["profile"] == "banks"
+    assert eliminated["ELIM_BANK"]["roic"] is None and eliminated["ELIM_BANK"]["net_income_margin"] is None
+    assert "ELIM_BANK" not in survivors
+    connection = sqlite3.connect(db_path)
+    try:
+        assert connection.execute("SELECT survivors_count, companies_evaluated FROM runs").fetchone() == (
+            len(survivors),
+            len(gate_results),
+        )
+    finally:
+        connection.close()
+
+
+def test_an_unrecognized_status_still_raises_after_adding_unsupported_business_model(tmp_path):
+    bogus = GateResult(
+        status="something_else", flags=(), invalid_reasons=(), roic=None, net_debt_ebitda=None,
+        cash_conversion=None, net_income_margin=None,
+    )
+    with pytest.raises(ValueError, match="BOGUS02"):
+        save_run_results("2026-09-30T10:00:00", {"BOGUS02": bogus}, config_hash=None, db_path=tmp_path / "a.db")
+
+
+def test_profile_and_borderline_are_persisted_in_both_tables_and_null_when_not_checked(tmp_path):
+    db_path = tmp_path / "archive.db"
+    save_run_results("2026-09-30T10:00:00", _profiled_gate_results(), config_hash=None, db_path=db_path)
+    survivors = {row["ticker"]: row for row in _query_run(db_path, "2026-09-30T10:00:00")}
+    eliminated = {row["ticker"]: row for row in _query_eliminated(db_path, "2026-09-30T10:00:00")}
+
+    assert (survivors["SURV_PLAIN"]["profile"], survivors["SURV_PLAIN"]["borderline_sector"]) == ("non_financial", 0)
+    assert (survivors["SURV_BORDER"]["profile"], survivors["SURV_BORDER"]["borderline_sector"]) == ("non_financial", 1)
+    assert (eliminated["ELIM_FAILED"]["profile"], eliminated["ELIM_FAILED"]["borderline_sector"]) == ("non_financial", 1)
+    assert (eliminated["ELIM_NOEV"]["profile"], eliminated["ELIM_NOEV"]["borderline_sector"]) == ("non_financial", 0)
+    assert (eliminated["ELIM_BANK"]["profile"], eliminated["ELIM_BANK"]["borderline_sector"]) == ("banks", 0)
+    unchecked = survivors.get("UNCHECKED") or eliminated["UNCHECKED"]
+    assert (unchecked["profile"], unchecked["borderline_sector"]) == (None, None)  # NULL = not checked
+
+
+def test_borderline_marker_does_not_change_survivor_status_flags_or_rank_in_the_archive(tmp_path):
+    import dataclasses
+
+    plain = {t: r for t, r in _simulated_run_gate_results().items() if r.status in ("passed", "passed_with_flags")}
+    marked = {t: dataclasses.replace(r, profile="non_financial", borderline_sector=True) for t, r in plain.items()}
+    db_plain, db_marked = tmp_path / "plain.db", tmp_path / "marked.db"
+    save_run_results("2026-09-30T10:00:00", plain, config_hash=None, db_path=db_plain)
+    save_run_results("2026-09-30T10:00:00", marked, config_hash=None, db_path=db_marked)
+
+    def core(db_path):
+        return [
+            (r["ticker"], r["status"], r["flags"], r["rank_position"])
+            for r in _query_run(db_path, "2026-09-30T10:00:00")
+        ]
+
+    assert core(db_plain) == core(db_marked)
+
+
+def test_survivors_csv_has_borderline_sector_as_the_last_column_empty_for_no(tmp_path):
+    gate_results = _profiled_gate_results()
+    csv_path = export_survivors_csv("2026-09-30T10:00:00", gate_results, output_dir=tmp_path / "runs")
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        assert reader.fieldnames[-1] == "borderline_sector"
+        assert reader.fieldnames[:-1] == [
+            "rank_position", "ticker", "status", "flags", "roic_3yr", "net_debt_ebitda",
+            "cash_conversion_3yr", "data_quality_flags",
+        ]  # the earlier columns keep their positions
+        rows = {row["ticker"]: row for row in reader}
+    assert rows["SURV_BORDER"]["borderline_sector"] == "1"
+    assert rows["SURV_PLAIN"]["borderline_sector"] == ""  # empty string = no
+    assert rows["UNCHECKED"]["borderline_sector"] == ""  # not checked reads as empty too
+    assert "ELIM_BANK" not in rows  # eliminated companies never reach the survivors CSV
+
+
+def test_init_db_adds_profile_columns_to_an_older_archive_without_touching_rows_and_stays_idempotent(tmp_path):
+    db_path = tmp_path / "old_archive.db"
+    connection = sqlite3.connect(db_path)
+    try:
+        connection.execute(_OLD_SCHEMA_RUN_RESULTS)
+        connection.execute(_OLD_SCHEMA_ELIMINATED)
+        connection.execute("INSERT INTO run_results VALUES ('2026-09-01T09:00:00', 'OLD1', 0.2, 1.0, 1.1, 'passed', '', 1)")
+        connection.execute(
+            "INSERT INTO eliminated_results VALUES ('2026-09-01T09:00:00', 'OLD2', 'failed', 0.1, 3.0, 0.9, 0.05, '')"
+        )
+        connection.commit()
+    finally:
+        connection.close()
+
+    def snapshot():
+        connection = sqlite3.connect(db_path)
+        try:
+            return {
+                table: connection.execute(
+                    f"SELECT run_timestamp, ticker, status FROM {table} ORDER BY ticker"
+                ).fetchall()
+                for table in ("run_results", "eliminated_results")
+            }
+        finally:
+            connection.close()
+
+    before = snapshot()
+    for table in ("run_results", "eliminated_results"):
+        assert "profile" not in _table_columns(db_path, table)
+
+    init_db(db_path)
+    init_db(db_path)  # idempotent
+
+    for table in ("run_results", "eliminated_results"):
+        columns = _table_columns(db_path, table)
+        assert columns.count("profile") == 1 and columns.count("borderline_sector") == 1
+    assert snapshot() == before  # same rows, same old values
+    assert _query_run(db_path, "2026-09-01T09:00:00")[0]["profile"] is None  # NULL: not recorded then
+    assert _query_eliminated(db_path, "2026-09-01T09:00:00")[0]["borderline_sector"] is None
+
+    # a new run on the migrated archive records its profile next to the old rows
+    save_run_results("2026-09-30T10:00:00", _profiled_gate_results(), config_hash=None, db_path=db_path)
+    assert {r["ticker"]: r["profile"] for r in _query_eliminated(db_path, "2026-09-30T10:00:00")}["ELIM_BANK"] == "banks"
 
 
 _OLD_SCHEMA_RUNS = """

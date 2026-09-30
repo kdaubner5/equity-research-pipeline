@@ -7,6 +7,11 @@ hardest single result wins, an invalid_reason disqualifies into its own
 Conversion is already in its hard-fail zone (then "failed", the
 invalid_reasons stay recorded - docs/decisions.md, "Phase 2.0d"), and the
 rank output is a flag-count grouping, never a composite score.
+
+A company whose business-model profile is excluded (banks, insurers, REITs,
+biotech - docs/decisions.md "Phase 2.0e") is never run through these gates at
+all: the runner builds its GateResult directly with
+unsupported_business_model_result(), status "unsupported_business_model".
 """
 
 from dataclasses import dataclass
@@ -25,6 +30,7 @@ PASSED = "passed"
 PASSED_WITH_FLAGS = "passed_with_flags"
 FAILED = "failed"
 NOT_EVALUABLE = "not_evaluable"
+UNSUPPORTED_BUSINESS_MODEL = "unsupported_business_model"
 
 _METRIC_NAMES = ("roic", "net_debt_ebitda", "cash_conversion", "net_income_margin")
 
@@ -60,6 +66,15 @@ class GateResult:
     layer can persist them (docs/decisions.md, "net_debt-Zuverlaessigkeit -
     Stock-Flow-Abgleich", Entscheidung 5). Informational only - they never
     influence status, flags or invalid_reasons.
+
+    profile and borderline_sector (docs/decisions.md "Phase 2.0e", Entscheidung
+    4/5) are set by the runner from config/sector_profiles.yaml, never by
+    evaluate_stage1_gates(), and are informational in the same way as
+    data_quality_flags: they never influence status, flags or invalid_reasons,
+    and a borderline marker in particular must not turn "passed" into
+    "passed_with_flags" or move the rank. None means "not checked" (the pilot
+    runner applies no profile check); borderline_sector is only ever True on
+    a supported profile.
     """
 
     status: str
@@ -70,6 +85,30 @@ class GateResult:
     cash_conversion: Optional[float]
     net_income_margin: Optional[float]
     data_quality_flags: Tuple[str, ...] = ()
+    profile: Optional[str] = None
+    borderline_sector: Optional[bool] = None
+
+
+def unsupported_business_model_result(profile: str, *, data_quality_flags: Tuple[str, ...] = ()) -> GateResult:
+    """GateResult for a company whose profile is excluded from Stage 1.
+
+    No metric is computed (all four raw values None) and invalid_reasons stays
+    empty: this is not a data gap, so "invalid_reasons non-empty" keeps meaning
+    one. The profile name is the reason (its text lives in
+    config/sector_profiles.yaml). Docs/decisions.md "Phase 2.0e", Entscheidung 3.
+    """
+    return GateResult(
+        status=UNSUPPORTED_BUSINESS_MODEL,
+        flags=(),
+        invalid_reasons=(),
+        roic=None,
+        net_debt_ebitda=None,
+        cash_conversion=None,
+        net_income_margin=None,
+        data_quality_flags=tuple(data_quality_flags),
+        profile=profile,
+        borderline_sector=False,
+    )
 
 
 def collect_data_quality_flags(periods) -> Tuple[str, ...]:
@@ -212,9 +251,9 @@ def rank_companies(gate_results: Dict[str, GateResult]) -> List[Tuple[str, GateR
     """Rank passed/passed_with_flags companies by flag-count group, then ticker.
 
     Groups ascending by number of flags (0 before 1 before 2, ...), tickers
-    sorted alphabetically within a group. No composite score. Failed and
-    not_evaluable companies are excluded entirely - not just unranked, but
-    absent from the returned list.
+    sorted alphabetically within a group. No composite score. Failed,
+    not_evaluable and unsupported_business_model companies are excluded
+    entirely - not just unranked, but absent from the returned list.
     """
     eligible = [
         (ticker, result)

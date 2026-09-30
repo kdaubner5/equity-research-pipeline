@@ -54,6 +54,7 @@ from gates_layer.stage1_gates import (  # noqa: E402
     NOT_EVALUABLE,
     PASSED,
     PASSED_WITH_FLAGS,
+    UNSUPPORTED_BUSINESS_MODEL,
     GateResult,
 )
 from metrics_layer.result import MetricInputError  # noqa: E402
@@ -236,9 +237,21 @@ def print_summary(gate_results, file=sys.stdout):
     print(
         f"{len(gate_results)} companies: "
         f"passed={counts[PASSED]}  passed_with_flags={counts[PASSED_WITH_FLAGS]}  "
-        f"failed={counts[FAILED]}  not_evaluable={counts[NOT_EVALUABLE]}",
+        f"failed={counts[FAILED]}  not_evaluable={counts[NOT_EVALUABLE]}  "
+        f"unsupported_business_model={counts[UNSUPPORTED_BUSINESS_MODEL]}",
         file=file,
     )
+    # docs/decisions.md "Phase 2.0e": a run that applied no sector profile (the pilot runner)
+    # says so instead of silently reading as "everything is in the standard profile".
+    checked = [result for result in gate_results.values() if result.profile is not None]
+    if not checked:
+        print("profile check: not checked (no sector profiles applied)", file=file)
+    else:
+        borderline = sum(1 for result in checked if result.borderline_sector)
+        print(
+            f"profile check: {len(checked)} of {len(gate_results)} companies checked  borderline_sector={borderline}",
+            file=file,
+        )
 
 
 def run(

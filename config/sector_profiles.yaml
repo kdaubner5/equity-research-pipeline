@@ -1,0 +1,111 @@
+# Business-model profiles per SimFin sectorCode (docs/decisions.md "Phase 2.0e", Issue #51).
+# Loaded and validated once per full run by config_layer.sector_profiles.load_sector_profiles()
+# before any company is evaluated: every key is required, no defaults exist in code.
+#
+# A survivor whose sectorCode is NOT listed under `sectors` (or is NULL) aborts the whole run
+# before any evaluation and writes nothing - a missing code is an incomplete config, not a data
+# problem of the company (Entscheidung 2). A new sectorCode therefore blocks the run until a
+# line is added here. Every code of data/cache/universe/<as_of>/general_bulk.json is listed
+# explicitly, including those in the standard profile.
+#
+# profiles:
+#   supported: true  -> evaluated by Stage 1 as before.
+#   supported: false -> status `unsupported_business_model`, not run through Stage 1; `reason` is
+#                       required for such a profile and forbidden for a supported one.
+# sectors:
+#   borderline: true marks a sector that stays in its (supported) profile but is flagged for
+#   review; it never changes status, flags or rank (Entscheidung 4). Not allowed on unsupported profiles.
+# The comment after each code is the SimFin sector name (sectorCode's fine-grained name;
+# the sectorName/industryName field labels are swapped in SimFin, Audit C2).
+
+profiles:
+  non_financial:
+    supported: true
+  banks:
+    supported: false
+    reason: "Banken: laut D2 (docs/decisions.md Phase 2.0a, Entscheidung 2) aus Stage 1 ausgenommen"
+  insurance:
+    supported: false
+    reason: "Versicherer: laut D2 (docs/decisions.md Phase 2.0a, Entscheidung 2) aus Stage 1 ausgenommen"
+  reits:
+    supported: false
+    reason: "REITs: laut D2 (docs/decisions.md Phase 2.0a, Entscheidung 2) aus Stage 1 ausgenommen"
+  biotechnology:
+    supported: false
+    reason: "Biotech: laut D2 (docs/decisions.md Phase 2.0a, Entscheidung 2) aus Stage 1 ausgenommen"
+
+sectors:
+  100001: {profile: non_financial, borderline: false}  # Industrial Products
+  100002: {profile: non_financial, borderline: false}  # Business Services
+  100003: {profile: non_financial, borderline: false}  # Engineering & Construction
+  100004: {profile: non_financial, borderline: false}  # Waste Management
+  100005: {profile: non_financial, borderline: false}  # Industrial Distribution
+  100006: {profile: non_financial, borderline: false}  # Airlines
+  100007: {profile: non_financial, borderline: false}  # Consulting & Outsourcing
+  100008: {profile: non_financial, borderline: false}  # Aerospace & Defense
+  100009: {profile: non_financial, borderline: false}  # Farm & Construction Machinery
+  100010: {profile: non_financial, borderline: false}  # Transportation & Logistics
+  100011: {profile: non_financial, borderline: false}  # Employment Services
+  100012: {profile: non_financial, borderline: false}  # Truck Manufacturing
+  100013: {profile: non_financial, borderline: false}  # Conglomerates
+  101001: {profile: non_financial, borderline: false}  # Computer Hardware
+  101002: {profile: non_financial, borderline: false}  # Online Media
+  101003: {profile: non_financial, borderline: false}  # Application Software
+  101004: {profile: non_financial, borderline: false}  # Semiconductors
+  101005: {profile: non_financial, borderline: false}  # Communication Equipment
+  102001: {profile: non_financial, borderline: false}  # Retail - Defensive
+  102002: {profile: non_financial, borderline: false}  # Consumer Packaged Goods
+  102003: {profile: non_financial, borderline: false}  # Tobacco Products
+  102004: {profile: non_financial, borderline: false}  # Beverages - Alcoholic
+  102005: {profile: non_financial, borderline: false}  # Beverages - Non-Alcoholic
+  102006: {profile: non_financial, borderline: false}  # Education
+  103001: {profile: non_financial, borderline: false}  # Entertainment
+  103002: {profile: non_financial, borderline: false}  # Retail - Apparel & Specialty
+  103003: {profile: non_financial, borderline: false}  # Restaurants
+  103004: {profile: non_financial, borderline: false}  # Manufacturing - Apparel & Furniture
+  103005: {profile: non_financial, borderline: false}  # Autos
+  103011: {profile: non_financial, borderline: false}  # Advertising & Marketing Services
+  103013: {profile: non_financial, borderline: false}  # Homebuilding & Construction
+  103015: {profile: non_financial, borderline: false}  # Travel & Leisure
+  103018: {profile: non_financial, borderline: false}  # Packaging & Containers
+  103020: {profile: non_financial, borderline: false}  # Personal Services
+  103026: {profile: non_financial, borderline: false}  # Publishing
+  104001: {profile: non_financial, borderline: true}  # Asset Management
+  104002: {profile: banks, borderline: false}  # Banks
+  104003: {profile: non_financial, borderline: true}  # Brokers, Exchanges & Other
+  104004: {profile: insurance, borderline: false}  # Insurance - Life
+  104005: {profile: insurance, borderline: false}  # Insurance
+  104006: {profile: insurance, borderline: false}  # Insurance - Property & Casualty
+  104007: {profile: non_financial, borderline: true}  # Credit Services
+  104013: {profile: insurance, borderline: false}  # Insurance - Specialty
+  105001: {profile: non_financial, borderline: false}  # Utilities - Regulated
+  105002: {profile: non_financial, borderline: false}  # Utilities - Independent Power Producers
+  106001: {profile: non_financial, borderline: false}  # Medical Diagnostics & Research
+  106002: {profile: biotechnology, borderline: false}  # Biotechnology
+  106003: {profile: non_financial, borderline: false}  # Medical Instruments & Equipment
+  106004: {profile: non_financial, borderline: false}  # Medical Devices
+  106005: {profile: non_financial, borderline: false}  # Drug Manufacturers
+  106006: {profile: non_financial, borderline: false}  # Health Care Plans
+  106011: {profile: non_financial, borderline: false}  # Health Care Providers
+  106014: {profile: non_financial, borderline: false}  # Medical Distribution
+  107001: {profile: non_financial, borderline: false}  # Oil & Gas - Refining & Marketing
+  107002: {profile: non_financial, borderline: false}  # Oil & Gas - E&P
+  107003: {profile: non_financial, borderline: false}  # Oil & Gas - Midstream
+  107004: {profile: non_financial, borderline: false}  # Oil & Gas - Services
+  107005: {profile: non_financial, borderline: false}  # Oil & Gas - Integrated
+  107006: {profile: non_financial, borderline: false}  # Oil & Gas - Drilling
+  107007: {profile: non_financial, borderline: false}  # Alternative Energy Sources & Other
+  108001: {profile: non_financial, borderline: false}  # Communication Services
+  108002: {profile: non_financial, borderline: false}  # Consulting
+  108003: {profile: non_financial, borderline: false}  # HR & Staffing
+  108004: {profile: non_financial, borderline: false}  # Other
+  109001: {profile: reits, borderline: false}  # REITs
+  109002: {profile: non_financial, borderline: true}  # Real Estate Services
+  110001: {profile: non_financial, borderline: false}  # Chemicals
+  110002: {profile: non_financial, borderline: false}  # Forest Products
+  110003: {profile: non_financial, borderline: false}  # Agriculture
+  110004: {profile: non_financial, borderline: false}  # Metals & Mining
+  110005: {profile: non_financial, borderline: false}  # Building Materials
+  110006: {profile: non_financial, borderline: false}  # Coal
+  110007: {profile: non_financial, borderline: false}  # Steel
+  111001: {profile: non_financial, borderline: false}  # Diversified Holdings
