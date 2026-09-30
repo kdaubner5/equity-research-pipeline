@@ -509,3 +509,40 @@ def test_read_cached_statements_raises_when_outcome_ok_but_response_is_not_a_dic
     )
     with pytest.raises(sf.CachedStatementsError):
         sf.read_cached_statements(cache_dir, 1, statements=sf.DEFAULT_STATEMENTS)
+
+
+def test_read_cached_statements_raises_for_an_undecodable_cache_file(tmp_path):
+    # UnicodeDecodeError is a ValueError subclass, not an OSError - would
+    # otherwise slip past both of read_cached_statements' except clauses
+    # and crash the whole run instead of eliminating just this one company
+    # (review fix, 2026-09-30).
+    cache_dir = tmp_path / "cache"
+    path = sf.cache_path(cache_dir, 1)
+    path.parent.mkdir(parents=True)
+    path.write_bytes(b"\xff\xfe\x00invalid utf-8 \x80\x81")
+    with pytest.raises(sf.CachedStatementsError):
+        sf.read_cached_statements(cache_dir, 1, statements=sf.DEFAULT_STATEMENTS)
+
+
+def test_read_cached_statements_raises_when_a_statements_entry_is_not_an_object(tmp_path):
+    # simfin_client._statement() (unchanged) does stmt["statement"] for
+    # every entry of response["statements"] without checking its shape -
+    # a cached response with a non-object entry must be caught here, not
+    # left to crash deep inside evaluate_ticker() with an unrelated
+    # TypeError (review fix, 2026-09-30).
+    cache_dir = tmp_path / "cache"
+    _write_ok_envelope(cache_dir, 1, response={"id": 1, "ticker": "T1", "statements": ["not", "a", "dict"]})
+    with pytest.raises(sf.CachedStatementsError):
+        sf.read_cached_statements(cache_dir, 1, statements=sf.DEFAULT_STATEMENTS)
+
+
+def test_read_cached_statements_accepts_a_response_with_no_statements_key(tmp_path):
+    # response.statements is only validated when present - statements_record()
+    # itself and every other existing envelope in this test file omit it or
+    # set it, and a response without the key at all must still pass (matches
+    # a companies/statements/compact record's optional field, not a required
+    # one from read_cached_statements' point of view).
+    cache_dir = tmp_path / "cache"
+    _write_ok_envelope(cache_dir, 1, response={"id": 1, "ticker": "T1"})
+    result = sf.read_cached_statements(cache_dir, 1, statements=sf.DEFAULT_STATEMENTS)
+    assert result == {"id": 1, "ticker": "T1"}

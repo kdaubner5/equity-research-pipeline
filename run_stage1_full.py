@@ -18,7 +18,13 @@ elimination reason the live path uses for an empty batch response,
 SIMFIN_STATEMENTS_MISSING; a cache file that exists but is corrupt/invalid
 gets its own, distinguishable reason, SIMFIN_STATEMENTS_CACHE_INVALID
 (docs/decisions.md "Phase 2.0c", 2026-09-30) - never silently skipped
-(CLAUDE.md data-integrity convention).
+(CLAUDE.md data-integrity convention). A survivor with no ticker
+(universe_prefilter.ticker is nullable) is eliminated as TICKER_MISSING and
+excluded from the archive (which requires a non-null ticker), reported in
+the run's summary output, not silently dropped. Two survivors sharing one
+ticker (universe_prefilter has no ticker-uniqueness constraint, unlike the
+archive's (run_timestamp, ticker) key) abort the whole run rather than
+silently overwrite one with the other (review fix, 2026-09-30).
 
 --run-timestamp selects only the universe_prefilter run survivors are
 sourced from (same meaning as run_fundamentals.py's identically-named
@@ -57,6 +63,12 @@ EXIT_TECHNICAL_FAILURE = 1
 # distinct from SIMFIN_STATEMENTS_MISSING: a cache file that exists but is
 # corrupt/invalid is a local data problem, not a SimFin coverage gap.
 SIMFIN_STATEMENTS_CACHE_INVALID = "simfin_statements_cache_invalid"
+
+# A survivor row with no ticker at all (universe_prefilter.ticker is
+# nullable) - distinct from both reasons above: there is no SimFin data
+# problem here, the local record itself carries no ticker to evaluate or
+# archive under (docs/decisions.md "Phase 2.0c", review fix, 2026-09-30).
+TICKER_MISSING = "ticker_missing"
 
 
 class Stage1FullRunError(Exception):
@@ -108,6 +120,10 @@ def evaluate_from_cache(ticker, simfin_id, *, cache_dir, thresholds):
 
     Never raises - every failure mode becomes an eliminated GateResult, one
     company's data problem is isolated, never aborts the run:
+      - ticker is None (universe_prefilter.ticker is nullable): TICKER_MISSING,
+        checked first - evaluate_ticker()/build_company_record() would
+        otherwise crash on ticker.upper() when the cached response carries
+        its own non-null ticker (review fix, 2026-09-30).
       - no cache file at all, or outcome=="absent": SIMFIN_STATEMENTS_MISSING
         (same reason the live path uses for an empty batch response).
       - a corrupt/unreadable/malformed cache file (CachedStatementsError):
@@ -116,6 +132,8 @@ def evaluate_from_cache(ticker, simfin_id, *, cache_dir, thresholds):
       - anything else: delegated whole to run_stage1.evaluate_ticker(),
         which already isolates SimFinMappingError/MetricInputError.
     """
+    if ticker is None:
+        return _eliminated(TICKER_MISSING)
     try:
         raw_company = sf.read_cached_statements(cache_dir, simfin_id, statements=sf.DEFAULT_STATEMENTS)
     except sf.CachedStatementsError:
@@ -146,13 +164,49 @@ def run(
             raise Stage1FullRunError(str(exc)) from exc
 
         source_run_timestamp, rows = load_survivors(db_path, run_timestamp)
+
+        # run_results/eliminated_results key on ticker (PRIMARY KEY
+        # (run_timestamp, ticker)) - universe_prefilter itself has no such
+        # uniqueness constraint (its own key is (run_timestamp, simfin_id)),
+        # so two survivors sharing a ticker cannot both be archived. A
+        # {ticker: ...} dict comprehension would silently let the second
+        # overwrite the first; refused loudly instead, before any
+        # evaluation or archiving is attempted (review fix, 2026-09-30).
+        by_ticker = {}
+        for simfin_id, ticker in rows:
+            if ticker is not None:
+                by_ticker.setdefault(ticker, []).append(simfin_id)
+        duplicates = {ticker: ids for ticker, ids in by_ticker.items() if len(ids) > 1}
+        if duplicates:
+            raise Stage1FullRunError(
+                f"universe_prefilter run {source_run_timestamp!r} has {len(duplicates)} ticker(s) shared by "
+                f"more than one simfin_id, which run_results/eliminated_results cannot both archive "
+                f"(ticker is the archive key): {duplicates}"
+            )
+
         as_of = as_of or date.fromisoformat(source_run_timestamp[:10])
         cache_dir = Path(fundamentals_cache_dir) / as_of.isoformat()
 
-        gate_results = {
-            ticker: evaluate_from_cache(ticker, simfin_id, cache_dir=cache_dir, thresholds=thresholds)
-            for simfin_id, ticker in rows
-        }
+        # A row with no ticker at all is evaluated (evaluate_from_cache
+        # eliminates it as TICKER_MISSING, never raises) but cannot be
+        # archived either - run_results/eliminated_results.ticker is NOT
+        # NULL. Excluded from gate_results, never silently: reported below
+        # (review fix, 2026-09-30).
+        gate_results = {}
+        missing_ticker_ids = []
+        for simfin_id, ticker in rows:
+            result = evaluate_from_cache(ticker, simfin_id, cache_dir=cache_dir, thresholds=thresholds)
+            if ticker is None:
+                missing_ticker_ids.append(simfin_id)
+                continue
+            gate_results[ticker] = result
+
+        if missing_ticker_ids:
+            print(
+                f"ACHTUNG: {len(missing_ticker_ids)} Survivor(s) ohne Ticker koennen nicht archiviert werden "
+                f"(run_results/eliminated_results verlangen einen Ticker) - simfin_ids: {missing_ticker_ids}",
+                file=out,
+            )
 
         # A fresh run_timestamp for THIS archive entry, distinct from the
         # universe_prefilter run_timestamp survivors were sourced from

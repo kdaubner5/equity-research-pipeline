@@ -162,7 +162,13 @@ def read_cached_statements(cache_dir, simfin_id, *, statements):
         text = path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return None
-    except OSError as exc:
+    except (OSError, UnicodeDecodeError) as exc:
+        # UnicodeDecodeError is a ValueError subclass, not an OSError - a
+        # separate branch, not folded into the except below, which is for
+        # a malformed JSON *document*, not a malformed *encoding* (review
+        # fix, 2026-09-30: an unguarded UnicodeDecodeError here escaped
+        # both this function's own except clauses and evaluate_from_cache's
+        # narrow `except sf.CachedStatementsError`, crashing the whole run).
         raise CachedStatementsError(f"cache file unreadable for simfin_id {simfin_id} at {path}: {exc}") from exc
     try:
         envelope = json.loads(text)
@@ -196,6 +202,20 @@ def read_cached_statements(cache_dir, simfin_id, *, statements):
         raise CachedStatementsError(
             f"cache file for simfin_id {simfin_id} at {path} has outcome 'ok' but response is "
             f"{type(response).__name__}, expected an object"
+        )
+    # simfin_client._statement() (unchanged, docs/decisions.md "Phase
+    # 2.0c") does `stmt["statement"]` for every entry of response
+    # ["statements"] without checking its shape - a shallow check here
+    # closes that gap for a corrupted cache file without re-validating
+    # each statement's nested columns/data (no new guard beyond what's
+    # needed to prevent the crash - review fix, 2026-09-30).
+    response_statements = response.get("statements")
+    if response_statements is not None and (
+        not isinstance(response_statements, list) or not all(isinstance(item, dict) for item in response_statements)
+    ):
+        raise CachedStatementsError(
+            f"cache file for simfin_id {simfin_id} at {path} has a response.statements field that is not a "
+            "list of objects"
         )
     return response
 

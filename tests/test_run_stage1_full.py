@@ -200,6 +200,29 @@ def test_evaluate_from_cache_mismatched_envelope_is_eliminated_as_cache_invalid(
     assert result.invalid_reasons == (rsf.SIMFIN_STATEMENTS_CACHE_INVALID,)
 
 
+def test_evaluate_from_cache_a_none_ticker_is_eliminated_without_touching_the_cache(tmp_path):
+    # Checked first, before any cache read (review fix, 2026-09-30):
+    # evaluate_ticker()/build_company_record() would otherwise crash on
+    # ticker.upper() when the cached response carries its own non-null
+    # ticker. cache_dir does not even need to exist for this to hold.
+    cache_dir = tmp_path / "cache"
+    result = rsf.evaluate_from_cache(None, 1, cache_dir=cache_dir, thresholds=DEFAULT_THRESHOLDS)
+    assert result.status == run_stage1.NOT_EVALUABLE
+    assert result.invalid_reasons == (rsf.TICKER_MISSING,)
+
+
+def test_evaluate_from_cache_a_none_ticker_does_not_crash_even_with_a_real_cached_response(tmp_path):
+    # The concrete crash the review found: a cached response whose OWN
+    # "ticker" field is a real (non-null) string used to crash inside
+    # build_company_record's ticker.upper() comparison when the ticker
+    # ARGUMENT was None - reproduced here with a real pilot fixture.
+    raw = _load_raw("UFPT")
+    cache_dir = tmp_path / "cache"
+    seed_cache(cache_dir, raw["id"], raw)
+    result = rsf.evaluate_from_cache(None, raw["id"], cache_dir=cache_dir, thresholds=DEFAULT_THRESHOLDS)
+    assert result.invalid_reasons == (rsf.TICKER_MISSING,)
+
+
 # --- run(): end-to-end -----------------------------------------------------------
 
 
@@ -325,6 +348,53 @@ def test_run_a_corrupt_cache_file_eliminates_that_company_without_aborting(tmp_p
     assert eliminated["BROKEN"]["invalid_reasons"] == rsf.SIMFIN_STATEMENTS_CACHE_INVALID
     survivors = _read_table(db_path, "run_results")
     assert "UFPT" in survivors or "UFPT" in eliminated  # unaffected either way, not swallowed
+
+
+def test_run_two_survivors_sharing_a_ticker_is_a_technical_failure_nothing_written(tmp_path):
+    # run_results/eliminated_results key on (run_timestamp, ticker);
+    # universe_prefilter has no such uniqueness (its key is (run_timestamp,
+    # simfin_id)) - two simfin_ids sharing one ticker must abort loudly,
+    # not silently let one overwrite the other in gate_results (review fix,
+    # 2026-09-30).
+    ufpt = _load_raw("UFPT")
+    db_path = tmp_path / "archive.db"
+    seed_db(db_path, survivors=[(ufpt["id"], "DUP"), (999999, "DUP")])
+    cache_dir = tmp_path / "cache" / "2026-09-24"
+    seed_cache(cache_dir, ufpt["id"], ufpt)
+    seed_cache(cache_dir, 999999, dict(ufpt, id=999999))
+
+    exit_code, output = do_run(tmp_path, db_path=db_path)
+
+    assert exit_code == rsf.EXIT_TECHNICAL_FAILURE
+    # db_path already exists (seed_db wrote universe_prefilter into it) -
+    # the assertion is that NO run_results/eliminated_results/runs rows
+    # were ever written, i.e. save_run_results() was never reached.
+    assert sqlite3.connect(db_path).execute("SELECT COUNT(*) FROM runs").fetchone() == (0,)
+    assert list((tmp_path / "runs").glob("*.csv")) == []
+
+
+def test_run_a_survivor_with_no_ticker_is_excluded_from_the_archive_and_reported(tmp_path):
+    # universe_prefilter.ticker is nullable; run_results/eliminated_results.
+    # ticker is NOT NULL, so a null-ticker survivor cannot be archived
+    # either way. Must not crash and must not silently vanish - excluded
+    # and reported, the rest of the run still succeeds (review fix,
+    # 2026-09-30).
+    ufpt = _load_raw("UFPT")
+    db_path = tmp_path / "archive.db"
+    seed_db(db_path, survivors=[(ufpt["id"], "UFPT"), (999999, None)])
+    cache_dir = tmp_path / "cache" / "2026-09-24"
+    seed_cache(cache_dir, ufpt["id"], ufpt)
+    seed_cache(cache_dir, 999999, dict(ufpt, id=999999))
+
+    exit_code, output = do_run(tmp_path, db_path=db_path)
+
+    assert exit_code == rsf.EXIT_OK
+    survivors = _read_table(db_path, "run_results")
+    eliminated = _read_table(db_path, "eliminated_results")
+    assert set(survivors) | set(eliminated) == {"UFPT"}  # only the archivable one landed anywhere
+    assert "ACHTUNG" in output and "999999" in output  # the exclusion is reported, not silent
+    runs_row = sqlite3.connect(db_path).execute("SELECT companies_evaluated FROM runs").fetchone()
+    assert runs_row == (1,)  # companies_evaluated reflects what was actually archived
 
 
 # --- build_parser() / main() ------------------------------------------------------
