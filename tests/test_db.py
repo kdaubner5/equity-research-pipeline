@@ -130,8 +130,12 @@ def test_save_run_results_only_survivors_are_archived(tmp_path):
     # sanity: a failed and a not_evaluable company from the fixture set must
     # be excluded, not just "some" tickers missing
     assert gate_results["GEKO12"].status == "failed"
-    assert gate_results["NAKA17"].status == "not_evaluable"
+    assert gate_results["ORBT18"].status == "not_evaluable"
     assert "GEKO12" not in archived_tickers
+    assert "ORBT18" not in archived_tickers
+    # NAKA17 is failed with an invalid_reason (docs/decisions.md, "Phase 2.0d") -
+    # still not a survivor
+    assert gate_results["NAKA17"].status == "failed"
     assert "NAKA17" not in archived_tickers
 
 
@@ -191,17 +195,27 @@ def test_save_run_results_eliminated_rows_have_expected_columns(tmp_path):
     save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
     eliminated_by_ticker = {row["ticker"]: row for row in _query_eliminated(db_path, run_timestamp)}
 
-    # NAKA17: not_evaluable via ic_non_positive - roic stays None, its
+    # ORBT18: not_evaluable (insufficient_years, no valid hard fail) - its
     # invalid_reasons is populated.
-    assert gate_results["NAKA17"].status == "not_evaluable"
+    assert gate_results["ORBT18"].status == "not_evaluable"
+    orbt18_row = eliminated_by_ticker["ORBT18"]
+    assert orbt18_row["status"] == "not_evaluable"
+    assert "insufficient_years" in orbt18_row["invalid_reasons"]
+
+    # NAKA17: failed although ic_non_positive makes roic invalid - Net Debt/EBITDA
+    # is valid and in its hard-fail zone (docs/decisions.md, "Phase 2.0d"). roic
+    # stays None and the invalid_reasons are kept, so the data gap remains countable.
+    assert gate_results["NAKA17"].status == "failed"
     naka17_row = eliminated_by_ticker["NAKA17"]
-    assert naka17_row["status"] == "not_evaluable"
+    assert naka17_row["status"] == "failed"
     assert naka17_row["roic"] is None
+    assert naka17_row["net_debt_ebitda"] is not None
     assert "ic_non_positive" in naka17_row["invalid_reasons"]
+    assert naka17_row["invalid_reasons"] != ""
 
     # GEKO12: failed on the Net Debt/EBITDA hard threshold alone - all four
-    # raw values are populated (classification only runs once every metric
-    # is valid), invalid_reasons stays empty.
+    # metrics are valid, so all four raw values are populated and
+    # invalid_reasons stays empty.
     assert gate_results["GEKO12"].status == "failed"
     geko12_row = eliminated_by_ticker["GEKO12"]
     assert geko12_row["status"] == "failed"
@@ -210,6 +224,65 @@ def test_save_run_results_eliminated_rows_have_expected_columns(tmp_path):
     assert geko12_row["cash_conversion"] is not None
     assert geko12_row["net_income_margin"] is not None
     assert geko12_row["invalid_reasons"] == ""
+
+
+def test_failed_with_invalid_reasons_is_archived_as_eliminated_and_countable_as_data_gap(tmp_path):
+    # docs/decisions.md, "Phase 2.0d", Entscheidungen 2/3: a failed company that
+    # also has an invalid metric keeps its invalid_reasons in eliminated_results,
+    # never becomes a survivor, and is countable separately from not_evaluable.
+    failed_with_gap = evaluate_stage1_gates(
+        roic=MetricResult(value=0.05),
+        net_debt_ebitda=MetricResult(value=None, invalid_reason="debt_data_completely_missing"),
+        cash_conversion=MetricResult(value=1.5),
+        net_income_margin=MetricResult(value=0.05),
+        thresholds=DEFAULT_THRESHOLDS,
+    )
+    plain_failed = evaluate_stage1_gates(
+        roic=MetricResult(value=0.05),
+        net_debt_ebitda=MetricResult(value=1.0),
+        cash_conversion=MetricResult(value=1.5),
+        net_income_margin=MetricResult(value=0.05),
+        thresholds=DEFAULT_THRESHOLDS,
+    )
+    not_evaluable = evaluate_stage1_gates(
+        roic=MetricResult(value=0.15),
+        net_debt_ebitda=MetricResult(value=None, invalid_reason="debt_data_completely_missing"),
+        cash_conversion=MetricResult(value=1.5),
+        net_income_margin=MetricResult(value=0.05),
+        thresholds=DEFAULT_THRESHOLDS,
+    )
+    clean = evaluate_stage1_gates(
+        roic=MetricResult(value=0.15),
+        net_debt_ebitda=MetricResult(value=1.0),
+        cash_conversion=MetricResult(value=1.5),
+        net_income_margin=MetricResult(value=0.05),
+        thresholds=DEFAULT_THRESHOLDS,
+    )
+    assert (failed_with_gap.status, plain_failed.status, not_evaluable.status) == ("failed", "failed", "not_evaluable")
+    gate_results = {"GAP01": failed_with_gap, "FAIL01": plain_failed, "NOEV01": not_evaluable, "CLEAN01": clean}
+    db_path = tmp_path / "archive.db"
+    run_timestamp = "2026-09-30T10:00:00"
+
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
+
+    assert [ticker for ticker, _ in rank_companies(gate_results)] == ["CLEAN01"]
+    assert {row["ticker"] for row in _query_run(db_path, run_timestamp)} == {"CLEAN01"}
+    eliminated = {row["ticker"]: row for row in _query_eliminated(db_path, run_timestamp)}
+    assert set(eliminated) == {"GAP01", "FAIL01", "NOEV01"}
+    assert eliminated["GAP01"]["status"] == "failed"
+    assert eliminated["GAP01"]["invalid_reasons"] == "debt_data_completely_missing"
+    assert eliminated["GAP01"]["net_debt_ebitda"] is None
+    assert eliminated["GAP01"]["roic"] == 0.05
+    assert eliminated["FAIL01"]["invalid_reasons"] == ""
+
+    connection = sqlite3.connect(db_path)
+    try:
+        gap_count = connection.execute(
+            "SELECT COUNT(*) FROM eliminated_results WHERE status = 'failed' AND invalid_reasons != ''"
+        ).fetchone()[0]
+    finally:
+        connection.close()
+    assert gap_count == 1
 
 
 def test_zero_eliminated_run_writes_empty_eliminated_table(tmp_path):

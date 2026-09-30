@@ -34,33 +34,35 @@ from store_layer.db import save_run_results
 SIMFIN_RAW_DIR = Path(__file__).parent / "fixtures" / "simfin_raw"
 
 # ticker -> (status, metric flags, invalid_reasons) - see the module docstring.
+# CVGI, SGC, GENC and MATW are failed although they carry invalid_reasons: a valid metric is in its
+# hard-fail zone (docs/decisions.md, "Phase 2.0d", Entscheidung 1/4, Issue #35).
 EXPECTED_OUTCOMES = {
     "ATRO": ("not_evaluable", (), ("net_debt_unreliable", "net_debt_unreliable", "ni_non_positive")),
     "CATO": ("not_evaluable", (), ("insufficient_years", "ebitda_non_positive", "insufficient_years", "insufficient_years")),
     "CENT": ("failed", (), ()),
     "CULP": ("not_evaluable", (), ("debt_data_completely_missing", "ebitda_non_positive", "ni_non_positive")),
-    "CVGI": ("not_evaluable", (), ("ni_non_positive",)),
+    "CVGI": ("failed", (), ("ni_non_positive",)),
     "DXPE": ("failed", (), ()),
     "FLXS": ("passed_with_flags", ("roic",), ()),
     "FOSL": ("not_evaluable", (), ("net_debt_unreliable", "net_debt_unreliable", "ni_non_positive")),
-    "GENC": ("not_evaluable", (), ("debt_data_completely_missing", "debt_data_completely_missing")),
+    "GENC": ("failed", (), ("debt_data_completely_missing", "debt_data_completely_missing")),
     "KELYA": ("not_evaluable", (), ("insufficient_years", "no_periods", "insufficient_years", "insufficient_years")),
     "LAKE": ("not_evaluable", (), ("net_debt_unreliable", "ebitda_non_positive", "ni_non_positive")),
     "LZB": ("not_evaluable", (), ("debt_data_completely_missing", "debt_data_completely_missing")),
-    "MATW": ("not_evaluable", (), ("insufficient_years", "insufficient_years", "insufficient_years")),
+    "MATW": ("failed", (), ("insufficient_years", "insufficient_years", "insufficient_years")),
     "MOV": ("not_evaluable", (), ("debt_data_completely_missing", "debt_data_completely_missing")),
     "NPK": ("not_evaluable", (), ("insufficient_years", "no_periods", "insufficient_years", "insufficient_years")),
     "PLOW": ("failed", ("cash_conversion",), ()),
     "ROCK": ("not_evaluable", (), ("debt_data_completely_missing", "debt_data_completely_missing")),
     "SCSC": ("failed", (), ()),
-    "SGC": ("not_evaluable", (), ("ni_non_positive",)),
+    "SGC": ("failed", (), ("ni_non_positive",)),
     "SMP": ("failed", (), ()),
     "SUPN": ("not_evaluable", (), ("debt_data_completely_missing", "debt_data_completely_missing", "ni_non_positive")),
     "UFPT": ("passed", (), ()),
     "USNA": ("passed", (), ()),
 }
 
-EXPECTED_DISTRIBUTION = {PASSED: 2, PASSED_WITH_FLAGS: 1, FAILED: 5, NOT_EVALUABLE: 15}
+EXPECTED_DISTRIBUTION = {PASSED: 2, PASSED_WITH_FLAGS: 1, FAILED: 9, NOT_EVALUABLE: 11}
 
 
 def pilot_tickers():
@@ -91,6 +93,8 @@ def format_report(gate_results):
     lines = [f"{'ticker':6} {'status':18} {'roic':>5} {'nd/ebitda':>9} {'cash_cv':>7} {'ni_mgn':>6}  flags / invalid_reasons"]
     for ticker, result in gate_results.items():
         detail = ",".join(result.flags) if result.status != NOT_EVALUABLE else ",".join(result.invalid_reasons)
+        if result.status == FAILED and result.invalid_reasons:  # failed with a data gap (Phase 2.0d)
+            detail = f"{detail}  invalid_reasons: {','.join(result.invalid_reasons)}"
         lines.append(
             f"{ticker:6} {result.status:18} {cell(result.roic):>5} {cell(result.net_debt_ebitda):>9} "
             f"{cell(result.cash_conversion):>7} {cell(result.net_income_margin):>6}  {detail}"
