@@ -1037,3 +1037,50 @@ Pro Firma und Lauf wird das Profil als Text festgehalten; eine Migration, die di
 **Wiederholter Replay nach den Härtungen** (dieselbe Kopie `run_archive_replay_copy.db`, `run_stage1_full.py` mit `--db-path`/`--archive-db-path` auf die Kopie, 0 SimFin-Calls; Bericht `replay_repeat_2_0e_report.txt`): Ist gleich Soll und identisch zum ersten Replay. `passed` 93, `passed_with_flags` 33, `failed` 458, `not_evaluable` 706, `unsupported_business_model` 531, Summe 1.821; 126 Überlebende (MCY und HRMY entfernt), relative Reihenfolge gegenüber dem Volllauf unverändert; 100 Firmen mit `borderline_sector = 1`. Gegenüber dem ersten Replay sind alle Spalten beider Tabellen für jede Firma gleich (ticker-weiser Vergleich: identisch) und das Ranking identisch. Die echte `data/run_archive.db` wurde nur als Datei gehasht (SHA-256 vor und nach dem Replay unverändert `95C50A15A14CA9735701191EB7FCC1A9CC1F645D8D5FB5A70DC1E7821C604AC1`), nicht mit SQLite geöffnet. Der Pilot-Golden-Master wurde nicht wiederholt: Die vier Härtungen berühren `run_stage1.py` und den Pilot-Pfad nicht. Tests: 739 grün (729 + 10 neue).
 
 **Einschränkung eines Tests:** `tests/test_sector_profiles.py::test_real_config_lists_every_sector_code_of_the_universe_bulk_file` prüft die Abdeckung aller 74 `sectorCode`s nur, wenn `data/cache/universe/2026-09-24/general_bulk.json` vorhanden ist; `data/` ist gitignoriert, in einem frischen Checkout oder einer CI ohne diese Datei wird der Test übersprungen (nicht fehlgeschlagen). Die Abdeckung ist im Repo dann nur durch die anderen Tests der echten Config (Ausschluss-Codes, Grenzfälle, Standard-Profil) und zur Laufzeit durch die Abdeckungsprüfung des Volllauf-Runners gesichert.
+
+## 2026-10-01: Phase 2.0 – Zyklische Firmen unter den Überlebenden (Befund, Issue #52)
+
+**Kontext:** Unter den Überlebenden des Volllaufs liegen 29 Firmen in Energy und Basic Materials (sectorCode 107002 Oil & Gas E&P 7, 107004 Oil & Gas Services 6, 110001 Chemicals 7, 110002 Forest Products 1, 110005 Building Materials 7, 110006 Coal 1). Die Sorge: EBITDA und Cash Conversion am Zyklushoch lassen Stage 1 zu optimistisch ausfallen; die 3-Jahres-Mittel bei ROIC und Cash Conversion dämpfen das nur teilweise. Dieses Issue ist eine **Messaufgabe**: keine neue Regel, keine Schwelle, keine Änderung an `src/`, `tests/` oder `config/`. Eine Entscheidung über Hebel ist ausdrücklich nicht Teil dieses Abschnitts.
+
+**Teil 1 – Existiert der Trend-Guard (Masterplan Stufe 1.1)?** **Nein.** Der Masterplan beschreibt Stufe 1.1 als einfachen Filter gegen „fallende Messer" (verschlechtern sich Umsatz/Marge über die letzten Perioden?), der Zykliker am Gewinngipfel „teilweise – aber nicht vollständig" flaggt; Phase 1.1 führt ihn in der Roadmap auf. Eine Suche in `src/`, `config/`, `tests/` und `docs/decisions.md` (u. a. nach „trend", „guard", „revenue_trend", „margin", „zykl", „cyclic", „peak") ergibt: kein Trend-Guard-Code, keine Konfigurationsgruppe, kein Test seines Verhaltens. Es gibt nur zwei Berührungspunkte:
+- `tests/test_thresholds.py` benutzt `trend_guard` als Beispiel für einen **unbekannten** Top-Level-Schlüssel, der die Konfiguration abbrechen lässt (`test_unknown_top_level_key_aborts_naming_it`). Das ist ein Test der Konfigurationsvalidierung, kein Trend-Guard.
+- `docs/decisions.md` (Abschnitt zur Phase 1.1, Z. 723) nennt den Trend-Guard ausdrücklich als „bewusst nicht Teil dieses Branches".
+
+Alle vorhandenen „Guards" (`ebitda ≤ 0`, Invested Capital ≤ 0, Bilanzsummen-Floor, ROIC > 60 %, Nenner-Schutz bei Cash Conversion, Net-Debt-Zuverlässigkeit) sind Gültigkeitsprüfungen einzelner Kennzahlen. Die Net-Income-Marge ist ein Niveau-Gate (3-Jahres-Mittel gegen `fail_below`), keine Trendprüfung. Es gibt also heute **keine Stelle, die einen Verlauf über die Jahre bewertet**; die Verlaufsinformation geht nur über die drei Jahresmittel (ROIC, Cash Conversion, Net-Income-Marge) ein, und Net Debt/EBITDA nutzt nur das letzte Jahr.
+
+**Teil 2 – Messung (0 SimFin-Calls, rein lesend):**
+- Überlebende: Kopie `C:\Users\<Benutzer>\baselines\phase2.0e\run_archive_replay_copy.db` (nur lesend geöffnet; die echte `data/run_archive.db` wurde nicht geöffnet), Replay-Lauf `2026-09-30T18:33:43`, `passed` + `passed_with_flags` = **126** Firmen (identisch mit dem Wiederholungslauf `18:53:07`). Das Issue nennt 128 Überlebende: das war der Stand vor Phase 2.0e; MCY und HRMY sind durch die ausgeschlossenen Geschäftsmodell-Profile entfallen (Replay-Bericht Phase 2.0e), beide gehörten nicht zu den 29.
+- Sektorcodes: `universe_prefilter` des Quelllaufs `2026-09-24T18:13:48`. **Gruppe Z** (die sechs Codes oben) = **29** Firmen (wie erwartet), **Kontrollgruppe K** = alle übrigen **97**.
+- Rohdaten: `data/cache/fundamentals/2026-09-24/`. Berechnet mit den **bestehenden** Funktionen: `build_company_record` (Mapper; `ebitda`, `revenue`, die drei jüngsten Fiskaljahre der Firma) und `metrics_layer.roic.roic_for_period`; die EBITDA-Marge ist `ebitda / revenue` (Quotient zweier bestehender Mapper-Größen). Keine neue Formel. Kontrolle: der Mittelwert der drei Jahres-ROICs stimmt für alle 126 Firmen exakt mit `roic_3yr` des Replay-Laufs überein.
+- Kennzahl je Firma: **letztes Jahr / Mittel der drei Anker-Jahre**, für EBITDA, EBITDA-Marge und ROIC. Reine Kennzahl, keine Klassifikation, keine Schwelle.
+- Skript und Ausgabe liegen außerhalb des Repos in `C:\Users\<Benutzer>\baselines\issue52\` (`measure_cyclicals.py`, `cyclicals_measurement.txt`, dort auch die Rohwerte je Z-Firma, drei Zeilen pro Firma). SHA-256 Skript `4f5cf175008613d8a5857db603df054beb17f490948accec04c04f120e24d3b3`, Ausgabe `0c7950d6220f4c4b0645fb96a56982a274e176002526f6f837b99f3fff418b79`.
+- **Firmen mit weniger als drei verwertbaren Anker-Jahren: 0 von 29 (Z) und 0 von 97 (K)**; ebenso ist keines der drei Verhältnisse bei irgendeiner Firma nicht berechenbar. Das ist erwartbar: Überlebende haben den 3-Jahres-ROIC bestanden, der drei gültige Jahre verlangt; das Mittel ist in allen Fällen positiv.
+
+**Ergebnis (Verhältnis „letztes Jahr / Mittel der drei Jahre"; Quartile inklusive Methode):**
+
+| Kennzahl | Gruppe | n | Min | Q1 | Median | Q3 | Max |
+|---|---|---|---|---|---|---|---|
+| EBITDA | Z | 29 | 0,590 | 0,927 | 1,014 | 1,073 | 1,170 |
+| EBITDA | K | 97 | 0,624 | 0,979 | 1,051 | 1,167 | 2,013 |
+| EBITDA-Marge | Z | 29 | 0,618 | 0,952 | 0,996 | 1,035 | 1,108 |
+| EBITDA-Marge | K | 97 | 0,624 | 0,951 | 1,013 | 1,087 | 1,972 |
+| ROIC | Z | 29 | 0,371 | 0,741 | 0,836 | 1,029 | 1,135 |
+| ROIC | K | 97 | 0,487 | 0,877 | 0,999 | 1,081 | 1,919 |
+
+Beschreibung (ohne Wertung): Bei EBITDA und EBITDA-Marge liegt Z im Median nicht über K, die Mediane sind nahe 1 (Z 1,014 bzw. 0,996; K 1,051 bzw. 1,013), und das Maximum in Z (1,170 bzw. 1,108) ist deutlich niedriger als in K (2,013 bzw. 1,972). Beim ROIC liegt der Median in Z mit 0,836 klar unter K mit 0,999: das letzte Jahr liegt dort im Median etwa 16 % unter dem Dreijahresmittel. Die Messung zeigt in Z also **keine Häufung des letzten Jahres über dem Dreijahresmittel**; sie zeigt eher eine sinkende Kapitalrendite. Das ist kein Beleg gegen das Zyklusrisiko (siehe Grenzen).
+
+**Grenzen:**
+- Nur **drei Anker-Jahre**: kein voller Zyklus. Ein Dreijahresfenster kann selbst ein Zwischenhoch oder -tief sein; das Mittel der drei Jahre ist als Bezugsgröße für „normal" nicht belastbar.
+- Ein **Gewinngipfel lässt sich mit drei Jahren nur schwach erkennen**. „Letztes Jahr / Dreijahresmittel" ist **keine Gipfel-Diagnose**: ein Wert unter 1 kann ein Rückgang nach dem Gipfel (Gipfel liegt im ersten oder zweiten Jahr) oder ein Tief sein, ein Wert über 1 ein Anstieg Richtung Gipfel oder eine Erholung. Das Verhältnis ordnet das letzte Jahr gegen die beiden anderen, nicht gegen einen Zyklus.
+- Die Firmen haben unterschiedliche letzte Fiskaljahre (über alle 126: 2025: 117, 2024: 4, 2023: 2, 2026: 3), weil der Mapper je Firma die drei jüngsten eigenen Jahre nimmt; das Z/K-Bild ist deshalb nicht auf ein gemeinsames Kalenderjahr bezogen.
+- Gruppen klein und heterogen (Z: 29 Firmen aus sechs Sektorcodes, darunter je 1 in 110002 und 110006); Kennzahlen reagieren je nach Subbranche unterschiedlich auf den Rohstoffzyklus (z. B. Öl/Gas gegen Baustoffe). Nur die Verhältnisse wurden gemessen; Cash Conversion und Net Debt/EBITDA wurden **nicht** erneut ausgewertet. Auch hier kein Test auf Signifikanz.
+- Rohdaten sind der Cache vom 2026-09-24; es wurde nichts neu geladen.
+
+**Mögliche Hebel (nur benannt, keiner entschieden):**
+1. **Trend-Guard (Masterplan 1.1) bauen**, wie dort beschrieben: Umsatz-/Margenverlauf als Flag oder Gate. Er würde Verläufe bewerten, die Stage 1 heute nicht sieht; mit drei Jahren bleibt er aber schwach (siehe Grenzen), und für Zykliker ist „Marge fällt" und „Marge am Gipfel" nicht dasselbe Signal.
+2. **Längere Historie** für die Zyklusbeurteilung. Der Cache enthält für 26 der 29 Firmen in Z sieben und für drei Firmen sechs Fiskaljahre mit Operating Income (K: 83 mit sieben, 11 mit sechs, 3 mit fünf), der Mapper benutzt davon nur die drei jüngsten. Eine längere Betrachtung bräuchte keinen neuen SimFin-Call, aber eine Entscheidung, wie viele Jahre in welche Kennzahl eingehen (und neue Formeln samt pytest-Tests).
+3. **Zykliker-Flag** (rein informativ) für Firmen in bestimmten Sektorcodes, z. B. über die bestehende Sektorprofil-Naht (`config/sector_profiles.yaml`), ohne Einfluss auf Gates oder Rang.
+4. **Eigenes Profil** für Zykliker (analog zu den Phase-2.0e-Geschäftsmodell-Profilen) mit eigenen Schwellen oder eigener Normalisierung (z. B. Mittel über einen längeren Zeitraum).
+5. **Nichts ändern** und das Restrisiko wie im Masterplan (§10) der manuellen Prüfung in Stufe 3 überlassen.
+
+Die Entscheidung liegt beim Projektinhaber; sie steht nicht in diesem Abschnitt.
