@@ -1037,3 +1037,194 @@ Pro Firma und Lauf wird das Profil als Text festgehalten; eine Migration, die di
 **Wiederholter Replay nach den Härtungen** (dieselbe Kopie `run_archive_replay_copy.db`, `run_stage1_full.py` mit `--db-path`/`--archive-db-path` auf die Kopie, 0 SimFin-Calls; Bericht `replay_repeat_2_0e_report.txt`): Ist gleich Soll und identisch zum ersten Replay. `passed` 93, `passed_with_flags` 33, `failed` 458, `not_evaluable` 706, `unsupported_business_model` 531, Summe 1.821; 126 Überlebende (MCY und HRMY entfernt), relative Reihenfolge gegenüber dem Volllauf unverändert; 100 Firmen mit `borderline_sector = 1`. Gegenüber dem ersten Replay sind alle Spalten beider Tabellen für jede Firma gleich (ticker-weiser Vergleich: identisch) und das Ranking identisch. Die echte `data/run_archive.db` wurde nur als Datei gehasht (SHA-256 vor und nach dem Replay unverändert `95C50A15A14CA9735701191EB7FCC1A9CC1F645D8D5FB5A70DC1E7821C604AC1`), nicht mit SQLite geöffnet. Der Pilot-Golden-Master wurde nicht wiederholt: Die vier Härtungen berühren `run_stage1.py` und den Pilot-Pfad nicht. Tests: 739 grün (729 + 10 neue).
 
 **Einschränkung eines Tests:** `tests/test_sector_profiles.py::test_real_config_lists_every_sector_code_of_the_universe_bulk_file` prüft die Abdeckung aller 74 `sectorCode`s nur, wenn `data/cache/universe/2026-09-24/general_bulk.json` vorhanden ist; `data/` ist gitignoriert, in einem frischen Checkout oder einer CI ohne diese Datei wird der Test übersprungen (nicht fehlgeschlagen). Die Abdeckung ist im Repo dann nur durch die anderen Tests der echten Config (Ausschluss-Codes, Grenzfälle, Standard-Profil) und zur Laufzeit durch die Abdeckungsprüfung des Volllauf-Runners gesichert.
+
+## 2026-10-01: Phase 2.0 – Zyklische Firmen unter den Überlebenden (Befund, Issue #52)
+
+**Kontext:** Unter den Überlebenden des Volllaufs liegen 29 Firmen in Energy und Basic Materials (sectorCode 107002 Oil & Gas E&P 7, 107004 Oil & Gas Services 6, 110001 Chemicals 7, 110002 Forest Products 1, 110005 Building Materials 7, 110006 Coal 1). Die Sorge: EBITDA und Cash Conversion am Zyklushoch lassen Stage 1 zu optimistisch ausfallen; die 3-Jahres-Mittel bei ROIC und Cash Conversion dämpfen das nur teilweise. Dieses Issue ist eine **Messaufgabe**: keine neue Regel, keine Schwelle, keine Änderung an `src/`, `tests/` oder `config/`. Eine Entscheidung über Hebel ist ausdrücklich nicht Teil dieses Abschnitts.
+
+**Teil 1 – Existiert der Trend-Guard (Masterplan Stufe 1.1)?** **Nein.** Der Masterplan beschreibt Stufe 1.1 als einfachen Filter gegen „fallende Messer" (verschlechtern sich Umsatz/Marge über die letzten Perioden?), der Zykliker am Gewinngipfel „teilweise – aber nicht vollständig" flaggt; Phase 1.1 führt ihn in der Roadmap auf. Eine Suche in `src/`, `config/`, `tests/` und `docs/decisions.md` (u. a. nach „trend", „guard", „revenue_trend", „margin", „zykl", „cyclic", „peak") ergibt: kein Trend-Guard-Code, keine Konfigurationsgruppe, kein Test seines Verhaltens. Es gibt nur zwei Berührungspunkte:
+- `tests/test_thresholds.py` benutzt `trend_guard` als Beispiel für einen **unbekannten** Top-Level-Schlüssel, der die Konfiguration abbrechen lässt (`test_unknown_top_level_key_aborts_naming_it`). Das ist ein Test der Konfigurationsvalidierung, kein Trend-Guard.
+- `docs/decisions.md` (Abschnitt „2026-09-23: Schwellen nach config/thresholds.yaml (Phase 1.1, Branch `phase1.1-yaml-config`, Issue #33)") nennt den Trend-Guard ausdrücklich als „bewusst nicht Teil dieses Branches".
+
+Alle vorhandenen „Guards" (`ebitda ≤ 0`, Invested Capital ≤ 0, Bilanzsummen-Floor, ROIC > 60 %, Nenner-Schutz bei Cash Conversion, Net-Debt-Zuverlässigkeit) sind Gültigkeitsprüfungen einzelner Kennzahlen. Die Net-Income-Marge ist ein Niveau-Gate (3-Jahres-Mittel gegen `fail_below`), keine Trendprüfung. Es gibt also heute **keine Stelle, die einen Verlauf über die Jahre bewertet**; die Verlaufsinformation geht nur über die drei Jahresmittel (ROIC, Cash Conversion, Net-Income-Marge) ein, und Net Debt/EBITDA nutzt nur das letzte Jahr.
+
+**Teil 2 – Messung (0 SimFin-Calls, rein lesend):**
+- Überlebende: Kopie `C:\Users\<Benutzer>\baselines\phase2.0e\run_archive_replay_copy.db` (nur lesend geöffnet; die echte `data/run_archive.db` wurde nicht geöffnet), Replay-Lauf `2026-09-30T18:33:43`, `passed` + `passed_with_flags` = **126** Firmen (identisch mit dem Wiederholungslauf `18:53:07`). Das Issue nennt 128 Überlebende: das war der Stand vor Phase 2.0e; MCY und HRMY sind durch die ausgeschlossenen Geschäftsmodell-Profile entfallen (Replay-Bericht Phase 2.0e), beide gehörten nicht zu den 29.
+- Sektorcodes: `universe_prefilter` des Quelllaufs `2026-09-24T18:13:48`. **Gruppe Z** (die sechs Codes oben) = **29** Firmen (wie erwartet), **Kontrollgruppe K** = alle übrigen **97**.
+- Rohdaten: `data/cache/fundamentals/2026-09-24/`. Berechnet mit den **bestehenden** Funktionen: `build_company_record` (Mapper; `ebitda`, `revenue`, die drei jüngsten Fiskaljahre der Firma) und `metrics_layer.roic.roic_for_period`; die EBITDA-Marge ist `ebitda / revenue` (Quotient zweier bestehender Mapper-Größen). Keine neue Formel. Kontrolle: der Mittelwert der drei Jahres-ROICs stimmt für alle 126 Firmen exakt mit `roic_3yr` des Replay-Laufs überein.
+- Kennzahl je Firma: **letztes Jahr / Mittel der drei Anker-Jahre**, für EBITDA, EBITDA-Marge und ROIC. Reine Kennzahl, keine Klassifikation, keine Schwelle.
+- Skript und Ausgabe liegen außerhalb des Repos in `C:\Users\<Benutzer>\baselines\issue52\` (`measure_cyclicals.py`, `cyclicals_measurement.txt`, dort auch die Rohwerte je Z-Firma, drei Zeilen pro Firma). SHA-256 Skript `4f5cf175008613d8a5857db603df054beb17f490948accec04c04f120e24d3b3`, Ausgabe `0c7950d6220f4c4b0645fb96a56982a274e176002526f6f837b99f3fff418b79`.
+- **Firmen mit weniger als drei verwertbaren Anker-Jahren: 0 von 29 (Z) und 0 von 97 (K)**; ebenso ist keines der drei Verhältnisse bei irgendeiner Firma nicht berechenbar. Das ist **nur für den ROIC** eine Folge der Gate-Bedingungen: Überlebende haben den 3-Jahres-ROIC bestanden, der drei gültige Jahre verlangt und im Mittel nicht unter `fail_below` (0,10) liegt, also ist das ROIC-Mittel positiv. Für EBITDA und EBITDA-Marge folgt es **nicht** aus den Gate-Bedingungen (die ROIC-Prüfung baut auf dem Operating Income auf, nicht auf dem EBITDA, und der Umsatz geht nur über die Net-Income-Marge ein); dass dort bei keiner der 126 Firmen ein Verhältnis fehlt (Mittel > 0 und Umsatz > 0), ist ein **Befund der Skriptausgabe**, keine Garantie.
+
+**Ergebnis (Verhältnis „letztes Jahr / Mittel der drei Jahre"; Quartile inklusive Methode):**
+
+| Kennzahl | Gruppe | n | Min | Q1 | Median | Q3 | Max | Verhältnis > 1 |
+|---|---|---|---|---|---|---|---|---|
+| EBITDA | Z | 29 | 0,590 | 0,927 | 1,014 | 1,073 | 1,170 | 16 von 29 |
+| EBITDA | K | 97 | 0,624 | 0,979 | 1,051 | 1,167 | 2,013 | 65 von 97 |
+| EBITDA-Marge | Z | 29 | 0,618 | 0,952 | 0,996 | 1,035 | 1,108 | 10 von 29 |
+| EBITDA-Marge | K | 97 | 0,624 | 0,951 | 1,013 | 1,087 | 1,972 | 56 von 97 |
+| ROIC | Z | 29 | 0,371 | 0,741 | 0,836 | 1,029 | 1,135 | 8 von 29 |
+| ROIC | K | 97 | 0,487 | 0,877 | 0,999 | 1,081 | 1,919 | 48 von 97 |
+
+Herkunft der Spalten: n, Min, Q1, Median, Q3 und Max stammen aus `cyclicals_measurement.txt` (Skript `measure_cyclicals.py`, Hashes oben). Die Spalte „Verhältnis > 1" steht **nicht** in dieser Datei, sondern in `cyclicals_measurement_2b.txt` (Skript `measure_cyclicals_2b.py`, Abschnitt A), das dieselben Verhältnisse über den importierten Teil-2-Code neu berechnet und zusätzlich zählt; die Quartile und Mediane dort sind mit denen aus `cyclicals_measurement.txt` identisch. Die Spalte ist eine reine Zählung (nachgetragen im Review zu PR #54), keine Klassifikation und keine Schwelle.
+
+Zahlen im Überblick: Bei EBITDA und EBITDA-Marge liegt der Median in Z nicht über dem in K, die Mediane sind nahe 1 (Z 1,014 bzw. 0,996; K 1,051 bzw. 1,013), und das Maximum in Z (1,170 bzw. 1,108) ist deutlich niedriger als in K (2,013 bzw. 1,972). Beim ROIC beträgt der Median in Z 0,836 und in K 0,999 (Differenz 0,163): in Z liegt das letzte Jahr im Median 16 % unter dem Dreijahresmittel, in K nahezu darauf. Der Anteil der Firmen mit einem Verhältnis über 1 ist in Z bei allen drei Kennzahlen kleiner als in K: EBITDA 16 von 29 (55 %) gegen 65 von 97 (67 %), EBITDA-Marge 10 von 29 (34 %) gegen 56 von 97 (58 %), ROIC 8 von 29 (28 %) gegen 48 von 97 (49 %). Innerhalb des Dreijahresfensters liegen in Z also nicht mehr Firmen mit dem letzten Jahr über dem Dreijahresmittel als in K. Das sagt nur etwas über die Lage des letzten Jahres gegen die beiden vorangehenden; ob ein Rückgang nach einem Gipfel im ersten oder zweiten Jahr oder ein längerfristiger Rückgang der Kapitalrendite dahintersteht, kann ein Dreijahresfenster nicht unterscheiden (siehe Grenzen und Teil 2b).
+
+**Teil 2b – Verfügbarkeit, Verlauf über die verfügbare Historie, Letztes-Jahr-ROIC (nachgetragen, Review-Punkt 5 zu PR #54):**
+Gleiche Quellen wie Teil 2 (Kopie-DB, Cache vom 2026-09-24, 0 SimFin-Calls, echte `data/run_archive.db` nicht geöffnet). Skript `measure_cyclicals_2b.py` (außerhalb des Repos, baut auf `measure_cyclicals.py` auf), Ausgabe `cyclicals_measurement_2b.txt` (dort auch je Z-Firma Verlaufskennzahlen und Zone). SHA-256 Skript 2b `3959379be3bf4fce33de7992b722e641013dad58013c2268e64df87776006f49`, Ausgabe 2b `e47d55d909bfcda0ac93df17347b49341d36832f55adcb7accda176f7335cb3b`; Skript und Ausgabe aus Teil 2 sind unverändert (Hashes wie oben). Teil 2c (Zählung je Sektorcode, Nenner-Klärung, Kreuzzählung): `measure_cyclicals_2c.py` SHA-256 `392f3093eb54819901f5039309afb21a9f708f4bd439d3c75426660e97efe693`, `cyclicals_measurement_2c.txt` SHA-256 `ceef48e1efcd782776080e6cdff75f972c60fd29f9a0eda8ee55a9334fb1a43b`; Teil-2b-Skript und -Ausgabe sind unverändert (Hashes wie genannt). Berechnet ausschließlich mit bestehenden Funktionen: `build_company_record` mit seinem **bestehenden Parameter `max_years=7`** (Standard ist `MAX_YEARS = 3`; keine neue Mapper-Logik, der Mapper verwirft selbst Jahre mit fehlendem Pflichtfeld), `roic_for_period` und der bestehende Klassifizierer `_classify_roic` mit den Schwellen aus `config/thresholds.yaml`. Operating-Marge = `ebit / revenue`, EBITDA-Marge = `ebitda / revenue`. Keine neue Formel, keine neue Schwelle, keine Klassifikation von Firmen. Der Auswertungsparameter `MIN_YEARS = 5` (Verlauf nur bei mindestens fünf verwertbaren Jahren je Kennzahl, also mindestens zwei Jahre jenseits der Anker-Jahre) steht nur im externen Skript und ist ein Parameter dieser Messung, kein Produktparameter und deshalb nicht in `config/` (würde die Auswertung Produktcode, gehörte er nach CLAUDE.md dorthin; eine andere Wahl ändert die Gruppengrößen); Firmen darunter werden je Auswertung gezählt und genannt, nicht still weggelassen.
+
+*B1 – Verfügbarkeit.* Zahl der Firmen mit nicht-leerem Feld je Fiskaljahr (k = 1 jüngstes Jahr mit Operating Income, k = 7 ältestes; Spalten PL/CF = Zeile „FY", Bilanz = „Q4", wie im Mapper):
+
+| Gruppe | k | Firmen mit Jahr k | Operating Income, Umsatz, Net Income, D&A, CFO | Eigenkapital | Cash | Bilanzsumme | alle Pflichtfelder des Mapper | Net Debt verwertbar | ROIC gültig |
+|---|---|---|---|---|---|---|---|---|---|
+| Z (29) | 1–3 | 29 | 29 | 29 | 29 | 29 | 29 | 29 | 29 |
+| Z | 4 | 29 | 29 | 29 | 29 | 29 | 29 | 27 | 26 |
+| Z | 5 | 29 | 29 | 29 | 29 | 29 | 29 | 24 | 22 |
+| Z | 6 | 29 | 29 | 29 | 29 | 29 | 29 | 22 | 22 |
+| Z | 7 | 26 | 26 | 25 | 25 | 25 | 25 | 0 | 0 |
+| K (97) | 1–3 | 97 | 97 | 97 | 97 | 97 | 97 | 97 | 97 |
+| K | 4 | 97 | 97 | 97 | 96 | 97 | 96 | 82 | 82 |
+| K | 5 | 97 | 97 | 96 | 95 | 95 | 95 | 74 | 73 |
+| K | 6 | 94 | 94 | 93 | 92 | 93 | 92 | 65 | 64 |
+| K | 7 | 83 | 83 | 80 | 78 | 80 | 78 | 0 | 0 |
+
+- **Jenseits der drei Anker-Jahre** liegen Operating Income, Umsatz, Net Income, D&A und CFO für praktisch alle Firmen bis k = 6 vollständig vor (Z: alle 29; K: alle 97 bis k = 5, 94 bei k = 6), bei k = 7 für 26 von 29 (Z) bzw. 83 von 97 (K) Firmen, weil das Jahr bei den übrigen nicht mehr existiert; Eigenkapital, Cash und Bilanzsumme fehlen bei k = 7 für je eine (Z) bzw. bis zu fünf (K) weitere Firmen. Der Mapper behält deshalb in Z 25 Firmen mit sieben und vier mit sechs Jahren (K: 78 mit sieben, 14 mit sechs, 3 mit fünf, je 1 mit vier und drei Jahren); der Abgleich meiner eigenen Roh-Zählung gegen die Periodenzahl des Mappers ergibt 0 Abweichungen, es gibt keine Lücken in den behaltenen Fiskaljahren. Ältestes Jahr der Historie: Z 2019 bei 27 und 2020 bei 2 Firmen; K 2019 bei 85, 2020 bei 11 und 2021 bei 1 Firma. Jüngstes Jahr: Z 2025 bei 28 Firmen und 2024 bei 1 Firma (APOG); K 2025 bei 89, 2026 bei 3, 2024 bei 3 und 2023 bei 2 Firmen. Das Fenster ist also je Firma verschieden und nicht für alle „2019 bis 2025".
+- **Schulden:** `Short Term Debt` fehlt in Z bei etwa der Hälfte der Firmen-Jahre (10 bis 19 von 29 vorhanden, Anteil fehlend je Jahr 34 bis 62 % der Firmen mit diesem Jahr); in K fehlt er seltener, bei 30 bis 37 % (54 bis 68 von 97 vorhanden; bezogen auf alle 97 Firmen wären es 30 bis 44 %, aber für k = 6 und 7 haben nicht alle K-Firmen das Jahr: 94 bzw. 83). `Long Term Debt` fehlt für wenige (Z: 23 bis 29 vorhanden, K: 71 bis 91). Der Mapper setzt fehlende Komponenten wie bisher auf 0 und flaggt das (`debt_component_missing_defaulted_zero`); das ist bestehendes Verhalten und wurde nicht geändert.
+- **ROIC ist der Engpass:** Ein gültiges Jahres-ROIC braucht ein verlässliches Net Debt, und der Stock-Flow-Abgleich braucht die Bilanz des Vorjahres. Für das älteste Jahr k = 7 gibt es sie nie (0 verwertbare Net-Debt- und ROIC-Jahre in beiden Gruppen), für k = 4 bis 6 sinkt die Zahl (Z: 26/22/22 von 29; K: 82/73/64 von 97). Gründe für fehlendes ROIC je behaltenes Jahr: Z `net_debt_unreliable` 39, `roic_implausibly_high` 3; K `net_debt_unreliable` 133, `debt_data_completely_missing` 7, `ic_below_asset_floor` 1, `roic_implausibly_high` 1. Folge: höchstens sechs ROIC-Jahre je Firma; ROIC-verwertbare Jahre Z {3: 1, 4: 2, 5: 10, 6: 16}, K {3: 7, 4: 12, 5: 27, 6: 51}. Bei 6 Z- und 16 K-Firmen sind die gültigen ROIC-Jahre nicht lückenlos aufeinanderfolgend.
+
+*B2 – Verlauf über die verfügbare Historie* (bis zu sieben Jahre, Quartile inklusive Methode, juengstes Jahr im Mittel bzw. Median eingeschlossen; „> 1" ist die Zählung der Firmen mit Verhältnis über 1). Nicht ausgewertet wegen weniger als fünf verwertbaren Jahren: Operating Income, Operating-Marge, EBITDA, EBITDA-Marge: Z 0 von 29, K 2 von 97 (ATMU 3 Jahre, EXLS 4 Jahre); ROIC: Z 3 von 29 (LPX 4, REPX 4, WTTR 3), K 19 von 97 (ALRM, AMPH, ATMU, BROS, CDRE, CNXN, ESAB, EXLS, GSL, IDCC, MGM, MSM, PEGA, PRG, REYN, UFPI, UTI, VSCO, XPER). Nicht berechenbar, weil Mittel bzw. Median ≤ 0: Operating-Marge K Mittel 2 (MGM, PEGA), Median ≤ 0: bei Operating Income, Operating-Marge, EBITDA und EBITDA-Marge je 1 K-Firma (PEGA); sonst keine.
+
+Letztes Jahr / Mittel aller verfügbaren Jahre:
+
+| Kennzahl | Gruppe | n | Min | Q1 | Median | Q3 | Max | > 1 |
+|---|---|---|---|---|---|---|---|---|
+| Operating Income | Z | 29 | 0,323 | 1,116 | 1,267 | 1,412 | 3,287 | 23 von 29 |
+| Operating Income | K | 95 | 0,419 | 1,091 | 1,325 | 1,705 | 22,854 | 80 von 95 |
+| Operating-Marge | Z | 29 | 0,362 | 0,987 | 1,112 | 1,332 | 8,826 | 20 von 29 |
+| Operating-Marge | K | 93 | 0,461 | 0,987 | 1,080 | 1,301 | 16,522 | 65 von 93 |
+| EBITDA | Z | 29 | 0,491 | 1,014 | 1,238 | 1,370 | 2,235 | 23 von 29 |
+| EBITDA | K | 95 | 0,483 | 1,088 | 1,222 | 1,572 | 9,182 | 79 von 95 |
+| EBITDA-Marge | Z | 29 | 0,559 | 0,983 | 1,068 | 1,161 | 1,840 | 18 von 29 |
+| EBITDA-Marge | K | 95 | 0,027 | 0,983 | 1,076 | 1,217 | 51,456 | 67 von 95 |
+| ROIC | Z | 26 | 0,239 | 0,852 | 0,943 | 1,174 | 3,111 | 11 von 26 |
+| ROIC | K | 78 | 0,428 | 0,845 | 1,014 | 1,227 | 2,263 | 44 von 78 |
+
+Letztes Jahr / Median aller verfügbaren Jahre:
+
+| Kennzahl | Gruppe | n | Min | Q1 | Median | Q3 | Max | > 1 |
+|---|---|---|---|---|---|---|---|---|
+| Operating Income | Z | 29 | 0,367 | 1,000 | 1,172 | 1,466 | 9,897 | 20 von 29 |
+| Operating Income | K | 94 | 0,417 | 1,000 | 1,233 | 1,639 | 6,017 | 68 von 94 |
+| Operating-Marge | Z | 29 | 0,386 | 0,961 | 1,042 | 1,287 | 4,738 | 15 von 29 |
+| Operating-Marge | K | 94 | 0,423 | 1,000 | 1,050 | 1,255 | 2,416 | 54 von 94 |
+| EBITDA | Z | 29 | 0,536 | 1,002 | 1,156 | 1,421 | 3,794 | 22 von 29 |
+| EBITDA | K | 94 | 0,495 | 1,000 | 1,239 | 1,555 | 4,528 | 68 von 94 |
+| EBITDA-Marge | Z | 29 | 0,563 | 0,976 | 1,012 | 1,141 | 1,817 | 16 von 29 |
+| EBITDA-Marge | K | 94 | 0,503 | 0,987 | 1,053 | 1,193 | 1,917 | 58 von 94 |
+| ROIC | Z | 26 | 0,241 | 0,850 | 1,000 | 1,196 | 2,544 | 12 von 26 |
+| ROIC | K | 78 | 0,429 | 0,858 | 1,007 | 1,189 | 2,817 | 43 von 78 |
+
+Position des letzten Jahres in der eigenen Historie (0 = höchster Wert der eigenen Historie, 1 = niedrigster; (Rang − 1)/(n − 1), Rang 1 = höchster Wert; „höchstes Jahr" = das letzte Jahr ist das höchste der eigenen Historie, „niedrigstes" analog):
+
+| Kennzahl | Gruppe | n | Min | Q1 | Median | Q3 | Max | höchstes Jahr | niedrigstes Jahr |
+|---|---|---|---|---|---|---|---|---|---|
+| Operating Income | Z | 29 | 0,00 | 0,00 | 0,33 | 0,50 | 0,83 | 8 von 29 | 0 |
+| Operating Income | K | 95 | 0,00 | 0,00 | 0,17 | 0,50 | 1,00 | 46 von 95 | 4 |
+| Operating-Marge | Z | 29 | 0,00 | 0,17 | 0,40 | 0,67 | 1,00 | 5 von 29 | 1 |
+| Operating-Marge | K | 95 | 0,00 | 0,00 | 0,25 | 0,50 | 1,00 | 29 von 95 | 6 |
+| EBITDA | Z | 29 | 0,00 | 0,00 | 0,17 | 0,40 | 0,83 | 10 von 29 | 0 |
+| EBITDA | K | 95 | 0,00 | 0,00 | 0,00 | 0,50 | 1,00 | 48 von 95 | 5 |
+| EBITDA-Marge | Z | 29 | 0,00 | 0,17 | 0,33 | 0,67 | 0,83 | 4 von 29 | 0 |
+| EBITDA-Marge | K | 95 | 0,00 | 0,00 | 0,20 | 0,67 | 1,00 | 29 von 95 | 7 |
+| ROIC | Z | 26 | 0,00 | 0,21 | 0,50 | 0,75 | 1,00 | 3 von 26 | 2 |
+| ROIC | K | 78 | 0,00 | 0,20 | 0,40 | 0,80 | 1,00 | 17 von 78 | 16 |
+
+Nenner der Tabellen (Operating-Marge, K): Die erste Tabelle nennt n = 93, die zweite n = 94, die Positionstabelle n = 95, und „höchstes Jahr: 29 von 95". Das ist kein Fehler, die Nenner unterscheiden sich, weil die Kennzahlen unterschiedliche Voraussetzungen haben (Skript `measure_cyclicals_2c.py`, Abschnitt 2, `cyclicals_measurement_2c.txt`): Von 97 K-Firmen haben ATMU und EXLS weniger als fünf Jahre, es bleiben **95 ausgewertete** Firmen. Bei zweien davon (MGM, PEGA) ist das Mittel der Operating-Marge ≤ 0, das Verhältnis „letztes Jahr / Mittel" ist dort nicht berechenbar (**n = 93**); bei PEGA ist auch der Median ≤ 0 (**n = 94**). Position und „höchstes Jahr" brauchen kein positives Mittel und gelten für alle 95. „29 von 95" ist daher richtig (eine dieser 29 gehört zu MGM oder PEGA); „29 von 93" wäre falsch. „n = 93" (Verhältnis zum Mittel) und „29 von 95" (Position) stehen in verschiedenen Tabellen mit verschiedenen Nennern.
+
+Zahlen im Überblick: Gegen die längere Historie liegt das letzte Jahr bei Operating Income und EBITDA in Z im Median 27 % bzw. 24 % über dem Mittel (Verhältnis 1,267 bzw. 1,238; im Dreijahresfenster lag der EBITDA-Median bei 1,014), in K ähnlich (1,325 bzw. 1,222); über dem Mittel liegen 23 von 29 Z-Firmen gegen 80 von 95 bzw. 79 von 95 in K. Das letzte Jahr ist in Z seltener das höchste Jahr der eigenen Historie als in K: Operating Income 8 von 29 (28 %) gegen 46 von 95 (48 %), EBITDA 10 von 29 (34 %) gegen 48 von 95 (51 %), Operating-Marge 5 von 29 (17 %) gegen 29 von 95 (31 %), ROIC 3 von 26 (12 %) gegen 17 von 78 (22 %). Beim ROIC liegt der Median des Verhältnisses zum Mittel in Z bei 0,943 (K 1,014); die EBITDA-Marge ist in Z gegen den Median fast unverändert (1,012; K 1,053). Gepoolt ist das letzte Jahr in Z also seltener das höchste der eigenen Historie als in K; je Sektorcode ist das Bild uneinheitlich (nächster Abschnitt).
+
+*B2a – Zählung je Sektorcode in Z* (letztes Jahr / Mittel der verfügbaren Jahre, bis zu sieben; Skript `measure_cyclicals_2c.py`, Abschnitt 1; Zählung, keine Klassifikation; Firmen mit weniger als fünf verwertbaren Jahren der Kennzahl sind nicht enthalten und genannt):
+
+| Sektorcode | Firmen | Kennzahl | ausgewertet | Median | Min | Max | Verhältnis > 1 | höchstes Jahr der eigenen Historie |
+|---|---|---|---|---|---|---|---|---|
+| 107002 Oil & Gas E&P | 7 | Operating Income | 7 | 1,265 | 1,045 | 1,652 | 7 von 7 | 0 von 7 |
+| 107002 | 7 | ROIC | 6 (REPX zu wenig Jahre) | 0,877 | 0,793 | 1,060 | 1 von 6 | 0 von 6 |
+| 107004 Oil & Gas Services | 6 | Operating Income | 6 | 2,378 | 1,215 | 3,287 | 6 von 6 | 2 von 6 |
+| 107004 | 6 | ROIC | 5 (WTTR zu wenig Jahre) | 1,552 | 1,179 | 3,111 | 5 von 5 | 0 von 5 |
+| 110001 Chemicals | 7 | Operating Income | 7 | 1,327 | 0,992 | 1,412 | 6 von 7 | 5 von 7 |
+| 110001 | 7 | ROIC | 7 | 0,947 | 0,871 | 1,284 | 3 von 7 | 2 von 7 |
+| 110002 Forest Products | 1 | Operating Income | 1 | 0,729 | – | – | 0 von 1 | 0 von 1 |
+| 110002 | 1 | ROIC | 1 | 0,557 | – | – | 0 von 1 | 0 von 1 |
+| 110005 Building Materials | 7 | Operating Income | 7 | 1,120 | 0,323 | 1,398 | 4 von 7 | 1 von 7 |
+| 110005 | 7 | ROIC | 6 (LPX zu wenig Jahre) | 0,854 | 0,239 | 1,306 | 2 von 6 | 1 von 6 |
+| 110006 Coal | 1 | Operating Income | 1 | 0,857 | – | – | 0 von 1 | 0 von 1 |
+| 110006 | 1 | ROIC | 1 | 0,907 | – | – | 0 von 1 | 0 von 1 |
+
+Die Summen über die sechs Codes entsprechen den gepoolten Z-Zahlen aus B2 (Operating Income: 23 von 29 über 1, 8 von 29 höchstes Jahr; ROIC: 11 von 26 über 1, 3 von 26 höchstes Jahr). Von den 8 Z-Firmen, deren letztes Jahr das höchste ihrer Operating-Income-Historie ist, liegen 5 in 110001 (Chemicals), 2 in 107004 (Oil & Gas Services) und 1 in 110005; in 107002 (E&P) ist es keine, obwohl alle 7 über dem Siebenjahresmittel liegen. Die gepoolte Zahl „8 von 29" verdeckt damit, dass der Befund je Sektorcode verschieden ausfällt; die Gruppen sind klein (1 bis 7 Firmen).
+
+107004 Oil & Gas Services, je Firma (Operating Income und ROIC: letztes Jahr / Mittel der verfügbaren Jahre, Position 0 = höchstes Jahr der eigenen Historie, n Jahre; ROIC des letzten Jahres allein):
+
+| Firma | Operating Income | Position | n | ROIC | Position | n | ROIC letztes Jahr |
+|---|---|---|---|---|---|---|---|
+| OII | 2,903 | 0,00 | 7 | 1,786 | 0,20 | 6 | 26,1 % |
+| TTI | 2,550 | 0,00 | 7 | 1,552 | 0,20 | 6 | 11,4 % |
+| TDW | 3,287 | 0,17 | 7 | 3,111 | 0,20 | 6 | 14,0 % |
+| WFRD | 2,080 | 0,33 | 7 | 1,390 | 0,40 | 6 | 25,4 % |
+| LPG | 1,215 | 0,17 | 7 | 1,179 | 0,20 | 6 | 11,0 % |
+| WTTR | 2,207 | 0,33 | 7 | ROIC nicht ausgewertet (3 Jahre) | – | – | 11,0 % |
+
+OII und TTI haben im letzten Jahr ihr höchstes Operating Income der eigenen Historie (Position 0,00); bei OII, TTI, TDW und WFRD liegt das letzte Jahr beim Operating Income beim 2,1- bis 3,3-fachen des Siebenjahresmittels. Dies ist eine Zählung und Beschreibung der Werte, keine Gipfel-Diagnose (siehe Grenzen).
+
+*B3 – ROIC des letzten Jahres allein gegen die bestehenden Schwellen* (`clean_pass_above` 0,12, `fail_below` 0,10 aus `config/thresholds.yaml`, Klassifizierer `_classify_roic`; reine Zählung, **kein** Gate; für kein Jahr war das Jahres-ROIC ungültig, 0 von 126):
+
+| Gruppe | n | letztes Jahr: clean pass | Grauzone | failed | zum Vergleich 3-Jahres-Mittel (Gate): clean pass | Grauzone | failed |
+|---|---|---|---|---|---|---|---|
+| Z | 29 | 17 (59 %) | 9 (31 %) | 3 (10 %) | 26 (90 %) | 3 (10 %) | 0 |
+| K | 97 | 75 (77 %) | 14 (14 %) | 8 (8 %) | 77 (79 %) | 20 (21 %) | 0 |
+
+Die drei Z-Firmen mit einem Letztes-Jahr-ROIC unter 0,10 sind MTDR (9,9 %), JBI (9,1 %) und BCC (6,5 %).
+
+*Kreuzzählung* (Skript `measure_cyclicals_2c.py`, Abschnitt 3): ROIC-Zone nach dem 3-Jahres-Mittel (Zeilen, wie im Gate) gegen Zone des ROIC im letzten Jahr allein (Spalten); gleiche Schwellen aus `config/thresholds.yaml` und derselbe Klassifizierer `_classify_roic` wie oben, beide Zonen aus denselben drei Anker-Jahren.
+
+Gruppe Z (n = 29):
+
+| 3-Jahres-Mittel ↓ / letztes Jahr → | clean pass | Grauzone | failed | Summe |
+|---|---|---|---|---|
+| clean pass | 17 | 6 | 3 | 26 |
+| Grauzone | 0 | 3 | 0 | 3 |
+| failed | 0 | 0 | 0 | 0 |
+| Summe | 17 | 9 | 3 | 29 |
+
+Gruppe K (n = 97):
+
+| 3-Jahres-Mittel ↓ / letztes Jahr → | clean pass | Grauzone | failed | Summe |
+|---|---|---|---|---|
+| clean pass | 68 | 6 | 3 | 77 |
+| Grauzone | 7 | 8 | 5 | 20 |
+| failed | 0 | 0 | 0 | 0 |
+| Summe | 75 | 14 | 8 | 97 |
+
+Darstellung der Befunde: **Nicht clean** (Grauzone oder failed) ist im 3-Jahres-Mittel Z 3 von 29 (10 %) und K 20 von 97 (21 %); im ROIC des letzten Jahres allein ist es Z 12 von 29 (41 %) und K 22 von 97 (23 %). In Z wechseln 9 Firmen von clean pass im Mittel auf eine schlechtere Zone im letzten Jahr, 6 auf Grauzone (APOG, HWKN, LPX, SLVM, TTI, WTTR) und 3 auf failed (BCC, JBI, MTDR); keine Z-Firma wechselt in die Gegenrichtung. In K wechseln ebenfalls 9 Firmen von clean pass abwärts (6 auf Grauzone: ALG, CDRE, FCFS, MATX, OTTR, UFPI; 3 auf failed: CRI, KAI, SAIA) und 5 von Grauzone auf failed (AMPH, HUBG, LYTS, THRM, TNC), 7 gehen von Grauzone auf clean pass (BROS, FLS, FLXS, KMT, MLKN, MMS, PLXS). Netto verschlechtern sich in Z 9 Firmen und keine verbessert sich (Anteil nicht clean steigt von 10 % auf 41 %); in K verschlechtern sich 14 und 7 verbessern sich (Anteil nicht clean von 21 % auf 23 %). Eine Handlungsempfehlung folgt daraus in diesem Abschnitt nicht; ein Einzeljahr schwankt stärker als ein Dreijahresmittel, und die Schwellen sind für das Dreijahresmittel definiert (siehe Grenzen).
+
+**Grenzen:**
+- Teil 2: nur **drei Anker-Jahre**: kein voller Zyklus. Ein Dreijahresfenster kann selbst ein Zwischenhoch oder -tief sein; das Mittel der drei Jahre ist als Bezugsgröße für „normal" nicht belastbar.
+- Ein **Gewinngipfel lässt sich mit drei Jahren nur schwach erkennen**. „Letztes Jahr / Dreijahresmittel" ist **keine Gipfel-Diagnose**: ein Wert unter 1 kann ein Rückgang nach dem Gipfel (Gipfel liegt im ersten oder zweiten Jahr) oder ein Tief sein, ein Wert über 1 ein Anstieg Richtung Gipfel oder eine Erholung. Das Verhältnis ordnet das letzte Jahr gegen die beiden anderen, nicht gegen einen Zyklus.
+- Die Firmen haben unterschiedliche letzte Fiskaljahre (über alle 126: 2025: 117, 2024: 4, 2023: 2, 2026: 3), weil der Mapper je Firma die drei jüngsten eigenen Jahre nimmt; das Z/K-Bild ist deshalb nicht auf ein gemeinsames Kalenderjahr bezogen.
+- Gruppen klein und heterogen (Z: 29 Firmen aus sechs Sektorcodes, darunter je 1 in 110002 und 110006); Kennzahlen reagieren je nach Subbranche unterschiedlich auf den Rohstoffzyklus (z. B. Öl/Gas gegen Baustoffe). Nur die Verhältnisse wurden gemessen; Cash Conversion und Net Debt/EBITDA wurden **nicht** erneut ausgewertet. Auch hier kein Test auf Signifikanz.
+- Rohdaten sind der Cache vom 2026-09-24; es wurde nichts neu geladen.
+- **K ist keine neutrale Kontrolle.** K besteht aus den übrigen 97 Überlebenden und enthält ebenfalls zyklisch oder konjunkturabhängig exponierte Firmen (z. B. GSL, MGM, UFPI, UTI). **Beide Gruppen sind durch das ROIC-Gate (und die anderen Gates) vorselektiert**: wer den Dreijahres-ROIC nicht besteht, ist in keiner der beiden Gruppen; ein hohes oder fallendes letztes Jahr kann deshalb auch Folge dieser Auswahl sein. Es wurde **kein Signifikanztest** gerechnet (n = 29 gegen n = 97 bzw. 95); alle Z-gegen-K-Unterschiede sind Beschreibungen, keine nachgewiesenen Unterschiede.
+- Teil 2b: Auch **sieben Jahre sind kein voller Zyklus**. Das Fenster ist je Firma verschieden (ältestes Jahr in Z 2019 bei 27 und 2020 bei 2 Firmen, jüngstes 2025 bei 28 und 2024 bei 1 Firma; K siehe B1), und es enthält die Abschwünge der Rohstoffzyklen davor (z. B. Öl 2014 bis 2016) nicht. **Der Siebenjahresvergleich enthält das Corona-Tief 2020 im Mittel** (bei allen Z-Firmen und bei 96 von 97 K-Firmen; bei der K-Firma mit ältestem Jahr 2021 nicht): das Mittel wird dadurch nach unten gezogen, und die Anteile „letztes Jahr über dem Mittel" und die Verhältnisse über 1 sind **für beide Gruppen nach oben verzerrt**. Die Verzerrung ist je Firma unterschiedlich groß (Firmen mit ältestem Jahr 2020 haben das Tief als erstes Jahr, Firmen mit 2019 haben ein Vorjahr davor); die Z-gegen-K-Gegenüberstellung ist belastbarer als der Absolutwert.
+- Teil 2b: Das Verhältnis zum Mittel bzw. Median und die Position sind **keine Gipfel-Diagnose**, sie ordnen das letzte Jahr nur in die eigene (kurze) Historie ein. Ausreißer (z. B. die K-Maxima 22,9 beim Operating Income und 51,5 bei der EBITDA-Marge bei Firmen mit einem Mittel nahe null) beeinflussen Maximum und Mittelverhältnis, Quartile und Median sind robuster. Die Zonenzählung B3 vergleicht ein Einzeljahr mit Schwellen, die für ein Dreijahresmittel definiert sind.
+- Teil 2b: **Der ROIC-Verlauf fehlt für 3 Z-Firmen (LPX, REPX, WTTR) und 19 K-Firmen** (Auswertung über 26 von 29 bzw. 78 von 97 Firmen), weil das älteste Jahr nie ein gültiges ROIC hat (der Stock-Flow-Abgleich des Net Debt braucht die Vorjahresbilanz) und die Net-Debt-Zuverlässigkeit in älteren Jahren oft fehlt (`net_debt_unreliable`, siehe B1). Je Firma gibt es höchstens sechs ROIC-Jahre, bei 6 Z- und 16 K-Firmen nicht lückenlos. **Die ROIC-Verlaufsauswertung gilt damit nur für Firmen mit verwertbarer Schuldenlage**; Firmen mit lückenhaften Schulddaten sind darin systematisch unterrepräsentiert, und das ROIC ist schwächer abgedeckt als Operating Income und EBITDA (0 bzw. 2 Firmen ausgeschlossen).
+- Cash Conversion, Net Debt/EBITDA und Net-Income-Marge wurden weiterhin nicht über den Verlauf ausgewertet (Net Income und CFO liegen laut B1 für die Jahre jenseits der Anker-Jahre vor).
+
+**Mögliche Hebel (nur benannt, keiner entschieden):**
+1. **Trend-Guard (Masterplan 1.1) bauen**, wie dort beschrieben: Umsatz-/Margenverlauf als Flag oder Gate. Er würde Verläufe bewerten, die Stage 1 heute nicht sieht; mit drei Jahren bleibt er aber schwach (siehe Grenzen); mit der längeren Historie aus Teil 2b ließe sich ein Verlauf über bis zu sieben Jahre bilden, und für Zykliker ist „Marge fällt" und „Marge am Gipfel" nicht dasselbe Signal.
+2. **Längere Historie** für die Zyklusbeurteilung. Laut Teil 2b liegen Operating Income, Umsatz, Net Income, D&A, CFO, Eigenkapital, Cash und Bilanzsumme für fast alle Firmen bis zu sieben Fiskaljahre vor (Z: 25 Firmen mit sieben, 4 mit sechs vollständigen Jahren; K: 78 mit sieben, 14 mit sechs, 3 mit fünf, je 1 mit vier und mit drei), und der bestehende Mapper kann sie über seinen Parameter `max_years` liefern; ein neuer SimFin-Call wäre nicht nötig. Einschränkungen: Das Fenster (2019 bis 2025) ist kein voller Zyklus; der ROIC ist wegen des Stock-Flow-Abgleichs (Bilanz des Vorjahres nötig, Net Debt häufig `net_debt_unreliable`) auf höchstens sechs Jahre und nur teilweise lückenlos begrenzt (Z: 26 von 29, K: 78 von 97 Firmen mit mindestens fünf gültigen ROIC-Jahren); Kennzahlen, die das längere Fenster in Stage 1 tatsächlich nutzen, wären eine Änderung der Pipeline (`MAX_YEARS`-Wert, Mittelbildung, Mindestzahl gültiger Jahre) samt neuer Formeln und pytest-Tests und eine Entscheidung, wie viele Jahre in welche Kennzahl eingehen.
+3. **Informatives Verlaufs- bzw. Letztes-Jahr-Flag für alle Überlebenden** (nicht nur Zykliker), ohne Einfluss auf Gates oder Rang: Die Kreuzzählung zeigt, dass auch in K die Zone des letzten Jahres von der des Dreijahresmittels abweicht (14 Verschlechterungen, 7 Verbesserungen in K; 9 Verschlechterungen in Z) und dass diese Abweichung in beiden Gruppen vorkommt; ein Flag nach Verlauf (statt nach Sektor) würde diese Firmen erfassen. Offen wäre, welche Größen (Operating Income, Marge, ROIC, Letztes-Jahr-Zone) in welches Flag eingehen und wie mit fehlenden Jahren und Schuldenlage umzugehen ist.
+4. **Zykliker-Flag** (rein informativ) für Firmen in bestimmten Sektorcodes, z. B. über die bestehende Sektorprofil-Naht (`config/sector_profiles.yaml`), ohne Einfluss auf Gates oder Rang. Die Zählung je Sektorcode (B2a) zeigt, dass die Sektorcodes in Z sehr verschieden aussehen (z. B. 107004 und 110001 gegen 107002 und 110005); ein Flag je Sektorcode würde auch Firmen erfassen, bei denen das letzte Jahr nicht über der Historie liegt.
+5. **Eigenes Profil** für Zykliker (analog zu den Phase-2.0e-Geschäftsmodell-Profilen) mit eigenen Schwellen oder eigener Normalisierung (z. B. Mittel über einen längeren Zeitraum).
+6. **Nichts ändern** und das Restrisiko wie im Masterplan (§10) der manuellen Prüfung in Stufe 3 überlassen.
+
+Die Entscheidung liegt beim Projektinhaber; sie steht nicht in diesem Abschnitt.
