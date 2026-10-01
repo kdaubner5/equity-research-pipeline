@@ -19,6 +19,7 @@ from pathlib import Path
 import pytest
 
 from conftest import DEFAULT_THRESHOLDS
+from config_layer.sector_profiles import DEFAULT_SECTOR_PROFILES_PATH, load_sector_profiles
 from data_layer import simfin_fundamentals as sf
 from gates_layer.universe_prefilter import EXCLUDED, PASSED, PrefilterResult
 from store_layer.db import save_universe_prefilter
@@ -45,17 +46,41 @@ def _load_raw(ticker):
         return json.load(f)
 
 
+# The sector code every seeded survivor carries. run() checks it against the real
+# config/sector_profiles.yaml (docs/decisions.md "Phase 2.0e", Entscheidung 2), so it
+# must be a code listed there under the standard profile - see
+# test_the_seeded_survivor_sector_code_is_a_standard_profile_code_in_the_real_config.
+SEEDED_SECTOR_CODE = 101003
+
+
 def passed(simfin_id, ticker):
     return PrefilterResult(
         simfin_id=simfin_id,
         ticker=ticker,
-        sector_code=106,
+        sector_code=SEEDED_SECTOR_CODE,
         status=PASSED,
         reason=None,
         market_cap_usd=1_000_000_000,
         median_dollar_volume_usd=2_000_000,
         median_window_rows=60,
         price_date=None,
+    )
+
+
+def test_the_seeded_survivor_sector_code_is_a_standard_profile_code_in_the_real_config():
+    # Guards this module's fixtures against a config change: if SEEDED_SECTOR_CODE were removed
+    # from config/sector_profiles.yaml or moved to another profile, every run() test below would
+    # abort or produce unsupported_business_model for a reason unrelated to what it tests.
+    config = load_sector_profiles(DEFAULT_SECTOR_PROFILES_PATH)
+    assignment = config.assignment(SEEDED_SECTOR_CODE)
+    assert assignment is not None, (
+        f"sector code {SEEDED_SECTOR_CODE} (used by this module's seeded survivors) is not listed in "
+        f"{DEFAULT_SECTOR_PROFILES_PATH}; pick another standard-profile code for SEEDED_SECTOR_CODE"
+    )
+    assert assignment.profile.name == "non_financial" and assignment.profile.supported, (
+        f"sector code {SEEDED_SECTOR_CODE} must map to the supported profile 'non_financial' in "
+        f"{DEFAULT_SECTOR_PROFILES_PATH} (this module's tests evaluate its survivors through Stage 1), "
+        f"got {assignment.profile.name!r}"
     )
 
 
@@ -405,6 +430,7 @@ def test_build_parser_has_the_documented_flags_and_defaults():
     flags = {action.dest for action in parser._actions if action.option_strings}
     assert flags == {
         "help", "run_timestamp", "as_of", "fundamentals_cache_dir", "db_path", "archive_db_path", "csv_dir",
+        "sector_profiles_path",
     }
     args = parser.parse_args([])
     assert args.run_timestamp is None
@@ -413,6 +439,7 @@ def test_build_parser_has_the_documented_flags_and_defaults():
     assert args.db_path == rsf.DEFAULT_DB_PATH
     assert args.archive_db_path == rsf.DEFAULT_DB_PATH
     assert args.csv_dir == rsf.DEFAULT_CSV_DIR
+    assert args.sector_profiles_path == DEFAULT_SECTOR_PROFILES_PATH
 
 
 def test_main_passes_the_arguments_through_to_run(monkeypatch):

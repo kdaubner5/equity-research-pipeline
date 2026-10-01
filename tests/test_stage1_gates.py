@@ -5,7 +5,15 @@ from metrics_layer.cash_conversion import cash_conversion_3yr_average, net_incom
 from metrics_layer.net_debt_ebitda import net_debt_ebitda_latest
 from metrics_layer.result import MetricResult
 from metrics_layer.roic import roic_3yr_average
-from gates_layer.stage1_gates import collect_data_quality_flags, evaluate_stage1_gates, rank_companies
+import dataclasses
+
+from gates_layer.stage1_gates import (
+    UNSUPPORTED_BUSINESS_MODEL,
+    collect_data_quality_flags,
+    evaluate_stage1_gates,
+    rank_companies,
+    unsupported_business_model_result,
+)
 
 
 def _gate_result_for(company_id):
@@ -472,3 +480,54 @@ def test_evaluate_stage1_gates_passes_data_quality_flags_through_without_affecti
     assert not_evaluable.status == "not_evaluable"
     assert not_evaluable.data_quality_flags == ("year_dropped_missing_required_field",)
     hash(not_evaluable)  # still hashable: a tuple, not a list
+
+
+# --- business-model profile fields (Issue #51, docs/decisions.md "Phase 2.0e") -------
+
+
+def test_unsupported_business_model_result_carries_the_profile_and_no_values_or_reasons():
+    result = unsupported_business_model_result("banks", data_quality_flags=("x",))
+    assert result.status == UNSUPPORTED_BUSINESS_MODEL == "unsupported_business_model"
+    assert result.flags == ()
+    assert result.invalid_reasons == ()  # not a data gap, so "invalid_reasons non-empty" keeps meaning one
+    assert (result.roic, result.net_debt_ebitda, result.cash_conversion, result.net_income_margin) == (None,) * 4
+    assert result.profile == "banks"
+    assert result.borderline_sector is False
+    assert result.data_quality_flags == ("x",)
+    hash(result)
+
+
+def test_profile_fields_default_to_none_meaning_not_checked():
+    result = _gate_result_for("ACME01")
+    assert result.profile is None
+    assert result.borderline_sector is None
+
+
+@pytest.mark.parametrize("company_id", ["ACME01", "APRT11", "GEKO12", "ORBT18"])
+def test_profile_and_borderline_never_influence_status_flags_or_invalid_reasons(company_id):
+    # passed / passed_with_flags / failed / not_evaluable, each with and without the marker
+    plain = _gate_result_for(company_id)
+    for borderline in (False, True):
+        marked = dataclasses.replace(plain, profile="non_financial", borderline_sector=borderline)
+        assert (marked.status, marked.flags, marked.invalid_reasons) == (plain.status, plain.flags, plain.invalid_reasons)
+        assert (marked.roic, marked.net_debt_ebitda, marked.cash_conversion, marked.net_income_margin) == (
+            plain.roic,
+            plain.net_debt_ebitda,
+            plain.cash_conversion,
+            plain.net_income_margin,
+        )
+
+
+def test_a_borderline_marker_does_not_turn_passed_into_passed_with_flags_or_change_the_rank():
+    gate_results = {company_id: _gate_result_for(company_id) for company_id in ("ACME01", "APRT11", "SPCL20", "BLKW13")}
+    marked = {
+        ticker: dataclasses.replace(result, profile="non_financial", borderline_sector=ticker == "ACME01")
+        for ticker, result in gate_results.items()
+    }
+    assert marked["ACME01"].status == "passed" and marked["ACME01"].flags == ()
+    assert [ticker for ticker, _ in rank_companies(marked)] == [ticker for ticker, _ in rank_companies(gate_results)]
+
+
+def test_unsupported_business_model_is_not_ranked():
+    gate_results = {"ACME01": _gate_result_for("ACME01"), "BANK01": unsupported_business_model_result("banks")}
+    assert [ticker for ticker, _ in rank_companies(gate_results)] == ["ACME01"]

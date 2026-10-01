@@ -18,6 +18,14 @@ Conversion makes a company "failed" even if another metric is invalid, so a
 "failed" row can carry invalid_reasons and None raw values, just like a
 "not_evaluable" one.
 
+A company whose business-model profile is excluded (docs/decisions.md "Phase 2.0e")
+has the fifth status "unsupported_business_model": it is archived in
+eliminated_results like the other eliminated statuses, with empty
+invalid_reasons and no raw values. Both tables also carry the company's
+profile and borderline_sector (nullable: NULL = not recorded / not checked,
+e.g. rows from before the migration or from the pilot runner); the survivors
+CSV carries borderline_sector as its last column (empty string = no).
+
 Both tables (and the survivors CSV) also carry the company's
 data_quality_flags, read from GateResult.data_quality_flags - the store never
 sees periods, so whoever builds the GateResults passes them in
@@ -31,7 +39,7 @@ import sqlite3
 from pathlib import Path
 from typing import Dict
 
-from gates_layer.stage1_gates import FAILED, GateResult, NOT_EVALUABLE, rank_companies
+from gates_layer.stage1_gates import FAILED, GateResult, NOT_EVALUABLE, UNSUPPORTED_BUSINESS_MODEL, rank_companies
 from gates_layer.universe_prefilter import EXCLUDED, PASSED, PREFILTER_REASONS
 
 # Anchored to the repo root (src/store_layer/db.py -> repo root is two
@@ -53,6 +61,7 @@ _CSV_FIELDNAMES = [
     "net_debt_ebitda",
     "cash_conversion_3yr",
     "data_quality_flags",
+    "borderline_sector",  # last, so the earlier columns keep their positions (docs/decisions.md "Phase 2.0e")
 ]
 
 
@@ -99,11 +108,28 @@ def _ensure_data_quality_flags_column(connection, table):
         connection.execute(f"ALTER TABLE {table} ADD COLUMN data_quality_flags TEXT NOT NULL DEFAULT ''")
 
 
+def _ensure_profile_columns(connection, table):
+    """Add profile TEXT and borderline_sector INTEGER (both nullable) to a table created before them.
+
+    ALTER TABLE ... ADD COLUMN with no default: existing rows are untouched and
+    read back NULL, meaning "not recorded then" (docs/decisions.md "Phase 2.0e",
+    Entscheidung 5, Option 1 - like config_hash in runs). A second call is a
+    no-op (PRAGMA table_info check). `table` is always one of this module's own
+    table-name constants.
+    """
+    existing_columns = {row[1] for row in connection.execute(f"PRAGMA table_info({table})")}
+    if "profile" not in existing_columns:
+        connection.execute(f"ALTER TABLE {table} ADD COLUMN profile TEXT")
+    if "borderline_sector" not in existing_columns:
+        connection.execute(f"ALTER TABLE {table} ADD COLUMN borderline_sector INTEGER")
+
+
 def init_db(db_path=DEFAULT_DB_PATH):
     """Create the run_results, eliminated_results, runs and universe_prefilter schema if they don't already exist. Idempotent.
 
     Also upgrades an existing archive whose run_results/eliminated_results
-    tables predate the data_quality_flags column.
+    tables predate the data_quality_flags column or the profile /
+    borderline_sector columns (existing rows unchanged, new columns NULL).
     """
     db_path = Path(db_path)
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -121,6 +147,8 @@ def init_db(db_path=DEFAULT_DB_PATH):
                 flags TEXT NOT NULL,
                 rank_position INTEGER NOT NULL,
                 data_quality_flags TEXT NOT NULL DEFAULT '',
+                profile TEXT,
+                borderline_sector INTEGER,
                 PRIMARY KEY (run_timestamp, ticker)
             )
             """
@@ -137,6 +165,8 @@ def init_db(db_path=DEFAULT_DB_PATH):
                 net_income_margin REAL,
                 invalid_reasons TEXT NOT NULL,
                 data_quality_flags TEXT NOT NULL DEFAULT '',
+                profile TEXT,
+                borderline_sector INTEGER,
                 PRIMARY KEY (run_timestamp, ticker)
             )
             """
@@ -177,10 +207,17 @@ def init_db(db_path=DEFAULT_DB_PATH):
         )
         _ensure_data_quality_flags_column(connection, "run_results")
         _ensure_data_quality_flags_column(connection, "eliminated_results")
+        _ensure_profile_columns(connection, "run_results")
+        _ensure_profile_columns(connection, "eliminated_results")
         _ensure_config_hash_column(connection, "runs")
         connection.commit()
     finally:
         connection.close()
+
+
+def _borderline_db_value(borderline_sector):
+    """borderline_sector as stored: None (not checked) stays NULL, otherwise 0/1."""
+    return None if borderline_sector is None else int(bool(borderline_sector))
 
 
 def _survivor_rows(gate_results: Dict[str, GateResult]):
@@ -201,13 +238,18 @@ def _survivor_rows(gate_results: Dict[str, GateResult]):
             "flags": ",".join(result.flags),
             "rank_position": position,
             "data_quality_flags": ",".join(result.data_quality_flags),
+            "profile": result.profile,
+            "borderline_sector": _borderline_db_value(result.borderline_sector),
         }
         for position, (ticker, result) in enumerate(ranked, start=1)
     ]
 
 
 def _eliminated_rows(gate_results: Dict[str, GateResult]):
-    """Eliminated rows (status failed/not_evaluable), unranked.
+    """Eliminated rows (status failed/not_evaluable/unsupported_business_model), unranked.
+
+    An unsupported_business_model company has all four raw values None and empty
+    invalid_reasons (no metric was computed, and it is not a data gap).
 
     The four raw values stay None wherever the underlying MetricResult was
     invalid, and invalid_reasons lists every such reason. That holds for
@@ -228,9 +270,11 @@ def _eliminated_rows(gate_results: Dict[str, GateResult]):
             "net_income_margin": result.net_income_margin,
             "invalid_reasons": ",".join(result.invalid_reasons),
             "data_quality_flags": ",".join(result.data_quality_flags),
+            "profile": result.profile,
+            "borderline_sector": _borderline_db_value(result.borderline_sector),
         }
         for ticker, result in gate_results.items()
-        if result.status in (FAILED, NOT_EVALUABLE)
+        if result.status in (FAILED, NOT_EVALUABLE, UNSUPPORTED_BUSINESS_MODEL)
     ]
 
 
@@ -268,8 +312,9 @@ def save_run_results(run_timestamp, gate_results, *, config_hash, db_path=DEFAUL
     # Guard against a silent partition gap (Review-Fund): _survivor_rows()
     # and _eliminated_rows() each independently check a company's status
     # against their own fixed set of status strings (PASSED/PASSED_WITH_FLAGS
-    # vs. FAILED/NOT_EVALUABLE). Those two sets only exhaustively partition
-    # every company because exactly four status strings exist today
+    # vs. FAILED/NOT_EVALUABLE/UNSUPPORTED_BUSINESS_MODEL). Those two sets only
+    # exhaustively partition every company because exactly five status strings
+    # exist today
     # (gates_layer.stage1_gates deliberately keeps status a plain string,
     # not an enum - see its Entscheidung 5). An unrecognized status (a
     # future fifth status added to one filter but not the other, or a
@@ -295,8 +340,9 @@ def save_run_results(run_timestamp, gate_results, *, config_hash, db_path=DEFAUL
             """
             INSERT INTO run_results (
                 run_timestamp, ticker, roic_3yr, net_debt_ebitda,
-                cash_conversion_3yr, status, flags, rank_position, data_quality_flags
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                cash_conversion_3yr, status, flags, rank_position, data_quality_flags,
+                profile, borderline_sector
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
                 (
@@ -309,6 +355,8 @@ def save_run_results(run_timestamp, gate_results, *, config_hash, db_path=DEFAUL
                     row["flags"],
                     row["rank_position"],
                     row["data_quality_flags"],
+                    row["profile"],
+                    row["borderline_sector"],
                 )
                 for row in survivor_rows
             ],
@@ -317,8 +365,9 @@ def save_run_results(run_timestamp, gate_results, *, config_hash, db_path=DEFAUL
             """
             INSERT INTO eliminated_results (
                 run_timestamp, ticker, status, roic, net_debt_ebitda,
-                cash_conversion, net_income_margin, invalid_reasons, data_quality_flags
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                cash_conversion, net_income_margin, invalid_reasons, data_quality_flags,
+                profile, borderline_sector
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
                 (
@@ -331,6 +380,8 @@ def save_run_results(run_timestamp, gate_results, *, config_hash, db_path=DEFAUL
                     row["net_income_margin"],
                     row["invalid_reasons"],
                     row["data_quality_flags"],
+                    row["profile"],
+                    row["borderline_sector"],
                 )
                 for row in eliminated_rows
             ],
@@ -362,7 +413,10 @@ def export_survivors_csv(run_timestamp, gate_results, output_dir=DEFAULT_CSV_DIR
         writer = csv.DictWriter(f, fieldnames=_CSV_FIELDNAMES)
         writer.writeheader()
         for row in rows:
-            writer.writerow({name: row[name] for name in _CSV_FIELDNAMES})
+            # borderline_sector: empty string = no (or not checked), 1 = yes (docs/decisions.md "Phase 2.0e")
+            writer.writerow(
+                {name: ("1" if row[name] else "") if name == "borderline_sector" else row[name] for name in _CSV_FIELDNAMES}
+            )
 
     return csv_path
 
