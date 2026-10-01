@@ -68,7 +68,7 @@ class SectorProfiles:
 
 
 def _key_identity(loader, key_node):
-    """The key as YAML will construct it, so that 104002 and 104_002 (or 0x19632) are the same key.
+    """The key as YAML will construct it, so that 104002 and 104_002 (or 0x19642) are the same key.
 
     Falls back to the raw (tag, text) pair if the key cannot be constructed or is not hashable.
     """
@@ -101,7 +101,7 @@ def _reject_duplicate_keys(loader, root_node, path):
     levels (top level, profile/sector names, their attributes): yaml.safe_load
     silently keeps the last of two equal keys, so a second `104002:` line would
     override the first without any error. Keys are compared by their PARSED value,
-    not their spelling (104002 == 104_002 == 0x19632)."""
+    not their spelling (104002 == 104_002 == 0x19642)."""
     if not isinstance(root_node, yaml.MappingNode):
         return
     _reject_duplicates_within(loader, root_node, "", path)
