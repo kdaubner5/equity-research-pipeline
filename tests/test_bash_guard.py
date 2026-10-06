@@ -14,6 +14,7 @@ import json
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -600,10 +601,46 @@ def test_main_ignores_other_tools():
     assert run_main(payload("git push origin master", tool="Read"))[0] == EXIT_ALLOW
 
 
+def registered_hook_command():
+    """The hook command exactly as .claude/settings.json registers it, with
+    only the interpreter swapped for the one running the tests."""
+    settings = json.loads((REPO_ROOT / ".claude" / "settings.json").read_text(encoding="utf-8"))
+    command = settings["hooks"]["PreToolUse"][0]["hooks"][0]["command"]
+    assert command.startswith("~/venvs/equity/bin/python ")
+    return command
+
+
+def run_registered_hook(data, interpreter=None):
+    """Run the registered command through `sh -c` like Claude Code does."""
+    command = registered_hook_command().replace("~/venvs/equity/bin/python", interpreter or sys.executable, 1)
+    return subprocess.run(
+        ["sh", "-c", command],
+        input=json.dumps(data),
+        capture_output=True,
+        text=True,
+        env={"PATH": "/usr/bin:/bin", "CLAUDE_PROJECT_DIR": str(REPO_ROOT)},
+    )
+
+
 @pytest.mark.parametrize("permission_mode", ["default", "acceptEdits", "auto", "dontAsk", "bypassPermissions", "plan"])
-def test_the_decision_does_not_depend_on_the_permission_mode(permission_mode):
-    assert run_main(payload("git push origin master", permission_mode=permission_mode))[0] == EXIT_BLOCK
-    assert run_main(payload("git status", permission_mode=permission_mode))[0] == EXIT_ALLOW
+def test_registered_hook_command_blocks_in_every_permission_mode(permission_mode):
+    """Runs the real registered command (sh -c, real exit code), not just evaluate(): the
+    permission_mode field of the payload must not change the outcome."""
+    blocked = run_registered_hook(payload("git -C . push --dry-run origin master", permission_mode=permission_mode))
+    assert blocked.returncode == 2 and "REFUSED" in blocked.stderr
+    assert run_registered_hook(payload("git status", permission_mode=permission_mode)).returncode == 0
+
+
+def test_registered_hook_command_fails_closed_when_the_interpreter_is_missing():
+    result = run_registered_hook(payload("git status"), interpreter="/nonexistent/python")
+    assert result.returncode == 2  # `|| exit 2`: a crash or a missing venv blocks, it does not pass
+
+
+def test_registered_hook_command_fails_closed_when_the_script_crashes(tmp_path):
+    crashing = tmp_path / "python"
+    crashing.write_text("#!/bin/sh\nexit 1\n")
+    crashing.chmod(0o755)
+    assert run_registered_hook(payload("git status"), interpreter=str(crashing)).returncode == 2
 
 
 @pytest.mark.parametrize(
@@ -684,14 +721,14 @@ def repo(tmp_path):
 
 
 def test_current_branch_reads_the_real_branch(repo):
-    assert current_branch([], repo) == "master"
+    assert current_branch([], repo, 5) == "master"
     git(repo, "checkout", "-q", "-b", "agent/x")
-    assert current_branch([], repo) == "agent/x"
-    assert current_branch(["."], repo) == "agent/x"
+    assert current_branch([], repo, 5) == "agent/x"
+    assert current_branch(["."], repo, 5) == "agent/x"
 
 
 def test_current_branch_outside_a_repository_is_none(tmp_path):
-    assert current_branch([], tmp_path) is None
+    assert current_branch([], tmp_path, 5) is None
 
 
 def test_default_resolver_refuses_implicit_push_on_master_and_allows_it_elsewhere(config, repo):
@@ -726,7 +763,11 @@ def _minimal_config():
 
 @pytest.mark.parametrize(
     "key",
-    ["protected_branches", "max_command_length", "max_depth", "non_executing_commands", "shell_interpreters", "git", "gh", "http", "inline_deny_patterns"],
+    [
+        "protected_branches", "max_command_length", "max_depth", "limits", "non_executing_commands", "dynamic_arg_commands",
+        "command_string_wrappers", "refused_env_prefixes", "protected_paths", "path_writing_commands", "path_writing_with_option",
+        "shell_interpreters", "git", "gh", "http", "inline_deny_patterns",
+    ],
 )
 def test_every_top_level_key_is_required(key):
     data = _minimal_config()
@@ -791,3 +832,434 @@ def test_hook_is_registered_in_settings_json():
     command = bash_entries[0]["hooks"][0]["command"]
     assert "src/hooks/bash_guard.py" in command
     assert "|| exit 2" in command  # a crash of the interpreter must block, not pass
+
+
+# --------------------------------------------------------------------------
+# Kritiker-Lauf 1 (PR #61): bypasses and gaps found in the first version
+# --------------------------------------------------------------------------
+
+REDIRECTION_REFUSED = [  # S1: a redirection in the middle of a command used to split it
+    "git push 2>&1 origin master",
+    "git push >/dev/null origin master",
+    "git >/dev/null push origin master",
+    "git push &>/dev/null origin master",
+    "git push <&- origin master",
+    "git push origin master >out.txt 2>&1",
+    "git push origin master 2>&1 | tail -1",
+    "git push 2>/dev/null origin HEAD:master",
+    "git add >/dev/null -A",
+    "git add 2>&1 .",
+    "gh >/dev/null pr merge 5",
+    "gh pr 2>&1 merge 5",
+    "git commit 2>&1 -a -m x",
+    "gh api 2>&1 -X PUT repos/o/r/pulls/5/merge",
+    "env >/dev/null git push origin master",
+    "bash 2>&1 -c 'git push origin master'",
+]
+REDIRECTION_ALLOWED = [
+    "git status 2>&1 | head -3",
+    "git push origin agent/x 2>&1 | tail -1",
+    "git push 2>&1 origin agent/x",
+    "git log > /tmp/log.txt",
+    "echo hi > out.txt",
+    "ls 2>/dev/null",
+    "git diff --stat >/dev/null 2>&1",
+    "cat <<'EOF' > notes.md\ntext\nEOF",
+    "diff <(git status) <(git status)",
+    "pytest -q 2>&1 | tail -3",
+]
+EXPANSION_REFUSED = [  # S2: ${B:-master} has a colon
+    "git push origin ${B:-master}",
+    "git push origin ${B:=master}",
+    "git push origin ${B:-ma}ster",
+    "git push origin agent/x:${B:-master}",
+    "git push origin ${B}",
+    "git push origin ${B%x}",
+    "git push origin \"${B:-master}\"",
+    "git push origin $B:master",
+]
+GIT_FORM_REFUSED = [  # M-c, K-a, K-c
+    "git-push origin master",
+    "/usr/lib/git-core/git-push origin master",
+    "git-add -A",
+    "git-push --force origin agent/x",
+    "git --exec-path push origin master",
+    "git --exec-path=/x push origin master",
+    "git push origin master\x00",
+    "git push origin ma\x00ster",
+]
+WRAPPER_REFUSED = [  # M-a
+    "env -S \"git push origin master\"",
+    "su -c \"git push origin master\" claude",
+    "watch \"git push origin master\"",
+    "ssh localhost \"git push origin master\"",
+    "timeout 5 \"git push origin master\"",
+    "flock /tmp/l -c \"git push origin master\"",
+    "script -qc \"git push origin master\" /dev/null",
+    "tmux new -d \"git push origin master\"",
+    "sudo -u claude \"git push origin master\"",
+    "awk 'BEGIN{system(\"git push origin master\")}'",
+    "gawk 'BEGIN{system(\"git push origin master\")}'",
+    "env -S \"gh pr merge 5\"",
+    "ssh host \"git add -A\"",
+]
+WRAPPER_ALLOWED = [
+    "env FOO=bar ls",
+    "env -S \"echo hi there\"",
+    "timeout 5 pytest -q",
+    "ssh localhost \"uptime\"",
+    "su -c \"ls -la\" claude",
+    "awk 'BEGIN{print 1}'",
+    "FOO=bar BAZ=1 ls",
+]
+GIT_CONFIG_REFUSED = [  # M-b
+    "git -c remote.origin.push=HEAD:master push origin",
+    "git -c remote.origin.push=refs/heads/x:refs/heads/master push",
+    "git -c push.default=upstream push",
+    "git -c url.x.insteadOf=y push origin agent/x",
+    "GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=remote.origin.push GIT_CONFIG_VALUE_0=HEAD:master git push origin",
+    "GIT_DIR=/x git push origin agent/x",
+    "env GIT_CONFIG_PARAMETERS=x git push origin agent/x",
+    "env -i GIT_SSH_COMMAND=evil git fetch",
+    "GIT_EXEC_PATH=/tmp git status",
+    "git config remote.origin.push 'refs/heads/*:refs/heads/master'",
+    "git config --global push.default upstream",
+    "git config branch.agent/x.pushRemote evil",
+]
+GIT_CONFIG_ALLOWED = [
+    "git config --get remote.origin.url",
+    "git config --list",
+    "git config -l",
+    "git config user.name x",
+    "git config --get-regexp 'remote.*'",
+    "git -c user.name=x commit -m msg",
+    "FOO=bar git status",
+]
+LOCAL_REFUSED_ON_MASTER = [  # "master is never changed locally"
+    "git commit -m x",
+    "git commit --amend --no-edit",
+    "git merge agent/x",
+    "git reset --hard origin/master",
+    "git reset HEAD~1",
+    "git rebase origin/master",
+    "git cherry-pick abc123",
+    "git revert abc123",
+    "git am patch.mbox",
+    "git pull",
+    "git pull origin master",
+    "git pull --rebase origin master",
+    "bash -c 'git commit -m x'",
+    "git -C . merge agent/x",
+]
+LOCAL_ALLOWED_ON_MASTER = [
+    "git pull --ff-only origin master",
+    "git pull --ff-only",
+    "git fetch origin",
+    "git fetch origin master",
+    "git checkout agent/x",
+    "git checkout -b agent/new",
+    "git switch -c agent/new",
+    "git status",
+    "git log --oneline",
+    "git diff",
+    "git branch --show-current",
+]
+LOCAL_REFUSED_ANYWHERE = [  # naming a protected branch
+    "git branch -f master HEAD",
+    "git branch -D master",
+    "git branch -d main",
+    "git branch -m master old",
+    "git branch -M x master",
+    "git branch --delete master",
+    "git branch --force master abc",
+    "git switch -C master",
+    "git switch --force-create master",
+    "git switch -f master",
+    "git checkout -f master",
+    "git checkout --force master",
+    "git checkout -B master",
+    "git checkout -fB master",
+    "git update-ref refs/heads/master HEAD",
+    "git update-ref -d refs/heads/master",
+    "git update-ref refs/heads/main abc123",
+    "git send-pack origin master",
+    "git send-pack --force origin HEAD:refs/heads/x",
+    "git fetch origin +HEAD:master",
+    "git fetch origin +refs/heads/x:refs/heads/master",
+    "git fetch origin '+refs/heads/*:refs/heads/*'",
+]
+LOCAL_ALLOWED_ANYWHERE = [
+    "git checkout master",
+    "git switch master",
+    "git branch agent/x",
+    "git branch -D agent/x",
+    "git branch -m agent/old agent/new",
+    "git checkout -f agent/x",
+    "git switch -C agent/x",
+    "git update-ref refs/heads/agent/x HEAD",
+    "git fetch origin master:master",
+    "git fetch origin +refs/heads/agent/x:refs/remotes/origin/agent/x",
+    "git branch -a",
+]
+ADD_COMMIT_MORE_REFUSED = [  # M-g, M-h, M-i
+    "git add src/..",
+    "git add src/../.",
+    "git add src/a/../..",
+    "git add ../other",
+    "git add \"\"",
+    "git add /",
+    "git add :!src",
+    "git add ':(exclude)src'",
+    "git add ':^src'",
+    "git add .ENV",
+    "git add .Env.local",
+    "git add Data/run_archive.db",
+    "git add DATA",
+    "git add ':(icase).ENV'",
+    "git add -i",
+    "git add -e",
+    "git add --interactive",
+    "git add --edit",
+    "git commit -m x .",
+    "git commit -m x -- .",
+    "git commit -m x ..",
+    "git commit -m x '*.py'",
+    "git commit -m x .env",
+    "git commit --al -m x",
+    "git commit --a",
+    "git commit -sm x .",
+    "git commit -m x data/x.csv",
+]
+ADD_COMMIT_MORE_ALLOWED = [
+    "git commit --allow-empty -m x",
+    "git commit --allow-empty-message -m ''",
+    "git commit -m x src/a.py",
+    "git commit -m x -- src/a.py docs/b.md",
+    "git commit -sm 'message with -a inside'",
+    "git commit --amend --no-edit",
+    "git commit -m x --author='A <a@b.c>'",
+    "git add -N src/new.py",
+    "git add src/a.py docs/b.md",
+]
+PUSH_MORE_REFUSED = [  # M-j, M-k
+    "git push --receive-pack=x origin agent/x",
+    "git push --receive-pack x origin agent/x",
+    "git push --exec=x origin agent/x",
+    "git push --rec origin agent/x",
+    "git push origin refs/notes/x",
+    "git push origin refs/pull/1/head",
+    "git push origin HEAD:refs/for/x",
+    "git push origin tag v1",
+    "git push origin agent/x:refs/tags/v1",
+]
+API_WRITE_REFUSED = [  # M-d: every write through gh api
+    "gh api -X PUT repos/o/r/contents/f.txt -f message=m -f content=aGk=",
+    "gh api -X PATCH repos/o/r/git/refs/heads/mast%65r -f sha=abc -F force=true",
+    "gh api -X DELETE repos/o/r/git/refs/heads/ma%73ter",
+    "gh api -X PUT repos/o/r/pulls/5/mer%67e",
+    "gh api -X POST repos/o/r/git/commits -f message=m",
+    "gh api -X POST repos/o/r/dispatches -f event_type=x",
+    "gh api -X PATCH repos/o/r -f default_branch=x",
+    "gh api -X DELETE repos/o/r/branches/x/protection",
+    "gh api -X DELETE repos/o/r",
+    "gh api user -f a=b",
+    "gh api repos/o/r/issues -f title=x",
+    "gh api repos/o/r/issues --input body.json",
+    "gh api -X POST repos/o/r/issues/1/comments -f body=hello",
+]
+API_READ_ALLOWED = [
+    "gh api user",
+    "gh api graphql",
+    "gh api repos/o/r/pulls/5/merge",
+    "gh api -X GET repos/o/r/issues -f state=open",
+    "gh api repos/o/r/git/refs/heads/master",
+]
+HTTP_REFUSED = [  # M-e
+    "curl -X PUT https://$H/repos/o/r/pulls/5/merge",
+    "curl -X PUT https://${H}/x",
+    "curl -X PUT https://uploads.github.com/x",
+    "curl -X POST https://github.com/o/r/x",
+    "curl -X PUT https://raw.githubusercontent.com/x",
+    "curl -K cfg https://example.com",
+    "curl --config cfg https://example.com",
+    "curl --config=cfg https://example.com",
+    "curl -Kcfg https://example.com",
+    "python3 -c \"import urllib.request as u; u.urlopen(u.Request('https://api.github.com/x', method='PUT'))\"",
+    "python3 -c \"import requests; requests.put('https://api.github.com/repos/o/r/pulls/5/merge')\"",
+    "node -e \"fetch('https://api.github.com/repos/o/r/pulls/5/merge', {method: 'PUT'})\"",
+]
+HTTP_ALLOWED = [
+    "python3 -c \"import urllib.request; print(1)\"",
+    "node -e \"console.log(fetch)\"",
+    "curl https://example.com/data.json -o data.json",
+    "curl -X POST https://example.com/hook -d x=1",
+]
+HOOK_PROTECTED_REFUSED = [  # the hook, its config and the Claude settings cannot be edited from Bash
+    "sed -i s/x/y/ .claude/settings.json",
+    "sed -i.bak s/x/y/ src/hooks/bash_guard.py",
+    "sed --in-place s/x/y/ config/bash_guard.yaml",
+    "echo x > .claude/settings.json",
+    "echo x >> src/hooks/bash_guard.py",
+    "cat evil > config/bash_guard.yaml",
+    "cp evil src/hooks/bash_guard.py",
+    "mv x config/bash_guard.yaml",
+    "rm -rf .claude",
+    "rm src/hooks/bash_guard.py",
+    "tee config/bash_guard.yaml",
+    "truncate -s 0 .claude/settings.json",
+    "chmod 000 .claude/settings.json",
+    "ln -sf /dev/null .claude/settings.json",
+    "perl -i -pe s/x/y/ .claude/settings.json",
+    "env sed -i s/x/y/ .claude/settings.json",
+    "bash -c 'echo x > .claude/settings.json'",
+    "cp evil ./.claude/../.claude/settings.json",
+    "cp evil src/hooks/../hooks/bash_guard.py",
+]
+HOOK_PROTECTED_ALLOWED = [
+    "cat .claude/settings.json",
+    "sed -n 1,5p .claude/settings.json",
+    "sed -n p src/hooks/bash_guard.py",
+    "ls .claude",
+    "git add .claude/settings.json",
+    "git add src/hooks/bash_guard.py config/bash_guard.yaml",
+    "git diff .claude/settings.json",
+    "git checkout -b agent/x",
+    "grep -n hook .claude/settings.json",
+    "echo hi > notes.txt",
+    "cp a.txt b.txt",
+    "rm output.txt",
+    "pytest tests/test_bash_guard.py -q",
+]
+
+
+@pytest.mark.parametrize("command", REDIRECTION_REFUSED + EXPANSION_REFUSED + GIT_FORM_REFUSED + WRAPPER_REFUSED + GIT_CONFIG_REFUSED)
+def test_bypasses_from_the_critic_report_are_refused(config, command):
+    assert refused(config, command), command
+
+
+@pytest.mark.parametrize("command", REDIRECTION_ALLOWED + WRAPPER_ALLOWED + GIT_CONFIG_ALLOWED)
+def test_harmless_commands_with_redirections_wrappers_and_config_stay_allowed(config, command):
+    assert refused(config, command) == [], command
+
+
+@pytest.mark.parametrize("command", LOCAL_REFUSED_ON_MASTER)
+def test_local_changes_on_a_protected_branch_are_refused(config, command):
+    assert refused(config, command, branch="master"), command
+    assert refused(config, command, branch="main"), command
+
+
+@pytest.mark.parametrize("command", [c for c in LOCAL_REFUSED_ON_MASTER if "pull" not in c])
+def test_the_same_local_changes_are_allowed_on_a_feature_branch(config, command):
+    assert refused(config, command, branch="agent/thema") == [], command
+
+
+@pytest.mark.parametrize("command", LOCAL_ALLOWED_ON_MASTER)
+def test_fast_forward_and_read_only_work_stays_allowed_on_master(config, command):
+    assert refused(config, command, branch="master") == [], command
+
+
+@pytest.mark.parametrize("command", LOCAL_REFUSED_ANYWHERE)
+def test_changes_naming_a_protected_branch_are_refused_on_any_branch(config, command):
+    assert refused(config, command, branch="agent/thema"), command
+
+
+@pytest.mark.parametrize("command", LOCAL_ALLOWED_ANYWHERE)
+def test_commands_naming_other_branches_stay_allowed(config, command):
+    assert refused(config, command, branch="agent/thema") == [], command
+
+
+@pytest.mark.parametrize("command", ADD_COMMIT_MORE_REFUSED + PUSH_MORE_REFUSED)
+def test_more_stage_everything_and_push_forms_are_refused(config, command):
+    assert refused(config, command), command
+
+
+@pytest.mark.parametrize("command", ADD_COMMIT_MORE_ALLOWED)
+def test_targeted_add_and_commit_forms_stay_allowed(config, command):
+    assert refused(config, command) == [], command
+
+
+@pytest.mark.parametrize("command", API_WRITE_REFUSED + HTTP_REFUSED + HOOK_PROTECTED_REFUSED)
+def test_api_http_and_hook_protection_forms_are_refused(config, command):
+    assert refused(config, command), command
+
+
+@pytest.mark.parametrize("command", API_READ_ALLOWED + HTTP_ALLOWED + HOOK_PROTECTED_ALLOWED)
+def test_api_reads_and_unrelated_file_work_stay_allowed(config, command):
+    assert refused(config, command) == [], command
+
+
+def test_absolute_path_that_contains_the_working_directory_stages_everything(config):
+    guard = Guard(config, cwd="/home/claude/equity-research", branch_resolver=lambda c: "agent/x", alias_resolver=lambda n, c: None)
+    assert guard.check("git add /home/claude/equity-research")
+    assert guard.check("git add /home/claude")
+    assert guard.check("git add /home/claude/equity-research/")
+    assert guard.check("git add /home/claude/equity-research/src/a.py") == []
+    assert guard.check("git add /home/claude/other-project") == []
+
+
+def test_percent_encoding_is_decoded_when_api_writes_are_not_refused_wholesale():
+    data = _minimal_config()
+    data["gh"]["api"]["refuse_all_writes"] = False
+    cfg = Config(data)
+    assert refused(cfg, "gh api -X PATCH repos/o/r/git/refs/heads/mast%65r -f sha=abc")
+    assert refused(cfg, "gh api -X PUT repos/o/r/pulls/5/mer%67e")
+    assert refused(cfg, "gh api -X PUT repos/o/r/contents/f.txt -f message=m")
+    assert refused(cfg, "gh api -X POST repos/o/r/issues -f title=x") == []
+
+
+def test_payload_without_tool_name_is_refused_and_tool_name_is_case_insensitive(config):
+    assert evaluate({}, config)[0] is False
+    assert evaluate({"tool_input": {"command": "git status"}}, config)[0] is False
+    assert evaluate({"tool_name": 5, "tool_input": {"command": "git status"}}, config)[0] is False
+    assert evaluate({"tool_name": "bash", "tool_input": {"command": "git push origin master"}}, config)[0] is False
+    assert evaluate({"tool_name": "Read", "tool_input": {"file_path": "x"}}, config)[0] is True
+
+
+# time budget (Claude Code does not block a call when a hook runs into its own timeout)
+
+def test_analysis_is_refused_when_the_time_budget_is_exceeded(config):
+    ticks = iter(range(10_000))
+    guard = Guard(config, cwd=".", branch_resolver=lambda c: "agent/x", alias_resolver=lambda n, c: None, clock=lambda: next(ticks))
+    reasons = guard.check("; ".join(["git status"] * 50))
+    assert reasons and "took longer" in reasons[0]
+
+
+def test_many_segments_are_cheap_because_git_lookups_are_cached(config):
+    calls = {"alias": 0, "branch": 0}
+
+    def alias(name, cdirs):
+        calls["alias"] += 1
+
+    def branch(cdirs):
+        calls["branch"] += 1
+        return "agent/x"
+
+    guard = Guard(config, cwd=".", branch_resolver=branch, alias_resolver=alias)
+    command = "git foo; " * 2500 + "git push; " * 2500
+    started = time.monotonic()
+    assert guard.check(command) == []
+    assert time.monotonic() - started < config.analysis_seconds
+    assert calls == {"alias": 1, "branch": 1}
+
+
+def test_time_limits_live_in_the_config():
+    data = _minimal_config()
+    assert data["limits"]["analysis_seconds"] < 30  # settings.json: timeout 30 (a hook timeout does not block)
+    settings = json.loads((REPO_ROOT / ".claude" / "settings.json").read_text(encoding="utf-8"))
+    assert data["limits"]["analysis_seconds"] < settings["hooks"]["PreToolUse"][0]["hooks"][0]["timeout"]
+    data["limits"]["analysis_seconds"] = 0
+    with pytest.raises(GuardConfigError):
+        Config(data)
+
+
+def test_slow_git_lookup_is_bounded_by_the_configured_timeout(config, tmp_path, monkeypatch):
+    seen = []
+
+    def fake_run(command, **kwargs):
+        seen.append(kwargs["timeout"])
+        raise subprocess.TimeoutExpired(command, kwargs["timeout"])
+
+    monkeypatch.setattr(bash_guard.subprocess, "run", fake_run)
+    guard = Guard(config, cwd=str(tmp_path))
+    assert guard.check("git push")  # lookup failed -> refused
+    assert seen and max(seen) <= config.git_lookup_seconds

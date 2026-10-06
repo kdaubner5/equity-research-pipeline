@@ -6,18 +6,19 @@ stdin ({"tool_name": "Bash", "tool_input": {"command": ...}, "cwd": ...}).
 Exit code 2 blocks the call and shows stderr to the model; exit code 0 lets
 the normal permission flow continue.
 
-The hook refuses commands that would push to / merge into / delete a
-protected branch (config/bash_guard.yaml: master, main) in any spelling it
-can resolve, plus the "stage everything" forms of git add and gh pr merge /
-gh api merge calls. It parses the command with a shell tokenizer instead of
-matching text, so quoting (ma''ster), wrappers (git -C ., bash -c, env,
-timeout, xargs), refspecs (HEAD:master, +ref, :ref), option abbreviations
-(--forc) and nested strings are handled. What it cannot see (script files,
-pytest, obfuscated code) is listed in docs/bash-guard.md.
+The hook refuses commands that would push to / merge into / delete or
+locally change a protected branch (config/bash_guard.yaml: master, main) in
+any spelling it can resolve, plus the "stage everything" forms of git add,
+gh pr merge / gh api writes and writes to the hook itself. It parses the
+command with a shell tokenizer instead of matching text, so quoting
+(ma''ster), wrappers (git -C ., bash -c, env, timeout, xargs), redirections,
+refspecs (HEAD:master, +ref, :ref), option abbreviations (--forc) and nested
+strings are handled. What it cannot see (script files, pytest, obfuscated
+code) is listed in docs/bash-guard.md.
 
-Fail closed: an unreadable config, invalid input, a parse error or any
-internal error refuses the call (exit 2). Patterns and limits live in
-config/bash_guard.yaml, none in this file.
+Fail closed: an unreadable config, invalid input, a parse error, an
+exceeded time budget or any internal error refuses the call (exit 2).
+Patterns, limits and time budgets live in config/bash_guard.yaml.
 """
 
 import json
@@ -26,7 +27,9 @@ import re
 import shlex
 import subprocess
 import sys
+import time
 from pathlib import Path
+from urllib.parse import unquote
 
 import yaml
 
@@ -35,7 +38,8 @@ EXIT_BLOCK = 2
 DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[2] / "config" / "bash_guard.yaml"
 
 _OPERATOR_CHARS = frozenset(";&|()<>")
-_ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
+_REDIRECT = re.compile(r"^(&>>?|[<>]+&?|>\|)$")
+_ASSIGNMENT = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)=")
 _SHELL_KEYWORDS = frozenset(
     ["!", "{", "}", "if", "then", "elif", "else", "do", "while", "until", "time", "coproc", "function", "select", "case", "in", "esac", "fi", "done"]
 )
@@ -58,8 +62,15 @@ def _require(mapping, key, kind, where):
     if not isinstance(mapping, dict) or key not in mapping:
         raise GuardConfigError(f"{where}: missing key '{key}'")
     value = mapping[key]
-    if not isinstance(value, kind) or isinstance(value, bool) and kind is int:
-        raise GuardConfigError(f"{where}.{key}: expected {kind.__name__}, got {type(value).__name__}")
+    if not isinstance(value, kind) or (isinstance(value, bool) and kind is not bool):
+        raise GuardConfigError(f"{where}.{key}: expected {kind}, got {type(value).__name__}")
+    return value
+
+
+def _number(mapping, key, where):
+    value = _require(mapping, key, (int, float), where)
+    if value <= 0:
+        raise GuardConfigError(f"{where}.{key}: must be > 0")
     return value
 
 
@@ -81,6 +92,14 @@ def _regex_list(mapping, key, where):
         raise GuardConfigError(f"{where}.{key}: invalid regex ({exc})") from exc
 
 
+def _list_map(mapping, key, where):
+    value = _require(mapping, key, dict, where)
+    result = {}
+    for name, items in value.items():
+        result[name] = _str_list(value, name, f"{where}.{key}")
+    return result
+
+
 class Config:
     """Validated, compiled view of config/bash_guard.yaml."""
 
@@ -95,8 +114,19 @@ class Config:
         self.max_depth = _require(data, "max_depth", int, "config")
         if self.max_command_length < 1 or self.max_depth < 1:
             raise GuardConfigError("config: max_command_length and max_depth must be >= 1")
+        limits = _require(data, "limits", dict, "config")
+        self.analysis_seconds = _number(limits, "analysis_seconds", "limits")
+        self.git_lookup_seconds = _number(limits, "git_lookup_seconds", "limits")
+        self.min_abbreviation = _require(limits, "min_long_option_abbreviation", int, "limits")
+        if self.min_abbreviation < 2:
+            raise GuardConfigError("limits.min_long_option_abbreviation must be >= 2")
         self.non_executing = set(_str_list(data, "non_executing_commands", "config"))
         self.dynamic_arg = set(_str_list(data, "dynamic_arg_commands", "config"))
+        self.wrappers = set(_str_list(data, "command_string_wrappers", "config"))
+        self.env_prefixes = _str_list(data, "refused_env_prefixes", "config")
+        self.protected_paths = _regex_list(data, "protected_paths", "config")
+        self.path_writers = set(_str_list(data, "path_writing_commands", "config"))
+        self.path_writers_with_option = _list_map(data, "path_writing_with_option", "config")
         self.shells = set(_str_list(data, "shell_interpreters", "config"))
         self.script_interpreters = _regex_list(data, "script_interpreter_patterns", "config")
         self.inline_markers = _regex_list(data, "inline_exec_markers", "config")
@@ -110,17 +140,25 @@ class Config:
         self.push_long = _str_list(push, "refused_long_options", "git.push")
         self.push_short = set(_str_list(push, "refused_short_letters", "git.push"))
         self.push_with_value = set(_str_list(push, "options_with_value", "git.push"))
-        self.push_dst_prefixes = _str_list(push, "refused_destination_prefixes", "git.push")
+        self.push_dst_allowed = _str_list(push, "allowed_destination_prefixes", "git.push")
+        self.push_dst_refused = _str_list(push, "refused_destination_prefixes", "git.push")
+        self.push_words = set(_str_list(push, "refused_refspec_words", "git.push"))
         add = _require(git, "add", dict, "git")
         self.add_long = _str_list(add, "refused_long_options", "git.add")
         self.add_short = set(_str_list(add, "refused_short_letters", "git.add"))
-        self.add_pathspec_refused = _regex_list(add, "refused_pathspec_patterns", "git.add")
-        self.add_pathspec_sensitive = _regex_list(add, "sensitive_pathspec_patterns", "git.add")
+        self.pathspec_refused = _regex_list(add, "refused_pathspec_patterns", "git.add")
+        self.pathspec_sensitive = _regex_list(add, "sensitive_pathspec_patterns", "git.add")
         commit = _require(git, "commit", dict, "git")
         self.commit_short = set(_str_list(commit, "refused_short_letters", "git.commit"))
-        self.commit_long = set(_str_list(commit, "refused_long_options", "git.commit"))
+        self.commit_long = _str_list(commit, "refused_long_options", "git.commit")
         self.commit_with_value = set(_str_list(commit, "options_with_value", "git.commit"))
-        self.commit_short_value_letters = set(_str_list(commit, "short_letters_with_value", "git.commit"))
+        self.commit_value_letters = set(_str_list(commit, "short_letters_with_value", "git.commit"))
+        local = _require(git, "local", dict, "git")
+        self.local_on_protected = set(_str_list(local, "refused_subcommands_on_protected_branch", "git.local"))
+        self.local_pull_option = _require(local, "pull_required_option", str, "git.local")
+        self.local_options_naming = _list_map(local, "refused_options_naming_protected_branch", "git.local")
+        self.local_naming_subcommands = set(_str_list(local, "refused_subcommands_naming_protected_branch", "git.local"))
+        self.local_refused = set(_str_list(local, "refused_subcommands", "git.local"))
 
         gh = _require(data, "gh", dict, "config")
         self.gh_global_with_value = set(_str_list(gh, "global_options_with_value", "gh"))
@@ -133,12 +171,14 @@ class Config:
         api = _require(gh, "api", dict, "gh")
         self.api_write_methods = {m.upper() for m in _str_list(api, "write_methods", "gh.api")}
         self.api_field_options = set(_str_list(api, "field_options", "gh.api"))
+        self.api_refuse_all_writes = _require(api, "refuse_all_writes", bool, "gh.api")
         self.api_refused_args = _regex_list(api, "refused_argument_patterns", "gh.api")
 
         http = _require(data, "http", dict, "config")
         self.http_clients = set(_str_list(http, "clients", "http"))
         self.http_hosts = [h.casefold() for h in _str_list(http, "github_hosts", "http")]
         self.http_write_markers = _str_list(http, "write_markers", "http")
+        self.http_refused_options = _str_list(http, "refused_options", "http")
 
 
 def load_config(path=DEFAULT_CONFIG_PATH):
@@ -154,21 +194,20 @@ def load_config(path=DEFAULT_CONFIG_PATH):
 # resolvers (replaceable in tests)
 # --------------------------------------------------------------------------
 
-def _git_output(cdirs, cwd, args):
+def _git_output(cdirs, cwd, args, timeout):
     command = ["git"]
     for directory in cdirs:
         command += ["-C", directory]
     command += list(args)
     try:
-        result = subprocess.run(command, cwd=cwd, capture_output=True, text=True, timeout=5)
+        return subprocess.run(command, cwd=cwd, capture_output=True, text=True, timeout=timeout)
     except (OSError, subprocess.SubprocessError) as exc:
         raise GuardError(f"git lookup failed: {exc}") from exc
-    return result
 
 
-def current_branch(cdirs, cwd):
+def current_branch(cdirs, cwd, timeout):
     """Branch HEAD points to, or None on a detached HEAD / outside a repo."""
-    result = _git_output(cdirs, cwd, ["symbolic-ref", "--short", "-q", "HEAD"])
+    result = _git_output(cdirs, cwd, ["symbolic-ref", "--short", "-q", "HEAD"], timeout)
     if result.returncode == 0:
         return result.stdout.strip() or None
     if result.returncode in (1, 128):
@@ -176,9 +215,9 @@ def current_branch(cdirs, cwd):
     raise GuardError(f"git symbolic-ref failed with exit {result.returncode}")
 
 
-def git_alias(name, cdirs, cwd):
+def git_alias(name, cdirs, cwd, timeout):
     """Value of git config alias.<name>, or None."""
-    result = _git_output(cdirs, cwd, ["config", "--get", f"alias.{name}"])
+    result = _git_output(cdirs, cwd, ["config", "--get", f"alias.{name}"], timeout)
     if result.returncode == 0:
         return result.stdout.strip() or None
     if result.returncode in (1, 128):
@@ -251,9 +290,6 @@ def _split_heredocs(command):
             continue
         out.append(ch)
         i += 1
-    if pending:
-        # heredoc opened but never closed: the rest was already kept in `out`
-        pass
     return "".join(out), bodies
 
 
@@ -316,17 +352,44 @@ def _tokenize(text):
         raise GuardError(f"command cannot be parsed ({exc})") from exc
 
 
+def _is_operator(token):
+    return bool(token) and all(ch in _OPERATOR_CHARS for ch in token)
+
+
 def _segments(tokens):
+    """Yield (segment, redirect targets).
+
+    `;`, `&&`, `||`, `|`, `&` and parentheses end a segment. A redirection
+    (`>`, `2>&1`, `<`, `<<<`, `&>`) does not: the operator, its file
+    descriptor number and its target word are removed from the segment so
+    `git push 2>&1 origin master` is still one git command. The targets of
+    output redirections are returned separately (they are written files)."""
     segment = []
-    for token in tokens:
-        if token and all(ch in _OPERATOR_CHARS for ch in token):
-            if segment:
-                yield segment
-            segment = []
+    targets = []
+    i = 0
+    n = len(tokens)
+    while i < n:
+        token = tokens[i]
+        if _is_operator(token):
+            following = tokens[i + 1] if i + 1 < n else None
+            if _REDIRECT.match(token) and following is not None and not _is_operator(following):
+                if segment and segment[-1].isdigit():
+                    segment.pop()
+                if ">" in token:
+                    targets.append(following)
+                i += 2
+                continue
+            if _REDIRECT.match(token) and following is None:
+                i += 1
+                continue
+            if segment or targets:
+                yield segment, targets
+            segment, targets = [], []
         else:
             segment.append(token)
-    if segment:
-        yield segment
+        i += 1
+    if segment or targets:
+        yield segment, targets
 
 
 def _basename(token):
@@ -362,25 +425,61 @@ def _has_expansion(token):
 # --------------------------------------------------------------------------
 
 class Guard:
-    def __init__(self, config, cwd=None, branch_resolver=None, alias_resolver=None):
+    def __init__(self, config, cwd=None, branch_resolver=None, alias_resolver=None, clock=time.monotonic):
         self.config = config
         self.cwd = cwd
-        self._branch = branch_resolver or (lambda cdirs: current_branch(cdirs, self.cwd))
-        self._alias = alias_resolver or (lambda name, cdirs: git_alias(name, cdirs, self.cwd))
+        self._branch_resolver = branch_resolver
+        self._alias_resolver = alias_resolver
+        self._clock = clock
+        self._deadline = None
+        self._branch_cache = {}
+        self._alias_cache = {}
 
     def check(self, command):
         """List of reasons the command is refused (empty = allowed)."""
         reasons = []
+        self._branch_cache = {}
+        self._alias_cache = {}
+        self._deadline = self._clock() + self.config.analysis_seconds
         try:
             self._analyze(command, 0, reasons)
         except GuardError as exc:
             reasons.append(str(exc))
         return reasons
 
+    # -- time budget, cached lookups ----------------------------------------
+
+    def _tick(self):
+        if self._deadline is not None and self._clock() > self._deadline:
+            raise GuardError(f"analysis took longer than {self.config.analysis_seconds} s (refused)")
+
+    def _lookup_timeout(self):
+        remaining = (self._deadline - self._clock()) if self._deadline is not None else self.config.git_lookup_seconds
+        return max(0.1, min(self.config.git_lookup_seconds, remaining))
+
+    def _branch(self, cdirs):
+        key = tuple(cdirs)
+        if key not in self._branch_cache:
+            if self._branch_resolver:
+                self._branch_cache[key] = self._branch_resolver(list(cdirs))
+            else:
+                self._branch_cache[key] = current_branch(list(cdirs), self.cwd, self._lookup_timeout())
+        return self._branch_cache[key]
+
+    def _alias(self, name, cdirs):
+        key = (name, tuple(cdirs))
+        if key not in self._alias_cache:
+            if self._alias_resolver:
+                self._alias_cache[key] = self._alias_resolver(name, list(cdirs))
+            else:
+                self._alias_cache[key] = git_alias(name, list(cdirs), self.cwd, self._lookup_timeout())
+        return self._alias_cache[key]
+
     # -- text level -------------------------------------------------------
 
     def _analyze(self, command, depth, reasons):
         cfg = self.config
+        self._tick()
         command = command.replace("\x00", "")  # see _neutralize
         if depth > cfg.max_depth:
             reasons.append("nesting too deep to analyse")
@@ -391,8 +490,8 @@ class Guard:
         text, bodies = _split_heredocs(command)
         for introducer, body in bodies:
             self._check_heredoc(introducer, body, depth, reasons)
-        for segment in _segments(_tokenize(text)):
-            self._check_segment(segment, depth, reasons)
+        for segment, targets in _segments(_tokenize(text)):
+            self._check_segment(segment, targets, depth, reasons)
 
     def _check_heredoc(self, introducer, body, depth, reasons):
         tokens = _tokenize(introducer)
@@ -407,8 +506,11 @@ class Guard:
 
     # -- segment level ----------------------------------------------------
 
-    def _check_segment(self, tokens, depth, reasons):
+    def _check_segment(self, tokens, targets, depth, reasons):
         cfg = self.config
+        self._tick()
+        for target in targets:
+            self._check_written_path(target, reasons, "redirect target")
         # substitutions run even in `VAR="$(...)"` and inside echo arguments
         for token in tokens:
             for body in _substitutions(token):
@@ -419,16 +521,26 @@ class Guard:
         if index >= len(tokens):
             return
         first = tokens[index]
+        base = _basename(first)
         if _has_expansion(first) and "/" not in first:
             reasons.append(f"command word '{first}' is an unresolved expansion")
             return
-        if _basename(first) in cfg.non_executing:
+        if base in cfg.non_executing:
             return
+        self._check_env(tokens, index, base, reasons)
+        if base in cfg.wrappers:
+            for token in tokens[index + 1:]:
+                if re.search(r"\s", token):
+                    self._analyze(token, depth + 1, reasons)
         dynamic = False
         for i, token in enumerate(tokens):
             name = _basename(token)
+            if name in cfg.path_writers or name in cfg.path_writers_with_option:
+                self._check_path_writer(tokens[i + 1:], name, reasons)
             if name == "git":
                 self._check_git(tokens[i + 1:], dynamic, depth, reasons)
+            elif name.startswith("git-") and len(name) > 4:
+                self._check_git([name[4:]] + tokens[i + 1:], dynamic, depth, reasons)
             elif name == "gh":
                 self._check_gh(tokens[i + 1:], dynamic, reasons)
             elif name in cfg.http_clients:
@@ -441,6 +553,39 @@ class Guard:
                 self._check_inline_code(" ".join(tokens[i + 1:]), reasons)
             elif name in cfg.dynamic_arg:
                 dynamic = True
+
+    def _check_env(self, tokens, index, base, reasons):
+        cfg = self.config
+        names = [m.group(1) for m in (_ASSIGNMENT.match(t) for t in tokens[:index]) if m]
+        if base == "env":
+            for token in tokens[index + 1:]:
+                match = _ASSIGNMENT.match(token)
+                if match:
+                    names.append(match.group(1))
+                elif not token.startswith("-"):
+                    break
+        for name in names:
+            if any(name.upper().startswith(prefix) for prefix in cfg.env_prefixes):
+                reasons.append(f"environment variable {name} is refused (it changes how git runs)")
+
+    def _check_written_path(self, path, reasons, what):
+        cfg = self.config
+        candidates = {path, posixpath.normpath(path) if path else path}
+        if any(p.search(c) for p in cfg.protected_paths for c in candidates):
+            reasons.append(f"{what} '{path}' names the hook, its configuration or the Claude settings")
+
+    def _check_path_writer(self, args, base, reasons):
+        cfg = self.config
+        if base in cfg.path_writers:
+            for arg in args:
+                if not arg.startswith("-"):
+                    self._check_written_path(arg, reasons, f"{base} target")
+        elif base in cfg.path_writers_with_option:
+            options = cfg.path_writers_with_option[base]
+            if any(arg == o or (o.startswith("-") and not o.startswith("--") and arg.startswith(o)) for arg in args for o in options):
+                for arg in args:
+                    if not arg.startswith("-"):
+                        self._check_written_path(arg, reasons, f"{base} in-place target")
 
     def _check_shell(self, args, depth, reasons):
         index = 0
@@ -503,22 +648,35 @@ class Guard:
         sub, rest = args[index], args[index + 1:]
         if _has_expansion(sub):
             reasons.append(f"git subcommand '{sub}' is an unresolved expansion")
-        elif sub == "push":
+            return
+        self._check_local(sub, rest, cdirs, explicit_dir, reasons)
+        if sub == "push":
             self._check_push(rest, cdirs, explicit_dir, dynamic, reasons)
         elif sub == "add":
             self._check_add(rest, reasons)
         elif sub == "commit":
             self._check_commit(rest, reasons)
         elif sub == "config":
-            if any(a.casefold().startswith("alias.") for a in rest):
-                reasons.append("git config alias.* is refused")
+            self._check_config(rest, reasons)
         elif sub not in cfg.git_known:
             self._check_alias(sub, rest, cdirs, depth, reasons)
 
+    def _c_key_refused(self, key):
+        key = key.casefold()
+        return any(key.startswith(prefix) for prefix in self.config.git_c_prefixes)
+
     def _check_c_value(self, value, reasons):
-        key = value.split("=", 1)[0].casefold()
-        if any(key.startswith(prefix) for prefix in self.config.git_c_prefixes):
-            reasons.append(f"git -c {key} is refused")
+        key = value.split("=", 1)[0]
+        if self._c_key_refused(key):
+            reasons.append(f"git -c {key.casefold()} is refused")
+
+    def _check_config(self, args, reasons):
+        read_only = any(a in ("--get", "--get-all", "--get-regexp", "--list", "-l", "--get-urlmatch") for a in args)
+        if read_only:
+            return
+        for arg in args:
+            if not arg.startswith("-") and self._c_key_refused(arg):
+                reasons.append(f"git config {arg.casefold()} is refused")
 
     def _check_alias(self, name, rest, cdirs, depth, reasons):
         value = self._alias(name, cdirs)
@@ -533,10 +691,48 @@ class Guard:
                 raise GuardError(f"git alias '{name}' cannot be parsed ({exc})") from exc
             self._analyze("git " + " ".join(shlex.quote(w) for w in words + rest), depth + 1, reasons)
 
-    def _long_option_refused(self, name, refused):
-        if len(name) < 3:
+    def _long_option_refused(self, name, refused, extensions=False):
+        """`name` is a refused long option or a unique abbreviation of one.
+        With `extensions` a longer option that starts with a refused one
+        (--force-with-lease for --force) is refused as well; git add/commit
+        have real options such as --allow-empty that must stay allowed."""
+        if len(name) < self.config.min_abbreviation:
             return False
-        return any(r.startswith(name) or name.startswith(r) for r in refused)
+        return any(r.startswith(name) or (extensions and name.startswith(r)) for r in refused)
+
+    # -- local changes to a protected branch ----------------------------------
+
+    def _check_local(self, sub, rest, cdirs, explicit_dir, reasons):
+        cfg = self.config
+        if sub in cfg.local_refused:
+            reasons.append(f"git {sub} is refused")
+        if sub in cfg.local_on_protected:
+            self._check_current_branch(cdirs, explicit_dir, reasons, f"git {sub}")
+        if sub == "pull" and cfg.local_pull_option not in rest:
+            self._check_current_branch(cdirs, explicit_dir, reasons, f"git pull without {cfg.local_pull_option}")
+        names_branch = any(not a.startswith("-") and self._is_protected(a) for a in rest)
+        if sub in cfg.local_naming_subcommands and names_branch:
+            reasons.append(f"git {sub} on a protected branch is refused")
+        options = cfg.local_options_naming.get(sub)
+        if options and names_branch:
+            for token in rest:
+                if token.startswith("--"):
+                    hit = token.split("=", 1)[0] in options
+                elif token.startswith("-") and len(token) > 1:
+                    hit = token in options or any(f"-{ch}" in options for ch in token[1:])
+                else:
+                    hit = False
+                if hit:
+                    reasons.append(f"git {sub} {token} on a protected branch is refused")
+        if sub == "fetch":
+            for token in rest:
+                if not (token.startswith("+") and ":" in token):
+                    continue
+                destination = token.split(":", 1)[1]
+                if self._is_protected(destination) or any(ch in destination for ch in "*?["):
+                    reasons.append(f"forced fetch refspec '{token}' would overwrite a protected branch")
+
+    # -- git push ---------------------------------------------------------
 
     def _check_push(self, args, cdirs, explicit_dir, dynamic, reasons):
         cfg = self.config
@@ -558,7 +754,7 @@ class Guard:
                 continue
             if token.startswith("--"):
                 name = token.split("=", 1)[0]
-                if self._long_option_refused(name, cfg.push_long):
+                if self._long_option_refused(name, cfg.push_long, extensions=True):
                     reasons.append(f"git push option {name} is refused")
                 if name == "--repo":
                     repo_option = True
@@ -566,8 +762,7 @@ class Guard:
                     index += 2
                     continue
             else:
-                letters = token[1:]
-                for letter in letters:
+                for letter in token[1:]:
                     if letter in cfg.push_short:
                         reasons.append(f"git push option -{letter} is refused")
                     if f"-{letter}" in cfg.push_with_value:
@@ -577,10 +772,9 @@ class Guard:
                     continue
             index += 1
         refspecs = positionals if repo_option else positionals[1:]
-        implicit = not refspecs
         for refspec in refspecs:
             self._check_refspec(refspec, cdirs, explicit_dir, reasons)
-        if implicit:
+        if not refspecs:
             self._check_current_branch(cdirs, explicit_dir, reasons, "git push without a refspec")
 
     def _check_current_branch(self, cdirs, explicit_dir, reasons, what):
@@ -589,7 +783,7 @@ class Guard:
             return
         branch = self._branch(cdirs)
         if branch and self._is_protected(branch):
-            reasons.append(f"{what} would push the current branch '{branch}'")
+            reasons.append(f"{what} on the protected branch '{branch}'")
 
     def _normalize_ref(self, ref):
         ref = ref.strip().rstrip("/")
@@ -604,6 +798,12 @@ class Guard:
 
     def _check_refspec(self, refspec, cdirs, explicit_dir, reasons):
         cfg = self.config
+        if _has_expansion(refspec):
+            # checked before splitting: ${B:-master} contains a colon
+            reasons.append(f"refspec '{refspec}' contains an unresolved expansion")
+            return
+        if refspec in cfg.push_words:
+            reasons.append(f"git push {refspec} <name> (tag push) is refused")
         spec = refspec
         if spec.startswith("+"):
             reasons.append(f"forced refspec '{refspec}' is refused")
@@ -619,19 +819,44 @@ class Guard:
             return
         if not destination:
             return
-        if _has_expansion(destination) or any(ch in destination for ch in "*?[{~^"):
-            reasons.append(f"refspec destination '{destination}' is a pattern or unresolved expansion")
+        if any(ch in destination for ch in "*?[{~^"):
+            reasons.append(f"refspec destination '{destination}' is a pattern")
             return
         if self._is_protected(destination):
             reasons.append(f"push to protected branch '{destination}'")
-        if any(destination.startswith(p) for p in cfg.push_dst_prefixes):
+        if destination.startswith("refs/") and not any(destination.startswith(p) for p in cfg.push_dst_allowed):
+            reasons.append(f"push to '{destination}' (outside refs/heads) is refused")
+        if any(destination.startswith(p) for p in cfg.push_dst_refused):
             reasons.append(f"tag push '{destination}' is refused")
 
     # -- git add / commit -------------------------------------------------
 
+    def _stages_everything(self, token):
+        norm = posixpath.normpath(token) if token else ""
+        if norm in (".", "..") or norm.startswith("../"):
+            return True
+        if posixpath.isabs(norm):
+            if norm == "/":
+                return True
+            if self.cwd:
+                cwd = posixpath.normpath(self.cwd)
+                return cwd == norm or cwd.startswith(norm.rstrip("/") + "/")
+        return False
+
+    def _check_pathspecs(self, paths, reasons, what):
+        cfg = self.config
+        for token in paths:
+            if _has_expansion(token):
+                reasons.append(f"{what} pathspec '{token}' is an unresolved expansion")
+            elif any(p.search(token) for p in cfg.pathspec_refused) or self._stages_everything(token):
+                reasons.append(f"{what} pathspec '{token}' stages everything or a pattern")
+            elif any(p.search(token) for p in cfg.pathspec_sensitive):
+                reasons.append(f"{what} pathspec '{token}' names a sensitive path")
+
     def _check_add(self, args, reasons):
         cfg = self.config
         options_done = False
+        paths = []
         for token in args:
             if not options_done and token == "--":
                 options_done = True
@@ -645,37 +870,42 @@ class Guard:
                     if letter in cfg.add_short:
                         reasons.append(f"git add option -{letter} is refused (stage targeted paths only)")
                 continue
-            if _has_expansion(token):
-                reasons.append(f"git add pathspec '{token}' is an unresolved expansion")
-            elif any(p.search(token) for p in cfg.add_pathspec_refused):
-                reasons.append(f"git add pathspec '{token}' stages everything or a pattern")
-            elif any(p.search(token) for p in cfg.add_pathspec_sensitive):
-                reasons.append(f"git add pathspec '{token}' names a sensitive path")
+            paths.append(token)
+        self._check_pathspecs(paths, reasons, "git add")
 
     def _check_commit(self, args, reasons):
         cfg = self.config
         index = 0
+        options_done = False
+        paths = []
         while index < len(args):
             token = args[index]
-            if token == "--":
-                return
-            if token.startswith("--"):
+            if not options_done and token == "--":
+                options_done = True
+                index += 1
+                continue
+            if not options_done and token.startswith("--"):
                 name = token.split("=", 1)[0]
-                if name in cfg.commit_long:
+                if self._long_option_refused(name, cfg.commit_long):
                     reasons.append(f"git commit {name} stages all tracked changes")
                 if name in cfg.commit_with_value and "=" not in token:
                     index += 2
                     continue
-            elif token.startswith("-") and len(token) > 1:
-                for letter in token[1:]:
+            elif not options_done and token.startswith("-") and len(token) > 1:
+                consumes_next = False
+                for position, letter in enumerate(token[1:], start=1):
                     if letter in cfg.commit_short:
                         reasons.append(f"git commit -{letter} stages all tracked changes")
-                    if letter in cfg.commit_short_value_letters:
+                    if letter in cfg.commit_value_letters:
+                        consumes_next = position == len(token) - 1
                         break
-                if token in cfg.commit_with_value:
+                if token in cfg.commit_with_value or consumes_next:
                     index += 2
                     continue
+            else:
+                paths.append(token)
             index += 1
+        self._check_pathspecs(paths, reasons, "git commit")
 
     # -- gh / http --------------------------------------------------------
 
@@ -718,22 +948,33 @@ class Guard:
         write = (method in cfg.api_write_methods) if method else implicit_write
         if not write:
             return
+        if cfg.api_refuse_all_writes:
+            reasons.append("gh api write requests are refused (use gh issue comment / gh pr create)")
+            return
         for token in args:
-            if cfg.protected_word.search(token) or any(p.search(token) for p in cfg.api_refused_args):
+            decoded = unquote(token)  # mast%65r
+            if cfg.protected_word.search(decoded) or any(p.search(decoded) for p in cfg.api_refused_args):
                 reasons.append("gh api write request touches a merge, a protected branch or an uninspectable body")
                 return
 
     def _check_http(self, tokens, reasons):
         cfg = self.config
+        for token in tokens[1:]:
+            for option in cfg.http_refused_options:
+                if token == option or token.startswith(option + "=") or (not option.startswith("--") and token.startswith(option) and len(token) > len(option)):
+                    reasons.append(f"{tokens[0]} {option} reads options from a file (cannot be analysed)")
+                    return
         text = " ".join(tokens).casefold()
-        if not any(host in text for host in cfg.http_hosts):
+        urls = [t for t in tokens[1:] if "://" in t]
+        host_unknown = any(_has_expansion(u.split("://", 1)[1].split("/", 1)[0]) for u in urls)
+        if not (host_unknown or any(host in text for host in cfg.http_hosts)):
             return
         for token in tokens[1:]:
             for marker in cfg.http_write_markers:
                 if token == marker or token.startswith(marker + "=") or (
                     not marker.startswith("--") and token.startswith(marker) and len(token) > len(marker)
                 ):
-                    reasons.append("write request to the GitHub API outside gh is refused")
+                    reasons.append("write request to a GitHub (or unknown) host outside gh is refused")
                     return
 
 
@@ -741,17 +982,20 @@ class Guard:
 # hook entry point
 # --------------------------------------------------------------------------
 
-def evaluate(payload, config, branch_resolver=None, alias_resolver=None):
+def evaluate(payload, config, branch_resolver=None, alias_resolver=None, clock=time.monotonic):
     """(allowed, reasons) for one hook payload (the JSON object from stdin)."""
     if not isinstance(payload, dict):
         return False, ["hook input is not a JSON object"]
-    if payload.get("tool_name") != "Bash":
+    tool_name = payload.get("tool_name")
+    if not isinstance(tool_name, str) or not tool_name:
+        return False, ["hook input has no tool_name"]
+    if tool_name.casefold() != "bash":
         return True, []
     tool_input = payload.get("tool_input")
     command = tool_input.get("command") if isinstance(tool_input, dict) else None
     if not isinstance(command, str):
         return False, ["Bash call without a command string"]
-    guard = Guard(config, cwd=payload.get("cwd") or None, branch_resolver=branch_resolver, alias_resolver=alias_resolver)
+    guard = Guard(config, cwd=payload.get("cwd") or None, branch_resolver=branch_resolver, alias_resolver=alias_resolver, clock=clock)
     reasons = guard.check(command)
     return not reasons, reasons
 

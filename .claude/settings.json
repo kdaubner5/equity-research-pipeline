@@ -38,6 +38,7 @@
       "Edit(./tox.ini)",
       "Edit(./requirements.txt)",
       "Edit(./config/**)",
+      "Edit(./src/hooks/**)",
       "Edit(./docs/decisions.md)"
     ],
     "deny": [
