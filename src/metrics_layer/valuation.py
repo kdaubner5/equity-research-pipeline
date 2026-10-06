@@ -33,9 +33,19 @@ def _is_stale(latest_period, as_of_year, config: Stage2Config):
 
 
 def _non_finite(*values):
-    """True if any given value is NaN or +-inf (None is not checked: a missing value has its own reason).
-    A NaN would otherwise compare False everywhere and slip through as a valid number."""
-    return any(v is not None and not math.isfinite(v) for v in values)
+    """True if any given value is NaN, +-inf or an integer too large for a float (None is not
+    checked: a missing value has its own reason). A NaN would otherwise compare False
+    everywhere and slip through as a valid number; a huge JSON integer would crash a later
+    float conversion."""
+    for value in values:
+        if value is None:
+            continue
+        try:
+            if not math.isfinite(value):
+                return True
+        except OverflowError:
+            return True
+    return False
 
 
 def _market_cap_unusable(market_cap_usd):
@@ -55,7 +65,8 @@ def ev_ebitda_latest(periods, market_cap_usd, *, as_of_year, config: Stage2Confi
     """EV/EBITDA from the latest fiscal year: (market cap + net debt) / EBITDA.
 
     Invalid reasons in this order: no_periods, fundamentals_stale, market_cap_missing
-    (None or <= 0), net_debt_unreliable / debt_data_completely_missing (net debt is None),
+    (None or <= 0), non_finite_input (NaN, inf or an integer too large for a float in market cap,
+    EBITDA or net debt), net_debt_unreliable / debt_data_completely_missing (net debt is None),
     ebitda_non_positive, ev_non_positive (net cash exceeds the market cap), and
     ev_ebitda_implausibly_high (multiple above ev_ebitda.implausible_above; exactly on
     the cap is valid).
@@ -108,11 +119,16 @@ def ev_ebitda_normalized(periods, market_cap_usd, *, as_of_year, config: Stage2C
     if reason is not None:
         return MetricResult(value=None, invalid_reason=reason)
     mean_ebitda = sum(p["ebitda"] for p in window) / years
+    if not math.isfinite(mean_ebitda):
+        return MetricResult(value=None, invalid_reason="non_finite_input")
     if mean_ebitda <= 0:
         return MetricResult(value=None, invalid_reason="ebitda_non_positive")
     if ev <= 0:
         return MetricResult(value=None, invalid_reason="ev_non_positive")
-    return MetricResult(value=ev / mean_ebitda)
+    value = ev / mean_ebitda
+    if not math.isfinite(value):  # finite inputs can still overflow (e.g. a huge mean EBITDA divides to 0.0 / inf)
+        return MetricResult(value=None, invalid_reason="non_finite_input")
+    return MetricResult(value=value)
 
 
 def _capex_outflow(change_in_fixed_assets):
@@ -156,7 +172,10 @@ def fcf_yield_average(periods, capex_by_year, market_cap_usd, *, as_of_year, con
         return MetricResult(value=None, invalid_reason="capex_missing")
     fcfs = [p["cfo"] - _capex_outflow(change) for p, change in zip(window, changes)]
     # mean first, then the division: exact for round test figures (60/1000 == 0.06).
-    value = (sum(fcfs) / years) / market_cap_usd
+    mean_fcf = sum(fcfs) / years
+    value = mean_fcf / market_cap_usd
+    if not math.isfinite(mean_fcf) or not math.isfinite(value):  # finite inputs can still overflow
+        return MetricResult(value=None, invalid_reason="non_finite_input")
     if value > config.fcf_yield.implausible_above:
         return MetricResult(value=None, invalid_reason="fcf_yield_implausibly_high")
     return MetricResult(value=value)
