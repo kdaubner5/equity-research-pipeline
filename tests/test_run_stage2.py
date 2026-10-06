@@ -500,3 +500,17 @@ def test_a_failing_archive_write_does_not_leave_result_rows_behind(tmp_path, mon
     monkeypatch.setattr(run_stage2, "save_stage2_results", lambda *a, **k: (_ for _ in ()).throw(sqlite3.OperationalError("disk full")))
     assert world.run()[0] == run_stage2.EXIT_TECHNICAL_FAILURE
     assert not world.archive_db.exists()  # nothing was even created: the failure came before any write
+
+
+def test_a_market_cap_of_the_wrong_type_is_isolated_not_a_traceback(tmp_path):
+    world = World(tmp_path, survivors=("CENT", "SCSC"))
+    conn = sqlite3.connect(world.source_db)
+    conn.execute("UPDATE universe_prefilter SET market_cap_usd = 'abc' WHERE ticker = 'CENT'")
+    conn.commit()
+    conn.close()
+    code, out = world.run()
+    assert code == run_stage2.EXIT_OK, out
+    rows = {r[0]: r[1:] for r in world.stage2("SELECT ticker, status, invalid_reasons FROM stage2_results")}
+    assert rows["CENT"] == ("not_evaluable", "market_cap_malformed")
+    assert rows["SCSC"][0] == "passed"
+    assert world.stage2("SELECT peer_base_size FROM stage2_runs") == [(8,)]

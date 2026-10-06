@@ -71,6 +71,8 @@ SIMFIN_MAPPING_ERROR = "simfin_mapping_error"
 # Raw cells of the wrong type or rows of the wrong shape (a string where a number belongs, a row
 # shorter than its column list ...): one company's data problem, never a reason to abort the run.
 FUNDAMENTALS_MALFORMED = "fundamentals_malformed"
+# A market cap of the wrong type in the archive (NULL stays a plain missing value handled by the metrics).
+MARKET_CAP_MALFORMED = "market_cap_malformed"
 
 
 class Stage2RunError(Exception):
@@ -176,6 +178,8 @@ def build_input(ticker, simfin_id, sector_code, market_cap_usd, assignment, *, c
     invalid or unmappable - such a company is not a peer, and as a survivor it gets that reason.
     A capex column that cannot be read only empties capex_by_year (the FCF-yield turns invalid).
     """
+    if market_cap_usd is not None and not _is_number(market_cap_usd):
+        return None, MARKET_CAP_MALFORMED, False
     if not assignment.profile.supported:
         vi = ValuationInput(
             ticker=ticker, sector_code=sector_code, market_cap_usd=market_cap_usd, periods=[], capex_by_year={},
