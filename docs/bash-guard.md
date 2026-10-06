@@ -4,7 +4,7 @@ Ein Hook, der **vor jedem Bash-Aufruf** läuft und Befehle ablehnt, die auf `mas
 
 **Er ist ein Hilfsmittel, keine Sicherheitsgrenze.** Der Hook prüft den Befehlstext, nicht das, was die Shell danach tut. Jede Textprüfung lässt sich umgehen (Skriptdateien, pytest, verschleierte Strings, Edit/Write auf den Hook selbst). Die wirksame Grenze gegen Push auf `master` ist Branch-Schutz auf GitHub oder ein zweites Konto (Issue #60).
 
-Zum Berechtigungsmodus: Laut Dokumentation (Permissions-Seite, „Extend permissions with hooks“) laufen PreToolUse-Hooks vor den Berechtigungsregeln, und Exit-Code 2 blockiert den Aufruf auch dann, wenn eine Allow-Regel ihn erlauben würde. Für `auto` ist das ausdrücklich belegt. Für `bypassPermissions` steht in den gelesenen Seiten kein wörtlicher Satz; die Wirkung dort ist **nicht belegt** und nicht gemessen (Testprotokoll, beaufsichtigte Sitzung).
+Zum Berechtigungsmodus: Laut Dokumentation (Permissions-Seite, „Extend permissions with hooks“) laufen PreToolUse-Hooks vor den Berechtigungsregeln, und Exit-Code 2 blockiert den Aufruf auch dann, wenn eine Allow-Regel ihn erlauben würde. Für `auto` ist das ausdrücklich belegt. Für `bypassPermissions` steht in den gelesenen Seiten kein wörtlicher Satz, aber die Wirkung ist **gemessen**: In einer Sitzung im Modus `bypassPermissions` (Angabe aus Konstantins Auftrag; der Agent kann den Modus von innen nicht prüfen) lehnte der Hook sechs von sechs Dry-Run-Befehlen ab (Testprotokoll in `docs/decisions.md`, Nr. 1 bis 6), und ein reiner `echo`-Text lief durch. Im Modus `auto` und im Standardmodus ist der Hook nicht gemessen; die Messung gilt für die damals installierte Claude-Code-Version (nicht geprüft) und beweist nicht, dass jede Schreibweise abgelehnt wird.
 
 ## Bestandteile
 
@@ -67,4 +67,4 @@ Neue Befehle, Optionen, Pfadmuster, zusätzliche geschützte Branches oder Zeitb
 echo '{"tool_name":"Bash","tool_input":{"command":"git status"},"cwd":"."}' | ~/venvs/equity/bin/python src/hooks/bash_guard.py; echo $?   # 0
 ```
 
-Eine abgelehnte Beispielzeile gibt Exit 2 und eine Begründung auf stderr aus. Ob Claude Code den Hook in der echten Sitzung aufruft und blockiert (auch in `bypassPermissions`/`auto`), zeigt erst ein Lauf in einer beaufsichtigten Sitzung mit den ungefährlichen Dry-Run-Befehlen aus `docs/decisions.md` (Testprotokoll, Zeilen 1 bis 7); dieser Lauf steht aus.
+Eine abgelehnte Beispielzeile gibt Exit 2 und eine Begründung auf stderr aus. In einer beaufsichtigten Sitzung im Modus `bypassPermissions` hat Claude Code den Hook aufgerufen und die Dry-Run-Befehle 1 bis 6 des Testprotokolls (`docs/decisions.md`) blockiert; Nr. 7 (`gh api -X PUT …`) und der Standardmodus sowie `auto` stehen aus.
