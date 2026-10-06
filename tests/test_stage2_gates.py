@@ -20,7 +20,7 @@ from gates_layer.stage1_gates import (
     UNSUPPORTED_BUSINESS_MODEL,
     GateResult,
 )
-from gates_layer.stage2_gates import ValuationInput, evaluate_stage2, rank_stage2
+from gates_layer.stage2_gates import ValuationInput, evaluate_stage2, not_evaluable_result, peer_base_size, rank_stage2
 from stage2_helpers import make_config, period
 
 CONFIG = make_config()
@@ -501,3 +501,22 @@ def test_rank_with_a_stage_2_result_that_has_no_stage_1_result_is_a_caller_error
     results = evaluate_stage2(inputs, {"X": s1()}, as_of=AS_OF, config=CONFIG)
     with pytest.raises(ValueError, match="X"):
         rank_stage2({}, results)
+
+
+# ---------------------------------------------------------------- helpers used by the runner
+
+
+def test_not_evaluable_result_carries_one_reason_and_no_values():
+    result = not_evaluable_result("fundamentals_cache_missing")
+    assert result.status == NOT_EVALUABLE
+    assert result.invalid_reasons == ("fundamentals_cache_missing",)
+    assert result.flags == () and result.info_flags == ()
+    assert result.ev_ebitda is None and result.fcf_yield is None and result.peer_level is None
+
+
+def test_peer_base_size_counts_only_supported_valid_companies_with_a_sector():
+    inputs = group(OTHER, [5.0 + i for i in range(8)])
+    inputs["BANK"] = company("BANK", OTHER, multiple=6.0, supported=False)
+    inputs["BAD"] = company("BAD", OTHER, net_debt=None)
+    inputs["NOSECTOR"] = company("NOSECTOR", None, multiple=6.0)
+    assert peer_base_size(inputs, as_of=AS_OF, config=CONFIG) == 8
