@@ -38,6 +38,7 @@
       "Edit(./tox.ini)",
       "Edit(./requirements.txt)",
       "Edit(./config/**)",
+      "Edit(./src/hooks/**)",
       "Edit(./docs/decisions.md)"
     ],
     "deny": [
@@ -79,6 +80,20 @@
       "Edit(./.env)",
       "Edit(./.env.*)",
       "Edit(./data/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/venvs/equity/bin/python \"${CLAUDE_PROJECT_DIR}/src/hooks/bash_guard.py\" || exit 2",
+            "timeout": 30
+          }
+        ]
+      }
     ]
   }
 }
