@@ -1228,3 +1228,35 @@ Darstellung der Befunde: **Nicht clean** (Grauzone oder failed) ist im 3-Jahres-
 6. **Nichts ändern** und das Restrisiko wie im Masterplan (§10) der manuellen Prüfung in Stufe 3 überlassen.
 
 Die Entscheidung liegt beim Projektinhaber; sie steht nicht in diesem Abschnitt.
+
+## 2026-10-06: Autonomer Betrieb (Agent-Entscheidung, Klasse C; Entwurf, Branch `autonomie-technik`)
+
+**Status:** Entwurf eines Agenten. Der Text gilt erst, wenn Konstantin den PR gemergt hat. Er ändert Regeln und Rechte und ist deshalb Klasse C (`docs/arbeitsweise.md`, Abschnitt C). Grundlage sind die Regeln aus PR #55 und die Restbefunde N1–N5 aus Issue #58.
+
+**Entscheidung (Entwurf):**
+1. **Schichtauftrag.** Konstantin erteilt ihn in der Sitzung. Eine Aufgabe pro Schicht, mit Zeitbudget und Stoppregeln (`docs/arbeitsweise.md`, Abschnitt E). Ein vom Agenten selbst geschriebener Auftrag ist kein Schichtauftrag.
+2. **Keine Merges** in einer autonomen Schicht. Der Agent öffnet höchstens einen PR und mergt nie.
+3. **Berichtsort.** Der Bericht steht als PR-Kommentar oder, wenn es keinen PR gibt, als Issue-Kommentar zusammen mit „Stand und nächste Schritte" in 5 Zeilen (Abschnitt F).
+4. **Kritiker pro Schicht.** Zu jedem Ergebnis einer Schicht läuft ein unabhängiger Kritiker (frische Sitzung oder Subagent). Alle Läufe werden vollständig gepostet (Abschnitt A).
+5. **Daten auf dem Server.** Auf dem Server liegen weder `data/` noch die echte Datenbank noch ein SimFin-Schlüssel. Tests und Replays, die diese Daten brauchen, laufen nicht auf dem Server (Golden Master: Issue #56).
+
+**Technische Umsetzung (Entwurf):** `.claude/settings.json` mit einer Allow- und einer Deny-Liste.
+- Allow: Lesen; `git status`, `git diff`, `git log`, `git fetch`; `git checkout -b`; `git add` (nur gezielt); `git commit`; `git push origin <Branch>`; `gh api` (nur GET); `gh pr create`; `gh issue comment`; pytest aus `~/venvs/equity`.
+- Deny: Push auf master; `git push` mit `--all`, `--mirror`, `--tags`, `--force`; `gh pr merge`; Merge über `gh api` (PUT/POST, `/merge`); die Werkzeuge für Routinen, geplante Aufgaben, `send_later` und Trigger; `sudo`; `rm -rf`; Zugriff auf `.env` und `data/`.
+- Zusätzlich im Entwurf, nicht in der Auftragsliste: Deny für das GitHub-MCP-Werkzeug `mcp__github__merge_pull_request` (die Regeln nennen MCP-Werkzeuge ausdrücklich als Merge-Weg), für `git add -A` und `git add .` (CLAUDE.md verbietet `git add -A`) sowie für `gh api graphql`.
+
+**Was diese Liste NICHT sicher sperrt.** Die Listen vergleichen Befehlstext. Sie prüfen nicht, was ein Befehl bewirkt. Nicht sicher gesperrt sind:
+- **Umschreibungen von Befehlen:** `git -C <Ordner> push …`, `git -c … push …`, `env git push …`, `bash -c "git push origin master"`, Variablen oder `$(…)` im Branchnamen, `git push origin HEAD:refs/heads/master`, Aliase, verkettete Befehle (`cd x && git push …`). Die Deny-Muster fangen nur einen Teil dieser Formen.
+- **Andere Wege zu GitHub:** `curl` oder ein Python-Skript mit dem Token aus der Umgebung, ein geänderter Remote, `gh alias`, `gh workflow run`. `gh api` mit anderer Reihenfolge der Optionen oder mit `--input` ist nur teilweise erfasst.
+- **pytest führt beliebigen Code aus.** Jede Datei unter `tests/` (auch `conftest.py`) kann Befehle ausführen. Die Allow-Regel für pytest ist deshalb ein Schlupfloch, wenn Testdateien im selben PR geändert werden.
+- **Lesen von `.env` und `data/` über Bash** (`cat`, `grep`, `python -c`). Das Deny auf die Datei-Werkzeuge erfasst Bash nicht vollständig. Umgebungsvariablen mit Token sind über `env` lesbar.
+- **Die Berechtigungsliste selbst:** Bearbeiten von `.claude/` ist nicht gesperrt. Die Klasse-C-Regel greift nur im PR-Prozess, nicht technisch.
+- **Nicht aufgeführte Werkzeuge:** Was weder in Allow noch in Deny steht, führt in einer interaktiven Sitzung zur Rückfrage, in einer nicht interaktiven zur Ablehnung. „Rückfrage" ist kein Verbot. Andere MCP-Server und neu hinzukommende Werkzeuge sind nicht erfasst.
+- **Gültigkeit der Muster:** Wie genau Muster abgeglichen werden (Präfix oder Platzhalter, Reihenfolge von Optionen), wurde hier nicht in einer echten Sitzung getestet.
+- **Löschen von Branches** (`git push origin :<Branch>`, `--delete`) ist nicht gesperrt.
+
+**Alternativen:**
+- Nur Text (wie bisher): verworfen als alleinige Lösung, weil er den Agenten nur selbst bindet.
+- Branch-Schutz oder zweites GitHub-Konto: wären die technische Lösung für Merge-Schutz und die Unterscheidung von Kritiker-Bericht und Freigabe; derzeit nicht verfügbar. **Offen, Entscheidung bei Konstantin** (Abschnitt G, Issue #58).
+
+**Offene Fragen:** Siehe den Bericht am PR. Die Entscheidung liegt beim Projektinhaber.
