@@ -110,7 +110,7 @@ Die Zuordnung ist mechanisch, nicht Ermessenssache.
 **Harte Grenzen:**
 - Push auf `master` ist immer verboten, auch mit Freigabe. Gemergt wird nur über PRs, auf Anweisung (siehe Freigabe).
 - Jeder Weg mit der Wirkung „Merge in `master`" ist ohne ausdrückliche Freigabe verboten. Die Aufzählung ist beispielhaft: CLI (`gh pr merge`), API, GraphQL, MCP-Werkzeuge, Auto-Merge, Merge-Queue, Weboberfläche.
-- `master` wird nie lokal verändert.
+- `master` wird nie lokal verändert. Fast-Forward auf `origin/master` ist erlaubt, lokales Committen oder Mergen auf `master` nicht.
 - Push nur mit explizitem Branchnamen (`git push origin <branch>`), nie mit `--all`, `--mirror` oder Tags.
 - Feature-Branch = ein vom Agenten für einen Auftrag neu angelegter Branch. Feature-Branches des Agenten heißen `agent/<thema>` (ab jetzt).
 - Der Agent legt keine Routinen, geplanten Aufgaben oder Trigger an, außer Konstantin ordnet es ausdrücklich an. Ein geplanter Auftrag darf nie einen Merge, einen Push auf `master` oder einen Zugriff auf die echte Datenbank oder SimFin enthalten oder auslösen.

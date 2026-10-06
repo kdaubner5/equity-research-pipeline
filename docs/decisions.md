@@ -1233,56 +1233,89 @@ Die Entscheidung liegt beim Projektinhaber; sie steht nicht in diesem Abschnitt.
 
 **Status:** Entwurf eines Agenten. Der Text gilt erst, wenn Konstantin den PR gemergt hat. Er ändert Regeln und Rechte und ist deshalb Klasse C (`docs/arbeitsweise.md`, Abschnitt C). Grundlage sind die Regeln aus PR #55 und die Restbefunde N1–N5 aus Issue #58.
 
+**UNBEAUFSICHTIGTER BETRIEB IST NICHT FREIGEGEBEN, bis Stufe 2 steht.** Stufe 2 ist ein Hook mit Tests, der `git push`, `git add` und `gh`-Befehle gegen eine feste Form prüft, plus die Entscheidung über Konto- bzw. Branch-Schutz (Issue #60). Die Berechtigungsliste in `.claude/settings.json` (Stufe 1) ist ein Hilfsmittel für **beaufsichtigte** Sitzungen, keine Sicherheitsgrenze.
+
 **Entscheidung (Entwurf):**
 1. **Schichtauftrag.** Konstantin erteilt ihn in der Sitzung. Eine Aufgabe pro Schicht, mit Zeitbudget und Stoppregeln (`docs/arbeitsweise.md`, Abschnitt E). Ein vom Agenten selbst geschriebener Auftrag ist kein Schichtauftrag.
 2. **Keine Merges** in einer autonomen Schicht. Der Agent öffnet höchstens einen PR und mergt nie.
 3. **Berichtsort.** Der Bericht steht als PR-Kommentar oder, wenn es keinen PR gibt, als Issue-Kommentar zusammen mit „Stand und nächste Schritte" in 5 Zeilen (Abschnitt F).
 4. **Kritiker pro Schicht.** Zu jedem Ergebnis einer Schicht läuft ein unabhängiger Kritiker (frische Sitzung oder Subagent). Alle Läufe werden vollständig gepostet (Abschnitt A).
-5. **Daten auf dem Server.** Auf dem Server liegen weder `data/` noch die echte Datenbank noch ein SimFin-Schlüssel. Tests und Replays, die diese Daten brauchen, laufen nicht auf dem Server (Golden Master: Issue #56).
+5. **Daten auf dem Server.** Auf dem Server liegen weder `data/` noch die echte Datenbank noch ein SimFin-Schlüssel. Tests und Replays, die diese Daten brauchen, laufen nicht auf dem Server (Golden Master: Issue #56). Prüfung: siehe unten („Prüfung von Punkt 5“).
+6. **Unbeaufsichtigter Betrieb.** Er ist nicht freigegeben, bis Stufe 2 steht und Konstantin sie freigegeben hat. Danach laufen unbeaufsichtigte Schichten nur im Berechtigungsmodus `dontAsk`.
 
-6. **Unbeaufsichtigt nur im Modus `dontAsk`.** Unbeaufsichtigte Schichten laufen ausschließlich im Berechtigungsmodus `dontAsk`.
-
-**Betriebsmodi.** Quelle: https://code.claude.com/docs/en/permissions (von Konstantin genannt; Abschnitte zur Reihenfolge Deny > Ask > Allow, zu Bash-Mustern und ihren Grenzen und zu `dontAsk`; vom Agenten beim Schreiben dieses Entwurfs nicht selbst gelesen, der Kritiker soll sie prüfen).
-- Unbeaufsichtigte Schichten laufen im Modus `dontAsk` (`claude remote-control --permission-mode dontAsk` bzw. `claude -p … --permission-mode dontAsk`). Alles, was nicht in Allow steht, wird automatisch abgelehnt, auch alle Ask-Regeln.
+**Betriebsmodi.** Quelle: https://code.claude.com/docs/en/permissions (von Konstantin genannt; Abschnitte zur Reihenfolge Deny > Ask > Allow, zu Bash-Mustern und ihren Grenzen und zu `dontAsk`; vom Agenten beim Schreiben dieses Entwurfs nicht selbst gelesen, der Kritiker hat sie geprüft).
+- Unbeaufsichtigte Schichten (erst nach Stufe 2) laufen im Modus `dontAsk` (`claude remote-control --permission-mode dontAsk` bzw. `claude -p … --permission-mode dontAsk`). Alles, was nicht in Allow steht, wird automatisch abgelehnt, auch alle Ask-Regeln.
 - Beaufsichtigte Sitzungen laufen im Standardmodus (Rückfrage bei allem, was weder in Allow noch in Deny steht).
-- Deny und Ask sind laut Dokumentation keine Sicherheitsgrenze: Bash-Muster vergleichen Befehlstext und erfassen Umschreibungen nicht sicher. Die Grenze entsteht erst durch **Allow plus `dontAsk`**: Nur was ausdrücklich in Allow steht, kann laufen. Deny und Ask sind eine zusätzliche Sicherung, auf die sich nichts stützen darf.
+- Deny und Ask sind laut Dokumentation keine Sicherheitsgrenze: Bash-Muster vergleichen Befehlstext und erfassen Umschreibungen nicht sicher. Auch Allow plus `dontAsk` ist **keine** Grenze: Erlaubte Befehle können die Regeln verletzen, auch in `dontAsk` (Kritiker-Bericht, Befunde S1–S4). Die Berechtigungsliste hilft, Fehler in beaufsichtigten Sitzungen früh zu stoppen. Mehr behauptet dieser Entwurf nicht.
 
-**Technische Umsetzung (Entwurf):** `.claude/settings.json` mit einer Allow-, einer Ask- und einer Deny-Liste.
-- Allow: Lesen; `Edit` und `Write`; das Werkzeug `Agent` (Subagenten); `git status`, `git diff`, `git log`, `git fetch`; `git checkout -b`; `git add` (nur gezielt); `git commit`; `git push origin agent/*` (nur Branches nach der Konvention `agent/<thema>`, ab jetzt); `gh api` (nur GET); `gh pr create`; `gh issue comment`; pytest aus `~/venvs/equity`.
-- Ask (Rückfrage, kein Deny): `Edit` und `Write` auf `./.claude/**`, `./CLAUDE.md`, `./docs/arbeitsweise.md` und `./.github/**`.
-- Deny: Push auf master; `git push` mit `--all`, `--mirror`, `--tags`, `--force`, `--delete` (Löschen); jedes `git push`, dessen Befehlstext `master` oder `main` enthält (das erfasst auch `git push origin agent/x master`, das sonst auf die Allow-Regel `agent/*` passt; ein Branchname wie `agent/maintenance` ist dadurch ebenfalls gesperrt); `gh pr merge`; Merge über `gh api` (PUT/POST, `/merge`); die Werkzeuge für Routinen, geplante Aufgaben, `send_later` und Trigger; `sudo`; `rm -rf`; Zugriff auf `.env` und `data/`.
-- Zusätzlich im Entwurf, nicht in der Auftragsliste: Deny für das GitHub-MCP-Werkzeug `mcp__github__merge_pull_request` (die Regeln nennen MCP-Werkzeuge ausdrücklich als Merge-Weg), für `git add -A` und `git add .` (CLAUDE.md verbietet `git add -A`) sowie für `gh api graphql`.
+**Technische Umsetzung, Stufe 1 (Entwurf):** `.claude/settings.json` mit einer Allow-, einer Ask- und einer Deny-Liste.
+- Allow: `Read(./**)` (nur Projekt), `Glob`, `Grep`; `Edit` und `Write` nur auf `./src/**`, `./tests/**`, `./docs/**`; das Werkzeug `Agent`; `git status`, `git diff`, `git log`, `git fetch`; `git checkout -b`; `git add`; `git commit`; `git push origin agent/*` (ein Platzhalter, Branches nach der Konvention `agent/<thema>`); `gh pr view`, `gh pr list`, `gh pr diff`, `gh issue view`, `gh issue list`, `gh pr create`, `gh issue comment`; pytest aus `~/venvs/equity`. `gh api` ist **nicht** mehr erlaubt.
+- Ask (Rückfrage, kein Deny): `Edit` und `Write` auf `./.claude/**`, `./CLAUDE.md`, `./docs/arbeitsweise.md`, `./.github/**`, `conftest.py` (jede Ebene), `pytest.ini`, `pyproject.toml`, `setup.cfg`, `tox.ini`, `requirements.txt`, `config/**` und `docs/decisions.md`.
+- Deny: `git push` mit `--all`, `--mirror`, `--tags`, `--force`, `--delete`; jedes `git push`, dessen Befehlstext `master` oder `main` enthält (ein Branchname wie `agent/maintenance` ist dadurch ebenfalls gesperrt); `git add -A`, `git add .`, `git add --all`; `gh pr merge`; `gh api*` (jede Form), `gh*--body-file*`, `gh* -F *`; `mcp__github__merge_pull_request`; die Werkzeuge für Routinen, geplante Aufgaben, `send_later` und Trigger (`create_trigger`, `update_trigger`, `fire_trigger`, `send_later`, `CronCreate`, `RemoteTrigger`, `ScheduleWakeup`); `sudo`; `rm -rf`; Lesen und Bearbeiten von `.env` und `data/`.
+- Entfernt als wirkungslos oder redundant (Kritiker-Bericht K5): `git push origin master:*`, `git push origin HEAD:master:*`, `git push*:master*`, `git push*refs/heads/master*` (alle durch `git push*master*` gedeckt) sowie die einzelnen `gh api`-Muster (durch `gh api*` gedeckt).
 
-**Was diese Liste NICHT sicher sperrt.** Die Listen vergleichen Befehlstext. Sie prüfen nicht, was ein Befehl bewirkt. Nicht sicher gesperrt sind:
-- **Umschreibungen von Befehlen:** `git -C <Ordner> push …`, `git -c … push …`, `env git push …`, `bash -c "git push origin master"`, Variablen oder `$(…)` im Branchnamen, `git push origin HEAD:refs/heads/master`, Aliase, verkettete Befehle (`cd x && git push …`). Die Deny-Muster fangen nur einen Teil dieser Formen.
-- **Andere Wege zu GitHub:** `curl` oder ein Python-Skript mit dem Token aus der Umgebung, ein geänderter Remote, `gh alias`, `gh workflow run`. `gh api` mit anderer Reihenfolge der Optionen oder mit `--input` ist nur teilweise erfasst.
-- **pytest führt beliebigen Code aus.** Jede Datei unter `tests/` (auch `conftest.py`) kann Befehle ausführen. Die Allow-Regel für pytest ist deshalb ein Schlupfloch, wenn Testdateien im selben PR geändert werden.
-- **Lesen von `.env` und `data/` über Bash** (`cat`, `grep`, `python -c`). Das Deny auf die Datei-Werkzeuge erfasst Bash nicht vollständig. Umgebungsvariablen mit Token sind über `env` lesbar.
-- **Die Berechtigungsliste selbst:** Bearbeiten von `.claude/`, `CLAUDE.md`, `docs/arbeitsweise.md` und `.github/` steht auf „Rückfrage“, nicht auf Deny. Im Modus `dontAsk` werden Ask-Regeln automatisch abgelehnt (siehe Betriebsmodi); im Standardmodus fragt die Sitzung zurück. Bash-Umwege (`sed -i`, `python -c`, `tee`) sind von den Edit-/Write-Regeln nicht erfasst.
-- **Nicht aufgeführte Werkzeuge:** Was nicht in Allow steht, führt im Standardmodus zur Rückfrage und im Modus `dontAsk` zur Ablehnung. „Rückfrage" ist kein Verbot. Andere MCP-Server und neu hinzukommende Werkzeuge sind nicht erfasst.
-- **Gültigkeit der Muster:** Wie genau Muster abgeglichen werden (Präfix oder Platzhalter, Reihenfolge von Optionen), wurde hier nicht in einer echten Sitzung getestet.
-- **Breite Allow-Regeln:** `Edit` und `Write` sind für alle Dateien erlaubt, die nicht in Ask oder Deny stehen; das Werkzeug `Agent` ist erlaubt. Ob Subagenten dieselben Deny- und Ask-Regeln erben, ist nicht geprüft (Testprotokoll).
+**Bekannte Lücken** (Kritiker-Bericht, Subagent, Lauf 1 zu `6a2e527`: Kommentar an PR #59 im privaten Arbeitsrepo). Stand nach Stufe 1; „offen“ heißt: nicht behoben, Auftrag für Stufe 2 (Issue #60).
+- **S1, pytest als Generalschlüssel (offen):** Testdateien unter `tests/**` können beliebigen Code ausführen und jedes Deny umgehen. Stufe 1 setzt nur `conftest.py`, `pytest.ini` und ähnliche Dateien auf Ask; sonstige Testdateien bleiben erlaubt.
+- **S2, Push-Umgehungen (offen):** Quoting (`ma''ster`), Wildcard-Refspec, Variablen, `-uf`, `:branch` (Löschen), `HEAD:<anderer-Branch>`. Das Muster `git push origin agent/*` hat einen Platzhalter, der auch Leerzeichen und weitere Argumente durchlässt.
+- **S3, Geheimnisse und Daten (teilweise):** `--body-file` und `-F` bei `gh` sind gesperrt. Offen: `git add -f`, `git add ./`, `git add *`, `git add -u`, `git diff --no-index`, `echo $TOKEN`, `grep -r`.
+- **S4, `gh api` (nach Muster behoben, ungetestet):** `gh api` ist aus Allow entfernt und im Deny. Ob das Muster greift, prüft das Testprotokoll (Nr. 7, 17).
+- **M2, zu breite Regeln (teilweise):** `Edit`/`Write` sind auf `src/`, `tests/`, `docs/` beschränkt, `Read` auf das Projekt. Offen: Schreiben und Lesen über Bash, Pfade außerhalb des Projekts.
+- **M3, `git fetch`/`git diff`/`git log` (offen):** gefährliche Optionen (`--upload-pack`, `+refs/heads/*:refs/heads/*`, `--output`).
+- **M4, `dontAsk` nicht technisch durchgesetzt (offen):** `settings.json` enthält keinen Modus; ob eine Schicht in `dontAsk` läuft, hängt allein vom Startflag ab.
+- **M6, Routinen-Werkzeuge (offen):** Ob die Namen im Deny existieren, ist ungeprüft; nicht gesperrt sind u. a. `create_session`, `send_message`, `watch_url`, `Monitor`, `crontab`.
 
-**Testprotokoll (erste beaufsichtigte Schicht).** Konstantin ist anwesend. Die Sperren werden mit ungefährlichen Dry-Run-Befehlen geprüft; je Befehl wird berichtet, ob er blockiert wurde (ja/nein) und mit welcher Meldung. Kein Befehl ändert etwas: `git push` nur mit `--dry-run`, Merge-Befehle nur mit einer nicht existierenden PR-Nummer.
+**Weitere bekannte Grenzen.**
+- Umschreibungen von Befehlen (`git -C … push`, `env git push`, `bash -c "…"`, Aliase, verkettete Befehle) erfasst kein Deny sicher; in Allow stehen sie nicht, im Standardmodus kommt eine Rückfrage, in `dontAsk` eine Ablehnung.
+- Andere Wege zu GitHub (`curl` oder Python mit Token aus der Umgebung, geänderter Remote, `gh alias`, `gh workflow run`) sind nicht erfasst.
+- Was nicht in Allow steht, führt im Standardmodus zur Rückfrage und im Modus `dontAsk` zur Ablehnung. „Rückfrage“ ist kein Verbot.
+- Die Muster wurden nicht in einer echten Sitzung getestet (Testprotokoll).
 
-| Nr. | Befehl | Erwartung | Ergebnis (blockiert ja/nein) |
+**Prüfung von Punkt 5** (`.env`, `data/`, SimFin-Schlüssel auf dem Server; Stand 2026-10-06, Arbeitsverzeichnis `/home/claude/equity-research`):
+
+```
+$ for p in data data/run_archive.db data/cache; do if [ -e "$p" ]; then echo "$p: vorhanden"; else echo "$p: fehlt"; fi; done
+data: fehlt
+data/run_archive.db: fehlt
+data/cache: fehlt
+
+$ find . -maxdepth 3 -name ".env*" -not -path "./.git/*"
+(keine Ausgabe, Exit 0)
+
+$ git check-ignore -v .env data
+.gitignore:5:.env	.env
+```
+
+- Ergebnis: `data/` und die echte Datenbank fehlen; es gibt keine `.env*`-Datei bis Tiefe 3. `.env` steht in `.gitignore` (Zeile 5).
+- **Nicht geprüft:** ob ein SimFin-Schlüssel in der Umgebung (Umgebungsvariablen) oder in einer Datei außerhalb des Projekts liegt. Die Befehle `ls -la .env data` und `env | cut -d= -f1 | grep -i …` wurden von der Berechtigungsliste abgelehnt; der Agent hat sie nicht auf anderem Weg wiederholt. Diese Prüfung bleibt offen und gehört in die erste beaufsichtigte Schicht (Konstantin gibt sie in der Sitzung frei).
+
+**Testprotokoll (erste beaufsichtigte Schicht).** Konstantin ist anwesend. Die Sperren werden mit ungefährlichen Befehlen geprüft; je Befehl wird berichtet, was passiert ist (blockiert, Rückfrage, abgelehnt oder erlaubt) und mit welcher Meldung. Kein Befehl ändert etwas: `git push` nur mit `--dry-run`, Merge-Befehle nur mit einer nicht existierenden PR-Nummer, `--help` statt echter Aufrufe. Standardmodus gilt, wenn nicht anders angegeben.
+
+| Nr. | Befehl | Erwartung | Ergebnis |
 |---|---|---|---|
-| 1 | `git push --dry-run origin master` | blockiert | offen |
-| 2 | `git -C . push --dry-run origin master` | blockiert | offen |
-| 3 | `bash -c "git push --dry-run origin master"` | blockiert | offen |
-| 4 | `git push --dry-run origin HEAD:master` | blockiert | offen |
-| 5 | `gh pr merge 999999` (nicht existierende Nummer) | blockiert | offen |
-| 6 | `git push --dry-run --delete origin agent/nicht-vorhanden` | blockiert | offen |
-| 7 | `gh api -X PUT repos/kdaubner5/equity-research/pulls/999999/merge` (nicht existierende Nummer) | blockiert | offen |
-| 8 | `Edit` auf `CLAUDE.md` (z. B. Leerzeile, danach verwerfen) | Rückfrage | offen |
-| 9 | Subagent (`Agent`) startet Nr. 1 | blockiert | offen |
-| 10 | Im Modus `dontAsk`: `git -C . push --dry-run origin master` | abgelehnt | offen |
-| 11 | Im Modus `dontAsk`: `bash -c 'git push --dry-run origin master'` | abgelehnt | offen |
+| 1 | `git push --dry-run origin master` | blockiert (Deny) | offen |
+| 2 | `git -C . push --dry-run origin master` | Rückfrage (kein Deny, keine Allow-Regel) | offen |
+| 3 | `bash -c "git push --dry-run origin master"` | Rückfrage | offen |
+| 4 | `git push --dry-run origin HEAD:master` | blockiert (Deny) | offen |
+| 5 | `gh pr merge 999999` (nicht existierende Nummer) | blockiert (Deny) | offen |
+| 6 | `git push --dry-run --delete origin agent/nicht-vorhanden` | blockiert (Deny) | offen |
+| 7 | `gh api -X PUT repos/kdaubner5/equity-research/pulls/999999/merge` (nicht existierende Nummer) | blockiert (Deny `gh api*`) | offen |
+| 8 | `Edit` auf `CLAUDE.md` (z. B. Leerzeile, danach verwerfen) | Rückfrage (Ask) | offen |
+| 9 | Subagent (`Agent`) startet Nr. 1 | blockiert (Deny wird vererbt) | offen |
+| 10 | Im Modus `dontAsk`: wie Nr. 2 | abgelehnt | offen |
+| 11 | Im Modus `dontAsk`: wie Nr. 3 | abgelehnt | offen |
+| 12 | `git push origin agent/test-berechtigung --dry-run` (erlaubter Push; Option hinter dem Branch, damit das Muster `git push origin agent/*` trifft) | erlaubt, ohne Rückfrage, in beiden Modi | offen |
+| 13 | `~/venvs/equity/bin/python -m pytest -q` | erlaubt, in beiden Modi | offen |
+| 14 | `gh pr create --help` (kein PR wird angelegt) | erlaubt | offen |
+| 15 | `gh issue comment --help` (kein Kommentar wird gepostet) | erlaubt | offen |
+| 16 | `gh pr view 59` | erlaubt | offen |
+| 17 | `gh api user` (beweist zugleich: `settings.json` wird geladen) | blockiert; läuft der Befehl, ist die Datei nicht geladen oder das Muster wirkt nicht | offen |
+| 18 | `Edit` auf eine Datei unter `src/` (Leerzeile, danach verwerfen) bzw. auf `config/thresholds.yaml` | erlaubt bzw. Rückfrage | offen |
 
-Regel: Ist ein Befehl **nicht** blockiert, ist das ein Befund. Der Agent berichtet ihn und ändert die Liste nicht selbst; die Korrektur ist ein eigener Klasse-C-PR. Die Nr. 10 und 11 werden im Modus `dontAsk` geprüft, die übrigen im Standardmodus; ist ein Befehl im Standardmodus nicht blockiert, in `dontAsk` aber abgelehnt, ist das erwartet (Grenze durch Allow plus `dontAsk`) und wird so berichtet. Erst nach diesem Protokoll gilt die Liste als geprüft; bis dahin ist sie ein ungetesteter Entwurf.
+Regel: Weicht ein Ergebnis von der Erwartung ab, ist das ein Befund. Der Agent berichtet ihn und ändert die Liste nicht selbst; die Korrektur ist ein eigener Klasse-C-PR. Die Nr. 10 und 11 werden im Modus `dontAsk` geprüft. Eine Rückfrage zählt als „nicht blockiert“, ist aber dort die erwartete Antwort (Nr. 2, 3, 8). Erst nach diesem Protokoll gilt die Liste als geprüft; bis dahin ist sie ein ungetesteter Entwurf.
 
 **Alternativen:**
 - Nur Text (wie bisher): verworfen als alleinige Lösung, weil er den Agenten nur selbst bindet.
+- Hook mit Tests (Stufe 2, Issue #60): Voraussetzung für unbeaufsichtigten Betrieb.
 - Branch-Schutz oder zweites GitHub-Konto: wären die technische Lösung für Merge-Schutz und die Unterscheidung von Kritiker-Bericht und Freigabe; derzeit nicht verfügbar. **Offen, Entscheidung bei Konstantin** (Abschnitt G, Issue #58).
 
 **Offene Fragen:** Siehe den Bericht am PR. Die Entscheidung liegt beim Projektinhaber.
