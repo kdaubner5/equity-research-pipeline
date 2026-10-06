@@ -65,8 +65,9 @@ class Stage2Result:
     status uses the Stage-1 vocabulary (passed, passed_with_flags, failed, not_evaluable).
     flags (grey-zone metrics) and invalid_reasons follow the fixed metric order ev_ebitda /
     fcf_yield; as in Stage 1, a "failed" company can carry invalid_reasons and a not_evaluable
-    one never carries flags. Raw values are populated wherever the metric was valid,
-    whatever the status. peer_* describe the EV/EBITDA comparison (None where it did not
+    one never carries flags. Raw values are populated wherever the metric was valid and
+    usable, whatever the status (a company without a sector code keeps ev_ebitda None: its
+    multiple cannot be placed in any group). peer_* describe the EV/EBITDA comparison (None where it did not
     happen); peer_n_fine/peer_n_coarse are the valid-value counts that decided the level.
     ev_ebitda_normalized and its invalid reason are informational only. info_flags are
     informational marks in a fixed order and never influence status, flags or rank.

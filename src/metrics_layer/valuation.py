@@ -12,6 +12,8 @@ Check order per metric: the first applicable invalid_reason wins (documented in 
 decision text; the tests pin it).
 """
 
+import math
+
 from config_layer.stage2 import Stage2Config
 from metrics_layer.result import MetricInputError, MetricResult, net_debt_none_reason
 
@@ -28,6 +30,12 @@ def _sorted_periods(periods):
 
 def _is_stale(latest_period, as_of_year, config: Stage2Config):
     return latest_period["fiscal_year"] < as_of_year - config.fundamentals.max_fiscal_year_lag
+
+
+def _non_finite(*values):
+    """True if any given value is NaN or +-inf (None is not checked: a missing value has its own reason).
+    A NaN would otherwise compare False everywhere and slip through as a valid number."""
+    return any(v is not None and not math.isfinite(v) for v in values)
 
 
 def _market_cap_unusable(market_cap_usd):
@@ -59,6 +67,8 @@ def ev_ebitda_latest(periods, market_cap_usd, *, as_of_year, config: Stage2Confi
         return MetricResult(value=None, invalid_reason="fundamentals_stale")
     if _market_cap_unusable(market_cap_usd):
         return MetricResult(value=None, invalid_reason="market_cap_missing")
+    if _non_finite(market_cap_usd, latest["ebitda"], latest["net_debt"]):
+        return MetricResult(value=None, invalid_reason="non_finite_input")
     ev, reason = _ev_and_reason(latest, market_cap_usd)
     if reason is not None:
         return MetricResult(value=None, invalid_reason=reason)
@@ -77,7 +87,7 @@ def ev_ebitda_normalized(periods, market_cap_usd, *, as_of_year, config: Stage2C
     years, with the latest year's net debt (a stock, not averaged). Never a gate.
 
     Invalid reasons in this order: no_periods, insufficient_years, fundamentals_stale,
-    market_cap_missing, net_debt_unreliable / debt_data_completely_missing,
+    market_cap_missing, non_finite_input, net_debt_unreliable / debt_data_completely_missing,
     ebitda_non_positive (the mean), ev_non_positive. No plausibility cap of its own.
     """
     if not periods:
@@ -91,10 +101,12 @@ def ev_ebitda_normalized(periods, market_cap_usd, *, as_of_year, config: Stage2C
         return MetricResult(value=None, invalid_reason="fundamentals_stale")
     if _market_cap_unusable(market_cap_usd):
         return MetricResult(value=None, invalid_reason="market_cap_missing")
+    window = ordered[-years:]
+    if _non_finite(market_cap_usd, latest["net_debt"], *(p["ebitda"] for p in window)):
+        return MetricResult(value=None, invalid_reason="non_finite_input")
     ev, reason = _ev_and_reason(latest, market_cap_usd)
     if reason is not None:
         return MetricResult(value=None, invalid_reason=reason)
-    window = ordered[-years:]
     mean_ebitda = sum(p["ebitda"] for p in window) / years
     if mean_ebitda <= 0:
         return MetricResult(value=None, invalid_reason="ebitda_non_positive")
@@ -122,8 +134,8 @@ def fcf_yield_average(periods, capex_by_year, market_cap_usd, *, as_of_year, con
     capex_missing. A negative FCF is a valid, negative yield.
 
     Invalid reasons in this order: no_periods, insufficient_years (fewer periods than
-    fcf_yield.years), fundamentals_stale, market_cap_missing, capex_missing,
-    fcf_yield_implausibly_high (yield above fcf_yield.implausible_above; exactly on the
+    fcf_yield.years), fundamentals_stale, market_cap_missing, non_finite_input (NaN/inf in market cap,
+    CFO or capex of the window), capex_missing, fcf_yield_implausibly_high (yield above fcf_yield.implausible_above; exactly on the
     cap is valid).
     """
     if not periods:
@@ -138,6 +150,8 @@ def fcf_yield_average(periods, capex_by_year, market_cap_usd, *, as_of_year, con
         return MetricResult(value=None, invalid_reason="market_cap_missing")
     window = ordered[-years:]
     changes = [capex_by_year.get(p["fiscal_year"]) for p in window]
+    if _non_finite(market_cap_usd, *changes, *(p["cfo"] for p in window)):
+        return MetricResult(value=None, invalid_reason="non_finite_input")
     if any(change is None for change in changes):
         return MetricResult(value=None, invalid_reason="capex_missing")
     fcfs = [p["cfo"] - _capex_outflow(change) for p, change in zip(window, changes)]

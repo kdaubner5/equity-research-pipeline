@@ -265,3 +265,38 @@ def test_normalized_multiple_inherits_the_latest_year_guards():
 def test_normalized_multiple_has_no_plausibility_cap_of_its_own_but_non_positive_ev_is_invalid():
     periods = three_periods(ebitda=100.0, net_debt=-900.0)
     assert _norm(periods).invalid_reason == "ev_non_positive"
+
+
+# ---------------------------------------------------------------- non-finite inputs (critic finding)
+
+NAN = float("nan")
+INF = float("inf")
+
+
+@pytest.mark.parametrize("bad", [NAN, INF, -INF])
+def test_ev_ebitda_rejects_non_finite_inputs(bad):
+    assert _ev([period(2025)], market_cap=bad).invalid_reason == ("market_cap_missing" if bad == -INF else "non_finite_input")  # -inf is simply not positive
+    assert _ev([period(2025, ebitda=bad)]).invalid_reason == "non_finite_input"
+    assert _ev([period(2025, net_debt=bad)]).invalid_reason == "non_finite_input"
+
+
+@pytest.mark.parametrize("bad", [NAN, INF, -INF])
+def test_normalized_multiple_rejects_non_finite_inputs(bad):
+    assert _norm(three_periods(), market_cap=bad).invalid_reason == ("market_cap_missing" if bad == -INF else "non_finite_input")
+    periods = three_periods()
+    periods[0] = period(2023, ebitda=bad)
+    assert _norm(periods).invalid_reason == "non_finite_input"
+    assert _norm([*three_periods()[:2], period(2025, net_debt=bad)]).invalid_reason == "non_finite_input"
+
+
+@pytest.mark.parametrize("bad", [NAN, INF, -INF])
+def test_fcf_yield_rejects_non_finite_inputs_and_never_reads_nan_capex_as_zero(bad):
+    periods = three_periods()
+    assert _fcf(periods, capex_for(periods), market_cap=bad).invalid_reason == ("market_cap_missing" if bad == -INF else "non_finite_input")
+    assert _fcf([*periods[:2], period(2025, cfo=bad)], capex_for(periods)).invalid_reason == "non_finite_input"
+    assert _fcf(periods, {**capex_for(periods), 2024: bad}).invalid_reason == "non_finite_input"
+
+
+def test_non_finite_value_outside_the_window_is_ignored():
+    periods = [period(2022, cfo=NAN)] + three_periods()
+    assert _fcf(periods, {2022: NAN, **capex_for(three_periods())}).invalid_reason is None
