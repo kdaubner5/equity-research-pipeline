@@ -362,3 +362,73 @@ def test_main_runs_end_to_end_from_the_command_line(tmp_path, capsys):
     assert run_stage2.main(argv) == 0
     assert world.stage2("SELECT COUNT(*) FROM stage2_runs") == [(1,)]
     assert "peer_base=9" in capsys.readouterr().out
+
+
+# ---------------------------------------------------------------- one malformed company must not abort the run (critic finding)
+
+
+def _malformed_world(tmp_path, mutate):
+    world = World(tmp_path, survivors=("CENT", "SCSC"))
+    record = raw("CENT")
+    mutate(record)
+    seed_cache(world.cache_dir, record["id"], record)
+    return world
+
+
+def _cf(record):
+    return next(s for s in record["statements"] if s["statement"] == "CF")
+
+
+def _capex_to_string(record):
+    cf = _cf(record)
+    idx = cf["columns"].index("Change in Fixed Assets & Intangibles")
+    for row in cf["data"]:
+        if row[idx] is not None:
+            row[idx] = "n/a"
+
+
+def _short_capex_rows(record):
+    cf = _cf(record)
+    idx = cf["columns"].index("Change in Fixed Assets & Intangibles")
+    for row in cf["data"]:
+        del row[idx:]  # shorter than the column list: the capex cell is missing
+
+
+def _capex_to_bool(record):
+    cf = _cf(record)
+    idx = cf["columns"].index("Change in Fixed Assets & Intangibles")
+    for row in cf["data"]:
+        row[idx] = True
+
+
+def _ebitda_part_to_string(record):
+    cf = _cf(record)
+    idx = cf["columns"].index("Depreciation & Amortization")
+    for row in cf["data"]:
+        row[idx] = "x"
+
+
+@pytest.mark.parametrize("mutate", [_capex_to_string, _short_capex_rows, _capex_to_bool, _ebitda_part_to_string])
+def test_a_malformed_company_gets_an_explicit_reason_and_the_run_goes_on(tmp_path, mutate):
+    world = _malformed_world(tmp_path, mutate)
+    code, out = world.run()
+    assert code == run_stage2.EXIT_OK, out
+    rows = {r[0]: r[1:] for r in world.stage2("SELECT ticker, status, invalid_reasons FROM stage2_results")}
+    assert rows["CENT"] == ("not_evaluable", "fundamentals_malformed")
+    assert rows["SCSC"][0] == "passed"  # the other survivor is unaffected
+    assert "fundamentals_malformed" in out
+    # a malformed company is not a peer either: 9 valid multiples minus CENT
+    assert world.stage2("SELECT peer_base_size FROM stage2_runs") == [(8,)]
+
+
+def test_summary_counts_companies_not_reasons(tmp_path):
+    world = World(tmp_path)  # KELYA: no_periods for both metrics, but it is ONE company
+    _, out = world.run()
+    line = next(l for l in out.splitlines() if l.startswith("invalid reasons"))
+    assert "no_periods=1" in line and "von 3" in line
+
+
+def test_the_summary_names_the_cache_directory_that_was_read(tmp_path):
+    world = World(tmp_path)
+    _, out = world.run()
+    assert str(world.cache_dir) in out

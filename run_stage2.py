@@ -15,7 +15,7 @@ only when it is named on the command line (which needs an explicit instruction, 
 
 Nothing is skipped silently. A survivor whose statements are missing, corrupt or unmappable
 gets a not_evaluable Stage-2 result with its own reason (fundamentals_cache_missing,
-fundamentals_cache_invalid, simfin_mapping_error); a company without such data is simply not
+fundamentals_cache_invalid, simfin_mapping_error, fundamentals_malformed); a company without such data is simply not
 a peer. A missing capex column makes only the FCF-yield invalid (capex_unavailable is
 counted). Rows without a ticker, and rows of unsupported profiles, are counted in the
 summary. A technical failure (unreadable archive or config, duplicate tickers, a sector code
@@ -68,6 +68,9 @@ EXIT_TECHNICAL_FAILURE = 1
 FUNDAMENTALS_CACHE_MISSING = "fundamentals_cache_missing"
 FUNDAMENTALS_CACHE_INVALID = "fundamentals_cache_invalid"
 SIMFIN_MAPPING_ERROR = "simfin_mapping_error"
+# Raw cells of the wrong type or rows of the wrong shape (a string where a number belongs, a row
+# shorter than its column list ...): one company's data problem, never a reason to abort the run.
+FUNDAMENTALS_MALFORMED = "fundamentals_malformed"
 
 
 class Stage2RunError(Exception):
@@ -143,6 +146,21 @@ def load_stage1_survivors(db_path, stage1_run_timestamp):
     }
 
 
+def _is_number(value):
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _periods_and_capex_are_well_formed(periods, capex_by_year):
+    """True if every value the Stage-2 metrics read is a real number (None only where allowed):
+    fiscal_year, ebitda, cfo always; net_debt may be None (unreliable); capex may be None."""
+    for p in periods:
+        if not all(_is_number(p[k]) for k in ("fiscal_year", "ebitda", "cfo")):
+            return False
+        if p["net_debt"] is not None and not _is_number(p["net_debt"]):
+            return False
+    return all(v is None or _is_number(v) for v in capex_by_year.values())
+
+
 def build_input(ticker, simfin_id, sector_code, market_cap_usd, assignment, *, cache_dir, reconciliation):
     """(ValuationInput or None, problem or None, capex_unavailable) for one pre-filtered company.
 
@@ -167,11 +185,17 @@ def build_input(ticker, simfin_id, sector_code, market_cap_usd, assignment, *, c
         periods = build_company_record(ticker, raw_company, thresholds=reconciliation)["periods"]
     except SimFinMappingError:
         return None, SIMFIN_MAPPING_ERROR, False
+    except (TypeError, KeyError, IndexError, AttributeError, ValueError):
+        return None, FUNDAMENTALS_MALFORMED, False
     capex_unavailable = False
     try:
         capex_by_year = extract_capex_by_fiscal_year(raw_company)
     except SimFinMappingError:
         capex_by_year, capex_unavailable = {}, True
+    except (TypeError, KeyError, IndexError, AttributeError, ValueError):
+        return None, FUNDAMENTALS_MALFORMED, False
+    if not _periods_and_capex_are_well_formed(periods, capex_by_year):
+        return None, FUNDAMENTALS_MALFORMED, False
     vi = ValuationInput(
         ticker=ticker, sector_code=sector_code, market_cap_usd=market_cap_usd, periods=periods,
         capex_by_year=capex_by_year, profile_supported=True, borderline_sector=assignment.borderline,
@@ -290,7 +314,7 @@ def run(
 
         _print_summary(
             out, run_timestamp=run_timestamp, prefilter_ts=prefilter_ts, stage1_run_timestamp=stage1_run_timestamp,
-            as_of=as_of, csv_path=csv_path, config_hash=config_hash, rows=rows, base_size=base_size, results=results,
+            as_of=as_of, csv_path=csv_path, cache_dir=cache_dir, config_hash=config_hash, rows=rows, base_size=base_size, results=results,
             ranked=ranked, problems=problems, unsupported_rows=unsupported_rows, missing_ticker_ids=missing_ticker_ids,
             capex_unavailable=capex_unavailable,
         )
@@ -301,18 +325,19 @@ def run(
 
 
 def _print_summary(
-    out, *, run_timestamp, prefilter_ts, stage1_run_timestamp, as_of, csv_path, config_hash, rows, base_size, results,
+    out, *, run_timestamp, prefilter_ts, stage1_run_timestamp, as_of, csv_path, cache_dir, config_hash, rows, base_size, results,
     ranked, problems, unsupported_rows, missing_ticker_ids, capex_unavailable,
 ):
     statuses = Counter(r.status for r in results.values())
     levels = Counter(r.peer_level or "none" for r in results.values())
-    reasons = Counter(reason for r in results.values() for reason in r.invalid_reasons)
+    # per company, not per entry: both metrics can carry the same reason (e.g. no_periods twice)
+    reasons = Counter(reason for r in results.values() for reason in set(r.invalid_reasons))
     print(
         f"run_timestamp={run_timestamp}  stage1_run_timestamp={stage1_run_timestamp}  "
         f"prefilter_run_timestamp={prefilter_ts}  as_of={as_of}  stage2_config_hash={config_hash[:12]}",
         file=out,
     )
-    print(f"stage2_survivors_csv={csv_path}", file=out)
+    print(f"stage2_survivors_csv={csv_path}  fundamentals_cache_dir={cache_dir}", file=out)
     print(
         f"prefilter_rows={len(rows)}  profile_unsupported_rows={unsupported_rows}  peer_base={base_size}  "
         f"survivors_evaluated={len(results)}  ranked={len(ranked)}",
@@ -321,7 +346,11 @@ def _print_summary(
     print("status: " + "  ".join(f"{s}={n}" for s, n in sorted(statuses.items())), file=out)
     print("peer level: " + "  ".join(f"{lv}={n}" for lv, n in sorted(levels.items())), file=out)
     if reasons:
-        print("invalid reasons: " + "  ".join(f"{r}={n}" for r, n in sorted(reasons.items())), file=out)
+        print(
+            f"invalid reasons (companies, von {len(results)} survivors): "
+            + "  ".join(f"{r}={n}" for r, n in sorted(reasons.items())),
+            file=out,
+        )
     if problems:
         print(
             f"fundamentals unusable for {len(problems)} company(ies) (not peers): "

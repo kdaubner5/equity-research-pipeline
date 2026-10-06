@@ -167,7 +167,7 @@ def save_stage2_results(
 
 def export_stage2_csv(run_timestamp, ranked, *, output_dir):
     """Write the companies that passed Stage 2 (rank_stage2() order) to
-    stage2_survivors_<run_timestamp>.csv ('-' instead of ':'); an existing file is never
+    stage2_survivors_<run_timestamp>.csv (colons removed from the timestamp); an existing file is never
     overwritten (FileExistsError). With nobody ranked the file holds the header only."""
     _require_str("run_timestamp", run_timestamp)
     output_dir = Path(output_dir)
