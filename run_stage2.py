@@ -147,7 +147,14 @@ def load_stage1_survivors(db_path, stage1_run_timestamp):
 
 
 def _is_number(value):
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    """A real number that fits a float (a JSON integer with 400 digits does not)."""
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return False
+    try:
+        float(value)
+    except OverflowError:
+        return False
+    return True
 
 
 def _periods_and_capex_are_well_formed(periods, capex_by_year):
@@ -185,14 +192,14 @@ def build_input(ticker, simfin_id, sector_code, market_cap_usd, assignment, *, c
         periods = build_company_record(ticker, raw_company, thresholds=reconciliation)["periods"]
     except SimFinMappingError:
         return None, SIMFIN_MAPPING_ERROR, False
-    except (TypeError, KeyError, IndexError, AttributeError, ValueError):
+    except (TypeError, KeyError, IndexError, AttributeError, ValueError, OverflowError):
         return None, FUNDAMENTALS_MALFORMED, False
     capex_unavailable = False
     try:
         capex_by_year = extract_capex_by_fiscal_year(raw_company)
     except SimFinMappingError:
         capex_by_year, capex_unavailable = {}, True
-    except (TypeError, KeyError, IndexError, AttributeError, ValueError):
+    except (TypeError, KeyError, IndexError, AttributeError, ValueError, OverflowError):
         return None, FUNDAMENTALS_MALFORMED, False
     if not _periods_and_capex_are_well_formed(periods, capex_by_year):
         return None, FUNDAMENTALS_MALFORMED, False
@@ -257,7 +264,10 @@ def run(
                 f"sectorCode(s) not listed in {sector_profiles_path}: {unknown}; rows with NULL sectorCode: {null_count}"
             )
 
-        as_of = as_of or date.fromisoformat(prefilter_ts[:10])
+        try:
+            as_of = as_of or date.fromisoformat(prefilter_ts[:10])
+        except ValueError as exc:
+            raise Stage2RunError(f"universe_prefilter run_timestamp {prefilter_ts!r} does not start with a date: {exc}") from exc
         cache_dir = Path(fundamentals_cache_dir) / as_of.isoformat()
 
         inputs, problems, simfin_ids = {}, {}, {}
@@ -347,7 +357,7 @@ def _print_summary(
     print("peer level: " + "  ".join(f"{lv}={n}" for lv, n in sorted(levels.items())), file=out)
     if reasons:
         print(
-            f"invalid reasons (companies, von {len(results)} survivors): "
+            f"invalid reasons (Firmen, von {len(results)} Überlebenden): "
             + "  ".join(f"{r}={n}" for r, n in sorted(reasons.items())),
             file=out,
         )

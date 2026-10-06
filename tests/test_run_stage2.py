@@ -432,3 +432,71 @@ def test_the_summary_names_the_cache_directory_that_was_read(tmp_path):
     world = World(tmp_path)
     _, out = world.run()
     assert str(world.cache_dir) in out
+
+
+# ---------------------------------------------------------------- second critic run
+
+
+def _set_cell(record, statement, column, value):
+    stmt = next(s for s in record["statements"] if s["statement"] == statement)
+    idx = stmt["columns"].index(column)
+    for row in stmt["data"]:
+        row[idx] = value
+
+
+@pytest.mark.parametrize(
+    "statement,column",
+    [
+        ("PL", "Operating Income (Loss)"),
+        ("CF", "Depreciation & Amortization"),
+        ("CF", "Cash from Operating Activities"),
+        ("BS", "Cash & Cash Equivalents"),
+        ("BS", "Short Term Debt"),
+        ("CF", "Change in Fixed Assets & Intangibles"),
+    ],
+)
+def test_an_integer_too_large_for_a_float_does_not_abort_the_run(tmp_path, statement, column):
+    world = _malformed_world(tmp_path, lambda record: _set_cell(record, statement, column, 10**400))
+    code, out = world.run()
+    assert code == run_stage2.EXIT_OK, out
+    rows = {r[0]: r[1] for r in world.stage2("SELECT ticker, status FROM stage2_results")}
+    assert rows["CENT"] == "not_evaluable"
+    assert rows["SCSC"] == "passed"
+
+
+def test_a_null_sector_code_aborts_before_anything_is_written(tmp_path):
+    world = World(tmp_path)
+    conn = sqlite3.connect(world.source_db)
+    conn.execute("UPDATE universe_prefilter SET sector_code = NULL WHERE ticker = 'CENT'")
+    conn.commit()
+    conn.close()
+    code, _ = world.run()
+    assert code == run_stage2.EXIT_TECHNICAL_FAILURE
+    assert nothing_written(world)
+
+
+def test_an_unreadable_prefilter_timestamp_aborts_instead_of_a_traceback(tmp_path):
+    world = World(tmp_path)
+    conn = sqlite3.connect(world.source_db)
+    conn.execute("UPDATE universe_prefilter SET run_timestamp = 'garbage-timestamp'")
+    conn.commit()
+    conn.close()
+    code, _ = world.run(prefilter_run_timestamp="garbage-timestamp")
+    assert code == run_stage2.EXIT_TECHNICAL_FAILURE
+    assert nothing_written(world)
+
+
+def test_a_repeated_run_leaves_the_first_csv_untouched(tmp_path):
+    world = World(tmp_path)
+    assert world.run()[0] == 0
+    (first,) = world.csv_dir.glob("stage2_survivors_*.csv")
+    before = first.read_bytes()
+    assert world.run()[0] == run_stage2.EXIT_TECHNICAL_FAILURE
+    assert first.read_bytes() == before
+
+
+def test_a_failing_archive_write_does_not_leave_result_rows_behind(tmp_path, monkeypatch):
+    world = World(tmp_path)
+    monkeypatch.setattr(run_stage2, "save_stage2_results", lambda *a, **k: (_ for _ in ()).throw(sqlite3.OperationalError("disk full")))
+    assert world.run()[0] == run_stage2.EXIT_TECHNICAL_FAILURE
+    assert not world.archive_db.exists()  # nothing was even created: the failure came before any write
