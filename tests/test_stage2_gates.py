@@ -183,7 +183,7 @@ def test_a_company_with_an_invalid_multiple_is_not_part_of_the_base():
     inputs = group(OTHER, [5.0 + i for i in range(7)])
     inputs["BAD"] = company("BAD", OTHER, net_debt=None, net_debt_flags=("net_debt_unreliable",))
     result = run(inputs, [f"G{OTHER}_0"])[f"G{OTHER}_0"]
-    assert result.peer_level == "coarse"  # 7 valid multiples are below the minimum
+    assert result.peer_level == "absolute"  # 7 valid multiples are below the minimum on both levels
     assert (result.peer_n_fine, result.peer_n_coarse) == (7, 7)
 
 
