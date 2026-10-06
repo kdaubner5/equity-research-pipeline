@@ -2,6 +2,8 @@
 und relative Bewertung", Abschnitte 5 und 6, Test 4)."""
 
 import copy
+import tempfile
+from pathlib import Path
 from fractions import Fraction
 
 import pytest
@@ -247,3 +249,39 @@ def test_config_hash_normalizes_line_endings(tmp_path):
     crlf.write_bytes(b"a: 1\r\nb: 2\r\n")
     assert compute_stage2_config_hash(lf) == compute_stage2_config_hash(crlf)
     assert len(compute_stage2_config_hash(lf)) == 64
+
+
+# ---------------------------------------------------------------- second critic run: edges of the config checks
+
+
+def test_a_bool_is_not_a_number_even_where_it_would_pass_the_range_check():
+    data = _real_data()
+    data["ev_ebitda"]["implausible_above"] = True  # True == 1.0 is inside (1.0, 10000.0)
+    with pytest.raises(Stage2ConfigError, match="ev_ebitda.implausible_above.*number"):
+        _load(Path(tempfile.mkdtemp()), data)
+
+
+
+
+def test_ev_ebitda_implausible_cap_equal_to_the_absolute_fail_threshold_is_rejected(tmp_path):
+    data = _real_data()
+    data["ev_ebitda"]["implausible_above"] = data["ev_ebitda"]["absolute_fail_at_or_above"]
+    with pytest.raises(Stage2ConfigError, match="implausible_above"):
+        _load(tmp_path, data)
+
+
+def test_grey_zone_edge_of_exactly_one_is_allowed_and_above_one_is_not(tmp_path):
+    data = _real_data()
+    data["ev_ebitda"]["grey_zone_upper_percentile"] = 1.0
+    assert _load(tmp_path, data).ev_ebitda.grey_zone_upper_percentile == 1.0
+    data["ev_ebitda"]["grey_zone_upper_percentile"] = 1.0000001
+    with pytest.raises(Stage2ConfigError, match="grey_zone_upper_percentile"):
+        _load(tmp_path, data)
+
+
+@pytest.mark.parametrize("group,key,low", [("peer_groups", "min_size", 2), ("ev_ebitda", "peer_terciles", 2), ("fcf_yield", "years", 1)])
+def test_the_lowest_allowed_integer_is_accepted(tmp_path, group, key, low):
+    data = _real_data()
+    data[group][key] = low
+    data["ev_ebitda"]["grey_zone_upper_percentile"] = 0.6  # must stay above 1/peer_terciles (1/2 here)
+    assert getattr(getattr(_load(tmp_path, data), group), key) == low

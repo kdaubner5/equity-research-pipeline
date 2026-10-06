@@ -300,3 +300,50 @@ def test_fcf_yield_rejects_non_finite_inputs_and_never_reads_nan_capex_as_zero(b
 def test_non_finite_value_outside_the_window_is_ignored():
     periods = [period(2022, cfo=NAN)] + three_periods()
     assert _fcf(periods, {2022: NAN, **capex_for(three_periods())}).invalid_reason is None
+
+
+# ---------------------------------------------------------------- second critic run: huge integers, finite results, window gaps
+
+HUGE = 10**400  # a JSON integer too large for a float
+
+
+@pytest.mark.parametrize("field", ["ebitda", "net_debt"])
+def test_ev_ebitda_treats_an_integer_too_large_for_a_float_as_non_finite(field):
+    assert _ev([period(2025, **{field: HUGE})]).invalid_reason == "non_finite_input"
+
+
+def test_market_cap_too_large_for_a_float_is_non_finite():
+    assert _ev([period(2025)], market_cap=HUGE).invalid_reason == "non_finite_input"
+    assert _norm(three_periods(), market_cap=HUGE).invalid_reason == "non_finite_input"
+    periods = three_periods()
+    assert _fcf(periods, capex_for(periods), market_cap=HUGE).invalid_reason == "non_finite_input"
+
+
+def test_fcf_yield_too_large_for_a_float_is_non_finite():
+    periods = three_periods()
+    assert _fcf([*periods[:2], period(2025, cfo=HUGE)], capex_for(periods)).invalid_reason == "non_finite_input"
+    assert _fcf(periods, {**capex_for(periods), 2024: -HUGE}).invalid_reason == "non_finite_input"
+
+
+def test_a_non_finite_value_in_a_middle_year_of_the_window_is_caught():
+    periods = [period(2023), period(2024, cfo=NAN), period(2025)]
+    assert _fcf(periods, capex_for(periods)).invalid_reason == "non_finite_input"
+    periods = [period(2023, ebitda=NAN), period(2024), period(2025)]
+    assert _norm(periods).invalid_reason == "non_finite_input"
+
+
+def test_a_finite_input_that_overflows_into_a_non_finite_result_is_not_a_valid_value():
+    periods = three_periods(cfo=-1.5e308)
+    assert _fcf(periods, capex_for(periods, 0.0)).invalid_reason == "non_finite_input"  # mean would be -inf
+    big = three_periods(ebitda=1.5e308)
+    assert _norm(big).invalid_reason == "non_finite_input"  # 1000/ (inf) would be a silent 0.0
+
+
+def test_normalized_mean_ebitda_exactly_zero_is_invalid_not_a_division_error():
+    periods = [period(2023, ebitda=-50.0), period(2024, ebitda=0.0), period(2025, ebitda=50.0)]
+    assert _norm(periods).invalid_reason == "ebitda_non_positive"
+
+
+def test_normalized_enterprise_value_exactly_zero_is_invalid():
+    # EV = 800 + (-800) = 0
+    assert _norm(three_periods(ebitda=100.0, net_debt=-800.0)).invalid_reason == "ev_non_positive"
