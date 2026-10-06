@@ -1324,3 +1324,133 @@ Regel: Weicht ein Ergebnis von der Erwartung ab, ist das ein Befund. Der Agent b
 - Branch-Schutz oder zweites GitHub-Konto: wären die technische Lösung für Merge-Schutz und die Unterscheidung von Kritiker-Bericht und Freigabe; derzeit nicht verfügbar. **Offen, Entscheidung bei Konstantin** (Abschnitt G, Issue #58).
 
 **Offene Fragen:** Siehe den Bericht am PR. Die Entscheidung liegt beim Projektinhaber.
+
+## 2026-10-06: Stufe 2: Peer-Gruppen und relative Bewertung (Agent-Entscheidung, Klasse C; Entwurf)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin (`docs/arbeitsweise.md`, Abschnitt C/D). Branch `agent/stufe2-entwurf`; die Umsetzung (Branch `agent/stufe2-impl`) baut darauf auf und darf nicht vor dieser Entscheidung gemergt werden. Klasse C, weil die Entscheidung neue Schwellen, neue Konfiguration und ein neues Verfahren festlegt, das ändert, welche Firmen bestehen.
+
+**Kontext:** Stufe 1 liefert nach Phase 2.0e 126 Überlebende von 1.821 Firmen des Vorfilters (Status `passed` 93, `passed_with_flags` 33; `unsupported_business_model` 531; siehe „Phase 2.0e", Replay). Der Masterplan (`docs/masterplan.md` §4 Stufe 2, §7 Phase 2.0, §10) verlangt als Stufe 2: Peer-Gruppen aus dem Branchenfeld des Kurs-Feeds, Mindestgröße n ≥ 8 mit gestuftem Rückfall, EV/EBITDA im günstigsten Drittel der Peer-Gruppe, FCF-Yield > 6 % absolut, Peer-Basis ist das gesamte vorgefilterte Universum. Phase 2.0a, Entscheidung 2 legt dazu fest: feine Ebene `sectorCode`, n ≥ 8 auf gültigen positiven EV/EBITDA-Werten, Banken/Versicherer/REITs/Biotech ausgenommen (umgesetzt als Profile, Phase 2.0e), Basis Geschäftsjahr statt TTM. Issue #52 (Befund) benennt 29 zyklische Überlebende in sechs Sektorcodes und lässt die Behandlung offen. Dieser Entwurf füllt nur, was diese Texte offenlassen; wo er ihnen folgt, steht das so da.
+
+**Messgrundlage und was fehlt:** Dieser Entwurf wurde **ohne** Zugriff auf `data/` geschrieben (kein Cache, keine Datenbank, keine SimFin-Calls). Alle Zahlen zu Firmenzahlen stammen aus den oben zitierten Entscheidungstexten; nichts wurde neu erhoben. Die Datenlage der Peer-Basis (wie viele der 1.290 Firmen im Profil `non_financial` ein gültiges EV/EBITDA haben, wie groß die Gruppen je `sectorCode` wirklich sind) ist **nicht gemessen** und ist die wichtigste Unbekannte (Abschnitt „Vorab-Hypothesen").
+
+### 1. Kennzahlen und warum
+
+Beide Kennzahlen sind im Masterplan gesetzt; neu ist die genaue Definition.
+
+- **EV/EBITDA** (relativ, gegen die Peer-Gruppe). `EV = Marktkapitalisierung + Nettofinanzverschuldung`, `EBITDA` und `Net Debt` aus dem **letzten** Geschäftsjahr, das der bestehende Mapper liefert (wie Net Debt/EBITDA in Stufe 1; Entscheidung „Basis Geschäftsjahr"). Die Marktkapitalisierung ist `universe_prefilter.market_cap_usd` (Schlusskurs × Aktienzahl, höchstens 5 Tage alt). *Warum:* EV/EBITDA ist kapitalstrukturneutral (Firmen mit viel und wenig Schulden sind vergleichbar), die Bestandteile liegen schon vor, und Net Debt kommt mit dem bestehenden Zuverlässigkeits-Guard (Stock-Flow-Abgleich) — ein unzuverlässiger Net Debt macht auch den EV unzuverlässig, deshalb gibt es dort keinen Ersatzwert (Alternative 4).
+- **FCF-Yield** (absolut, 6 %). `FCF = CFO − Investitionen`, Yield = durchschnittlicher FCF der drei letzten Geschäftsjahre / aktuelle Marktkapitalisierung. *Investitionen* = Zeile „Change in Fixed Assets & Intangibles" der SimFin-Kapitalflussrechnung (Netto-Zahlung für Sachanlagen und immaterielle Werte; abfließendes Geld ist negativ). **Ein positiver Wert (Netto-Zufluss aus Anlagenverkäufen) zählt als Investition 0**, nicht als Zusatz-Cash, und wird als `capex_net_inflow_treated_as_zero` mitgeführt: Anlagenverkäufe sind keine wiederholbare Cash-Erzeugung (in den 23 Pilot-Fixtures kommt das vor, z. B. FLXS 2025 +8,3 Mio. USD, FOSL 2025 +20,5 Mio. USD). *Warum 3-Jahres-Schnitt:* Stufe 1 mittelt ROIC und Cash Conversion ebenfalls über drei Jahre; ein Einzeljahr-FCF schwankt mit Investitionszyklen und Working Capital stark. Die Zeile fehlt im Stufe-1-Mapper (`map_simfin_to_periods` liest sie nicht); sie wird in einem **neuen, getrennten Modul** gelesen, damit der Mapper und damit jedes Stufe-1-Ergebnis byte-identisch bleiben (Abschnitt 5).
+- **Nur informativ:** `ev_ebitda_normalized` = derselbe EV / Durchschnitts-EBITDA der drei letzten Jahre. Ohne Einfluss auf Status und Rang; nur zum Sichten (Zykliker, Abschnitt 4).
+
+Bewusst **nicht** in Stufe 2: Kurs/Buchwert, Kurs/Gewinn, Dividendenrendite (nicht im Masterplan; jede Zusatzachse frisst Peer-Gruppengröße bzw. Präzision).
+
+**Bewertung (Klassifikation):**
+- *EV/EBITDA*, Peer-Perzentil p (0 = günstigster der Gruppe, 1 = teuerster; Mittelrang bei Gleichstand, `p = (Mittelrang − 1)/(n − 1)`): `p ≤ 1/3` → sauber bestanden („günstigstes Drittel", Masterplan); `1/3 < p ≤ 0,40` → bestanden mit Flag (Grauzone, Masterplan §4 „keine Messerkante"); `p > 0,40` → durchgefallen. Exakt auf der Schwelle gehört zum besseren Bucket (die benannte Schwelle „günstigstes Drittel" ist inklusiv). Die Rechnung läuft mit exakten Brüchen (`fractions.Fraction`), nicht mit Fließkomma, damit z. B. Rang 4 von 10 (`3/9`) sicher auf der Drittel-Grenze liegt.
+- *FCF-Yield*: `> 6 %` sauber (strikt, Masterplan „> 6 %"; nach der Grenzwert-Konvention gehört genau 6 % damit in die Grauzone), `5 % ≤ y ≤ 6 %` Flag, `< 5 %` durchgefallen. Aufbau wie ROIC (Grauzone unterhalb der sauberen Schwelle).
+- Kombination wie in Stufe 1 (Phase 2.0d): ein gültiges „durchgefallen" gewinnt auch bei einer ungültigen anderen Kennzahl (`failed`, `invalid_reasons` bleiben stehen); sonst macht jede ungültige Kennzahl die Firma `not_evaluable`; sonst `passed_with_flags`, wenn eine Kennzahl ein Flag hat, sonst `passed`.
+
+Die Werte 0,40 und 5 % für die Grauzonen sind **Startwerte von mir** (der Masterplan verlangt Grauzonen, nennt für Stufe 2 aber keine Werte). Frage Q2.
+
+### 2. Peer-Gruppen
+
+- **Basis (Masterplan, Phase 2.0a Entscheidung 2):** alle Firmen des Vorfilters (`universe_prefilter.status = passed`), **nicht** nur die Stufe-1-Überlebenden, im Profil `supported` (Phase 2.0e; Banken, Versicherer, REITs, Biotech sind raus), mit **gültigem** EV/EBITDA (Abschnitt 3). Grenzfälle (`borderline_sector`) bleiben in der Basis. Das Stufe-1-Ergebnis einer Firma spielt für die Basis keine Rolle; sie zählt als Peer, auch wenn sie in Stufe 1 durchgefallen ist.
+- **Ebene 1 (fein):** `sectorCode` (6-stellig, 74 Werte; die Feldnamen `sectorName`/`industryName` sind bei SimFin vertauscht, Audit C2). Gruppe = alle Basisfirmen mit demselben Code.
+- **Ebene 2 (grob):** `sectorCode // 1000` (z. B. 107002 Oil & Gas E&P und 107004 Oil & Gas Services → 107 Energy). Die Ableitung steht in der Konfiguration (`peer_groups.coarse_level_divisor`). **Ungeprüft:** Dass die ersten drei Ziffern eine Sektor-Obergruppe bilden, ist aus den Beispielcodes in `config/sector_profiles.yaml` und Issue #52 abgeleitet (100 Industrials, 101 Technology, 107 Energy, 110 Basic Materials, 104 Financial Services, 106 Healthcare, 109 Real Estate) und **nicht** an `general_bulk.json` bestätigt (liegt hier nicht vor). Frage Q4; bis dahin ist Ebene 2 eine Annahme.
+- **Ebene 3 (absolut):** Reicht auch die grobe Ebene nicht, gibt es keinen Peer-Vergleich; EV/EBITDA wird gegen feste Schwellen aus der Konfiguration bewertet (Masterplan: „dann reine Absolutbewertung").
+- **Mindestgröße n ≥ 8** (Konfiguration `peer_groups.min_size`), gezählt auf Firmen mit gültigem EV/EBITDA **einschließlich der bewerteten Firma**. Eine Gruppe mit n < 8 wird nie verwendet; die nächste Ebene wird geprüft. Nie wird eine kleine Gruppe „trotzdem" benutzt.
+- **Verhalten bei zu kleinen Gruppen, sichtbar gemacht:** Jedes Ergebnis nennt die gewählte Ebene (`fine`/`coarse`/`absolute`), den Gruppenschlüssel, die Zahlen `peer_n_fine` und `peer_n_coarse` und trägt bei Rückfall die Info-Marke `peer_group_coarse` bzw. `peer_group_absolute`. Die Marken sind rein informativ (ändern Status, Flags und Rang nicht), damit ein Rückfall beim Sichten auffällt.
+- **Eine Firma ohne `sectorCode`** ist nicht zuordenbar (`no_sector_code`, ungültig, explizit), nicht Teil der Basis. Der Volllauf-Runner bricht ohnehin schon bei unbekanntem Code ab (Phase 2.0e, Entscheidung 2).
+- **Keine Größenachse** (Masterplan).
+
+### 3. Fehlende und unplausible Daten (alles explizit, nichts still übersprungen)
+
+Jede Kennzahl liefert wie in Stufe 1 ein `MetricResult` (genau eines von Wert oder `invalid_reason`; nie ein nacktes `None`). Prüfreihenfolge je Kennzahl, erster zutreffender Grund gewinnt:
+
+*EV/EBITDA:* `no_periods` (keine Geschäftsjahre) → `fundamentals_stale` (letztes Geschäftsjahr `< as_of`-Jahr − `fundamentals.max_fiscal_year_lag`; der Mapper verwirft Jahre mit fehlenden Pflichtfeldern und nimmt dann ein älteres) → `market_cap_missing` (fehlt oder ≤ 0) → `net_debt_unreliable` bzw. `debt_data_completely_missing` (bestehende Funktion `net_debt_none_reason`; Net Debt ist `None`) → `ebitda_non_positive` → `ev_non_positive` (Netto-Cash größer als die Marktkapitalisierung: ein negativer EV hat kein sinnvolles Multiple) → `ev_ebitda_implausibly_high` (Multiple über `ev_ebitda.implausible_above`, EBITDA praktisch null, das Multiple ist dann Rauschen).
+*FCF-Yield:* `no_periods` → `insufficient_years` (weniger Jahre als `fcf_yield.years`) → `fundamentals_stale` → `market_cap_missing` → `capex_missing` (die Investitionszeile ist in einem der Jahre `None` oder die Kapitalflussrechnung fehlt; **nicht** als 0 angenommen: ein stilles Auffüllen mit 0 würde den FCF-Yield zu hoch ausweisen) → `fcf_yield_implausibly_high` (über `fcf_yield.implausible_above`; fast sicher ein Datenfehler oder Sondereffekt).
+Negativer FCF ist ein **gültiger** Wert (Yield negativ, durchgefallen).
+
+Folgen und Grenzen:
+- Ein ungültiges EV/EBITDA nimmt die Firma aus der **Peer-Basis** und macht sie, falls Stufe-1-Überlebende, `not_evaluable` in Stufe 2 (außer bei gültigem Fail der anderen Kennzahl). Die Gründe stehen in `invalid_reasons`.
+- **Eine Stufe-1-Überlebende ohne Eingangsdaten** (kein Eintrag in den Eingaben) wird nicht übersprungen, sondern `not_evaluable` mit `valuation_input_missing`.
+- **Selektionsverzerrung der Peer-Basis (Hypothese, nicht gemessen):** Weil unzuverlässiger Net Debt ausgeschlossen wird (Stufe 1: 554 von 1.821 Firmen mit mindestens einer solchen Periode, Phase 2.0c Befund 3), bleiben eher einfache Bilanzen in den Gruppen. Das ist eine Folge der Datenintegrität, nicht ein Rechenfehler.
+- **EV ist vereinfacht** (Marktkapitalisierung + Schulden − Cash & Cash Equivalents): Minderheitsanteile, Vorzugsaktien, Pensionsverpflichtungen und kurzfristige Geldanlagen sind nicht enthalten. Das verzerrt einzelne Firmen und bleibt als Grenze stehen.
+- Die Marktkapitalisierung nutzt die zuletzt gemeldete Aktienzahl (Phase 2.0a, Grenzen: im Median 141 Tage alt, Mehrklassen-Firmen evtl. unvollständig); nur als grober Wert geeignet.
+- Nur USD (wie überall im Projekt).
+
+### 4. Zykliker (Issue #52) und `unsupported_business_model`
+
+- **`unsupported_business_model`** (Banken, Versicherer, REITs, Biotech): bekommen **keine** Stufe-2-Bewertung und sind **nicht** in der Peer-Basis. Sie sind ohnehin keine Stufe-1-Überlebenden (Status `unsupported_business_model`), und EV/EBITDA ist für Banken/Versicherer fachlich nicht definiert. Ihre Zahl wird im Bericht getrennt ausgewiesen, nicht in den Nennern der Peer-Auswertung versteckt.
+- **Zykliker** (sechs Codes aus Issue #52: 107002, 107004, 110001, 110002, 110005, 110006; Konfiguration `cyclical_sectors.sector_codes`): **rein informatives Flag** `cyclical_sector` (Info-Marke, ändert weder Status noch Rang) **plus** `ev_ebitda_normalized` (EV / 3-Jahres-Durchschnitts-EBITDA) für alle Überlebenden. Begründung: Ein Zykliker am Gewinngipfel hat ein niedriges EV/EBITDA, weil das EBITDA hoch ist; der Peer-Vergleich belohnt genau das. Der Befund aus Issue #52 zeigt aber, dass ein Dreijahresfenster kein Gipfeldiagnose-Instrument ist und das Bild je Sektorcode verschieden ausfällt (z. B. 107004 gegen 107002). Eine harte Regel wäre eine Setzung ohne Beleg; die Entscheidung über Hebel in Stufe 1 (Trend-Guard, längere Historie, eigenes Profil) steht bei Konstantin und wird hier **nicht** vorweggenommen. Die normalisierte Kennzahl macht dem Sichter in Stufe 3 sichtbar, wenn ein Zykliker nur wegen eines Spitzenjahrs „günstig" ist. Frage Q6.
+- Zykliker bleiben **in der Peer-Basis** (ihre Gruppe vergleicht sie mit Branchenfirmen derselben Konjunkturlage; sie herauszunehmen würde die Gruppen unter n = 8 drücken).
+- **Grenzfälle** (`borderline_sector`): Markierung wird durchgereicht (Info), sonst keine Sonderbehandlung.
+
+### 5. Schwellen und Parameter in `config/` (YAML)
+
+Neue Datei **`config/stage2.yaml`** mit eigenem Lader `config_layer/stage2.py` (Muster `sector_profiles.py`/`thresholds.py`: alle Schlüssel Pflicht, keine Defaults im Code, unbekannte oder doppelte Schlüssel brechen mit Namen des Schlüssels ab, Wertebereiche, Bool nicht als Zahl, Ganzzahlen wirklich ganzzahlig):
+
+```yaml
+peer_groups:
+  min_size: 8                    # Mindestzahl gültiger EV/EBITDA-Werte je Gruppe (Ganzzahl >= 2)
+  coarse_level_divisor: 1000     # grobe Ebene = sectorCode // divisor (Ganzzahl)
+ev_ebitda:
+  implausible_above: 100.0       # Multiple darüber -> ev_ebitda_implausibly_high
+  peer_terciles: 3               # günstigster Anteil 1/N der Gruppe = sauber bestanden (Ganzzahl >= 2)
+  grey_zone_upper_percentile: 0.40   # p <= Wert -> Flag; darüber durchgefallen (muss > 1/peer_terciles, <= 1 sein)
+  absolute_clean_pass_below: 8.0     # nur Ebene 3: Multiple strikt darunter -> sauber
+  absolute_fail_at_or_above: 10.0    # nur Ebene 3: ab hier durchgefallen; dazwischen Flag
+  normalized_ebitda_years: 3     # Jahre für ev_ebitda_normalized (Ganzzahl 1..3)
+fcf_yield:
+  years: 3                       # Jahre für den FCF-Durchschnitt (Ganzzahl 1..3; der Mapper liefert höchstens drei)
+  clean_pass_above: 0.06
+  fail_below: 0.05
+  implausible_above: 0.50
+fundamentals:
+  max_fiscal_year_lag: 1         # letztes Geschäftsjahr >= as_of-Jahr − Wert, sonst fundamentals_stale
+cyclical_sectors:
+  sector_codes: [107002, 107004, 110001, 110002, 110005, 110006]
+```
+
+`config/thresholds.yaml` bleibt **unverändert**. Folge: `config_hash` (deckt nur `thresholds.yaml`) und jedes Stufe-1-Ergebnis bleiben identisch; der spätere Runner muss für Stufe 2 einen eigenen Hash der `stage2.yaml` mitschreiben (bestehendes Sammel-Issue #48, Regelversion). Die Ebene-3-Werte 8,0/10,0 sind **Platzhalter ohne Beleg** (der Masterplan nennt keine absoluten EV/EBITDA-Grenzen); Frage Q1. Nicht in der Konfiguration, weil Datenformat und keine Schwelle: die Namen der SimFin-Spalten, die Info-Marken, die Bruchrechnung.
+
+### 6. Tests, vor der Umsetzung festgelegt (pytest, künstliche Daten, kein `data/`)
+
+1. **Kennzahlen (`metrics_layer/valuation.py`):** EV/EBITDA aus Hand-Beispiel (z. B. Marktkap 800, Net Debt 200, EBITDA 100 → 10,0); jeder Ungültigkeitsgrund einzeln in der festgelegten Reihenfolge (`no_periods`, `fundamentals_stale`, `market_cap_missing` für `None`/0/negativ, `net_debt_unreliable`, `debt_data_completely_missing`, `ebitda_non_positive` für 0 und negativ, `ev_non_positive`, `ev_ebitda_implausibly_high`); Grenzwerte (Multiple exakt auf `implausible_above`: gültig; Jahr exakt auf `max_fiscal_year_lag`: gültig, eins weiter: stale); doppelte Geschäftsjahre → `MetricInputError`; FCF-Yield aus Hand-Beispiel (CFO 100/120/140, Investitionen −30/−40/−50, Marktkap 1.000 → (70+80+90)/3/1000 = 0,08); Netto-Zufluss zählt 0 und das Hilfsprädikat nennt die betroffenen Jahre; `capex_missing` bei `None` und bei fehlendem Jahr, nie als 0; negativer FCF gültig; `insufficient_years`; `fcf_yield_implausibly_high`; normalisiertes Multiple (Mittel ≤ 0 → ungültig mit Grund).
+2. **Perzentil und Peer-Gruppen (`gates_layer/peer_groups.py`):** Perzentil bei n = 8 (Ränge 1..8 → 0, 1/7, …, 1), Gleichstand (Mittelrang), n = 2; **Gruppengröße**: Gruppe mit genau 8 gültigen Firmen → Ebene fein, mit 7 → Rückfall grob; grob 8 → grob, grob 7 → absolut; ungültige Firmen zählen nicht mit; Firma ohne Sektorcode → `no_sector_code`; `unsupported`-Profil und Vorfilter-Ausschluss sind nicht Teil der Basis (Aufrufer-Vertrag, getestet über die Eingabe-Filterfunktion); Peers aus Stufe-1-Durchgefallenen zählen; Zuordnung deterministisch und unabhängig von der Eingabereihenfolge; grobe Ebene aus `coarse_level_divisor`.
+3. **Klassifikation und Kombination (`gates_layer/stage2_gates.py`):** Randwerte exakt: p = 1/3 (Rang 4 von 10) sauber, knapp darüber Flag, p = 0,40 Flag, darüber durchgefallen; FCF-Yield 6 % → Flag (strikt), 5 % → Flag, knapp unter 5 % durchgefallen; Absolutebene 8,0 → Flag, 10,0 → durchgefallen, 7,99 → sauber; gültiger Fail gewinnt gegen ungültige andere Kennzahl (`failed` mit `invalid_reasons`); ungültig + ungültig → `not_evaluable`; beide sauber → `passed`; eine Grauzone → `passed_with_flags`; Info-Marken (`cyclical_sector`, `capex_net_inflow_treated_as_zero`, `peer_group_coarse/absolute`, `borderline_sector`) ändern Status und Flags **nicht**; Überlebende ohne Eingabe → `not_evaluable`/`valuation_input_missing`; Nicht-Überlebende werden nicht bewertet; Rangbildung (Flagzahl Stufe 1 + Stufe 2, dann Perzentil, dann Ticker; Absolutebene hinter den Perzentil-Firmen derselben Flagzahl; nur `passed`/`passed_with_flags` im Rang).
+4. **Konfiguration (`config_layer/stage2.py`):** echte `config/stage2.yaml` lädt; je Pflichtschlüssel fehlender Schlüssel nennt den Namen; unbekannter Schlüssel; doppelter Schlüssel; Bool/String statt Zahl; Dezimalzahl statt Ganzzahl (`min_size: 8.5`); Wert außerhalb des Bereichs; `grey_zone_upper_percentile <= 1/peer_terciles`; `absolute_clean_pass_below >= absolute_fail_at_or_above`; `fcf_yield.clean_pass_above <= fail_below`; `fcf_yield.years > 3`; doppelte oder nicht ganzzahlige Zykliker-Codes; **Querprüfung**: jeder Zykliker-Code steht in `config/sector_profiles.yaml` und gehört dort zu einem unterstützten Profil.
+5. **Datenschicht (`data_layer/simfin_valuation.py`):** Investitionszeile je Geschäftsjahr aus einem künstlichen SimFin-Rohdatensatz (Wert, Netto-Zufluss, `None`), fehlende Kapitalflussrechnung → leeres Ergebnis (führt zu `capex_missing`), fehlende Spalte → `SimFinMappingError`, doppelte Geschäftsjahre → `SimFinMappingError` (wie der Mapper).
+6. **Regression:** Die komplette bestehende Suite bleibt unverändert grün; **keine** Datei von Stufe 1 (`simfin_client.py`, `stage1_gates.py`, `thresholds.py`, `thresholds.yaml`, `store_layer/`) wird verändert (Diff-Nachweis im Bericht); damit ist der Golden Master für Stufe 1 trivial identisch.
+
+### 7. Alternativen und Begründung
+
+1. **Peer-Gruppen:** *Gewählt:* fein (`sectorCode`) → grob (`sectorCode // 1000`) → absolut (Masterplan). *Verworfen:* SIC-Codes (Masterplan: archaisch); nur die grobe Ebene (11 Gruppen mischen z. B. Öl-Förderer und Öl-Dienstleister mit gegensätzlicher Zyklik); nur die 126 Überlebenden als Basis (verteilt auf 74 Codes erreicht fast keine Gruppe n ≥ 8; Masterplan nennt das ausdrücklich); Größenachse (Masterplan: frisst n).
+2. **EV/EBITDA-Basis:** *Gewählt:* letztes Geschäftsjahr, wie Net Debt/EBITDA und Phase 2.0a („Geschäftsjahr statt TTM"). *Alternative:* 3-Jahres-Durchschnitts-EBITDA als Gate-Größe: glättet Zykliker, verlangt aber drei gültige Jahre je Peer und verkleinert die Basis (der Mapper verwirft Jahre mit fehlenden Pflichtfeldern; in Phase 2.0c hatten 290 Firmen `insufficient_years`) — als informative Zweitkennzahl übernommen. *Alternative:* TTM — verworfen, Phase 2.0a.
+3. **Zykliker:** *Gewählt:* informatives Flag + normalisiertes Multiple. *Alternativen:* (a) Gate auf dem normalisierten Multiple nur für Zykliker — belegt nichts, ändert die Firmenauswahl auf einer Vermutung; (b) eigenes Profil/Ausschluss wie Banken — Issue #52 zeigt gemischte Befunde je Sektorcode, ein Ausschluss wäre zu grob und träfe 29 von 126 Überlebenden; (c) nichts tun und auf Stufe 3 verweisen (Masterplan §10) — die normalisierte Zahl kostet fast nichts und nimmt dem Sichter die Rechenarbeit ab.
+4. **Net Debt unzuverlässig:** *Gewählt:* Firma ist für EV/EBITDA ungültig, kein Ersatzwert. *Alternative:* den ungeprüften Bilanz-Net-Debt für die Peer-Basis zulassen (größere Gruppen, weniger Rückfälle): verworfen — der Stock-Flow-Abgleich existiert gerade, weil ein falscher Net Debt den ganzen Wert verfälscht (Entscheidung „Net-Debt-Zuverlässigkeit"); mit einem Ersatzwert würde Stufe 2 das Stufe-1-Datenintegritätsniveau stillschweigend senken.
+5. **Zu kleine Gruppe:** *Gewählt:* Absolutbewertung wie im Masterplan, mit Platzhalter-Schwellen und sichtbarer Marke. *Alternativen:* (a) „nicht bewertbar" (`not_evaluable`) — kein erfundener Schwellenwert, aber jede Firma in einer dünnen Branche fällt komplett heraus; (b) Perzentil über das gesamte Universum — statistisch tragfähig, aber ein Tech-Wert gegen einen Chemie-Wert ist kein Branchenvergleich. Q1 fragt, ob (a) die bessere Standardwahl ist.
+6. **Rang:** *Gewählt:* Gruppierung nach Gesamtzahl der Flags (Stufe 1 + Stufe 2), darin nach Peer-Perzentil, dann Ticker; kein Composite-Score (Stufe 1 ordnet bereits so). *Alternative:* Masterplan v1.1 nennt „Durchschnitt der Perzentil-Ränge" mit EV/EBITDA und FCF-Yield; Stufe 1 hat das so **nicht** umgesetzt (`rank_companies` gruppiert nach Flagzahl), das ist eine bestehende Abweichung. Q7.
+7. **Konfigurationsort:** *Gewählt:* eigene `config/stage2.yaml`. *Alternative:* neue Gruppen in `thresholds.yaml` — ändert den `config_hash` und jedes Stufe-1-Archiv ohne fachlichen Grund und zwingt zu Änderungen an bestehenden Tests (`test_thresholds.py`).
+8. **Umfang der Umsetzung:** *Gewählt:* **reine Funktionen** (Kennzahlen, Peer-Gruppen, Bewertung, Rang, Lader, Investitions-Extraktion), getestet mit künstlichen Daten. *Zurückgestellt (Folge-Auftrag nach Freigabe):* Runner `run_stage2.py`, Archiv-Tabelle bzw. Spalten und Survivors-CSV-Spalten, Migration der echten `data/run_archive.db`, Replay auf einer Datenbankkopie. Begründung: Das Archiv-Schema und der Zugriff auf die echte Datenbank unterliegen eigenen Regeln (Migration, Sicherung mit SHA-256, ausdrückliche Anweisung); beides gehört nicht in einen Entwurfs-PR. Das ist keine Aufteilung zur Umgehung einer Klasse: beide Teile sind Klasse C.
+
+### 8. Offene Fragen an Konstantin
+
+- **Q1 – Ebene 3:** Absolutbewertung mit Platzhalter 8,0/10,0 oder `not_evaluable` ohne Zahl (Alternative 5a)? Gibt es Zahlen, die du für „billig" hältst?
+- **Q2 – Grauzonen:** Passen `p ≤ 0,40` und FCF-Yield 5–6 % als Flag-Band? Ohne Grauzone wäre jede Schwelle eine Messerkante (Masterplan §4).
+- **Q3 – FCF-Yield:** 3-Jahres-Schnitt (gewählt) oder letztes Jahr allein (Masterplan sagt nur „FCF-Yield > 6 %")? Und: Netto-Zufluss aus Anlagenverkäufen als Investition 0 zählen (gewählt) oder als echtes Cash?
+- **Q4 – Grobe Ebene:** Bitte bestätigen (oder gegen `general_bulk.json` prüfen lassen), dass `sectorCode // 1000` die richtige Obergruppe ist. Ich habe die Datei nicht.
+- **Q5 – Härte:** Sind EV/EBITDA und FCF-Yield echte Gates (Firmen fallen heraus, wie im Masterplan formuliert) oder zunächst nur Flags/Rang?
+- **Q6 – Zykliker:** Reicht Flag plus normalisiertes Multiple, oder soll Stufe 2 für die sechs Codes härter sein? Das hängt mit den offenen Hebeln aus Issue #52 zusammen.
+- **Q7 – Rang:** Flagzahl-Gruppen (wie Stufe 1) oder „Durchschnitt der Perzentil-Ränge" (Masterplan v1.1 Wortlaut, in Stufe 1 nicht umgesetzt)?
+- **Q8 – Archiv und Runner:** Wo sollen Stufe-2-Ergebnisse stehen (zusätzliche Spalten in `run_results`, eigene Tabelle, nur CSV)? Das bestimmt die Migration der echten Datenbank und ist der nächste Auftrag.
+- **Q9 – Aktualität:** `max_fiscal_year_lag: 1` ist mein Startwert; die Stufe-1-Aktualitätsprüfung (D5, Issue #35) ist im Code nicht zu finden, Stufe 2 bringt deshalb ihre eigene mit.
+
+### Vorab-Hypothesen (prüfbar, **nicht** gemessen; Abweichung wird berichtet, nicht angepasst)
+
+- **H1:** Alle 126 Stufe-1-Überlebenden haben einen zuverlässigen Net Debt und EBITDA > 0 im letzten Jahr (Stufe-1-Gültigkeitsbedingungen von Net Debt/EBITDA). Deshalb sollte fast jede ein gültiges EV/EBITDA haben; erwartete Ausfälle nur durch `fundamentals_stale`, `market_cap_missing`, `ev_non_positive`, `ev_ebitda_implausibly_high`. Erwartung: mindestens 120 von 126 gültig.
+- **H2:** Obergrenze der Peer-Basis ist 1.290 (Firmen im Profil `non_financial`); die tatsächliche Zahl ist wegen `net_debt_unreliable` und `ebitda_non_positive` deutlich kleiner (unbekannt). Viele feine Gruppen (74 Codes) bleiben unter n = 8; die Mehrzahl der Überlebenden dürfte auf der groben Ebene landen. Wie viele auf der absoluten Ebene enden, ist offen.
+- **H3:** Bei Gleichverteilung läge ein Drittel (42 von 126) im günstigsten Drittel; die Überlebenden sind Qualitätsfirmen, die nach Masterplan §10 („Peer-Verzerrung") tendenziell teurer handeln, deshalb erwarte ich **weniger als 42 von 126** mit sauberem EV/EBITDA-Ergebnis.
+- Die Messung erfolgt erst im Folge-Auftrag (Replay aus dem Cache auf einer Kopie der Datenbank, 0 SimFin-Calls, nach ausdrücklicher Anweisung).
+
+**Grenzen (bekannt, akzeptiert):** Stufe 2 ist nur so gut wie die Marktkapitalisierung (zuletzt gemeldete Aktienzahl) und der Net Debt; Peer-Verzerrung (Masterplan §10); Bruttoformel für EV (Abschnitt 3); kleine Gruppen auf der feinen Ebene; keine Gipfeldiagnose bei Zyklikern; die Werte der Grauzonen und der Absolutebene sind Startwerte ohne Kalibrierung (nicht an Echtdaten kalibriert, bewusst, Masterplan: „im Zweifel gilt die Config").
+
+**How to apply (nach Freigabe):** `config/stage2.yaml`; `config_layer/stage2.py` (Lader, Dataclasses); `data_layer/simfin_valuation.py` (Investitionszeile je Geschäftsjahr, additiv); `metrics_layer/valuation.py` (EV/EBITDA, FCF-Yield, normalisiertes Multiple, jeweils `MetricResult`); `gates_layer/peer_groups.py` (Perzentil, Gruppenwahl); `gates_layer/stage2_gates.py` (Eingabe, Klassifikation, Kombination, Rang); Tests wie in Abschnitt 6, zuerst. Unverändert: `simfin_client.py`, `stage1_gates.py`, `thresholds.py`/`thresholds.yaml`, `store_layer/`, alle bestehenden Tests. Kein SimFin-Call, keine echte Datenbank, kein `data/`.
