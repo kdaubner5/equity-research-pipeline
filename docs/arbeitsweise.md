@@ -60,6 +60,7 @@ Die Zuordnung ist mechanisch, nicht Ermessenssache.
   - `config/thresholds.yaml`
   - `config/sector_profiles.yaml`
   - Datenquelle oder Tarif
+  - Weicht das Ergebnis vom Golden Master ab, ist der PR automatisch Klasse C, unabhängig davon, welche Dateien geändert wurden.
 - **Immer Klasse C** sind außerdem:
   - `CLAUDE.md` und `docs/arbeitsweise.md` (die Regeln der Autonomie selbst)
   - alles unter `.claude/` (Berechtigungslisten, Hooks, Einstellungen) und `.github/` (Workflows)
@@ -101,7 +102,7 @@ Die Zuordnung ist mechanisch, nicht Ermessenssache.
 - Jeder Weg mit der Wirkung „Merge in `master`" ist ohne ausdrückliche Freigabe verboten. Die Aufzählung ist beispielhaft: CLI (`gh pr merge`), API, GraphQL, MCP-Werkzeuge, Auto-Merge, Merge-Queue, Weboberfläche.
 - `master` wird nie lokal verändert.
 - Push nur mit explizitem Branchnamen (`git push origin <branch>`), nie mit `--all`, `--mirror` oder Tags.
-- Feature-Branch = ein vom Agenten für ein Issue neu angelegter Branch.
+- Feature-Branch = ein vom Agenten für einen Auftrag neu angelegter Branch.
 
 ## D. Was der Projektinhaber entscheidet
 
