@@ -1,0 +1,92 @@
+# Patterns and limits for the PreToolUse hook src/hooks/bash_guard.py
+# (Issue #60, Stufe 2; docs/bash-guard.md). Every key is required, no
+# defaults exist in code; a missing or malformed key makes the hook refuse
+# every Bash call (fail closed). Changing a value here changes what the hook
+# refuses on the very next Bash call.
+
+# Branches that must never be pushed to, merged into or deleted. Compared
+# case-insensitively after stripping refs/heads/.
+protected_branches: [master, main]
+
+# Longest command text the hook analyses; longer commands are refused.
+max_command_length: 50000
+# Deepest nesting (bash -c "bash -c ...", eval, heredoc, alias) analysed;
+# anything deeper is refused.
+max_depth: 8
+
+# Commands whose arguments are plain data: a segment starting with one of
+# them is not scanned for git/gh (so `echo "git push origin master"` is fine).
+non_executing_commands: [echo, printf, grep, egrep, fgrep, rg, which, type, man, whatis, ls, stat, wc]
+
+# Commands that append arguments from stdin or from a list: git/gh behind
+# them cannot be checked, so `git push` / `gh pr merge` behind them is refused.
+dynamic_arg_commands: [xargs, parallel]
+
+# Shells: `-c STRING` is analysed recursively; a shell without -c and
+# without a script file argument reads commands from stdin and is refused.
+shell_interpreters: [bash, sh, zsh, dash, ksh, ash, fish, csh, tcsh]
+# Interpreters with inline code (python -c, node -e, heredoc bodies): the
+# code is searched for an exec marker AND a deny pattern (heuristic; a
+# script file or obfuscated string is not caught).
+script_interpreter_patterns: ["^python[0-9.]*$", "^perl$", "^ruby$", "^node(js)?$", "^php$", "^lua$", "^deno$", "^bun$"]
+inline_exec_markers: ["subprocess", "os\\.system", "os\\.popen", "os\\.exec", "os\\.spawn", "pty\\.spawn", "popen", "child_process", "execSync", "spawnSync", "Open3", "\\bsystem\\s*\\(", "\\bexec\\s*\\(", "%x[({\\[]"]
+inline_deny_patterns:
+  - '(?is)\bgit\b.{0,300}?\bpush\b'
+  - '(?is)\bgh\b.{0,300}?\bmerge\b'
+  - '(?is)\bgh\b.{0,300}?\bapi\b'
+  - '(?is)api\.github\.com'
+
+git:
+  # Options before the subcommand that take a separate value.
+  global_options_with_value: ["-C", "-c", "--git-dir", "--work-tree", "--namespace", "--exec-path", "--super-prefix", "--config-env"]
+  # `git -c KEY=VALUE`: refused when KEY starts with one of these
+  # (case-insensitive); they define aliases or run programs.
+  refused_c_key_prefixes: ["alias.", "core.sshcommand", "core.hookspath", "core.fsmonitor", "core.pager", "pager.", "credential.helper"]
+  # Subcommands that need no alias lookup; any other subcommand is looked up
+  # as a git alias (git config alias.<name>) and the alias is analysed.
+  known_subcommands: [add, am, apply, archive, bisect, blame, branch, bundle, checkout, cherry-pick, clean, clone, commit, config, describe, diff, fetch, format-patch, gc, grep, init, log, ls-files, ls-remote, ls-tree, merge, merge-base, mv, notes, pull, push, rebase, reflog, remote, reset, restore, revert, rev-list, rev-parse, rm, shortlog, show, show-ref, sparse-checkout, stash, status, submodule, switch, symbolic-ref, tag, update-ref, worktree, version, help]
+  push:
+    # Long options (prefix match in both directions, so abbreviations such
+    # as --forc and --force-with-lease are refused too; minimum 3 characters).
+    refused_long_options: ["--force", "--mirror", "--all", "--tags", "--follow-tags", "--delete", "--prune"]
+    # Letters in a short-option cluster (-f, -uf, -d) that are refused.
+    refused_short_letters: ["f", "d"]
+    options_with_value: ["--repo", "--receive-pack", "--exec", "-o", "--push-option", "--signed"]
+    # Destination ref prefixes that are refused (tag pushes).
+    refused_destination_prefixes: ["refs/tags/", "tags/"]
+  add:
+    refused_long_options: ["--all", "--update", "--force", "--pathspec-from-file", "--ignore-removal", "--no-ignore-removal"]
+    # -A (all), -u (all tracked), -f (ignored files)
+    refused_short_letters: ["A", "u", "f"]
+    # Pathspecs that stage "everything" or a pattern: `.`, `..`, `./`, globs, `:/`, `:(top)`.
+    refused_pathspec_patterns: ['^\.{1,2}/*$', '[*?\[]', '^:/*$', '^:\(top\)', '^:\(glob\)']
+    # Pathspecs naming sensitive files or folders.
+    sensitive_pathspec_patterns: ['(^|/)\.env(\..*)?$', '(^|/)data(/|$)']
+  commit:
+    # `git commit -a/--all` stages every tracked change (not targeted staging).
+    refused_short_letters: ["a"]
+    refused_long_options: ["--all"]
+    options_with_value: ["-m", "--message", "-F", "--file", "-C", "--reuse-message", "-c", "--reedit-message", "-t", "--template", "--author", "--date", "--cleanup", "-S", "--gpg-sign", "--trailer"]
+    # letters in a short cluster after which the rest of the token is a value
+    short_letters_with_value: ["m", "F", "C", "c", "t"]
+
+gh:
+  global_options_with_value: ["-R", "--repo", "--hostname"]
+  # Subcommand pairs (case-insensitive) that are always refused.
+  refused_subcommands:
+    - [pr, merge]
+    - [alias, set]
+    - [alias, import]
+  api:
+    write_methods: [PUT, POST, DELETE, PATCH]
+    # Field options turn `gh api` into a POST when no method is given.
+    field_options: ["-f", "-F", "--field", "--raw-field", "--input"]
+    # A write request is refused when any argument matches one of these or
+    # names a protected branch (word match).
+    refused_argument_patterns: ['(?i)merge', '=@', '^--input(=|$)', '(?i)graphql']
+
+http:
+  clients: [curl, wget, http, https, xh, httpie]
+  github_hosts: ["api.github.com", "github.com/api"]
+  # An argument that marks the request as a write (method/body options).
+  write_markers: ["-X", "--request", "-d", "--data", "--data-raw", "--data-binary", "--data-urlencode", "--json", "-F", "--form", "-T", "--upload-file", "--post-data", "--post-file", "--body-data", "--method"]
