@@ -49,7 +49,7 @@ Jeder Punkt wird abgehakt oder begründet verneint.
 
 Die Zuordnung ist mechanisch, nicht Ermessenssache.
 
-- **Klasse A:** Dokumentation, **neue** Tests, Analyse ohne Änderung an Code. „Code" meint hier `src/`, die Python-Skripte im Hauptordner, `requirements.txt` und `pyproject.toml` (siehe Klasse B). Reine Befund- und Messdokumentation in `docs/decisions.md` ist Klasse A.
+- **Klasse A:** Dokumentation, **neue** Tests, Analyse ohne Änderung an Code. „Code" meint hier `src/`, die Python-Skripte im Hauptordner, `requirements.txt` und `pyproject.toml` (siehe Klasse B). Reine Befund- und Messdokumentation in `docs/decisions.md` ist Klasse A (für die Merge-Voraussetzungen; die technische Rückfrage nach `.claude/settings.json` gilt zusätzlich).
 - **Klasse B:** Code mit nachgewiesen identischem Ergebnis (Golden Master gleich). Dazu zählen:
   - das übrige `src/` (alles außer den Verzeichnissen der Klasse C)
   - die Python-Skripte im Hauptordner (z. B. `run_stage1_full.py`, `run_stage1.py`, `run_universe.py`, `run_fundamentals.py`)
@@ -147,4 +147,5 @@ Am Ende jeder Arbeitssitzung steht ein Bericht im Berichtsformat (`CLAUDE.md`), 
 - Branch-Schutz ist nicht verfügbar.
 - Es gibt kein CI.
 - Ausweg: zweites GitHub-Konto oder Branch-Schutz. Entscheidung offen.
+- Stufe 1 (Berechtigungsliste `.claude/settings.json`) ist ein Hilfsmittel für beaufsichtigte Sitzungen, keine Sicherheitsgrenze. Unbeaufsichtigter Betrieb ist nicht freigegeben, bis Stufe 2 steht (Hook mit Tests, Regeln auch auf Nutzerebene des Servers, Entscheidung über Konto- bzw. Branch-Schutz; Issue #60).
 - Restbefunde aus dem Kritiker-Bericht: Issue #58.
