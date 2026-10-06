@@ -104,7 +104,7 @@ Die Zuordnung ist mechanisch, nicht Ermessenssache.
 - Fehlt sie, mergt Claude Code nicht.
 
 **Anweisung für echte Datenbank oder SimFin:**
-- Sie nennt Umfang (welche Datei bzw. Datenbank, welche Operation, bei SimFin die Zahl der Calls) und Befristung (bis Schichtende oder ein genannter Zeitpunkt).
+- Sie nennt Umfang (welche Datei bzw. Datenbank, welche Operation, bei SimFin die Zahl der Calls) und Befristung (ein genannter Zeitpunkt, höchstens 24 Stunden).
 - Fehlt Umfang oder Befristung, gilt sie nicht. Nach Ablauf ist eine neue Anweisung nötig.
 
 **Harte Grenzen:**
@@ -112,7 +112,7 @@ Die Zuordnung ist mechanisch, nicht Ermessenssache.
 - Jeder Weg mit der Wirkung „Merge in `master`" ist ohne ausdrückliche Freigabe verboten. Die Aufzählung ist beispielhaft: CLI (`gh pr merge`), API, GraphQL, MCP-Werkzeuge, Auto-Merge, Merge-Queue, Weboberfläche.
 - `master` wird nie lokal verändert.
 - Push nur mit explizitem Branchnamen (`git push origin <branch>`), nie mit `--all`, `--mirror` oder Tags.
-- Feature-Branch = ein vom Agenten für einen Auftrag neu angelegter Branch.
+- Feature-Branch = ein vom Agenten für einen Auftrag neu angelegter Branch. Feature-Branches des Agenten heißen `agent/<thema>` (ab jetzt).
 - Der Agent legt keine Routinen, geplanten Aufgaben oder Trigger an, außer Konstantin ordnet es ausdrücklich an. Ein geplanter Auftrag darf nie einen Merge, einen Push auf `master` oder einen Zugriff auf die echte Datenbank oder SimFin enthalten oder auslösen.
 
 ## D. Was der Projektinhaber entscheidet
