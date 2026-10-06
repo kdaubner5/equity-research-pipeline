@@ -257,12 +257,47 @@ def _split_heredocs(command):
     return "".join(out), bodies
 
 
+def _neutralize(text):
+    """Make newlines and backticks visible to the tokenizer.
+
+    A newline ends a command; a backtick opens a command substitution just
+    like $( does: it is replaced by ` $( ` so an argument built from it still
+    contains a `$` (an unresolved expansion) and the segment is split. Inside
+    single quotes bash treats both literally, so they are left alone there
+    (markdown with `code` in a `gh ... --body '...'` text must not be read as
+    a command)."""
+    out = []
+    in_single = False
+    in_double = False
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if in_single:
+            out.append(" ; " if ch == "\n" else ch)
+            in_single = ch != "'"
+        elif ch == "\\" and i + 1 < len(text):
+            out.append(ch)
+            out.append(text[i + 1] if text[i + 1] != "\n" else " ; ")
+            i += 1
+        elif ch == "'" and not in_double:
+            in_single = True
+            out.append(ch)
+        elif ch == '"':
+            in_double = not in_double
+            out.append(ch)
+        elif ch == "`":
+            out.append(" $( ")
+        elif ch == "\n":
+            out.append(" ; ")
+        else:
+            out.append(ch)
+        i += 1
+    return "".join(out)
+
+
 def _tokenize(text):
     text = re.sub(r"\\\n", " ", text)
-    # a backtick opens a command substitution just like $( does: keep a `$`
-    # token (so an argument built from it counts as an unresolved expansion)
-    # and split the segment
-    text = text.replace("\r", " ").replace("\n", " ; ").replace("`", " $( ")
+    text = _neutralize(text.replace("\r", " "))
     lexer = shlex.shlex(text, posix=True, punctuation_chars=True)
     lexer.whitespace_split = True
     lexer.commenters = ""

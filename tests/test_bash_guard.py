@@ -208,7 +208,9 @@ PUSH_REFUSED = [
     'echo "prefix $(git push origin master) suffix"',
     'echo "$(echo "$(git push origin master)")"',
     'printf "%s" "`git push origin master`"',
-    "echo '`git push origin master`'",  # single quotes are literal in bash; refused anyway (conservative)
+    'echo "`git push origin master`"',  # backticks execute inside double quotes
+    'gh issue comment 60 --body "`git push origin master`"',
+    "echo \\`git push origin master\\` | bash",
     'git commit -m "$(git push origin master)"',
     'VAR="$(git push origin master)"',
     'cat <(git push origin master)',
@@ -408,6 +410,12 @@ ALLOWED = [
     "git push origin agent/x && git status",
     "git push origin agent/x\ngit status",
     "echo done # git push origin master",
+    # single quotes are literal in bash: backticks in markdown text are not commands
+    "gh pr create --base master --title x --body 'Hook `bash_guard` lehnt `git push origin master` und `git add -A` ab'",
+    "gh issue comment 60 --body 'siehe `gh pr merge 5` und `git commit -a`'",
+    "git commit -m 'Doku: `git push --force` ist verboten'",
+    "gh pr create --body 'Zeile eins\n`git push origin master`\nZeile drei'",
+    "echo '`git push origin master`'",
 ]
 
 
