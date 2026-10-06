@@ -273,7 +273,11 @@ def _neutralize(text):
     while i < len(text):
         ch = text[i]
         if in_single:
-            out.append(" ; " if ch == "\n" else ch)
+            # `$(` is literal text in single quotes: break the pair so the
+            # substitution extraction does not see it (_analyze removes the
+            # marker again when the string is re-analysed as a script, e.g.
+            # the argument of bash -c, where it IS code)
+            out.append("$\x00" if ch == "$" and text[i + 1:i + 2] == "(" else ch)
             in_single = ch != "'"
         elif ch == "\\" and i + 1 < len(text):
             out.append(ch)
@@ -287,6 +291,11 @@ def _neutralize(text):
             out.append(ch)
         elif ch == "`":
             out.append(" $( ")
+        elif ch == "\n" and in_double:
+            # a newline inside double quotes is data (or the line break of a
+            # heredoc inside "$(cat <<'EOF' ... EOF)"): keep it, the
+            # substitution is analysed from its own text
+            out.append(ch)
         elif ch == "\n":
             out.append(" ; ")
         else:
@@ -372,6 +381,7 @@ class Guard:
 
     def _analyze(self, command, depth, reasons):
         cfg = self.config
+        command = command.replace("\x00", "")  # see _neutralize
         if depth > cfg.max_depth:
             reasons.append("nesting too deep to analyse")
             return

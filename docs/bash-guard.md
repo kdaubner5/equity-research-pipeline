@@ -34,7 +34,7 @@ Erlaubt bleiben die Formen, die der Agent braucht: `git push origin agent/<thema
 4. **Lokale Änderungen an `master`.** `git commit`, `git merge`, `git reset` auf einem ausgecheckten `master` sind nicht abgelehnt; die Regel „`master` wird nie lokal verändert“ bleibt in diesem Punkt Text.
 5. **Der Hook selbst.** Wer `.claude/settings.json`, `src/hooks/bash_guard.py` oder `config/bash_guard.yaml` ändert (auch per `sed -i`, `python`), kann den Hook abschalten. Die Ask-Regeln greifen im Modus `bypassPermissions` nicht. Schutz bieten nur Einstellungen auf Nutzerebene des Servers, verwaltete Einstellungen oder Branch-Schutz (Issue #60).
 6. **Andere Werkzeuge als Bash.** MCP-Werkzeuge (`mcp__github__merge_pull_request` usw.) werden weiter durch die Deny-Regeln in `settings.json` gesperrt, nicht durch diesen Hook.
-7. **Falschmeldungen.** Der Tokenizer kennt nicht, ob ein `$(…)` in einfachen Anführungszeichen steht (dort ist es Text); er lehnt vorsichtshalber ab.
+7. **Falschmeldungen.** Der Hook liest einfache Anführungszeichen als Text (dort laufen weder `$(…)` noch Backticks); ein Skript in `bash -c '…'` oder `eval '…'` wird dagegen als Code analysiert. Heredoc-Texte in `"$(cat <<'EOF' … EOF)"` (Commit- und PR-Meldungen) sind Daten. Im Zweifel lehnt der Hook ab: Ein Befehl, den er nicht sicher zerlegen kann, wird abgelehnt, auch wenn er harmlos wäre.
 8. **Reichweite.** Der Hook gilt nur dort, wo `.claude/settings.json` mit dem Eintrag geladen wird (Checkout mit der Datei). Neue Sitzungen auf `master` haben ihn erst nach dem Merge; für jeden Checkout bräuchte es zusätzlich `~/.claude/settings.json` des Nutzers `claude` (Issue #60).
 
 ## Ändern und erweitern

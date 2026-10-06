@@ -216,6 +216,14 @@ PUSH_REFUSED = [
     'cat <(git push origin master)',
     "diff <(git status) <(git push origin master)",
     'echo "$(git -C . push origin master)"',
+    # code inside a string that is run as a script: single quotes do not make it text
+    "bash -c '$(git push origin master)'",
+    "bash -c 'echo hi\n$(git push origin master)'",
+    "eval '$(git push origin master)'",
+    # real commands after a heredoc inside a substitution
+    "echo \"$(cat <<'EOF'\nx\nEOF\ngit push origin master\n)\"",
+    "echo \"$(cat <<'EOF'\nx\nEOF\n)\" && git push origin master",
+    "git commit -m \"$(cat <<'EOF'\nmessage\nEOF\n)\" && git push origin master",
     "git push origin master # push",
     # variables / unknowable command words
     "$GIT push origin master",
@@ -416,6 +424,13 @@ ALLOWED = [
     "git commit -m 'Doku: `git push --force` ist verboten'",
     "gh pr create --body 'Zeile eins\n`git push origin master`\nZeile drei'",
     "echo '`git push origin master`'",
+    # heredoc messages inside "$(cat <<'EOF' ... EOF)" are data (the usual way an agent writes commit and PR texts)
+    "git commit -m \"$(cat <<'EOF'\nStufe 2: Hook\n\nDer Hook lehnt git push origin master ab.\nEOF\n)\"",
+    "git commit -m \"$(cat <<'EOF'\nLehnt ab: git add -A, gh pr merge, git push --force.\nEOF\n)\"",
+    "gh pr create --base master --title x --body \"$(cat <<'EOF'\n## Zusammenfassung\n- git add -A und gh pr merge werden abgelehnt\nEOF\n)\"",
+    "gh issue comment 61 --body 'Beispiel: \"$(cat <<'\\''EOF'\\''\\nGit push origin master\\nEOF\\n)\"'",
+    "echo '$(git push origin master)'",  # literal in single quotes
+    "git commit -m '$(git push origin master)'",
 ]
 
 
