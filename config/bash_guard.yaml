@@ -16,9 +16,12 @@ max_depth: 8
 
 limits:
   # Total time budget for analysing one command. Claude Code does NOT block
-  # a call when a hook runs into its own timeout (settings.json: 30 s), so
-  # this must stay well below that; when it is exceeded the call is refused.
+  # a call when a hook runs into its own timeout, so this must stay below
+  # hook_timeout_seconds; when it is exceeded the call is refused.
   analysis_seconds: 10
+  # The `timeout` of the hook entry in .claude/settings.json (a test checks
+  # that both agree).
+  hook_timeout_seconds: 30
   # Time limit of one git lookup (current branch, alias) the hook runs.
   git_lookup_seconds: 5
   # Shortest `--xyz` option text treated as an abbreviation of a refused
@@ -30,7 +33,8 @@ limits:
 non_executing_commands: [echo, printf, grep, egrep, fgrep, rg, which, type, man, whatis, ls, stat, wc]
 
 # Commands that append arguments from stdin or from a list: git/gh behind
-# them cannot be checked, so `git push` / `gh pr merge` behind them is refused.
+# them cannot be checked, so `git push` / `git add` / `gh pr merge` behind
+# them is refused.
 dynamic_arg_commands: [xargs, parallel]
 
 # Commands that run a command given as ONE string argument (env -S "...",
@@ -38,13 +42,23 @@ dynamic_arg_commands: [xargs, parallel]
 # whitespace is analysed as a command line.
 command_string_wrappers: [env, su, watch, script, timeout, ssh, tmux, flock, sudo, doas, runuser, sg, screen, nohup, setsid, nice, ionice, stdbuf, chroot, unshare, nsenter, at, batch, expect, xterm, find]
 
-# Environment variables that change how git finds its config, remotes or
-# programs; refused when set in front of a command (VAR=x cmd, env VAR=x cmd).
-refused_env_prefixes: ["GIT_CONFIG", "GIT_DIR", "GIT_WORK_TREE", "GIT_EXEC_PATH", "GIT_SSH", "GIT_PROXY", "GIT_ASKPASS", "GIT_EXTERNAL_DIFF"]
+# Commands that change the working directory: the current branch of a
+# later `git commit` / `git push` without a refspec is then unknown.
+cwd_changing_commands: [cd, pushd, popd]
 
-# The hook, its configuration and the Claude Code settings must not be
-# changed from a Bash call (the Edit/Write tools have their own ask rules).
-protected_paths: ['(^|/)\.claude(/|$)', '(^|/)src/hooks(/|$)', '(^|/)config/bash_guard\.yaml$']
+# Commands that define commands for later in the same call (aliases, traps).
+refused_commands: [alias, trap]
+
+# Commands that set environment variables for later commands.
+env_setting_commands: [env, export, declare, typeset, readonly, local]
+# Environment variables refused there or in front of a command (VAR=x cmd):
+# they change how git/gh find config, remotes, pagers, editors or programs.
+refused_env_prefixes: ["GIT_CONFIG", "GIT_DIR", "GIT_WORK_TREE", "GIT_EXEC_PATH", "GIT_SSH", "GIT_PROXY", "GIT_ASKPASS", "GIT_EXTERNAL_DIFF", "GIT_PAGER", "GIT_EDITOR", "GIT_SEQUENCE_EDITOR", "GIT_TEMPLATE_DIR", "GH_PAGER", "GH_BROWSER", "GH_EDITOR", "GH_CONFIG_DIR", "PAGER", "EDITOR", "VISUAL", "BROWSER", "BASH_ENV", "ENV", "PROMPT_COMMAND", "LD_PRELOAD", "LD_LIBRARY_PATH", "SSH_ASKPASS", "PYTHONSTARTUP"]
+
+# The hook, its configuration, the Claude Code settings and git's own
+# configuration must not be changed from a Bash call (the Edit/Write tools
+# have their own ask rules).
+protected_paths: ['(^|/)\.claude(/|$)', '(^|/)src/hooks(/|$)', '(^|/)config/bash_guard\.yaml$', '(^|/)\.git(/|$)', '(^|/)\.gitconfig$', '(^|/)\.config/git(/|$)']
 # Commands that write to every path argument ...
 path_writing_commands: [tee, cp, mv, rm, truncate, ln, install, rsync, dd, chmod, chown, shred, unlink, rmdir]
 # ... and commands that write only with one of these options (in-place edit).
@@ -56,13 +70,14 @@ path_writing_with_option:
   python: ["-i"]
 
 # Shells: `-c STRING` is analysed recursively; a shell without -c and
-# without a script file argument reads commands from stdin and is refused.
+# without a script file argument (or with /dev/stdin, -) reads commands from
+# stdin and is refused.
 shell_interpreters: [bash, sh, zsh, dash, ksh, ash, fish, csh, tcsh]
 # Interpreters with inline code (python -c, node -e, heredoc bodies): the
 # code is searched for an exec marker AND a deny pattern (heuristic; a
 # script file or obfuscated string is not caught).
-script_interpreter_patterns: ["^python[0-9.]*$", "^perl$", "^ruby$", "^node(js)?$", "^php$", "^lua$", "^deno$", "^bun$", "^g?awk$", "^mawk$"]
-inline_exec_markers: ["subprocess", "os\\.system", "os\\.popen", "os\\.exec", "os\\.spawn", "pty\\.spawn", "popen", "child_process", "execSync", "spawnSync", "Open3", "\\bsystem\\s*\\(", "\\bexec\\s*\\(", "%x[({\\[]", "urllib", "requests\\.", "http\\.client", "\\bfetch\\s*\\(", "axios", "\\bsystem\\s*\\("]
+script_interpreter_patterns: ["^python[0-9.]*$", "^perl$", "^ruby$", "^node(js)?$", "^php$", "^lua$", "^deno$", "^bun$", "^g?awk$", "^mawk$", "^sed$"]
+inline_exec_markers: ["subprocess", "os\\.system", "os\\.popen", "os\\.exec", "os\\.spawn", "pty\\.spawn", "popen", "child_process", "execSync", "spawnSync", "Open3", "\\bsystem\\s*\\(", "\\bexec\\b", "%x[({\\[]", "\\bqx\\b", "`", "passthru", "shell_exec", "proc_open", "getline", "\\|\\s*[\"']", "(?m)(^|[\\s;{}'\"])[0-9$]*e\\s", "/[gpiIm]*e[gpiIm]*(;|$|')", "urllib", "requests\\.", "http\\.client", "\\bfetch\\s*\\(", "axios"]
 inline_deny_patterns:
   - '(?is)\bgit\b.{0,300}?\bpush\b'
   - '(?is)\bgh\b.{0,300}?\bmerge\b'
@@ -72,13 +87,29 @@ inline_deny_patterns:
 git:
   # Options before the subcommand that take a separate value.
   global_options_with_value: ["-C", "-c", "--git-dir", "--work-tree", "--namespace", "--super-prefix", "--config-env"]
-  # `git -c KEY=VALUE` and `git config KEY ...` (writing): refused when KEY
-  # starts with one of these (case-insensitive); they define aliases, run
-  # programs or change where a push goes.
-  refused_c_key_prefixes: ["alias.", "core.sshcommand", "core.hookspath", "core.fsmonitor", "core.pager", "pager.", "credential.helper", "remote.", "push.", "branch.", "url."]
+  # `git -c KEY=VALUE`, `--config-env`, and `git config KEY VALUE` (writing)
+  # are allowed only for keys starting with one of these (case-insensitive);
+  # every other key can define aliases, run programs or redirect a push.
+  allowed_c_key_prefixes: ["user.", "color.", "advice.", "core.quotepath", "core.autocrlf", "core.safecrlf", "core.filemode", "core.whitespace", "core.precomposeunicode", "init.defaultbranch", "pull.ff", "pull.rebase", "fetch.prune", "status.", "log.", "format.", "safe.directory"]
   # Subcommands that need no alias lookup; any other subcommand is looked up
   # as a git alias (git config alias.<name>) and the alias is analysed.
-  known_subcommands: [add, am, apply, archive, bisect, blame, branch, bundle, checkout, cherry-pick, clean, clone, commit, config, describe, diff, fetch, format-patch, gc, grep, init, log, ls-files, ls-remote, ls-tree, merge, merge-base, mv, notes, pull, push, rebase, reflog, remote, reset, restore, revert, rev-list, rev-parse, rm, shortlog, show, show-ref, sparse-checkout, stash, status, submodule, switch, symbolic-ref, tag, update-ref, worktree, version, help, send-pack]
+  known_subcommands: [add, am, apply, archive, bisect, blame, branch, bundle, checkout, cherry-pick, clean, clone, commit, config, describe, diff, difftool, fetch, filter-branch, format-patch, gc, grep, init, log, ls-files, ls-remote, ls-tree, merge, merge-base, mv, notes, pull, push, rebase, reflog, remote, reset, restore, revert, rev-list, rev-parse, rm, shortlog, show, show-ref, sparse-checkout, stash, status, submodule, switch, symbolic-ref, tag, update-ref, worktree, version, help, send-pack]
+  # Options that run a program given as a string (or fetch with one): refused
+  # for that subcommand (long options also as unique abbreviation).
+  refused_options_by_subcommand:
+    rebase: ["-x", "--exec"]
+    difftool: ["-x", "--extcmd"]
+    grep: ["-O", "--open-files-in-pager"]
+    fetch: ["--upload-pack"]
+    pull: ["--upload-pack"]
+    clone: ["-u", "--upload-pack"]
+    ls-remote: ["--upload-pack", "--exec"]
+    archive: ["--exec"]
+  # Subcommand words that run commands (`git submodule foreach CMD`).
+  refused_words_by_subcommand:
+    submodule: [foreach]
+    bisect: [run]
+    remote: [add, set-url, rename, remove, rm, set-branches]
   push:
     # Long options (prefix match in both directions, so abbreviations such
     # as --forc and --force-with-lease are refused too).
@@ -118,9 +149,12 @@ git:
       switch: ["-f", "--force", "-C", "--force-create", "--discard-changes"]
       branch: ["-f", "--force", "-d", "-D", "--delete", "-m", "-M", "--move", "-c", "-C", "--copy"]
     # Always refused when a protected branch name is among the arguments.
-    refused_subcommands_naming_protected_branch: [update-ref]
+    refused_subcommands_naming_protected_branch: [update-ref, worktree]
+    # Subcommands that may switch the current branch; a later `git commit` /
+    # `git push` without a refspec in the same call then has an unknown branch.
+    branch_switching_subcommands: [checkout, switch, symbolic-ref, worktree]
     # Always refused.
-    refused_subcommands: [send-pack]
+    refused_subcommands: [send-pack, filter-branch, filter-repo]
 
 gh:
   global_options_with_value: ["-R", "--repo", "--hostname"]
@@ -129,10 +163,16 @@ gh:
     - [pr, merge]
     - [alias, set]
     - [alias, import]
+    - [extension, install]
+    - [config, set]
   api:
     write_methods: [PUT, POST, DELETE, PATCH]
+    # Methods that are reads even when fields are given.
+    read_methods: [GET, HEAD]
     # Field options turn `gh api` into a POST when no method is given.
     field_options: ["-f", "-F", "--field", "--raw-field", "--input"]
+    # A header that overrides the HTTP method makes the request a write.
+    write_header_patterns: ['(?i)method-override']
     # true: every write request through `gh api` is refused (the agent needs
     # none). false: only writes touching the patterns below, a protected
     # branch or an uninspectable body (=@file, --input) are refused.
@@ -141,9 +181,18 @@ gh:
 
 http:
   clients: [curl, wget, http, https, xh, httpie]
-  # Requests to these hosts (substring match) with a write marker are refused.
+  # Clients with HTTPie syntax (`http PUT url`, `http url a=b` posts).
+  httpie_clients: [http, https, xh, httpie]
+  httpie_write_patterns: ['^[^=:\s/]+=(?!=)', '^[^=:\s/]+:=', '^[^=:\s/]+=@']
+  # Requests to these hosts (substring match) with a write marker are refused;
+  # so is any request with an unresolved ($) URL part.
   github_hosts: ["api.github.com", "github.com", "githubusercontent.com"]
-  # An argument that marks the request as a write (method/body options).
-  write_markers: ["-X", "--request", "-d", "--data", "--data-raw", "--data-binary", "--data-urlencode", "--json", "-F", "--form", "-T", "--upload-file", "--post-data", "--post-file", "--body-data", "--method"]
+  # Long options that mark the request as a write.
+  write_long_options: ["--request", "--data", "--data-raw", "--data-binary", "--data-urlencode", "--json", "--form", "--upload-file", "--post-data", "--post-file", "--body-data", "--method"]
+  # Letters in a short-option cluster (curl -sd, -sXPUT) that mark a write.
+  write_short_letters: ["X", "d", "F", "T"]
+  # The letters that take an HTTP method (the value after it is checked).
+  method_short_letters: ["X"]
+  read_methods: [GET, HEAD, OPTIONS]
   # Options that read further options from a file (not inspectable).
   refused_options: ["-K", "--config"]

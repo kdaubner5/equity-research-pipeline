@@ -1189,12 +1189,12 @@ def test_api_reads_and_unrelated_file_work_stay_allowed(config, command):
 
 
 def test_absolute_path_that_contains_the_working_directory_stages_everything(config):
-    guard = Guard(config, cwd="/home/claude/equity-research", branch_resolver=lambda c: "agent/x", alias_resolver=lambda n, c: None)
-    assert guard.check("git add /home/claude/equity-research")
-    assert guard.check("git add /home/claude")
-    assert guard.check("git add /home/claude/equity-research/")
-    assert guard.check("git add /home/claude/equity-research/src/a.py") == []
-    assert guard.check("git add /home/claude/other-project") == []
+    guard = Guard(config, cwd="/work/owner/project", branch_resolver=lambda c: "agent/x", alias_resolver=lambda n, c: None)
+    assert guard.check("git add /work/owner/project")
+    assert guard.check("git add /work/owner")
+    assert guard.check("git add /work/owner/project/")
+    assert guard.check("git add /work/owner/project/src/a.py") == []
+    assert guard.check("git add /work/owner/other-project") == []
 
 
 def test_percent_encoding_is_decoded_when_api_writes_are_not_refused_wholesale():
@@ -1244,12 +1244,17 @@ def test_many_segments_are_cheap_because_git_lookups_are_cached(config):
 
 def test_time_limits_live_in_the_config():
     data = _minimal_config()
-    assert data["limits"]["analysis_seconds"] < 30  # settings.json: timeout 30 (a hook timeout does not block)
     settings = json.loads((REPO_ROOT / ".claude" / "settings.json").read_text(encoding="utf-8"))
-    assert data["limits"]["analysis_seconds"] < settings["hooks"]["PreToolUse"][0]["hooks"][0]["timeout"]
-    data["limits"]["analysis_seconds"] = 0
-    with pytest.raises(GuardConfigError):
-        Config(data)
+    entry_timeout = settings["hooks"]["PreToolUse"][0]["hooks"][0]["timeout"]
+    # Claude Code does not block a call when a hook runs into its timeout: the
+    # analysis budget must be smaller, and the config must know the entry's timeout
+    assert data["limits"]["hook_timeout_seconds"] == entry_timeout
+    assert data["limits"]["analysis_seconds"] < entry_timeout
+    for bad in (0, -1, float("nan"), float("inf"), data["limits"]["hook_timeout_seconds"], "10"):
+        broken = _minimal_config()
+        broken["limits"]["analysis_seconds"] = bad
+        with pytest.raises(GuardConfigError):
+            Config(broken)
 
 
 def test_slow_git_lookup_is_bounded_by_the_configured_timeout(config, tmp_path, monkeypatch):
@@ -1263,3 +1268,297 @@ def test_slow_git_lookup_is_bounded_by_the_configured_timeout(config, tmp_path, 
     guard = Guard(config, cwd=str(tmp_path))
     assert guard.check("git push")  # lookup failed -> refused
     assert seen and max(seen) <= config.git_lookup_seconds
+
+
+# --------------------------------------------------------------------------
+# Kritiker-Lauf 2 (PR #61, Commit c055b6a): chains, expansions, comments, ...
+# --------------------------------------------------------------------------
+
+CHAIN_REFUSED = [  # S1, S7: the branch / directory changes inside one command
+    "git checkout master && git push",
+    "git switch main; git push",
+    "git checkout master && git push origin HEAD",
+    "git checkout master && git push -u origin HEAD",
+    "git checkout master && git commit -m x",
+    "git checkout master && git merge agent/x",
+    "git checkout master && git reset --hard origin/master",
+    "git checkout master && git rebase abc",
+    "git checkout master && git cherry-pick abc",
+    "git checkout master && git pull",
+    "git symbolic-ref HEAD refs/heads/master && git push",
+    "git checkout - && git push",
+    "git checkout $B && git push",
+    "git switch -c master && git push",
+    "git checkout -b master && git push",
+    "git checkout agent/x && git push",  # unknown target (could be a file or any branch): give an explicit refspec
+    "git checkout agent/x && git commit -m x",
+    "git worktree add /tmp/w agent/x && git -C /tmp/w push",
+    "git worktree add /tmp/w master && git -C /tmp/w push",
+    "cd /tmp/x && git commit -m x",
+    "cd /tmp/x; git push",
+    "pushd /tmp/x && git push",
+    "(cd /tmp/x && git commit -m x)",
+    "cd .. && git push origin",
+    "bash -c 'cd /tmp/x && git commit -m x'",
+]
+CHAIN_ALLOWED = [
+    "git checkout -b agent/new && git push -u origin HEAD",
+    "git checkout -b agent/new && git push",
+    "git switch -c agent/new && git commit -m x",
+    "git checkout -b agent/new; git push -u origin agent/new",
+    "git checkout agent/x && git push origin agent/x",
+    "git checkout -- file.txt && git commit -m x",
+    "git checkout master",
+    "git checkout agent/x",
+    "cd /tmp/x && git push origin agent/x",
+    "cd /tmp/x && ls",
+]
+EXPANSION_MORE_REFUSED = [  # S2: remote position, S3: method position
+    "git push $(git remote) master",
+    "git push $(echo origin) HEAD:master",
+    "git push $(git remote) main",
+    "git push `git remote` master",
+    "git push $R master",
+    "git push \"$@\"",
+    "git push ${REMOTE} agent/x",
+    "sh -c 'git push \"$@\"' _ origin master",
+    "set -- origin master; git push \"$@\"",
+    "a=(origin master); git push \"${a[@]}\"",
+    "f(){ git push \"$@\"; }; f origin master",
+    "M=PUT; gh api -X $M repos/o/r/pulls/61/merge",
+    "gh api -X \"$M\" repos/o/r/pulls/61/merge",
+    "gh api $(echo -X PUT) repos/o/r/pulls/61/merge",
+    "gh api repos/o/r/pulls/$N/merge",
+    "gh api -H 'X-HTTP-Method-Override: PUT' repos/o/r/pulls/5/merge",
+    "gh api --header='X-HTTP-Method-Override: PUT' repos/o/r/x",
+    "gh api -H 'x-http-method-override: DELETE' repos/o/r/x -X GET",
+]
+EXPANSION_MORE_ALLOWED = [
+    "gh api -X GET repos/o/r/pulls/$N",
+    "gh api repos/o/r/pulls/5",
+    "git push origin agent/x",
+]
+COMMENT_REFUSED = [  # S4: a comment ends at the line end, even after a backslash
+    "echo x #\\\ngit push origin master",
+    "ls # note \\\ngit push origin master",
+    "echo ok # it's a comment\ngit push origin master",
+    "git status #\\\ngit add -A",
+    "true # \\\ngh pr merge 5",
+    "echo \"#\"\ngit push origin master",
+]
+COMMENT_ALLOWED = [
+    "echo x # comment\necho y",
+    "git status # trailing comment",
+    "echo a#b",
+    "ls ${#PATH}",
+    "git commit -m 'text # not a comment'",
+]
+PROGRAM_OPTION_REFUSED = [  # S5: git options and words that run a program
+    "git submodule foreach 'git push origin HEAD:master'",
+    "git submodule foreach git status",
+    "git rebase -x 'git push origin HEAD:master' main",
+    "git rebase --exec 'make' origin/x",
+    "git rebase -i --exec x HEAD~2",
+    "git rebase --ex x HEAD~2",
+    "git difftool -x cmd",
+    "git difftool --extcmd=cmd",
+    "git filter-branch --tree-filter x",
+    "git filter-branch --env-filter x HEAD",
+    "git bisect run ./test.sh",
+    "git grep -O'cmd' pattern",
+    "git grep --open-files-in-pager=cmd x",
+    "git fetch --upload-pack='x' origin",
+    "git fetch --upload-pack x origin",
+    "git fetch --upload=x origin",
+    "git clone -u 'cmd' url",
+    "git clone --upload-pack=cmd url",
+    "git ls-remote --upload-pack=x origin",
+    "git ls-remote --exec=x origin",
+    "git archive --exec=x HEAD",
+    "git pull --upload-pack=x",
+    "git remote add evil url",
+    "git remote set-url origin url",
+    "git remote set-url --push origin url",
+    "git remote remove origin",
+    "git remote rm origin",
+]
+PROGRAM_OPTION_ALLOWED = [
+    "git rebase origin/master",
+    "git rebase -i HEAD~3",
+    "git grep -n pattern",
+    "git difftool",
+    "git bisect start",
+    "git bisect good",
+    "git submodule update --init",
+    "git submodule status",
+    "git remote -v",
+    "git remote show origin",
+    "git fetch origin",
+    "git clone https://example.com/x.git",
+]
+GIT_FILE_CONFIG_REFUSED = [  # S6: git's configuration written from Bash
+    "echo x >> .git/config",
+    "printf '[remote \"origin\"]\\n push=HEAD:master\\n' >> .git/config",
+    "sed -i s/a/b/ .git/config",
+    "tee .git/hooks/pre-push",
+    "cp evil .git/hooks/pre-commit",
+    "ln -s x ~/.gitconfig",
+    "echo x > ~/.gitconfig",
+    "echo x > ~/.config/git/config",
+    "chmod +x .git/hooks/pre-push",
+    "rm -rf .git",
+    "mv x .git/info/exclude",
+]
+GIT_FILE_CONFIG_ALLOWED = [
+    "cat .git/config",
+    "grep remote .git/config",
+    "ls .git/hooks",
+    "git config --get remote.origin.url",
+]
+ENV_WRAPPER_MORE_REFUSED = [  # M1, M3, M4
+    "env -S\"git push origin master\"",
+    "env --split-string='git push origin master'",
+    "env -S'git push origin master'",
+    "sh -c -- 'git push origin master'",
+    "bash -c -- \"git push origin master\"",
+    "bash /dev/stdin <<< 'git push origin master'",
+    "sh - <<EOF\ngit push origin master\nEOF",
+    "bash /proc/self/fd/0",
+    "alias g=git\nshopt -s expand_aliases\ng push origin master",
+    "alias gp='git push origin HEAD:master'; bash -i -c gp",
+    "trap 'git push origin master' EXIT",
+    "GIT_PAGER='sh -c \"git push origin master\"' git log",
+    "GIT_EDITOR='git push origin master' git commit",
+    "GH_PAGER=x gh pr view 5",
+    "GH_BROWSER=x gh pr view 5",
+    "PAGER=x git log",
+    "GIT_SEQUENCE_EDITOR=x git rebase -i HEAD~2",
+    "BASH_ENV=/tmp/x.sh bash -c true",
+    "ENV=/tmp/x.sh sh -c true",
+    "export GIT_PAGER=x",
+    "declare -x PAGER=x",
+    "PROMPT_COMMAND=x bash -i",
+    "env LD_PRELOAD=x ls",
+    "X=push git --config-env=alias.p=X p origin master",
+    "git --config-env alias.p=X p origin master",
+]
+GIT_C_KEY_REFUSED = [  # M5: only allow-listed config keys
+    "git -c core.editor=x commit",
+    "git -c gpg.program=x commit -S -m x",
+    "git -c diff.external=x diff",
+    "git -c sequence.editor=x rebase -i HEAD~2",
+    "git -c core.askpass=x fetch",
+    "git -c core.gitProxy=x fetch",
+    "git -c include.path=x status",
+    "git -c protocol.ext.allow=always fetch",
+    "git -c init.templateDir=x init",
+    "git -c filter.x.clean=x add y",
+    "git config --global core.editor x",
+    "git config --global include.path x",
+]
+GIT_C_KEY_ALLOWED = [
+    "git -c user.email=a@b.c commit -m x",
+    "git -c color.ui=always diff",
+    "git -c core.quotepath=false status",
+    "git config user.email a@b.c",
+    "git config --global user.name x",
+]
+HTTP_MORE_REFUSED = [  # M7
+    "curl -sXPUT https://api.github.com/repos/o/r/pulls/5/merge",
+    "curl -sX PUT https://api.github.com/x",
+    "curl -sd '{}' https://api.github.com/x",
+    "curl -XDELETE https://api.github.com/x",
+    "curl -X PUT $URL",
+    "curl -X PUT \"$URL\"",
+    "curl -X PUT $(echo https://api.github.com/x)",
+    "curl $ARGS",
+    "curl https://api.github.com/$PATH_VAR",
+    "http PUT api.github.com/repos/o/r/pulls/5/merge",
+    "http POST api.github.com/x a=b",
+    "http api.github.com/x a=b",
+    "http api.github.com/x a:=1",
+    "https PUT api.github.com/x",
+    "xh PUT api.github.com/x",
+    "http DELETE github.com/x",
+]
+HTTP_MORE_ALLOWED = [
+    "curl -sXGET https://api.github.com/repos/o/r",
+    "curl -X GET $URL",
+    "curl https://api.github.com/repos/o/r/pulls/5",
+    "curl -sSL https://example.com/x -o x",
+    "http GET api.github.com/x",
+    "http api.github.com/x",
+    "http api.github.com/x a==b",
+    "wget -q https://api.github.com/x",
+]
+INLINE_MORE_REFUSED = [  # M6: interpreter families and markers
+    "perl -e '`git push origin master`'",
+    "perl -e 'exec \"git\",\"push\",\"origin\",\"master\"'",
+    "perl -e 'qx(git push origin master)'",
+    "php -r 'passthru(\"git push origin master\");'",
+    "php -r 'shell_exec(\"git push origin master\");'",
+    "awk 'BEGIN { \"git push origin master\" | getline x }'",
+    "awk 'BEGIN { print 1 | \"git push origin master\" }'",
+    "sed -n 'e git push origin master'",
+    "sed 's/x/git push origin master/e'",
+    "sed '1e git push origin master'",
+]
+XARGS_ADD_REFUSED = [
+    "git ls-files -m | xargs git add",
+    "git status -s | cut -c4- | xargs git add",
+    "xargs -n1 git add",
+    "echo a | xargs -I{} git add {}",
+]
+XARGS_ALLOWED = [
+    "git ls-files | xargs wc -l",
+    "find . -name '*.py' | xargs grep -n foo",
+]
+
+
+@pytest.mark.parametrize("command", CHAIN_REFUSED)
+def test_chains_that_switch_branch_or_directory_are_refused(config, command):
+    assert refused(config, command, branch="agent/thema"), command
+
+
+@pytest.mark.parametrize("command", CHAIN_ALLOWED)
+def test_chains_with_known_branches_stay_allowed(config, command):
+    assert refused(config, command, branch="agent/thema") == [], command
+
+
+@pytest.mark.parametrize(
+    "command",
+    EXPANSION_MORE_REFUSED + COMMENT_REFUSED + PROGRAM_OPTION_REFUSED + GIT_FILE_CONFIG_REFUSED + ENV_WRAPPER_MORE_REFUSED
+    + GIT_C_KEY_REFUSED + HTTP_MORE_REFUSED + INLINE_MORE_REFUSED + XARGS_ADD_REFUSED,
+)
+def test_bypasses_from_the_second_critic_report_are_refused(config, command):
+    assert refused(config, command), command
+
+
+@pytest.mark.parametrize(
+    "command",
+    EXPANSION_MORE_ALLOWED + COMMENT_ALLOWED + PROGRAM_OPTION_ALLOWED + GIT_FILE_CONFIG_ALLOWED + GIT_C_KEY_ALLOWED
+    + HTTP_MORE_ALLOWED + XARGS_ALLOWED,
+)
+def test_harmless_forms_next_to_the_second_report_stay_allowed(config, command):
+    assert refused(config, command) == [], command
+
+
+def test_branch_of_a_missing_c_directory_is_unknown_and_refused(config, repo, tmp_path):
+    """`git worktree add X && git -C X push`: X does not exist when the hook runs."""
+    missing = tmp_path / "w"
+    assert evaluate(payload(f"git -C {missing} push", cwd=str(repo)), config)[0] is False
+    assert evaluate(payload(f"git -C {missing} commit -m x", cwd=str(repo)), config)[0] is False
+    git(repo, "checkout", "-q", "-b", "agent/x")
+    assert evaluate(payload("git -C . push", cwd=str(repo)), config)[0] is True  # a real repository on a feature branch
+    assert evaluate(payload(f"git -C {missing} push origin agent/x", cwd=str(repo)), config)[0] is True  # explicit refspec
+
+
+def test_comment_text_is_still_analysed_conservatively(config):
+    # a comment is not executed, but the hook cannot be sure where it ends: a
+    # command word inside it counts (documented false positive)
+    assert refused(config, "git push origin agent/x # not master")
+
+
+def test_the_remote_expansion_reason_names_the_remote(config):
+    reasons = refused(config, "git push $(git remote) master")
+    assert any("remote" in r for r in reasons)
