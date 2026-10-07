@@ -1573,3 +1573,133 @@ Maßstab ist der Replay vom 2026-10-07 (41 von 126 bestehen Stufe 2; Stufe-1-Lau
 **Grenzen (bekannt, akzeptiert):** Die Dividenden-Gegenprobe erkennt nur dividendenzahlende Firmen und Aktienzahlen, die um mehr als etwa den Faktor 1,5 zu klein sind; Währungsunterschiede (Beträge in Landeswährung, Dividende in USD; BBAR, PHI laut Bericht) lassen R zu groß erscheinen: sie werden als verdächtig ausgeschieden, was bei Präzision vor Vollständigkeit akzeptabel ist; die Gegenrechnung für Investitionen ist eine Größenordnung. Der Bericht zählt zudem nur die Prüfbarkeit, nicht die Richtigkeit der Dividendenhöhe (Sonderdividenden verschieben R).
 
 **How to apply (nach Freigabe):** `config/stage2.yaml` und `config_layer/stage2.py` um die zwei Gruppen erweitern; `data_layer/simfin_valuation.py` um die zwei Extraktionen; neues Modul `data_layer/simfin_price_cache.py` (Preis-Cache-Leser, nur lesend); `metrics_layer/valuation.py` um die Kennzahlen; `gates_layer/stage2_gates.py` um Prüfung, Flag und Info-Marken; `store_layer/stage2_store.py` und `run_stage2.py` um Felder, Argument und Bericht; Tests wie in Abschnitt 5, zuerst. Unverändert: `simfin_client.py`, `stage1_gates.py`, `thresholds.py`/`thresholds.yaml`, `store_layer/db.py`.
+
+## 2026-10-07: Trend-Guard (Masterplan Stufe 1.1, Hebel 3 aus Issue #52) – Entscheidungsentwurf (Agent-Entscheidung, Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin; vorher wird nichts gebaut. Branch `agent/trend-guard-entwurf` (von `master`), nur Text. Klasse C: neue Schwellen und eine neue Prüfschicht. Keine echte Datenbank, kein `data/`, kein SimFin-Aufruf; Zahlen zu echten Firmen stammen ausschließlich aus bereits dokumentierten Messungen (Issue #52, Abschnitt „2026-10-01: Phase 2.0 – Zyklische Firmen unter den Überlebenden“, und Messbericht Stufe 2 vom 2026-10-07); die Beispielrechnung rechnet nur mit den Pilot-Fixtures (`tests/fixtures/companies/`).
+
+**Anlass.** Masterplan Stufe 1.1 beschreibt einen „einfachen Filter gegen die offensichtlichsten fallenden Messer: verschlechtern sich Umsatz/Marge über die letzten Perioden?“. Er existiert nicht (Issue #52, Teil 1). Stufe 1 sieht Verläufe nur über Dreijahresmittel (ROIC, Cash Conversion, Net-Income-Marge); Net Debt/EBITDA nutzt nur das letzte Jahr. Der Befund aus Issue #52 nennt als Hebel 3 ein **informatives Verlaufs-Flag für alle Überlebenden** (ohne Einfluss auf Gates oder Rang). Dieser Entwurf macht daraus einen prüfbaren Vorschlag.
+
+### 1. Was ist aus den vorhandenen Daten berechenbar (keine neue Quelle, kein SimFin-Aufruf)
+
+Grundlage sind die Fundamentaldaten-Dateien im Cache und der bestehende Mapper `map_simfin_to_periods`. Er liefert je Fiskaljahr: `revenue`, `ebit`, `ebitda` (EBIT + D&A), `net_income`, `cfo`, `equity`, `net_debt` (oder `None`, wenn unzuverlässig), `total_assets`. Standard sind die drei jüngsten Fiskaljahre der Firma (`MAX_YEARS = 3`); der Parameter `max_years` liefert mehr, ohne neuen Aufruf (laut Issue #52, Teil 2b, liegen bis zu sieben Jahre vor: Z 25 Firmen mit sieben, 4 mit sechs; K 78 mit sieben, 14 mit sechs, 3 mit fünf, je 1 mit vier und mit drei Jahren).
+
+| Verlauf | Berechnung (je Firma) | Verfügbarkeit / Einschränkung |
+|---|---|---|
+| Umsatz | letztes Jahr ÷ Mittel der Fenster-Jahre | `revenue` immer im Mapper; Umsatz ≤ 0 in einem Jahr → nicht berechenbar (Grund `revenue_non_positive`, wie bei der Net-Income-Marge). Verteilung bei den Überlebenden **nicht gemessen** |
+| EBITDA-Marge | `ebitda ÷ revenue` je Jahr; letztes Jahr ÷ Mittel der Jahresmargen | in Issue #52 gemessen (3 Jahre: Z Median 0,996, Q1 0,952, Min 0,618; K Median 1,013, Q1 0,951, Min 0,624). Mittel ≤ 0 → nicht berechenbar |
+| Operating-Marge | `ebit ÷ revenue` | wie EBITDA-Marge; ähnlich, kein eigener Zusatznutzen vorgeschlagen |
+| ROIC | `roic_for_period` je Jahr (bestehende Funktion, Schwellen aus `thresholds.yaml`) | braucht verlässliches Net Debt je Jahr; für die 126 Überlebenden sind alle drei Anker-Jahre gültig (Gate-Bedingung); jenseits davon höchstens sechs Jahre und teils lückenhaft (Issue #52, Teil 2b) |
+| Net-Income-Marge, Cash Conversion | je Jahr aus `net_income`, `revenue`, `cfo` | berechenbar; nicht vorgeschlagen (Stufe 1 prüft beide schon als Dreijahresmittel) |
+| Net Debt/EBITDA-Verlauf | `net_debt ÷ ebitda` je Jahr | berechenbar, wo `net_debt` verlässlich ist; nicht vorgeschlagen (schon als Stichtag in Stufe 1) |
+
+**Nicht berechenbar ohne neue Quelle oder ungeprüft:** Bruttomarge (Spalte wird vom Mapper nicht gelesen; ob sie im Rohcache steht, ist ungeprüft), Quartals- oder Zwölfmonatsverläufe (der Mapper nutzt nur `FY`-Zeilen; ob Quartalszeilen der Gewinn-und-Verlust-Rechnung im Cache stehen, ist ungeprüft), Auftragsbestand, Analystenschätzungen, Segmentdaten. Der **Kursverlauf** (Preis-Cache) ist vorhanden, ist aber kein Fundamentalverlauf (siehe Alternative D).
+
+### 2. Vorschlag: drei Verlaufs-Marken, kein Ausschluss
+
+**Leitlinie:** Keine Messerkante (Masterplan §1 „Härtung gegen Messrauschen“) und keine Setzung ohne Beleg (Issue #52, Grenzen: drei Jahre sind kein Zyklus, ein Einzeljahr schwankt stärker als ein Mittel). Deshalb **kein harter Ausschluss und keine Änderung von Status oder Rang** in der ersten Fassung, sondern sichtbare Marken je Firma. Das passt zur Definition von Hebel 3.
+
+Drei Signale, je Firma einzeln berechnet und einzeln markiert:
+
+- **T1 `trend_revenue_falling`:** Umsatz im letzten Jahr ÷ Mittel der Fenster-Jahre **strikt kleiner** als `revenue_ratio_flag_below` (Start 0,90).
+- **T2 `trend_margin_falling`:** EBITDA-Marge im letzten Jahr ÷ Mittel der Jahresmargen **strikt kleiner** als `ebitda_margin_ratio_flag_below` (Start 0,90).
+- **T3 `trend_roic_below_floor`:** ROIC des **letzten Jahres allein** liegt unter `roic.fail_below` aus `thresholds.yaml` (heute 0,10), obwohl das Dreijahresmittel das Gate bestanden hat. **Keine neue Schwelle:** der Wert wird aus der geladenen Stufe-1-Konfiguration gelesen, nicht kopiert. Bezug: Issue #52, B3 und Kreuzzählung.
+
+Ergebnis je Firma: `trend_clear` (alle Signale berechenbar, keines markiert), `trend_marked` (mindestens ein Signal markiert; die Marken stehen einzeln, dazu die Zahl der markierten Signale), `trend_not_evaluable` (mindestens ein Signal nicht berechenbar **und** keines markiert; der Grund steht je Signal). Eine markierte Firma bleibt markiert, auch wenn ein anderes Signal nicht berechenbar ist (wie in Stufe 1: ein gültiger harter Befund schlägt eine ungültige Kennzahl, ohne den Grund zu verstecken). Die Wörter `passed`/`failed` werden **nicht** verwendet, um Verwechslung mit den Stufenstatus zu vermeiden.
+
+**Berechnungsregeln (alle am Muster der bestehenden Kennzahlen):**
+- Fenster: die `years` jüngsten Fiskaljahre der Firma (Start 3, wie Stufe 1 und wie die Messungen in Issue #52); weniger gültige Jahre als `min_years` → nicht berechenbar (`trend_insufficient_years`); nie über weniger Jahre mitteln und nie ein schlechtes Jahr auslassen.
+- Letztes Fiskaljahr älter als bei Stufe 2 erlaubt (`fundamentals.max_fiscal_year_lag`) → nicht berechenbar (`trend_fundamentals_stale`), dieselbe Regel und dasselbe Datum `as_of`.
+- NaN, unendlich, zu große Ganzzahl, falscher Typ → `non_finite_input`, nie als „unauffällig“ gewertet; Teilung durch ein Mittel ≤ 0 → eigener Grund, kein Wert; Rand: Verhältnis **genau** auf der Schwelle wird **nicht** markiert.
+- Eine kaputte Fundamentaldaten-Datei einer Firma macht nur diese Firma `trend_not_evaluable` (Grund wie in Stufe 2: `fundamentals_malformed` usw.), der Lauf bricht nicht ab.
+
+### 3. Einordnung: Stufe 1 oder eigener Schritt nach Stufe 2? Empfehlung
+
+**Empfehlung: eigener Schritt nach Stufe 2, mit Marken statt Status.** Eigenes reines Modul (Kennzahlen und Marken), eigener Aufruf, eigene Archivtabellen im Ergebnisarchiv (wie bei Stufe 2: `CREATE TABLE IF NOT EXISTS`, kein Eingriff in bestehende Tabellen), eigene CSV; die Marken werden in der Endliste (Stufe 3) neben Stufe-1- und Stufe-2-Flags gezeigt. Er liest die Überlebenden aus dem Stufe-1-Lauf und den Fundamentaldaten-Cache, braucht **kein** Ergebnis von Stufe 2 und kann vor oder nach ihr laufen.
+
+Gründe:
+1. **Stufe 1 bleibt der Bezugspunkt aller Messungen.** Die 126 Überlebenden, `thresholds.yaml` und sein `config_hash` sind die Basis aller Replays und Hypothesen (Stufe 2, Plausibilitätsprüfung). Jede Änderung in Stufe 1 (Status, Flagzahl) würde die Vergleichbarkeit mit diesen Läufen brechen und Stufe 1 neu freigeben lassen. Der eigene Schritt berührt `src/gates_layer/stage1_gates.py` und `thresholds.yaml` nicht.
+2. **Die erste Fassung braucht keine Gate-Position.** Ohne Wirkung auf Status oder Rang ist es gleichgültig, wo die Marken berechnet werden; ein Gate in Stufe 1 ist nur nötig, wenn die Marken später Status oder Rang ändern sollen.
+3. **Die Nummerierung 1.1 im Masterplan bezeichnet eine Stelle im Konzept, keine Code-Reihenfolge.** Diese Abweichung wird hier ausdrücklich genannt und mit der Freigabe entschieden.
+4. **Rückweg ist billig:** Die Kennzahlen sind reine Funktionen. Soll ein Signal später das Ergebnis ändern, wird es in einer eigenen Entscheidung nach Stufe 1 (als Flag, `passed_with_flags`) oder in den Rang von Stufe 2 gehoben. Beachte: Ein Stufe-1-Flag fließt über „Rang = Zahl aller Flags (Stufe 1 + Stufe 2)“ automatisch in den Stufe-2-Rang; das wäre eine Wirkung, die dann ausdrücklich gewollt sein muss.
+
+*Gegenargument (Stufe 1):* Der Masterplan führt den Guard dort, und ein Flag in Stufe 1 würde ohne weiteren Code im Rang wirken. Das ist zugleich der Grund, ihn dort erst nach einer Messung unterzubringen.
+
+### 4. Konfiguration (neue Datei `config/trend_guard.yaml`, Startwerte, nicht kalibriert)
+
+```yaml
+trend_guard:
+  years: 3                          # Fenster (ganze Zahl 3..5); Start 3, wie Stufe 1
+  min_years: 3                      # weniger gültige Jahre -> trend_insufficient_years
+  revenue_ratio_flag_below: 0.90    # PLATZHALTER; letztes Jahr / Mittel strikt darunter -> trend_revenue_falling
+  ebitda_margin_ratio_flag_below: 0.90   # PLATZHALTER; -> trend_margin_falling
+  # T3 hat keine eigene Schwelle: roic.fail_below aus thresholds.yaml
+```
+Eigene Datei und eigener Lader nach dem Muster von `config/stage2.yaml` (Pflichtschlüssel, keine Standardwerte im Code, unbekannte, doppelte und falsch typisierte Schlüssel brechen ab). `thresholds.yaml` und sein Hash bleiben unverändert. Plausibilitätsregeln: `3 ≤ years ≤ 5`, `min_years ≤ years`, beide Schwellen > 0 und < 1.
+
+### 5. Wirkung auf die 41 Stufe-2-Kandidaten
+
+**Keine Wirkung auf Status, Rang oder die Zahl der Bestandenen** (nur Marken). Sichtbar wird, welche der 41 verlaufsauffällig sind.
+
+*a) Bereits dokumentiert, nicht neu erhoben (ROIC-Signal T3):* Issue #52 (B3 und Kreuzzählung, Anker-Jahre, gleiche Schwellen, gleicher Klassifizierer) nennt **11 von 126** Überlebenden mit einem Letztes-Jahr-ROIC unter 0,10: Z (3): MTDR, JBI, BCC; K (8): CRI, KAI, SAIA, AMPH, HUBG, LYTS, THRM, TNC. Davon liegen in der heutigen 41er-Liste (nach Messung vom 07.10.) **MTDR, JBI, BCC, TNC und AMPH, also 5 von 41** (CRI ist `not_evaluable`, die übrigen fielen in Stufe 2 durch). Der Abgleich mit der Liste ist von mir aus den Namen hergeleitet, nicht neu gemessen.
+
+*b) Beispielrechnung nur mit Pilot-Fixtures* (Fixtures sind Rohdaten vor Stufe 1, keine Überlebenden; sie zeigen die Rechnung, nicht die Wirkung). Letztes Jahr (2024) ÷ Mittel der drei Jahre, ROIC mit `roic_for_period` und den heutigen Schwellen (`nopat_tax_rate` 0,25; `fail_below` 0,10); Startwerte 0,90 / 0,90:
+
+| Fixture | Umsatz-Verhältnis | EBITDA-Marge-Verhältnis | ROIC letztes Jahr | Marken |
+|---|---|---|---|---|
+| ACME01 (stabil) | 1,056 | 1,021 | 0,139 | keine → `trend_clear` |
+| GLBX02 (wachsend) | 1,133 | 1,050 | 0,275 | keine |
+| STRK05 (zyklisch, Delle 2023) | 1,054 | 1,031 | 0,134 | keine |
+| HOOL07 (Marge bricht ein) | 0,950 | 0,658 | −0,010 | T2, T3 |
+| MDYN06 (stetiger Rückgang) | 0,930 | 0,798 | 0,034 | T2, T3 |
+| WONK08 (schleichender Rückgang) | 0,969 | 0,872 | −0,027 | T2, T3 |
+| WEYL19 (Absturz) | 0,830 | −1,580 (Mittel der Margen > 0, letzte Marge negativ) | −0,130 | T1, T2, T3 |
+| OMNI28 (EBITDA halbiert im letzten Jahr) | 1,032 | 0,531 | ROIC-Jahr ungültig (`ic_below_asset_floor`) | T2; T3 nicht berechenbar |
+| APEX29 (Marge springt hoch) | 1,016 | 1,306 | ROIC-Jahr ungültig (`roic_implausibly_high`) | keine markiert; T3 nicht berechenbar → `trend_not_evaluable`; Marge-Sprung nach oben wird **nicht** erfasst (siehe Frage 4) |
+| VOID32 (Umsatz 0 im letzten Jahr) | nicht berechenbar (`revenue_non_positive`) | nicht berechenbar | – | `trend_not_evaluable` |
+| ORBT18 (nur 2 Jahre) | nicht berechenbar (`trend_insufficient_years`) | nicht berechenbar | – | `trend_not_evaluable` |
+
+Die Werte wurden mit den bestehenden Funktionen und den Fixture-Dateien gerechnet; sie sind Rechenbeispiele und werden in der Umsetzung als pytest-Fälle mit Handrechnung festgeschrieben, nicht aus diesem Text übernommen. Ein Beispiel von Hand: Umsatz 110 / 100 / 90 → Mittel 100, Verhältnis 0,90, **genau** auf der Schwelle → nicht markiert; 110 / 100 / 89 → 0,8998… → markiert.
+
+*c) Nicht vorhersagbar ohne Messung:* wie viele der 41 T1 oder T2 tragen. Die Quartile aus Issue #52 (EBITDA-Marge-Verhältnis, 3 Jahre: Q1 bei Z und K je 0,95) sagen nur, dass etwa ein Viertel der Überlebenden unter 0,95 liegt; wie viele unter 0,90 liegen, steht dort nicht. Für das Umsatz-Verhältnis gibt es keine Messung.
+
+### 6. Alternativen
+
+- **A. Harter Ausschluss in Stufe 1 (Gate).** Verworfen: Das Dreijahresfenster ist kein Zyklus, ein Einzeljahr schwankt stärker als ein Mittel (Issue #52: in Z fallen 9 Firmen im letzten Jahr eine ROIC-Zone ab, in K 14); ein Ausschluss auf diesem Beleg wäre eine Setzung und würde Stufe 1 neu freigabepflichtig machen. Der Masterplan verlangt Grauzonen statt Messerkanten.
+- **B. Grauzone in zwei Stufen** (z. B. Marke ab 0,90, „stark“ ab 0,75). Möglich; verworfen für die erste Fassung, weil ohne gemessene Verteilung jede zweite Schwelle eine reine Setzung wäre.
+- **C. Längere Historie (5 bis 7 Jahre)** statt Dreijahresfenster (Hebel 2 aus Issue #52). Berechenbar ohne neue Quelle, aber: Das Siebenjahresfenster enthält für fast alle Firmen das Corona-Tief 2020 und verzerrt „über dem Mittel“ nach oben (Issue #52, Grenzen); der ROIC ist auf höchstens sechs Jahre und nur teilweise lückenlos begrenzt. Ein Fünfjahresfenster (2021 bis 2025 für die meisten) vermeidet 2020, ist aber nicht gemessen. Als Parameter `years` vorgesehen, Start 3.
+- **D. Kursverlauf** (z. B. Zwölfmonatsrendite aus dem Preis-Cache) als „fallendes Messer“-Indikator. Technisch vorhanden, aber ein Preisabschlag ist zugleich das, was die Firma in Stufe 2 „günstig“ macht; die Doppelzählung mit der Bewertung wäre ein eigenes Problem. Nicht vorgeschlagen.
+- **E. Steigung (Regression) statt Verhältnis.** Mit drei Punkten rauschempfindlich und schwerer zu erklären. Nicht vorgeschlagen.
+- **F. Nichts bauen**, das Restrisiko der manuellen Prüfung in Stufe 3 überlassen (Masterplan §10). Möglich; die Marken kosten wenig und zeigen dem Sichter, wo er hinsehen muss.
+
+### 7. Vorab-Hypothesen (prüfbar, noch nicht gemessen; Abweichung wird berichtet, nicht angepasst)
+
+Bezug: Stufe-1-Lauf `2026-09-30T18:53:07` (126 Überlebende), Vorfilter `2026-09-24T18:13:48`, Cache `2026-09-24`, Stand der 41 nach der Messung vom 07.10.
+- **H-T1 (stark, aus dokumentierten Zahlen):** `trend_roic_below_floor` bei **11 von 126**, davon **5 von 41** (MTDR, JBI, BCC, TNC, AMPH). Abweichung hieße, dass sich Cache, Mapper oder Schwellen seit Issue #52 geändert haben.
+- **H-T2 (schwach, geschätzt aus Quartilen, keine Messung):** `trend_margin_falling` bei **10 bis 25 von 126** und **3 bis 10 von 41**.
+- **H-T3 (ohne Prognose):** `trend_revenue_falling`: Die Verteilung wird erstmals gemessen; erwartet wird nur, dass T1 seltener auslöst als T2.
+- **H-T4:** Nicht berechenbar: dieselben **6 von 126**, die Stufe 2 wegen `fundamentals_stale` nicht bewertet (APOG, DOX, GSL, HUBG, PRG, TREX), und sonst keine (0 von 126 mit weniger als drei Jahren, Issue #52).
+- **H-T5:** Zahl der Bestandenen in Stufe 2 (**41 von 126**), Status, Flags und Rang bleiben unverändert (nur Marken).
+- **H-T6:** Mindestens **5 von 41** tragen mindestens eine Marke (aus H-T1); geschätzt 6 bis 14 von 41.
+
+### 8. Tests, vor der Umsetzung festgelegt (pytest, künstliche Daten und Pilot-Fixtures)
+
+1. **Kennzahlen:** Handbeispiele für Umsatz-, Margen- und ROIC-Verhältnis; Rand (Verhältnis genau auf der Schwelle: nicht markiert, knapp darunter: markiert); Umsatz ≤ 0, Margenmittel ≤ 0, zu wenige Jahre, NaN/unendlich/riesige Ganzzahl/Text → Grund, nie „unauffällig“; fehlende Jahre werden nicht übersprungen oder aufgefüllt.
+2. **Marken:** Kombinationen der drei Signale; markiert gewinnt gegen nicht berechenbar; `trend_not_evaluable` nur ohne Marke; Reihenfolge der Eingaben ohne Einfluss; T3 liest `roic.fail_below` aus der geladenen Konfiguration (Änderung der Stufe-1-Schwelle ändert T3, kein zweiter Wert).
+3. **Konfiguration:** echte `config/trend_guard.yaml` lädt; jeder Schlüssel fehlend/unbekannt/doppelt/Text/bool; Ordnungsprüfungen.
+4. **Runner und Archiv (tmp_path):** Bericht mit Bezugsgrößen („x von 126“), eigene Tabellen, CSV nie überschrieben, einmalige Transaktion mit Rollback, kaputte Fundamentaldaten-Datei trifft nur diese Firma, nur lesender Zugriff auf die Stufe-1-Datenbank (`mode=ro`).
+5. **Regression:** Alle bestehenden Tests unverändert grün; Diff-Nachweis: Stufe-1-Dateien, `thresholds.yaml`, Stufe-2-Code unverändert.
+
+### 9. Offene Fragen an Konstantin
+
+1. **Einordnung:** Eigener Schritt nach Stufe 2 mit Marken (empfohlen) oder Flag in Stufe 1 (wirkt dann über die Flagzahl auf den Stufe-2-Rang, ändert `passed` zu `passed_with_flags` und macht Stufe 1 neu freigabepflichtig)?
+2. **Wirkung:** Marken nur anzeigen (empfohlen für die erste Fassung) oder sollen sie nach der ersten Messung als Flag im Rang zählen? Das wäre eine eigene Entscheidung nach Messung.
+3. **Fenster:** 3 Jahre (Start, vergleichbar mit allen bisherigen Messungen) oder 5 Jahre (mehr Information, nicht gemessen, Corona-Effekt je Firma verschieden)?
+4. **Signale:** Genügen T1 bis T3? Soll ein Spiegel-Signal für einen **Gipfel** dazu (EBITDA-Marge im letzten Jahr deutlich **über** dem Mittel, z. B. Verhältnis über 1,25)? Das fängt „Marge am Gipfel“ statt „Marge fällt“; im Pilotbeispiel würde es APEX29 erfassen. Der Masterplan nennt Zykliker am Gewinngipfel ausdrücklich, der Guard fängt sie als „fallendes Messer“ nicht.
+5. **Zykliker:** Gleiche Schwellen für die sechs zyklischen Sektorcodes (empfohlen; die Marke steht neben `cyclical_sector`) oder eigene?
+6. **Grundgesamtheit:** Alle 126 Überlebenden (empfohlen, auch die in Stufe 2 durchgefallenen, so ist die Wirkung prüfbar) oder nur die Stufe-2-Bestandenen (41)?
+7. **Startwerte 0,90 / 0,90:** Als Platzhalter freigeben und nach der ersten Messung anpassen (Änderung dann eigene Entscheidung), oder vorher eine reine Verteilungsmessung (Klasse A, Kopien) abwarten?
+
+**Grenzen (bekannt, akzeptiert):** Drei Jahre sind kein Zyklus; ein Verhältnis unter 1 kann Rückgang nach dem Gipfel oder Tief bedeuten, die Marke ist eine Mahnung, keine Diagnose. Die Marken sagen nichts über die Ursache (einmalige Sonderlast, Übernahme, Währung). Firmen mit unterschiedlichem letztem Fiskaljahr werden nicht auf ein Kalenderjahr bezogen.
+
+**How to apply (nach Freigabe):** neue Dateien `config/trend_guard.yaml`, `src/config_layer/trend_guard.py`, `src/metrics_layer/trend.py`, `src/gates_layer/trend_guard.py`, Archiv und CSV (`src/store_layer/`), Aufruf `run_trend_guard.py`; Tests wie in Abschnitt 8, zuerst. Unverändert: `simfin_client.py`, `stage1_gates.py`, `stage2_gates.py`, `thresholds.yaml`, `config/stage2.yaml`.
