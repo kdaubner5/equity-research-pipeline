@@ -1760,9 +1760,9 @@ Diese Antworten gelten erst mit dem Entscheidungskommentar von Konstantin und de
 
 **How to apply (nach Freigabe):** neue Dateien `config/trend_guard.yaml`, `src/config_layer/trend_guard.py`, `src/metrics_layer/trend.py`, `src/gates_layer/trend_guard.py`, Archiv und CSV (`src/store_layer/`), Aufruf `run_trend_guard.py`; Tests wie in Abschnitt 8, zuerst. Unverändert: `simfin_client.py`, `stage1_gates.py`, `stage2_gates.py`, `thresholds.yaml`, `config/stage2.yaml`.
 
-## 2026-10-07: Trend-Guard – Messung, Handprüfung gegen Yahoo Finance und Entscheidungen (Befund und Protokoll, Klasse A)
+## 2026-10-07: Trend-Guard – Messung, Handprüfung gegen Yahoo Finance und Entscheidungen (Befund: Klasse A; Entscheidungen: Klasse C, gelten erst mit Merge durch Konstantin)
 
-Reine Befund- und Messdokumentation sowie Entscheidungen von Konstantin vom 07.10.2026. Es ändert sich keine Schwelle und kein Code. Quellen: die Kommentare auf PR #70 (Messung auf Kopien, Master `c3c24c1`, 0 SimFin-Aufrufe, kein `data\`) und der Auftrag von Konstantin vom 07.10.2026 (Handprüfung gegen Yahoo Finance). Die Handprüfung selbst ist von mir nicht nachgeprüft; ihre Zahlen stehen hier so, wie Konstantin sie genannt hat.
+Befund- und Messdokumentation (Abschnitte 1, 3, 5, 6: Klasse A) sowie Entscheidungen von Konstantin vom 07.10.2026 aus seinem Auftrag (Abschnitte 2, 3 letzter Punkt und 4: Klasse C, weil sie ein Verfahren festlegen; sie gelten als freigegeben erst mit dem Merge dieses Texts). Es ändert sich keine Schwelle und kein Code. Quellen: die Kommentare auf PR #70 (Messung auf Kopien, Master `c3c24c1`, 0 SimFin-Aufrufe, kein `data\`), der Auftrag von Konstantin vom 07.10.2026 (Handprüfung gegen Yahoo Finance, Entscheidungen) und für AMPH 0,364 der ältere Stufe-2-Abschnitt in dieser Datei. Die Handprüfung selbst ist von mir nicht nachgeprüft; ihre Zahlen stehen hier so, wie Konstantin sie genannt hat.
 
 ### 1. Messung des Trend-Guards (Belegt: Kommentar auf PR #70)
 
@@ -1778,7 +1778,7 @@ Eingaben: Stufe-1-Lauf der 126 Überlebenden (`2026-09-30T18:53:07`, Vorfilter 1
 | H-T2 (T2 Marge fällt) | 10–25 von 126, 3–10 von 41 | 15 von 126, 7 von 41 (AMPH, BCC, JBI, MGM, SLVM, TNC, UFPI) |
 | H-T3 (T1 Umsatz fällt seltener als T2) | T1 seltener als T2 | 1 von 126 (NRP), 0 von 41 |
 | H-T4 (nicht auswertbar) | dieselben 6 veralteten Firmen | APOG, DOX, GSL, HUBG, PRG, TREX, alle `trend_fundamentals_stale`; sonst keine |
-| H-T5 (die 41 bleiben) | Status, Flags, Rang unverändert | Hash von `stage2_v2_results.db` vorher = nachher; 35 `passed`, 6 `passed_with_flags`; Rang 41 von 41 gesetzt, unverändert |
+| H-T5 (die 41 bleiben) | Status, Flags, Rang unverändert | Hash von `stage2_v2_results.db` vorher = nachher; 35 `passed`, 6 `passed_with_flags`; Rang für alle 41 gesetzt, unverändert |
 | H-T6 (T4 Margenspitze) | 0 von 29 Z-Firmen, 0–10 von 97 K-Firmen | 0 von 29, 5 von 97 (ELA, FLXS, GCMG, KMT, PEGA), keine unter den 41 |
 | H-T7 (Marken unter den 41) | mindestens 5 von 41, Obergrenze 20; nicht auswertbar: 0 | 8 von 41 markiert, 0 von 41 nicht auswertbar |
 
@@ -1790,13 +1790,13 @@ Eingaben: Stufe-1-Lauf der 126 Überlebenden (`2026-09-30T18:53:07`, Vorfilter 1
 
 - **Marken zählen vorerst nicht im Rang.** Die Marken bleiben reine Anzeige; Status, Flags und Rang der 41 bleiben unverändert.
 - **Platzhalter 0,90 / 0,90 / 1,25 bleiben unverändert** (`config/trend_guard.yaml`). Jede Änderung ist eine eigene Entscheidung.
-- **Grenze von T4 (bekannt):** `trend_margin_peak` vergleicht die Marge des letzten Jahres mit dem Dreijahresmittel. Es erfasst also nur einen **Sprung** gegenüber diesem Mittel, **nicht ein dauerhaft hohes Niveau**: Eine Firma, deren Marge seit drei Jahren durchgehend hoch ist, wird nicht markiert.
+- **Grenze von T4 (bekannt):** `trend_margin_peak` vergleicht die Marge des letzten Jahres mit dem Dreijahresmittel. Es erfasst also nur einen **Sprung** gegenüber diesem Mittel, **nicht ein dauerhaft hohes Niveau** (folgt aus der Definition in Abschnitt 4 des Entwurfs: letztes Jahr gegen Dreijahresmittel): Eine Firma, deren Marge seit drei Jahren durchgehend hoch ist, wird nicht markiert.
 
 ### 3. Handprüfung gegen Yahoo Finance am 07.10.2026 (Angabe von Konstantin, ungeprüft von mir)
 
 - **XPER (Rang 4 der 41) ist ein Datenfehler.** SimFin-ID 983817 mischt Adeia-Daten (110,3 Mio. Aktien, Fundamentaldaten 2019–2025) mit dem Kurs von Xperi Inc.; Yahoo zeigt 48,8 Mio. Aktien.
 - **Die Zuordnung in unseren Dateien ist sauber:** 0 von 126 mit mehrfacher ID, Namen konsistent. Der Fehler liegt in den SimFin-Daten, nicht in unserer Verarbeitung.
-- **Entscheidung:** XPER wird aus der Kandidatenliste genommen. Das ist eine **Lese-Entscheidung, keine Systemänderung**: Code, Konfiguration und Stufe-2-Ergebnis bleiben unverändert; die Kandidatenliste wird beim Lesen ohne XPER betrachtet (dann 40 von 41).
+- **Entscheidung:** XPER wird aus der Kandidatenliste genommen. Das ist eine **Lese-Entscheidung, keine Systemänderung**: Code, Konfiguration und Stufe-2-Ergebnis bleiben unverändert; die Kandidatenliste wird beim Lesen ohne XPER betrachtet (40 Kandidaten: die 41 ohne XPER).
 - **Bestätigt gegen Yahoo (Aktienzahl stimmt, Abweichung höchstens 2 %):** TASK, AMPH, DFIN, JBI, PPC, MDXG, PLAB, MGM, MAT, ACEL, SBH, TCMD, OPCH.
 
 ### 4. Entscheidung: kein automatisches Warnsignal für „Dividende in den Fundamentaldaten, keine im Preisfenster“
