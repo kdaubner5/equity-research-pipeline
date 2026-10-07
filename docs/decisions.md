@@ -1573,3 +1573,50 @@ Maßstab ist der Replay vom 2026-10-07 (41 von 126 bestehen Stufe 2; Stufe-1-Lau
 **Grenzen (bekannt, akzeptiert):** Die Dividenden-Gegenprobe erkennt nur dividendenzahlende Firmen und Aktienzahlen, die um mehr als etwa den Faktor 1,5 zu klein sind; Währungsunterschiede (Beträge in Landeswährung, Dividende in USD; BBAR, PHI laut Bericht) lassen R zu groß erscheinen: sie werden als verdächtig ausgeschieden, was bei Präzision vor Vollständigkeit akzeptabel ist; die Gegenrechnung für Investitionen ist eine Größenordnung. Der Bericht zählt zudem nur die Prüfbarkeit, nicht die Richtigkeit der Dividendenhöhe (Sonderdividenden verschieben R).
 
 **How to apply (nach Freigabe):** `config/stage2.yaml` und `config_layer/stage2.py` um die zwei Gruppen erweitern; `data_layer/simfin_valuation.py` um die zwei Extraktionen; neues Modul `data_layer/simfin_price_cache.py` (Preis-Cache-Leser, nur lesend); `metrics_layer/valuation.py` um die Kennzahlen; `gates_layer/stage2_gates.py` um Prüfung, Flag und Info-Marken; `store_layer/stage2_store.py` und `run_stage2.py` um Felder, Argument und Bericht; Tests wie in Abschnitt 5, zuerst. Unverändert: `simfin_client.py`, `stage1_gates.py`, `thresholds.py`/`thresholds.yaml`, `store_layer/db.py`.
+
+## 2026-10-07: Stufe 2 – Messung mit den Plausibilitätsprüfungen und Entscheidungen P1–P4 (Befund und Protokoll, Klasse A)
+
+**Status: Messdokumentation und Protokoll einer Entscheidung, keine neue Regel.** Quelle der Zahlen ist ausschließlich der Messbericht vom 2026-10-07 auf PR #67 (Kommentar `issuecomment-6035996517` für die Entscheidung, `issuecomment-6036172985` für die Messung); nichts wurde neu erhoben. Der Abschnitt „Stufe 2 – Datenplausibilität“ (oben) bleibt unverändert; sein Kopf „Entwurf, nicht freigegeben“ ist durch den Merge von PR #67 (`774b087`) überholt.
+
+### 1. Entscheidungen von Konstantin (07.10., Kommentar auf PR #67, Head `beeda72`)
+
+- **P1:** Eine verdächtige Aktienzahl scheidet die Firma aus (`not_evaluable`, Grund `share_count_suspect`). Das entspricht der umgesetzten Fassung.
+- **P2:** Keine Überschreibungsliste.
+- **P3:** Keine Sektorregel für `Other Investing` (z. B. E&P).
+- **P4:** Keine zweite Quelle für die Aktienzahl.
+
+### 2. Messung (Kopien, 0 SimFin-Aufrufe, kein `data\`)
+
+Eingaben: Stufe-1-Lauf `2026-09-30T18:53:07` (126 Überlebende), Vorfilter `2026-09-24T18:13:48` (1.821 von 6.654), Preis-Cache 793 Dateien, Fundamentaldaten-Kopie 1.821 Dateien; Datenbank-Kopie `run_archive_phase2_0e_copy.db`. Master `774b087`, Tests 2098 bestanden, nur die 6 bekannten Hook-Tests (Windows-Pfade) rot. Hashes aller Eingaben vorher = nachher (8 von 8). Replay Exit 0, zusätzlich ein Lauf ohne Preis-Cache.
+
+- **Bestandene:** 41 von 126 (früher 41). Unverändert 40 von 41. **Abgang: AOS** (`share_count_suspect`, R = 21,02). **Neuzugang: AMPH** (früher `failed`, jetzt `passed_with_flags`; Perzentil 0,417 → 0,364, weil in der feinen Gruppe `106005` der Peer EMBC (R = 59) aus der Basis fiel, Gruppe n 13 → 12).
+- **Neue Flags:** `fcf_yield_unverified` bei **MTDR** (FCF-Rendite 25,0 % → Gegenrechnung −3,1 %, `passed` → `passed_with_flags`) und **UAN** (10,7 % → 4,1 %, hatte schon `ev_ebitda`), 2 von 41; nicht bei VCTR (Hauptwert 5,4 % schon Grauzone). Zahl der Bestandenen dadurch unverändert.
+- **Peer-Basis:** 572 → 555 von 1.290; 17 verdächtige Firmen ausgeschieden (AOS, BBCP, CAG, CRI, EMBC, FLO, FMC, FPI, IIIN, LSTR, MKC, ODC, OGN, PIPR, TPG, TROX, WYNN). Perzentile ändern sich bei 56 von 126 Überlebenden (bei den 40 unveränderten Bestandenen bei 24 von 40, Status bleibt gleich). Peer-Ebenen fine 98, coarse 19, absolute 1, none 8 (vorher 101 / 18 / 1 / 6).
+- **Ohne Preis-Cache** (nur Gegenrechnung): ebenfalls 41 von 126 bestanden (AOS bleibt, AMPH fehlt). Die Gegenrechnung ändert 2 von 126 Firmen (MTDR, UAN); die Aktienzahl-Prüfung weitere 6 von 126 (AOS, CRI, AMPH, BBSI, EPAC, VCTR; BBSI, EPAC, VCTR nur im Perzentil bzw. in den Flags, nicht im Status).
+
+### 3. Vorab-Hypothesen, Soll gegen Ist (ohne Anpassung)
+
+| Hypothese | Soll | Ist | Urteil |
+|---|---|---|---|
+| H-A1 | genau AOS und CRI `share_count_suspect` (2 von 126) | AOS (R = 21,02) und CRI (R = 6,14), 2 von 126 | erfüllt |
+| H-A2 | AOS verschwindet, Bestandene 35 bis 41 | AOS weg, 41 von 126 | im Rahmen (AMPH kommt neu dazu) |
+| H-A3 | 84 von 126 Überlebenden prüfbar | 83 von 126 | knapp verfehlt; Unterschied PRG (belegt: Runner nimmt die Dividende des letzten bewerteten Geschäftsjahres 2023, dort fehlt sie; frühere Rechnung nahm das Cashflow-Jahr 2025) |
+| H-B1 | Auslöser bei 22 von 126, davon 9 von 41 | 21 von 126, davon 9 von 41 | knapp verfehlt; fehlt nur PRG (nicht bewertbar, veraltete Daten, ungeprüft) |
+| H-B2 | Flag bei MTDR und UAN (2 von 41), nicht VCTR, Zahl der Bestandenen unverändert | MTDR und UAN, nicht VCTR, Zahl unverändert | erfüllt |
+
+Die früheren 758 von 1.821 sind nicht gleichzusetzen mit der Berichtszeile `aktienzahl_pruefung_vorfilter`: Sie zählt nur die 1.246 Firmen mit unterstütztem Profil und nutzbaren Daten (geprüft 432, in Ordnung 395, mehrdeutig 10, verdächtig 27, nicht prüfbar 814).
+
+### 4. Bekannte Lücken (ausdrücklich)
+
+- **Ungeprüfte Aktienzahl:** `share_count_unchecked` bei 43 von 126 Überlebenden, bei den neuen 41 Bestandenen **14 von 41**: ACEL, AMPH, DFIN, JBI, MAT, MDXG, MGM, OPCH, PLAB, PPC, SBH, TASK, TCMD, XPER (keine nutzbare Dividende, daher keine Gegenprobe; nach P4 bleibt es dabei). `share_count_ambiguous`: 0 von 126. Insgesamt ungeprüft bei der Investitionen-Gegenrechnung: 36 von 126.
+- **Mögliche Fehlalarme durch Sonderdividenden oder Dividendenänderungen (Vermutung, nicht belegt):** Einige der 17 ausgeschiedenen Peers, z. B. CAG, FLO, LSTR, PIPR (R 8,0 bis 8,3), könnten Fehlalarme sein; ebenso CRI (R = 6,14; vermutlich Dividendenkürzung). Diese Firmen haben die Peer-Basis verlassen, ihre Perzentile wirken auf andere Firmen.
+- **Perzentil-Grenzfälle bei kleinen Peer-Gruppen:** Der Neuzugang AMPH kommt nur über die verschobene Peer-Gruppe (n 13 → 12) von 0,417 auf 0,364 und damit von „durchgefallen“ in die Grauzone (bestanden mit Flag); seine Aktienzahl ist ungeprüft. Kleine Gruppen reagieren auf das Ausscheiden eines einzelnen Peers empfindlich.
+- **Flags MTDR und UAN:** Ob die Gegenrechnung ein echter Befund ist, hängt an der Zusammensetzung von `Other Investing` (nicht im Cache); das Flag ist eine Mahnung, kein Befund.
+- **Preis-Cache:** `ungueltig = 0` Dateien, `firmen_ungueltig = 256` (alle „keine Zeile mit positivem Kurs und Aktienzahl“); 0 von 1.821 Vorfilter-Firmen und 0 von 126 Überlebenden betroffen.
+- Weitere Restbefunde des Kritikers (Vorzugsdividenden, Splitbereinigung, Erkennungsstärke je Zahlungsrhythmus) stehen im Abschnitt „Stufe 2 – Datenplausibilität“ und im Bericht auf PR #67; unverändert offen.
+
+### 5. Offen für Konstantin (aus dem Messbericht, noch nicht entschieden)
+
+(a) Ob AMPH als Neuzugang stehen bleibt, obwohl der Wechsel nur über die verschobene Peer-Gruppe kommt und seine Aktienzahl ungeprüft ist; (b) ob die zwei Flags (MTDR, UAN) und der CRI-Fehlalarm so bleiben. Die Frage nach einer zweiten Quelle für die 14 von 41 ist durch P4 mit „nein“ beantwortet.
+
+Rohdaten und Skripte der Messung liegen lokal bei Konstantin (`C:\Users\<Benutzer>\baselines\stage2\v2\`) und sind nicht im Repo.
