@@ -1,0 +1,33 @@
+# Stage-2 relative valuation: peer groups, EV/EBITDA, FCF-yield
+# (docs/decisions.md "Stufe 2: Peer-Gruppen und relative Bewertung", Agent-Entscheidung,
+# Klasse C, Entwurf - not valid before Konstantin has merged it).
+# Loaded and validated by config_layer.stage2.load_stage2_config(): every key is required,
+# no defaults exist anywhere in code. Separate from thresholds.yaml on purpose: Stage 1 and
+# its config_hash stay untouched. All values below are START VALUES, not calibrated on real
+# data; the ones marked PLACEHOLDER have no source at all (decision, questions Q1/Q2/Q9).
+
+peer_groups:
+  min_size: 8                    # minimum number of valid EV/EBITDA values per group, the evaluated company included (integer >= 2; Masterplan: n >= 8)
+  coarse_level_divisor: 1000     # coarse group = sectorCode // divisor (integer; UNVERIFIED against general_bulk.json, question Q4)
+
+ev_ebitda:
+  implausible_above: 100.0       # multiple above this -> invalid_reason ev_ebitda_implausibly_high (EBITDA practically zero)
+  peer_terciles: 3               # the cheapest 1/N of the peer group is a clean pass (integer >= 2; 3 = "cheapest third")
+  grey_zone_upper_percentile: 0.40   # percentile above 1/peer_terciles and at or below this -> flag; above -> failed (PLACEHOLDER, question Q2)
+  absolute_clean_pass_below: 8.0     # level 3 only (no peer group): multiple strictly below -> clean (PLACEHOLDER, question Q1)
+  absolute_fail_at_or_above: 10.0    # level 3 only: at or above -> failed; in between -> flag (PLACEHOLDER, question Q1)
+  normalized_ebitda_years: 3     # years averaged for the informational ev_ebitda_normalized (integer 1..3)
+
+fcf_yield:
+  years: 3                       # years averaged for the FCF-yield (integer 1..3; the mapper delivers at most three)
+  clean_pass_above: 0.06         # yield strictly above -> clean (Masterplan: "> 6 %")
+  fail_below: 0.05               # yield strictly below -> failed; [fail_below, clean_pass_above] is the grey zone (PLACEHOLDER, question Q2)
+  implausible_above: 0.50        # yield above this -> invalid_reason fcf_yield_implausibly_high
+
+fundamentals:
+  max_fiscal_year_lag: 1         # latest fiscal year must be >= as_of year minus this, else fundamentals_stale (question Q9)
+
+# SimFin sectorCodes of the cyclical survivors found in Issue #52. Informational mark only
+# (cyclical_sector): never changes status, flags or rank.
+cyclical_sectors:
+  sector_codes: [107002, 107004, 110001, 110002, 110005, 110006]
