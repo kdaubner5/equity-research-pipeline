@@ -407,6 +407,7 @@ def test_info_marks_have_a_fixed_order():
         "capex_net_inflow_treated_as_zero",
         "peer_group_absolute",
         "borderline_sector",
+        "share_count_unchecked",  # no dividend data in this test company (docs/decisions.md "Datenplausibilitaet")
     )
 
 

@@ -13,14 +13,17 @@ from config_layer.stage2 import (
     EvEbitdaConfig,
     FcfYieldConfig,
     FundamentalsConfig,
+    OtherInvestingCheckConfig,
     PeerGroupsConfig,
+    ShareCountCheckConfig,
     Stage2Config,
 )
 
 
 def make_config(**overrides) -> Stage2Config:
     """Test config: min_size 8, divisor 1000, terciles 3, grey zone up to 0.40,
-    absolute 8.0/10.0, FCF-yield 6 %/5 % over 3 years, lag 1, cyclicals {107002}.
+    absolute 8.0/10.0, FCF-yield 6 %/5 % over 3 years, lag 1, cyclicals {107002},
+    share count suspect above R 6.0 (monthly band 9-15), other investing ratio 2.0.
 
     overrides: group name -> dict of fields to replace, e.g.
     make_config(peer_groups={"min_size": 3}).
@@ -38,6 +41,8 @@ def make_config(**overrides) -> Stage2Config:
         "fcf_yield": FcfYieldConfig(years=3, clean_pass_above=0.06, fail_below=0.05, implausible_above=0.50),
         "fundamentals": FundamentalsConfig(max_fiscal_year_lag=1),
         "cyclical_sectors": CyclicalSectorsConfig(sector_codes=(107002,)),
+        "share_count_check": ShareCountCheckConfig(suspect_ratio_above=6.0, monthly_band_low=9.0, monthly_band_high=15.0),
+        "other_investing_check": OtherInvestingCheckConfig(min_ratio_to_capex=2.0),
     }
     for name, fields in overrides.items():
         groups[name] = dataclasses.replace(groups[name], **fields)
