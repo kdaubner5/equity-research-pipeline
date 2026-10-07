@@ -1659,7 +1659,7 @@ Eigene Datei und eigener Lader nach dem Muster von `config/stage2.yaml` (Pflicht
 | VOID32 (Umsatz 0 im letzten Jahr) | nicht berechenbar (`revenue_non_positive`) | nicht berechenbar | – | `trend_not_evaluable` |
 | ORBT18 (nur 2 Jahre) | nicht berechenbar (`trend_insufficient_years`) | nicht berechenbar | – | `trend_not_evaluable` |
 
-Die Werte wurden mit den bestehenden Funktionen und den Fixture-Dateien gerechnet; sie sind Rechenbeispiele und werden in der Umsetzung als pytest-Fälle mit Handrechnung festgeschrieben, nicht aus diesem Text übernommen. Ein Beispiel von Hand: Umsatz 110 / 100 / 90 → Mittel 100, Verhältnis 0,90, **genau** auf der Schwelle → nicht markiert; 110 / 100 / 89 → 0,8998… → markiert.
+Die Werte wurden mit den bestehenden Funktionen und den Fixture-Dateien gerechnet; sie sind Rechenbeispiele und werden in der Umsetzung als pytest-Fälle mit Handrechnung festgeschrieben, nicht aus diesem Text übernommen. Ein Beispiel von Hand: Umsatz 110 / 100 / 90 → Mittel 100, Verhältnis 0,90, **genau** auf der Schwelle → nicht markiert; 110 / 100 / 89 → Mittel 99,67, Verhältnis 0,893 → markiert.
 
 *c) Nicht vorhersagbar ohne Messung:* wie viele der 41 T1 oder T2 tragen. Die Quartile aus Issue #52 (EBITDA-Marge-Verhältnis, 3 Jahre: Q1 bei Z und K je 0,95) sagen nur, dass etwa ein Viertel der Überlebenden unter 0,95 liegt; wie viele unter 0,90 liegen, steht dort nicht. Für das Umsatz-Verhältnis gibt es keine Messung.
 
