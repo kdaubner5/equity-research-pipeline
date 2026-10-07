@@ -43,9 +43,19 @@ def _non_finite(*values):
         try:
             if not math.isfinite(value):
                 return True
-        except OverflowError:
+        except (OverflowError, TypeError):  # an oversized integer or a value of the wrong type
             return True
     return False
+
+
+def _is_real_number(value):
+    """A real number (not bool, not text); finiteness is checked separately by _non_finite."""
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _is_finite_number(value):
+    """A real, finite number that fits a float (None, bool, text, NaN, inf, huge ints: False)."""
+    return _is_real_number(value) and not _non_finite(value)
 
 
 def _market_cap_unusable(market_cap_usd):
@@ -141,19 +151,9 @@ def _fcf_window(periods, config: Stage2Config):
     return _sorted_periods(periods)[-config.fcf_yield.years :]
 
 
-def fcf_yield_average(periods, capex_by_year, market_cap_usd, *, as_of_year, config: Stage2Config) -> MetricResult:
-    """FCF-yield: mean of (CFO - capex outflow) over the latest fcf_yield.years years,
-    divided by the current market cap. capex_by_year maps fiscal_year -> SimFin's
-    "Change in Fixed Assets & Intangibles" (data_layer.simfin_valuation).
-
-    A missing capex (None, or the year absent from the map) is never read as 0:
-    capex_missing. A negative FCF is a valid, negative yield.
-
-    Invalid reasons in this order: no_periods, insufficient_years (fewer periods than
-    fcf_yield.years), fundamentals_stale, market_cap_missing, non_finite_input (NaN/inf in market cap,
-    CFO or capex of the window), capex_missing, fcf_yield_implausibly_high (yield above fcf_yield.implausible_above; exactly on the
-    cap is valid).
-    """
+def _fcf_yield(periods, capex_by_year, other_investing_by_year, market_cap_usd, *, as_of_year, config: Stage2Config):
+    """Shared body of fcf_yield_average and fcf_yield_incl_other_investing. other_investing_by_year
+    None = the main value; a mapping = the counter-calculation (see there)."""
     if not periods:
         return MetricResult(value=None, invalid_reason="no_periods")
     ordered = _sorted_periods(periods)
@@ -166,11 +166,22 @@ def fcf_yield_average(periods, capex_by_year, market_cap_usd, *, as_of_year, con
         return MetricResult(value=None, invalid_reason="market_cap_missing")
     window = ordered[-years:]
     changes = [capex_by_year.get(p["fiscal_year"]) for p in window]
-    if _non_finite(market_cap_usd, *changes, *(p["cfo"] for p in window)):
+    others = [] if other_investing_by_year is None else [other_investing_by_year.get(p["fiscal_year"]) for p in window]
+    if _non_finite(market_cap_usd, *changes, *others, *(p["cfo"] for p in window)) or any(
+        v is not None and not _is_real_number(v) for v in others
+    ):
         return MetricResult(value=None, invalid_reason="non_finite_input")
     if any(change is None for change in changes):
         return MetricResult(value=None, invalid_reason="capex_missing")
-    fcfs = [p["cfo"] - _capex_outflow(change) for p, change in zip(window, changes)]
+    if other_investing_by_year is None:
+        outflows = [_capex_outflow(change) for change in changes]
+    else:
+        # Only an OUTFLOW of Other Investing is added to the capex line's own outflow. An inflow is not
+        # netted against the capex (that would make the counter-calculation look better than the main
+        # value, which a conservative check must never do), and a missing year counts 0: no more
+        # outflow is assumed than is documented.
+        outflows = [_capex_outflow(change) + max(0.0, -(other or 0)) for change, other in zip(changes, others)]
+    fcfs = [p["cfo"] - outflow for p, outflow in zip(window, outflows)]
     # mean first, then the division: exact for round test figures (60/1000 == 0.06).
     mean_fcf = sum(fcfs) / years
     value = mean_fcf / market_cap_usd
@@ -179,6 +190,57 @@ def fcf_yield_average(periods, capex_by_year, market_cap_usd, *, as_of_year, con
     if value > config.fcf_yield.implausible_above:
         return MetricResult(value=None, invalid_reason="fcf_yield_implausibly_high")
     return MetricResult(value=value)
+
+
+def fcf_yield_average(periods, capex_by_year, market_cap_usd, *, as_of_year, config: Stage2Config) -> MetricResult:
+    """FCF-yield: mean of (CFO - capex outflow) over the latest fcf_yield.years years,
+    divided by the current market cap. capex_by_year maps fiscal_year -> SimFin's
+    "Change in Fixed Assets & Intangibles" (data_layer.simfin_valuation).
+
+    A missing capex (None, or the year absent from the map) is never read as 0:
+    capex_missing. A negative FCF is a valid, negative yield.
+
+    Invalid reasons in this order: no_periods, insufficient_years (fewer periods than
+    fcf_yield.years), fundamentals_stale, market_cap_missing, non_finite_input (NaN/inf in market cap,
+    CFO or capex of the window), capex_missing, fcf_yield_implausibly_high (yield above
+    fcf_yield.implausible_above; exactly on the cap is valid).
+    """
+    return _fcf_yield(periods, capex_by_year, None, market_cap_usd, as_of_year=as_of_year, config=config)
+
+
+def fcf_yield_incl_other_investing(
+    periods, capex_by_year, other_investing_by_year, market_cap_usd, *, as_of_year, config: Stage2Config
+) -> MetricResult:
+    """Counter-calculation of the FCF-yield (docs/decisions.md "Stufe 2 - Datenplausibilitaet",
+    Abschnitt 2): the same window and rules as fcf_yield_average, but the outflow of a year is
+    the capex line's own outflow (a net inflow there counts 0, as in the main value) PLUS the outflow
+    of Other Investing (negative values only): an inflow of Other Investing is never netted against
+    the capex, and a year without a value counts 0.
+    The result is therefore never above the main value. Same invalid reasons as fcf_yield_average; a NaN, inf,
+    oversized or wrong-typed Other Investing value is non_finite_input.
+    """
+    return _fcf_yield(
+        periods, capex_by_year, dict(other_investing_by_year), market_cap_usd, as_of_year=as_of_year, config=config
+    )
+
+
+def other_investing_triggered(periods, capex_by_year, other_investing_by_year, *, config: Stage2Config):
+    """True if in at least one year of the FCF window |Other Investing| is more than
+    other_investing_check.min_ratio_to_capex times |capex line| (strict; with a capex line of 0 any
+    Other Investing != 0 triggers), False if every readable year is below, None if no year could be
+    read (Other Investing or capex missing, NaN, inf, oversized or of the wrong type in every year).
+    """
+    ratio = config.other_investing_check.min_ratio_to_capex
+    readable = False
+    for p in _fcf_window(periods, config):
+        change = capex_by_year.get(p["fiscal_year"])
+        other = other_investing_by_year.get(p["fiscal_year"])
+        if not _is_finite_number(change) or not _is_finite_number(other):
+            continue
+        readable = True
+        if abs(other) > ratio * abs(change):
+            return True
+    return False if readable else None
 
 
 def net_inflow_fiscal_years(periods, capex_by_year, *, config: Stage2Config):

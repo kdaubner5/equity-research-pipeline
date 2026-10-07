@@ -87,6 +87,40 @@ class FcfYieldConfig:
 
 
 @dataclass(frozen=True)
+class ShareCountCheckConfig:
+    """Dividend cross-check of the share count (docs/decisions.md "Stufe 2 - Datenplausibilitaet")."""
+
+    suspect_ratio_above: float
+    monthly_band_low: float
+    monthly_band_high: float
+
+    def __post_init__(self):
+        if not self.suspect_ratio_above > 0:
+            raise Stage2ConfigError(f"share_count_check.suspect_ratio_above ({self.suspect_ratio_above}) must be greater than 0")
+        if not self.monthly_band_low < self.monthly_band_high:
+            raise Stage2ConfigError(
+                f"share_count_check.monthly_band_low ({self.monthly_band_low}) must be less than "
+                f"share_count_check.monthly_band_high ({self.monthly_band_high})"
+            )
+        # A band that starts at or below the suspect threshold would make the threshold meaningless
+        # (every ratio above it would be ambiguous) or contradict it.
+        if not self.monthly_band_low > self.suspect_ratio_above:
+            raise Stage2ConfigError(
+                f"share_count_check.monthly_band_low ({self.monthly_band_low}) must be greater than "
+                f"share_count_check.suspect_ratio_above ({self.suspect_ratio_above})"
+            )
+
+
+@dataclass(frozen=True)
+class OtherInvestingCheckConfig:
+    min_ratio_to_capex: float
+
+    def __post_init__(self):
+        if not self.min_ratio_to_capex > 0:
+            raise Stage2ConfigError(f"other_investing_check.min_ratio_to_capex ({self.min_ratio_to_capex}) must be greater than 0")
+
+
+@dataclass(frozen=True)
 class FundamentalsConfig:
     max_fiscal_year_lag: int
 
@@ -103,6 +137,8 @@ class Stage2Config:
     fcf_yield: FcfYieldConfig
     fundamentals: FundamentalsConfig
     cyclical_sectors: CyclicalSectorsConfig
+    share_count_check: ShareCountCheckConfig
+    other_investing_check: OtherInvestingCheckConfig
 
 
 # (group, key) -> (min, max), inclusive. Coarse plausibility guardrails against a data-entry
@@ -129,6 +165,14 @@ _SCHEMA = {
     "fundamentals": {
         "max_fiscal_year_lag": (0, 10),
     },
+    "share_count_check": {
+        "suspect_ratio_above": (0.0, 1_000.0),
+        "monthly_band_low": (0.0, 1_000.0),
+        "monthly_band_high": (0.0, 1_000.0),
+    },
+    "other_investing_check": {
+        "min_ratio_to_capex": (0.0, 1_000.0),
+    },
 }
 
 _INTEGER_KEYS = {
@@ -145,6 +189,8 @@ _GROUP_DATACLASSES = {
     "ev_ebitda": EvEbitdaConfig,
     "fcf_yield": FcfYieldConfig,
     "fundamentals": FundamentalsConfig,
+    "share_count_check": ShareCountCheckConfig,
+    "other_investing_check": OtherInvestingCheckConfig,
 }
 
 _LIST_GROUP = "cyclical_sectors"

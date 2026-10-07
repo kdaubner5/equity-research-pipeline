@@ -28,6 +28,9 @@ STAGE2_CSV_FIELDNAMES = [
     "fcf_yield",
     "ev_ebitda_normalized",
     "info_flags",
+    # appended by docs/decisions.md "Stufe 2 - Datenplausibilitaet", so the earlier columns keep their positions
+    "share_count_ratio",
+    "fcf_yield_incl_other_investing",
 ]
 
 
@@ -76,6 +79,9 @@ def init_stage2_tables(db_path):
                 fcf_yield REAL,
                 ev_ebitda_normalized REAL,
                 ev_ebitda_normalized_invalid_reason TEXT,
+                share_count_ratio REAL,
+                fcf_yield_incl_other_investing REAL,
+                other_investing_triggered INTEGER,
                 PRIMARY KEY (run_timestamp, ticker)
             )
             """
@@ -114,6 +120,9 @@ def _result_rows(run_timestamp, results, ranked, simfin_ids):
                 r.fcf_yield,
                 r.ev_ebitda_normalized,
                 r.ev_ebitda_normalized_invalid_reason,
+                r.share_count_ratio,
+                r.fcf_yield_incl_other_investing,
+                None if r.other_investing_triggered is None else int(bool(r.other_investing_triggered)),
             )
         )
     return rows
@@ -160,7 +169,7 @@ def save_stage2_results(
                     peer_base_size,
                 ),
             )
-            connection.executemany("INSERT INTO stage2_results VALUES (" + ",".join("?" * 19) + ")", rows)
+            connection.executemany("INSERT INTO stage2_results VALUES (" + ",".join("?" * 22) + ")", rows)
     finally:
         connection.close()
 
@@ -192,6 +201,8 @@ def export_stage2_csv(run_timestamp, ranked, *, output_dir):
                     "fcf_yield": _csv(r.fcf_yield),
                     "ev_ebitda_normalized": _csv(r.ev_ebitda_normalized),
                     "info_flags": ",".join(r.info_flags),
+                    "share_count_ratio": _csv(r.share_count_ratio),
+                    "fcf_yield_incl_other_investing": _csv(r.fcf_yield_incl_other_investing),
                 }
             )
     return path

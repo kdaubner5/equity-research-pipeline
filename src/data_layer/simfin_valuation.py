@@ -15,6 +15,37 @@ from data_layer.simfin_client import SimFinMappingError, _column_index, _rows_by
 CAPEX_COLUMN = "Change in Fixed Assets & Intangibles"
 
 
+# Cash-flow lines for the Stage-2 plausibility checks (docs/decisions.md "Stufe 2 -
+# Datenplausibilitaet: Aktienzahl und Investitionen"). Data-format names, not thresholds.
+# Dividends Paid: negative = cash paid out to shareholders. Other Investing Activities: the
+# residual investing line (may hold capex that SimFin did not classify, securities, acquisitions;
+# negative = outflow, positive = inflow).
+DIVIDENDS_PAID_COLUMN = "Dividends Paid"
+OTHER_INVESTING_COLUMN = "Other Investing Activities"
+
+
+def _cash_flow_column_by_fiscal_year(raw_company, column):
+    cf = _statement(raw_company, "CF")
+    if cf is None:
+        return {}
+    idx = _column_index(cf["columns"], column)
+    rows = _rows_by_fiscal_year(cf, "FY")
+    return {year: row[idx] for year, row in rows.items()}
+
+
+def extract_dividends_paid_by_fiscal_year(raw_company):
+    """{fiscal_year: raw value of DIVIDENDS_PAID_COLUMN}; same contract as
+    extract_capex_by_fiscal_year (raw value unchanged, None stays None, {} without a CF
+    statement, SimFinMappingError for a missing column or duplicate fiscal-year rows)."""
+    return _cash_flow_column_by_fiscal_year(raw_company, DIVIDENDS_PAID_COLUMN)
+
+
+def extract_other_investing_by_fiscal_year(raw_company):
+    """{fiscal_year: raw value of OTHER_INVESTING_COLUMN}; same contract as
+    extract_dividends_paid_by_fiscal_year."""
+    return _cash_flow_column_by_fiscal_year(raw_company, OTHER_INVESTING_COLUMN)
+
+
 def extract_capex_by_fiscal_year(raw_company):
     """{fiscal_year: raw value of CAPEX_COLUMN} for the FY rows of one company's CF statement.
 
