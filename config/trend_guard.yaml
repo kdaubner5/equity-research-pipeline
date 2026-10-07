@@ -1,0 +1,14 @@
+# Trend-Guard (Masterplan Stufe 1.1, Hebel 3 aus Issue #52): informative Verlaufs-Marken
+# (docs/decisions.md "Trend-Guard (Masterplan Stufe 1.1, Hebel 3 aus Issue #52)", Klasse C,
+# Entscheidungen Q1-Q8 von Konstantin im Abschnitt 9). Geladen und geprueft von
+# config_layer.trend_guard.load_trend_guard_config(): jeder Schluessel ist Pflicht, kein Standardwert im Code.
+# Eigene Datei, damit thresholds.yaml und sein config_hash unveraendert bleiben. Alle Werte sind
+# PLATZHALTER (Entscheidung Q7: freigegeben als Platzhalter, jede Aenderung ist eine eigene Entscheidung),
+# nicht an echten Daten kalibriert. Signal T3 hat keine eigene Schwelle: roic.fail_below aus thresholds.yaml.
+
+trend_guard:
+  years: 3                              # Fenster in Fiskaljahren (ganze Zahl 3..5); Q3: 3, wie Stufe 1 und die Messungen in Issue #52
+  min_years: 3                          # weniger gueltige Jahre -> trend_insufficient_years (ganze Zahl 2..years)
+  revenue_ratio_flag_below: 0.90        # T1: Umsatz letztes Jahr / Mittel der Fenster-Jahre strikt darunter -> trend_revenue_falling
+  ebitda_margin_ratio_flag_below: 0.90  # T2: EBITDA-Marge letztes Jahr / Mittel der Jahresmargen strikt darunter -> trend_margin_falling
+  ebitda_margin_ratio_flag_above: 1.25  # T4: dasselbe Verhaeltnis strikt darueber -> trend_margin_peak (Gewinngipfel, Q4)

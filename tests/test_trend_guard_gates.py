@@ -34,7 +34,7 @@ def test_a_stable_company_is_clear_with_all_four_signals_computed():
     result = evaluate(stable())
     assert result.status == STATUS_CLEAR and result.marks == ()
     assert result.revenue_ratio == 1 and result.ebitda_margin_ratio == 1
-    assert result.roic_last_year == pytest.approx(0.075 * 1) or result.roic_last_year is not None
+    assert result.roic_last_year == pytest.approx(0.15)  # NOPAT 30 / invested capital 200
     assert (result.revenue_invalid_reason, result.margin_invalid_reason, result.roic_invalid_reason) == (None, None, None)
 
 
@@ -42,14 +42,15 @@ def test_a_stable_company_is_clear_with_all_four_signals_computed():
 
 
 def test_t1_revenue_exactly_on_the_threshold_is_not_marked_and_just_below_is():
-    on_edge = periods_from([{"revenue": 110}, {"revenue": 100}, {"revenue": 90}], ebitda=30)
+    on_edge = periods_from([{"revenue": 110, "ebitda": 33}, {"revenue": 100, "ebitda": 30}, {"revenue": 90, "ebitda": 27}])
     assert MARK_REVENUE_FALLING not in evaluate(on_edge).marks
-    below = periods_from([{"revenue": 110}, {"revenue": 100}, {"revenue": 89}], ebitda=30)
+    below = periods_from([{"revenue": 110, "ebitda": 33}, {"revenue": 100, "ebitda": 30}, {"revenue": 89, "ebitda": 26.7}])
     assert MARK_REVENUE_FALLING in evaluate(below).marks
 
 
 def test_t1_rising_revenue_is_not_marked():
-    assert evaluate(periods_from([{"revenue": 90}, {"revenue": 100}, {"revenue": 140}], ebitda=30)).marks == ()
+    rising = periods_from([{"revenue": 90, "ebitda": 27}, {"revenue": 100, "ebitda": 30}, {"revenue": 140, "ebitda": 42}])
+    assert evaluate(rising).marks == ()
 
 
 # ------------------------------------------------------------------ T2 and T4
@@ -100,7 +101,7 @@ def test_thresholds_come_from_the_config():
 
 def roic_series(last_net_debt):
     # equity 150; NOPAT 15 -> ROIC = 15 / (150 + net_debt)
-    return periods_from([{}, {}, {"net_debt": last_net_debt}], ebitda=30)
+    return periods_from([{}, {}, {"net_debt": last_net_debt}], ebit=20.0)
 
 
 def test_t3_marks_a_last_year_roic_below_the_stage1_fail_threshold():
@@ -130,7 +131,7 @@ def test_t3_a_grey_zone_last_year_roic_is_not_marked():
 
 
 def test_marked_wins_over_not_computable_without_hiding_the_reason():
-    periods = periods_from([{}, {}, {"net_debt": None}], revenue=100, ebitda=30)
+    periods = periods_from([{}, {}, {"net_debt": None}])
     periods[-1]["revenue"] = 60  # T1 marks (60 / 86.7 < 0.9) while T3 is not computable
     result = evaluate(periods)
     assert MARK_REVENUE_FALLING in result.marks and result.status == STATUS_MARKED
@@ -173,7 +174,7 @@ def test_no_periods_and_stale_and_insufficient_years_make_every_signal_not_compu
 
 
 def test_a_longer_window_uses_the_configured_number_of_years():
-    periods = periods_from([{"revenue": 100}] * 4 + [{"revenue": 85}], ebitda=30)
+    periods = periods_from([{"revenue": 100}] * 4 + [{"revenue": 85}])
     three = evaluate(periods, config=make_config(years=3))
     five = evaluate(periods, config=make_config(years=5))
     assert three.revenue_ratio != five.revenue_ratio

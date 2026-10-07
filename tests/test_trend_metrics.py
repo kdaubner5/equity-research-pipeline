@@ -41,11 +41,11 @@ def test_no_periods():
 
 
 def test_stale_latest_year_uses_the_stage2_lag():
-    stale = periods_from([{}] * 3, last_year=2024)  # as_of 2026, lag 1: 2024 is fine
-    assert trend_window(stale, as_of_year=AS_OF_YEAR, max_fiscal_year_lag=1, config=make_config())[1] is None
-    older = periods_from([{}] * 3, last_year=2023)  # 2023 < 2026 - 1
+    fresh = periods_from([{}] * 3, last_year=2025)  # as_of 2026, lag 1: 2025 is fine
+    assert trend_window(fresh, as_of_year=AS_OF_YEAR, max_fiscal_year_lag=1, config=make_config())[1] is None
+    older = periods_from([{}] * 3, last_year=2024)  # 2024 < 2026 - 1
     assert trend_window(older, as_of_year=AS_OF_YEAR, max_fiscal_year_lag=1, config=make_config()) == (None, "trend_fundamentals_stale")
-    assert trend_window(older, as_of_year=AS_OF_YEAR, max_fiscal_year_lag=3, config=make_config())[1] is None
+    assert trend_window(older, as_of_year=AS_OF_YEAR, max_fiscal_year_lag=2, config=make_config())[1] is None
 
 
 def test_stale_is_checked_before_insufficient_years():
