@@ -213,9 +213,10 @@ def fcf_yield_incl_other_investing(
 ) -> MetricResult:
     """Counter-calculation of the FCF-yield (docs/decisions.md "Stufe 2 - Datenplausibilitaet",
     Abschnitt 2): the same window and rules as fcf_yield_average, but the outflow of a year is
-    max(0, -(capex line + Other Investing)): Other Investing is counted with its sign, a net inflow
-    still counts as 0 outflow (never as extra cash), and a year without a value counts 0.
-    The result is never above the main value. Same invalid reasons as fcf_yield_average; a NaN, inf,
+    the capex line's own outflow (a net inflow there counts 0, as in the main value) PLUS the outflow
+    of Other Investing (negative values only): an inflow of Other Investing is never netted against
+    the capex, and a year without a value counts 0.
+    The result is therefore never above the main value. Same invalid reasons as fcf_yield_average; a NaN, inf,
     oversized or wrong-typed Other Investing value is non_finite_input.
     """
     return _fcf_yield(
