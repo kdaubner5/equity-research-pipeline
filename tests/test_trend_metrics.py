@@ -193,3 +193,17 @@ def test_roic_existing_guards_apply_to_the_last_year(override, reason):
 def test_roic_non_finite_or_wrong_type_in_the_last_year_is_not_computable(field, value):
     series = [good_year(), good_year(), good_year(**{field: value})]
     assert roic_last_year(window_of(series), thresholds=ROIC).invalid_reason == "non_finite_input"
+
+
+# ------------------------------------------------------------------ floats are exact by their decimal value (critic finding)
+
+
+def test_float_inputs_are_compared_by_their_decimal_value_margin_exactly_1_25():
+    # 0.07 / 0.07 / 0.10 on revenue 1: the mean margin is exactly 0.08, the ratio exactly 5/4 - not a binary near miss
+    result = ebitda_margin_ratio(window_of([{"ebitda": 0.07}, {"ebitda": 0.07}, {"ebitda": 0.10}], revenue=1))
+    assert result.value == Fraction(5, 4)
+
+
+def test_float_inputs_are_compared_by_their_decimal_value_revenue_exactly_0_9():
+    result = revenue_ratio(window_of([{"revenue": 1.1}, {"revenue": 1.0}, {"revenue": 0.9}]))
+    assert result.value == Fraction(9, 10)

@@ -377,3 +377,29 @@ def test_the_23_pilot_fixtures_as_survivors_pin_the_measured_picture(tmp_path):
     assert got["KELYA"][0] == "trend_not_evaluable" and got["CATO"][0] == "trend_not_evaluable"
     stale = world.trend("SELECT ticker FROM trend_results WHERE revenue_invalid_reason = 'trend_fundamentals_stale' ORDER BY ticker")
     assert stale == [("CATO",), ("MATW",), ("SGC",)]
+
+
+def test_the_stage2_block_counts_passers_with_flags_too(tmp_path):
+    world = TrendWorld(tmp_path)
+    stage2_db = tmp_path / "stage2.db"
+    results = {"CENT": _stage2_result("passed_with_flags"), "SCSC": _stage2_result("passed"), "KELYA": _stage2_result("failed")}
+    save_stage2_results(
+        "2026-10-07T12:00:00", results=results, ranked=[("CENT", results["CENT"]), ("SCSC", results["SCSC"])],
+        stage1_run_timestamp=STAGE1_TS, prefilter_run_timestamp=PREFILTER_TS, as_of="2026-09-24", config_hash="x",
+        peer_base_size=9, simfin_ids={}, db_path=stage2_db,
+    )
+    code, out = world.run(stage2_results_db_path=stage2_db, stage2_run_timestamp="2026-10-07T12:00:00")
+    assert code == 0, out
+    assert "von 2 Stage-2-Bestandenen" in out and "2 Firmen, davon 2 in diesem Lauf" in out
+
+
+def test_a_caller_side_input_error_aborts_before_anything_is_written(tmp_path, monkeypatch):
+    from metrics_layer.result import MetricInputError
+
+    def boom(*args, **kwargs):
+        raise MetricInputError("duplicate fiscal_year entries in periods")
+
+    world = TrendWorld(tmp_path)
+    monkeypatch.setattr(run_trend_guard, "evaluate_trend", boom)
+    code, _ = world.run()
+    assert code == run_trend_guard.EXIT_TECHNICAL_FAILURE and nothing_written(world)

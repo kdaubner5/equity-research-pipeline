@@ -228,3 +228,10 @@ def test_pilot_void32_revenue_zero_and_orbt18_two_years_are_not_evaluable():
     assert void.margin_invalid_reason == "revenue_non_positive"
     orbt = evaluate(fixture_periods("ORBT18"))
     assert orbt.status == STATUS_NOT_EVALUABLE and orbt.revenue_invalid_reason == "trend_insufficient_years"
+
+
+def test_float_data_exactly_on_a_threshold_is_not_marked():
+    peak = periods_from([{"ebitda": 0.07}, {"ebitda": 0.07}, {"ebitda": 0.10}], revenue=1)
+    assert MARK_MARGIN_PEAK not in evaluate(peak).marks
+    revenue = periods_from([{"revenue": 1.1}, {"revenue": 1.0}, {"revenue": 0.9}], ebitda=0.3)
+    assert MARK_REVENUE_FALLING not in evaluate(revenue).marks

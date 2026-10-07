@@ -45,6 +45,12 @@ def trend_window(periods, *, as_of_year, max_fiscal_year_lag, config: TrendGuard
     return window, None
 
 
+def _exact(value):
+    """The exact Fraction of a number by its decimal value: 0.07 is exactly 7/100, not the nearest binary
+    float (same method as the thresholds in gates_layer.trend_guard). Integers are exact already."""
+    return Fraction(str(value)) if isinstance(value, float) else Fraction(value)
+
+
 def _last_over_mean(values):
     mean = sum(values) / len(values)
     return values[-1] / mean, mean
@@ -58,7 +64,7 @@ def revenue_ratio(window) -> MetricResult:
         return MetricResult(value=None, invalid_reason="non_finite_input")
     if any(r <= 0 for r in revenues):
         return MetricResult(value=None, invalid_reason="revenue_non_positive")
-    ratio, _ = _last_over_mean([Fraction(r) for r in revenues])
+    ratio, _ = _last_over_mean([_exact(r) for r in revenues])
     return MetricResult(value=ratio)
 
 
@@ -72,7 +78,7 @@ def ebitda_margin_ratio(window) -> MetricResult:
         return MetricResult(value=None, invalid_reason="non_finite_input")
     if any(r <= 0 for r in revenues):
         return MetricResult(value=None, invalid_reason="revenue_non_positive")
-    margins = [Fraction(e) / Fraction(r) for e, r in zip(ebitdas, revenues)]
+    margins = [_exact(e) / _exact(r) for e, r in zip(ebitdas, revenues)]
     if sum(margins) / len(margins) <= 0:
         return MetricResult(value=None, invalid_reason="margin_mean_non_positive")
     ratio, _ = _last_over_mean(margins)
