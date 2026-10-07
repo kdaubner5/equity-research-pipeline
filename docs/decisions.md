@@ -1597,7 +1597,7 @@ Grundlage sind die Fundamentaldaten-Dateien im Cache und der bestehende Mapper `
 
 ### 2. Vorschlag: drei Verlaufs-Marken, kein Ausschluss
 
-**Leitlinie:** Keine Messerkante (Masterplan §1 „Härtung gegen Messrauschen“) und keine Setzung ohne Beleg (Issue #52, Grenzen: drei Jahre sind kein Zyklus, ein Einzeljahr schwankt stärker als ein Mittel). Deshalb **kein harter Ausschluss und keine Änderung von Status oder Rang** in der ersten Fassung, sondern sichtbare Marken je Firma. Das passt zur Definition von Hebel 3.
+**Leitlinie:** Keine Messerkante (Masterplan, Stufe 1, „Härtung gegen Messrauschen“) und keine Setzung ohne Beleg (Issue #52, Grenzen: drei Jahre sind kein Zyklus, ein Einzeljahr schwankt stärker als ein Mittel). Deshalb **kein harter Ausschluss und keine Änderung von Status oder Rang** in der ersten Fassung, sondern sichtbare Marken je Firma. Das passt zur Definition von Hebel 3.
 
 Drei Signale, je Firma einzeln berechnet und einzeln markiert:
 
@@ -1635,13 +1635,13 @@ trend_guard:
   ebitda_margin_ratio_flag_below: 0.90   # PLATZHALTER; -> trend_margin_falling
   # T3 hat keine eigene Schwelle: roic.fail_below aus thresholds.yaml
 ```
-Eigene Datei und eigener Lader nach dem Muster von `config/stage2.yaml` (Pflichtschlüssel, keine Standardwerte im Code, unbekannte, doppelte und falsch typisierte Schlüssel brechen ab). `thresholds.yaml` und sein Hash bleiben unverändert. Plausibilitätsregeln: `3 ≤ years ≤ 5`, `min_years ≤ years`, beide Schwellen > 0 und < 1.
+Eigene Datei und eigener Lader nach dem Muster von `config/stage2.yaml` (Pflichtschlüssel, keine Standardwerte im Code, unbekannte, doppelte und falsch typisierte Schlüssel brechen ab). `thresholds.yaml` und sein Hash bleiben unverändert. Kopplung: die Veraltet-Regel liest `fundamentals.max_fiscal_year_lag` aus `config/stage2.yaml` (nur gelesen, nicht geändert); alternativ ein eigener Schlüssel in `trend_guard.yaml` (Frage 8). Bei `years` über 3 kann das Fenster Lücken haben, weil der Mapper Jahre mit fehlenden Pflichtfeldern verwirft; es werden keine aufeinanderfolgenden Jahre verlangt, Randtests mit Fließkommafällen kommen in die Tests. Plausibilitätsregeln: `3 ≤ years ≤ 5`, `min_years ≤ years`, beide Schwellen > 0 und < 1.
 
 ### 5. Wirkung auf die 41 Stufe-2-Kandidaten
 
 **Keine Wirkung auf Status, Rang oder die Zahl der Bestandenen** (nur Marken). Sichtbar wird, welche der 41 verlaufsauffällig sind.
 
-*a) Bereits dokumentiert, nicht neu erhoben (ROIC-Signal T3):* Issue #52 (B3 und Kreuzzählung, Anker-Jahre, gleiche Schwellen, gleicher Klassifizierer) nennt **11 von 126** Überlebenden mit einem Letztes-Jahr-ROIC unter 0,10: Z (3): MTDR, JBI, BCC; K (8): CRI, KAI, SAIA, AMPH, HUBG, LYTS, THRM, TNC. Davon liegen in der heutigen 41er-Liste (nach Messung vom 07.10.) **MTDR, JBI, BCC, TNC und AMPH, also 5 von 41** (CRI ist `not_evaluable`, die übrigen fielen in Stufe 2 durch). Der Abgleich mit der Liste ist von mir aus den Namen hergeleitet, nicht neu gemessen.
+*a) Bereits dokumentiert, nicht neu erhoben (ROIC-Signal T3):* Issue #52 (B3 und Kreuzzählung, Anker-Jahre, gleiche Schwellen, gleicher Klassifizierer) nennt **11 von 126** Überlebenden mit einem Letztes-Jahr-ROIC unter 0,10: Z (3): MTDR, JBI, BCC; K (8): CRI, KAI, SAIA, AMPH, HUBG, LYTS, THRM, TNC. Davon liegen in der heutigen 41er-Liste (nach Messung vom 07.10.) **MTDR, JBI, BCC, TNC und AMPH, also 5 von 41** (CRI ist laut Messbericht auf PR #67, der nicht im Repo steht, `not_evaluable`; die übrigen fielen in Stufe 2 durch). Der Abgleich mit der Liste ist von mir aus den Namen hergeleitet, nicht neu gemessen.
 
 *b) Beispielrechnung nur mit Pilot-Fixtures* (Fixtures sind Rohdaten vor Stufe 1, keine Überlebenden; sie zeigen die Rechnung, nicht die Wirkung). Letztes Jahr (2024) ÷ Mittel der drei Jahre, ROIC mit `roic_for_period` und den heutigen Schwellen (`nopat_tax_rate` 0,25; `fail_below` 0,10); Startwerte 0,90 / 0,90:
 
@@ -1675,10 +1675,10 @@ Die Werte wurden mit den bestehenden Funktionen und den Fixture-Dateien gerechne
 ### 7. Vorab-Hypothesen (prüfbar, noch nicht gemessen; Abweichung wird berichtet, nicht angepasst)
 
 Bezug: Stufe-1-Lauf `2026-09-30T18:53:07` (126 Überlebende), Vorfilter `2026-09-24T18:13:48`, Cache `2026-09-24`, Stand der 41 nach der Messung vom 07.10.
-- **H-T1 (stark, aus dokumentierten Zahlen):** `trend_roic_below_floor` bei **11 von 126**, davon **5 von 41** (MTDR, JBI, BCC, TNC, AMPH). Abweichung hieße, dass sich Cache, Mapper oder Schwellen seit Issue #52 geändert haben.
+- **H-T1 (stark, aus dokumentierten Zahlen):** `trend_roic_below_floor` bei **10 von 126** (Issue #52 nennt 11; davon ist HUBG laut H-T4 veraltet und damit nicht berechenbar), davon **5 von 41** (MTDR, JBI, BCC, TNC, AMPH; HUBG liegt nicht unter den 41). Abweichung hieße, dass sich Cache, Mapper oder Schwellen seit Issue #52 geändert haben.
 - **H-T2 (schwach, geschätzt aus Quartilen, keine Messung):** `trend_margin_falling` bei **10 bis 25 von 126** und **3 bis 10 von 41**.
 - **H-T3 (ohne Prognose):** `trend_revenue_falling`: Die Verteilung wird erstmals gemessen; erwartet wird nur, dass T1 seltener auslöst als T2.
-- **H-T4:** Nicht berechenbar: dieselben **6 von 126**, die Stufe 2 wegen `fundamentals_stale` nicht bewertet (APOG, DOX, GSL, HUBG, PRG, TREX), und sonst keine (0 von 126 mit weniger als drei Jahren, Issue #52).
+- **H-T4:** Nicht berechenbar: dieselben **6 von 126**, die Stufe 2 wegen `fundamentals_stale` nicht bewertet (APOG, DOX, GSL, HUBG, PRG, TREX; laut Replay-Bericht auf PR #66, nicht im Repo und von mir nicht neu geprüft), und sonst keine (0 von 126 mit weniger als drei Jahren, Issue #52).
 - **H-T5:** Zahl der Bestandenen in Stufe 2 (**41 von 126**), Status, Flags und Rang bleiben unverändert (nur Marken).
 - **H-T6:** Mindestens **5 von 41** tragen mindestens eine Marke (aus H-T1); geschätzt 6 bis 14 von 41.
 
@@ -1698,6 +1698,7 @@ Bezug: Stufe-1-Lauf `2026-09-30T18:53:07` (126 Überlebende), Vorfilter `2026-09
 4. **Signale:** Genügen T1 bis T3? Soll ein Spiegel-Signal für einen **Gipfel** dazu (EBITDA-Marge im letzten Jahr deutlich **über** dem Mittel, z. B. Verhältnis über 1,25)? Das fängt „Marge am Gipfel“ statt „Marge fällt“; im Pilotbeispiel würde es APEX29 erfassen. Der Masterplan nennt Zykliker am Gewinngipfel ausdrücklich, der Guard fängt sie als „fallendes Messer“ nicht.
 5. **Zykliker:** Gleiche Schwellen für die sechs zyklischen Sektorcodes (empfohlen; die Marke steht neben `cyclical_sector`) oder eigene?
 6. **Grundgesamtheit:** Alle 126 Überlebenden (empfohlen, auch die in Stufe 2 durchgefallenen, so ist die Wirkung prüfbar) oder nur die Stufe-2-Bestandenen (41)?
+8. **Veraltet-Regel:** Schwelle `max_fiscal_year_lag` aus `stage2.yaml` mitlesen (Vorschlag) oder eigener Schlüssel?
 7. **Startwerte 0,90 / 0,90:** Als Platzhalter freigeben und nach der ersten Messung anpassen (Änderung dann eigene Entscheidung), oder vorher eine reine Verteilungsmessung (Klasse A, Kopien) abwarten?
 
 **Grenzen (bekannt, akzeptiert):** Drei Jahre sind kein Zyklus; ein Verhältnis unter 1 kann Rückgang nach dem Gipfel oder Tief bedeuten, die Marke ist eine Mahnung, keine Diagnose. Die Marken sagen nichts über die Ursache (einmalige Sonderlast, Übernahme, Währung). Firmen mit unterschiedlichem letztem Fiskaljahr werden nicht auf ein Kalenderjahr bezogen.
