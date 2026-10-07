@@ -27,6 +27,23 @@ fcf_yield:
 fundamentals:
   max_fiscal_year_lag: 1         # latest fiscal year must be >= as_of year minus this, else fundamentals_stale (question Q9)
 
+# Dividend cross-check of the share count (docs/decisions.md "Stufe 2 - Datenplausibilitaet"):
+# R = (dividends paid last fiscal year / share count) / last dividend per share. A fitting share
+# count gives R near the payment rhythm (4 quarterly, 2 half-yearly, 1 yearly, 12 monthly); a share
+# count that is too small makes R explode and the company look too cheap. START VALUES from the
+# measurement of 2026-10-07 (R median 3.92; 50 of 758 checkable companies above 6), not calibrated.
+share_count_check:
+  suspect_ratio_above: 6.0       # R strictly above (and outside the band below) -> share_count_suspect (not_evaluable)
+  monthly_band_low: 9.0          # R within [low, high] -> share_count_ambiguous (a monthly payer fits there too)
+  monthly_band_high: 15.0
+
+# Counter-calculation of the investment line (same decision): if |Other Investing| exceeds this
+# multiple of |Change in Fixed Assets & Intangibles| in at least one of the FCF years, the FCF-yield
+# is recomputed with Other Investing counted; a clean yield that is no longer clean gets the flag
+# fcf_yield_unverified (never failed, never excluded).
+other_investing_check:
+  min_ratio_to_capex: 2.0        # strictly more than double (START VALUE)
+
 # SimFin sectorCodes of the cyclical survivors found in Issue #52. Informational mark only
 # (cyclical_sector): never changes status, flags or rank.
 cyclical_sectors:

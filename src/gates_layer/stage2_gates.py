@@ -14,7 +14,8 @@ or without a sector code gets a not_evaluable result with an explicit invalid_re
 No I/O: the inputs are assembled by the caller (a runner, not part of this module).
 """
 
-from dataclasses import dataclass
+import dataclasses
+from dataclasses import dataclass, field
 from datetime import date
 from fractions import Fraction
 from typing import Dict, List, Mapping, Optional, Sequence, Tuple
@@ -22,8 +23,23 @@ from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 from config_layer.stage2 import Stage2Config
 from gates_layer.peer_groups import LEVEL_ABSOLUTE, LEVEL_COARSE, PeerAssignment, assign_peers
 from gates_layer.stage1_gates import FAILED, NOT_EVALUABLE, PASSED, PASSED_WITH_FLAGS, GateResult
+from metrics_layer.plausibility import (
+    SHARE_AMBIGUOUS,
+    SHARE_OK,
+    SHARE_SUSPECT,
+    SHARE_UNCHECKED,
+    classify_share_count_ratio,
+    share_count_ratio,
+)
 from metrics_layer.result import MetricResult
-from metrics_layer.valuation import ev_ebitda_latest, ev_ebitda_normalized, fcf_yield_average, net_inflow_fiscal_years
+from metrics_layer.valuation import (
+    ev_ebitda_latest,
+    ev_ebitda_normalized,
+    fcf_yield_average,
+    fcf_yield_incl_other_investing,
+    net_inflow_fiscal_years,
+    other_investing_triggered,
+)
 
 _METRIC_NAMES = ("ev_ebitda", "fcf_yield")
 
@@ -32,10 +48,15 @@ INFO_CAPEX_NET_INFLOW = "capex_net_inflow_treated_as_zero"
 INFO_PEER_GROUP_COARSE = "peer_group_coarse"
 INFO_PEER_GROUP_ABSOLUTE = "peer_group_absolute"
 INFO_BORDERLINE_SECTOR = "borderline_sector"
+INFO_SHARE_COUNT_UNCHECKED = "share_count_unchecked"
+INFO_SHARE_COUNT_AMBIGUOUS = "share_count_ambiguous"
+
+FLAG_FCF_YIELD_UNVERIFIED = "fcf_yield_unverified"
 
 VALUATION_INPUT_MISSING = "valuation_input_missing"
 PROFILE_UNSUPPORTED = "profile_unsupported"
 NO_SECTOR_CODE = "no_sector_code"
+SHARE_COUNT_SUSPECT = "share_count_suspect"
 
 
 @dataclass(frozen=True)
@@ -56,6 +77,31 @@ class ValuationInput:
     capex_by_year: Mapping[int, Optional[float]]
     profile_supported: bool = True
     borderline_sector: Optional[bool] = None
+    # Plausibility inputs (docs/decisions.md "Stufe 2 - Datenplausibilitaet"): all optional - a caller
+    # that has none gets share_count_unchecked and an unchecked counter-calculation, never a guess.
+    # dividends_paid_by_year / other_investing_by_year: data_layer.simfin_valuation extractions (raw
+    # cash-flow values by fiscal year); shares_outstanding / dividend_per_share: price-cache entry.
+    dividends_paid_by_year: Mapping[int, Optional[float]] = field(default_factory=dict)
+    other_investing_by_year: Mapping[int, Optional[float]] = field(default_factory=dict)
+    shares_outstanding: Optional[float] = None
+    dividend_per_share: Optional[float] = None
+
+
+@dataclass(frozen=True)
+class ShareCountAssessment:
+    """Outcome of the dividend cross-check of one company's share count: verdict is one of
+    SHARE_OK / SHARE_AMBIGUOUS / SHARE_SUSPECT / SHARE_UNCHECKED; ratio is R (None if unchecked);
+    reason says why a company is unchecked."""
+
+    verdict: str
+    ratio: Optional[float]
+    reason: Optional[str]
+
+
+@dataclass(frozen=True)
+class PeerBaseSummary:
+    size: int
+    excluded_share_count_suspect: Tuple[str, ...]  # tickers with an otherwise valid multiple, sorted
 
 
 @dataclass(frozen=True)
@@ -88,6 +134,12 @@ class Stage2Result:
     ev_ebitda_normalized: Optional[float]
     ev_ebitda_normalized_invalid_reason: Optional[str]
     info_flags: Tuple[str, ...]
+    # Plausibility results (docs/decisions.md "Stufe 2 - Datenplausibilitaet"): R of the dividend
+    # cross-check; the FCF-yield with Other Investing counted and whether the ratio test fired
+    # (None = not checkable). Defaults keep older constructors valid.
+    share_count_ratio: Optional[float] = None
+    fcf_yield_incl_other_investing: Optional[float] = None
+    other_investing_triggered: Optional[bool] = None
 
 
 def not_evaluable_result(reason) -> Stage2Result:
@@ -138,6 +190,25 @@ def _classify_fcf_yield(value, config: Stage2Config):
     return PASSED_WITH_FLAGS
 
 
+def _assess_share_count(vi: ValuationInput, config: Stage2Config) -> ShareCountAssessment:
+    """Dividend cross-check of one company: the dividends paid in the latest fiscal year against the
+    share count and last dividend per share of the price cache. Unchecked (with the reason) if any
+    input is missing or unusable - never silently ok."""
+    if not vi.periods:
+        return ShareCountAssessment(SHARE_UNCHECKED, None, "no_periods")
+    latest_year = max(p["fiscal_year"] for p in vi.periods)
+    result = share_count_ratio(vi.dividends_paid_by_year.get(latest_year), vi.shares_outstanding, vi.dividend_per_share)
+    if result.invalid_reason is not None:
+        return ShareCountAssessment(SHARE_UNCHECKED, None, result.invalid_reason)
+    return ShareCountAssessment(classify_share_count_ratio(result.value, config), result.value, None)
+
+
+def assess_share_counts(inputs: Mapping[str, ValuationInput], config: Stage2Config) -> Dict[str, ShareCountAssessment]:
+    """Share-count assessment of every supported-profile input (unsupported profiles are never
+    valued and therefore not assessed)."""
+    return {t: _assess_share_count(vi, config) for t, vi in inputs.items() if vi.profile_supported}
+
+
 def _peer_base_multiples(inputs, config, as_of_year):
     """(base, ev_results): base = ticker -> (sector_code, multiple) for every supported-profile
     company with a sector code and a valid EV/EBITDA; ev_results = the MetricResult of every
@@ -148,6 +219,9 @@ def _peer_base_multiples(inputs, config, as_of_year):
         if not vi.profile_supported or vi.sector_code is None:
             continue
         result = ev_ebitda_latest(vi.periods, vi.market_cap_usd, as_of_year=as_of_year, config=config)
+        if result.invalid_reason is None and _assess_share_count(vi, config).verdict == SHARE_SUSPECT:
+            # a known-wrong share count means a wrong market cap and a wrong multiple: not a peer
+            result = MetricResult(value=None, invalid_reason=SHARE_COUNT_SUSPECT)
         ev_results[ticker] = result
         if result.invalid_reason is None:
             base[ticker] = (vi.sector_code, result.value)
@@ -160,9 +234,23 @@ def peer_base_size(inputs: Mapping[str, ValuationInput], *, as_of: date, config:
     return len(base)
 
 
+def peer_base_summary(inputs: Mapping[str, ValuationInput], *, as_of: date, config: Stage2Config) -> PeerBaseSummary:
+    """Size of the peer base and the companies that would be in it but for a suspect share count."""
+    base, ev_results = _peer_base_multiples(inputs, config, as_of.year)
+    excluded = sorted(t for t, r in ev_results.items() if r.invalid_reason == SHARE_COUNT_SUSPECT)
+    return PeerBaseSummary(size=len(base), excluded_share_count_suspect=tuple(excluded))
+
+
 def _evaluate_company(vi: ValuationInput, ev_result: MetricResult, base, *, as_of_year, config) -> Stage2Result:
     if not vi.profile_supported:
         return not_evaluable_result(PROFILE_UNSUPPORTED)
+
+    share_check = _assess_share_count(vi, config)
+    if share_check.verdict == SHARE_SUSPECT:
+        # With a share count known to be wrong, the market cap and both metrics are unreliable: no
+        # valuation is reported and no hard fail is derived from them (docs/decisions.md
+        # "Stufe 2 - Datenplausibilitaet", Abschnitt 1). The ratio stays visible.
+        return dataclasses.replace(not_evaluable_result(SHARE_COUNT_SUSPECT), share_count_ratio=share_check.ratio)
 
     assignment: Optional[PeerAssignment] = None
     if vi.sector_code is None:
@@ -174,6 +262,19 @@ def _evaluate_company(vi: ValuationInput, ev_result: MetricResult, base, *, as_o
         vi.periods, vi.capex_by_year, vi.market_cap_usd, as_of_year=as_of_year, config=config
     )
     normalized = ev_ebitda_normalized(vi.periods, vi.market_cap_usd, as_of_year=as_of_year, config=config)
+
+    # Counter-calculation of the investment line (Abschnitt 2): only meaningful for a valid main yield.
+    other_triggered = None
+    alt_yield = None
+    alt_invalid = False
+    if fcf_result.invalid_reason is None:
+        other_triggered = other_investing_triggered(vi.periods, vi.capex_by_year, vi.other_investing_by_year, config=config)
+        if other_triggered is not None:
+            alt = fcf_yield_incl_other_investing(
+                vi.periods, vi.capex_by_year, vi.other_investing_by_year, vi.market_cap_usd,
+                as_of_year=as_of_year, config=config,
+            )
+            alt_yield, alt_invalid = alt.value, alt.invalid_reason is not None
 
     classifications = {}
     if assignment is not None:
@@ -199,6 +300,17 @@ def _evaluate_company(vi: ValuationInput, ev_result: MetricResult, base, *, as_o
             status = PASSED_WITH_FLAGS
         else:
             status = PASSED
+        # A clean main yield that the counter-calculation cannot confirm is flagged - never failed or
+        # excluded (the content of Other Investing is not known). A failed or not_evaluable company
+        # stays what it is; a main yield already in the grey zone needs no extra flag.
+        if (
+            status in (PASSED, PASSED_WITH_FLAGS)
+            and classifications.get("fcf_yield") == PASSED
+            and other_triggered is True
+            and (alt_invalid or _classify_fcf_yield(alt_yield, config) != PASSED)
+        ):
+            flags = flags + (FLAG_FCF_YIELD_UNVERIFIED,)
+            status = PASSED_WITH_FLAGS
 
     info_flags: List[str] = []
     if vi.sector_code in config.cyclical_sectors.sector_codes:
@@ -211,6 +323,10 @@ def _evaluate_company(vi: ValuationInput, ev_result: MetricResult, base, *, as_o
         info_flags.append(INFO_PEER_GROUP_ABSOLUTE)
     if vi.borderline_sector:
         info_flags.append(INFO_BORDERLINE_SECTOR)
+    if share_check.verdict == SHARE_UNCHECKED:
+        info_flags.append(INFO_SHARE_COUNT_UNCHECKED)
+    elif share_check.verdict == SHARE_AMBIGUOUS:
+        info_flags.append(INFO_SHARE_COUNT_AMBIGUOUS)
 
     return Stage2Result(
         status=status,
@@ -228,6 +344,9 @@ def _evaluate_company(vi: ValuationInput, ev_result: MetricResult, base, *, as_o
         ev_ebitda_normalized=normalized.value,
         ev_ebitda_normalized_invalid_reason=normalized.invalid_reason,
         info_flags=tuple(info_flags),
+        share_count_ratio=share_check.ratio,
+        fcf_yield_incl_other_investing=alt_yield,
+        other_investing_triggered=other_triggered,
     )
 
 
