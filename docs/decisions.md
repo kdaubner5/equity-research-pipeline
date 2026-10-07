@@ -1813,3 +1813,110 @@ Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein 
 - Die Yahoo-Prüfung deckt die genannten Firmen ab, nicht alle 41; die Prüfung der Finalisten in Stufe 3 ist der feste Schritt dafür.
 - Die Hypothesen sind erfüllt, über die inhaltliche Richtigkeit der Marken sagt das nichts.
 - Die Messung nennt keine Zahlen für Rangwirkung; die Folgeentscheidung über eine Rangwirkung steht weiter aus (hier nur: vorerst nicht).
+
+## 2026-10-07: Zweck und Zahlenbasis (07.10.2026) (Agent-Entscheidung, Klasse C; Entwurf, nur Text)
+
+**Status: Entwurf, nicht freigegeben.** Der Text gilt erst, wenn Konstantin ihn per Merge auf `master` gebracht hat. Branch `agent/zweck-zahlenbasis` (von `master`), nur Dokumentation. Klasse C: Der Abschnitt legt Verfahren fest (welche Zahlenbasis die Stufen verwenden, welche Quelle nicht Grundlage ist). Auftrag und Fassung der Abschnitte 1 bis 6 stammen von Konstantin (2026-10-07). Keine echte Datenbank, kein `data/`, kein Code, keine Konfiguration; die Zahlen im Anhang stammen aus den Messungen vom 2026-10-07 (nur lesend auf den Kopien unter `C:\Users\<Benutzer>\baselines\`) und einem freigegebenen Abrufblock mit 23 SimFin-Calls.
+
+### 1. Zweck
+
+Das System ist ein systematischer Gesundheitsfilter über US-Nichtfinanzwerte. Es reduziert das Universum auf wenige Titel mit solider Bilanz und Ertragsqualität. Es sucht keine Preisfehler und verspricht keinen Vorsprung; Stufe 2 dient der Rangfolge unter gesunden Titeln. Banken, Versicherer und weitere Finanztitel sind bewusst ausgenommen.
+
+### 2. Zahlenbasis
+
+Stufe 1 und 2 rechnen weiter auf Geschäftsjahreszahlen (FY). Die Baseline 126/41/40 ist ein FY2025-Stand auf Daten vom 23./24.09. und wird im Archiv so beschriftet.
+
+### 3. Aktualität
+
+Für Finalisten werden letzte Bilanz (Cash, Schulden, Aktienzahl) und die letzten berichteten Quartale in Stufe 3 aus den aktuellen 10-Q/10-K bzw. von EDGAR geprüft und neben die FY-Werte gestellt.
+
+### 4. Quelle SimFin Free
+
+Quartalsdaten sind statement- und firmenweise verzögert oder lückenhaft (Beispiele PATK, JBI; 44 von 97 Dezember-Firmen ohne Q2 am 24.09. und am 07.10.). Sie werden nicht als Grundlage für TTM im Screen verwendet.
+
+### 5. Bewusst nicht entschieden
+
+TTM-Umbau des Screens, Wechsel auf EDGAR im Ganzen, SimFin START. Auslöser für eine neue Entscheidung: Antwort des SimFin-Supports, Ergebnis der Abdeckungsmessung nach Größenklasse, Ergebnis des Forward-Logs.
+
+### 6. Offene Messungen
+
+Abdeckung nach Größenklasse; Ausschlussgründe je Stufe und Branche; Vergleich mit einem Standard-Screen.
+
+### Anhang: Messbefunde vom 2026-10-07
+
+Alle Messungen: nur lesend auf Kopien unter `C:\Users\<Benutzer>\baselines\` (Cache `stage2\cache\fundamentals\2026-09-24`, 1.821 Firmen; Firmenliste der 126 aus `stage2\csv\systematik_B_126.csv`); die Belege liegen außerhalb des Repos. Messskripte liefen zum Teil als Python über die Standardeingabe und sind nicht als Dateien archiviert; nur `probe_fetch.py` und `probe_analyse.py` liegen in `baselines\probe_2026-10-07\`. „Belegt“ heißt: aus Python gezählt. Ursachen sind, wo nicht anders gesagt, nicht untersucht.
+
+**A. Periodentypen im Cache vom 24.09. (Zeilen, alle 1.821 Firmen)**
+
+```
+Statement  FY      Q1      Q2      Q3      Q4      H1      H2      9M      TTM-Zeilen
+PL         11.726  10.839  10.382  10.761  10.610  10.464  10.539  10.780  keine
+CF         11.797  10.784  10.296  10.684  10.587  10.428  10.537  10.806  keine
+BS         19      10.462  10.102  10.462  11.718  –       –       –       keine
+```
+
+Die Spalte „TTM“ ist nur ein Kennzeichen (bei der geprüften Firma 100810 überall 0; nicht für alle Firmen ausgewertet); fertige TTM-Zeilen habe ich nicht gefunden. Cashflow-Quartale sind Einzelquartale (stichprobenartig: Q1+Q2=H1).
+
+**B. Vier lückenlose Quartale für die 126 Stufe-1-Firmen** (Umsatz, operatives Ergebnis, Abschreibungen, operativer Cashflow, Capex; vier Quartale bis zum jüngsten Quartal irgendeines Statements)
+
+```
+lückenlos:  113 von 126
+Lücken:      13 von 126  (ALSN, ALV, AXTA, BCC, CBT, DOX, GSL, JBI, LYTS, NRP, PRG, TREX, TTI)
+  nur Jahreszeilen, keine Quartalszeilen: DOX; GSL: Jahreszeilen und einzelne fast leere Q4-Zeilen
+  Gewinn- und Verlustrechnung älter als Bilanz/Cashflow (Stichtag): ALV, CBT, LYTS, BCC, TREX, JBI (DOX zusätzlich ohne PL-Quartale)
+  einzelne Quartale fehlen: ALSN, TTI, AXTA, NRP, PRG
+```
+
+Gemessen ab dem jüngsten Umsatz-Quartal der PL statt ab dem jüngsten Quartal irgendeines Statements wären es 119 von 126, aber mit veraltetem Stand bei den 6 Stichtagsfirmen.
+
+**C. Quartalssumme gegen FY-Wert** (alle 1.821 Firmen; Toleranz als Parameter 1 % der Abweichung vom FY-Wert, in `config/` gibt es keine Vorgabe)
+
+```
+Firmen mit mind. einem vollständigen Fiskaljahr (Q1–Q4 und FY befüllt): 1.633 von 1.821
+Fiskaljahr-Werte gesamt: 42.032; innerhalb 1 %: 40.479 (96,3 %)
+Empfindlichkeit: 0,1 % → 95,5 %; 1 % → 96,3 %; 5 % → 97,2 %  (nur FY ab 2024, 1 %: 96,1 %)
+Kennzahl                    Werte   innerhalb 1 %
+Capex                       8.068   99,6 %
+Abschreibungen              8.456   99,6 %
+Operativer Cashflow         9.017   99,4 %
+Umsatz                      7.362   94,9 %
+Operatives Ergebnis         9.129   88,4 %
+Firmen mit mind. einem Ausreißer (> 1 %): 622 von 1.633
+```
+
+Die größten relativen Abweichungen betreffen meist winzige FY-Werte (z. B. TRIN 2022 EBIT: FY = 0, Quartalssumme 2,9 Mio.; CCAP 2021: FY = 3) oder offenkundige Datenfehler (JBI 2020 Umsatz: Quartalssumme 260 Mrd. gegen FY 549 Mio.). AXTA, ALSN, NRP: in allen geprüften Fiskaljahren Abweichung höchstens im Rundungsbereich (0,0 % auf vier Stellen). Die Ursache der Abweichungen bei Umsatz und operativem Ergebnis ist nicht untersucht.
+
+**D. Aktualität des jüngsten PL-Quartals der 126 am 24.09.** (erwartet nach Berichtsfrist: 45 Tage für 10-Q, 90 Tage für 10-K, 10 Tage Toleranz; Annahmen des Audits vom 23.09., nicht von SimFin)
+
+```
+GJ-Ende    Firmen  erwartet  aktuell  zurück
+Dezember     97    2026-06    53       44 (jüngstes Periodenende: 2026-03 ×29, 2025-12 ×11, 2025-09 ×2, 2025-06 ×1, 2024-12 ×1)
+September     8    2026-06     3        5
+Juni          3    2026-03     2        1
+März          6    2026-06     4        2
+andere       12    2026-05/07  6        6
+```
+
+Bei 43 der 44 zurückliegenden Dezember-Firmen existiert in keinem Statement eine Zeile für FY2026 Q2; die Ausnahme ist JBI (Bilanz und Cashflow haben Q2 mit Period End 2026-06-30 und Publish 2026-08-11, die PL endet mit FY2025 Q4). PATK: PL, Bilanz und Cashflow enden mit FY2026 Q1.
+
+**E. Probe am 2026-10-07** (freigegeben von Konstantin am 2026-10-07 20:11, gültig bis 2026-10-08 20:00; ein Abrufblock, 2 IDs je Call, `statements=PL,BS,CF`, ohne Periodenfilter)
+
+```
+Umfang:    45 Firmen (die 44 Dezember-Firmen ohne Q2 am 24.09. plus VC); 23 Calls, Obergrenze 25
+Status:    23 × HTTP 200, 0 × 429, nicht abgebrochen
+Juni-2026-Quartal vorhanden (von 45), vorher und jetzt gleich:  PL 1, BS 2, CF 2; in allen drei Statements 1 (VC)
+Bestehende Zeilen: 5.583 verglichen, 0 mit geändertem Wert (Umsatz, EBIT, Abschreibungen, CFO, Capex, Cash, Bilanzsumme, Eigenkapital, kurz- und langfristige Schulden); 0 neue Zeilen
+Entfallen:  203 Zeilen (nur Q3 und 9M des Fiskaljahrs 2019, bei 41 von 45 Firmen): das Historienfenster rückt offenbar um ein Quartal; Ursache nicht geprüft
+Datumsfelder: kein Abrufdatum in der Antwort; Publish Date je Zeile 2020-01-30 bis 2026-08-11
+Rate-Limit:  Header X-Rate-Limit-Remaining = 0 in 23 von 23 Antworten (wie am 24.09.); kein Credit-Feld
+Stand des Ordners baselines\stage2\: Hash vorher = nachher (SHA-256 über die Liste aller 2.688 Dateihashes) e9cb4b49f50dfb1eac6e121a2924b7aec984f3d017ed29fd1d17639cd969f0ad
+```
+
+**F. Weitere Befunde**
+
+- **Mapper liest keine Quartale für Gewinn und Cashflow:** `src/data_layer/simfin_client.py` Zeile 198 (PL, `FY`), Zeile 209 (CF, `FY`), Zeile 210 (BS, `Q4` als Bilanzstichtag zum Geschäftsjahresende); Capex in `src/data_layer/simfin_valuation.py` Zeilen 32 und 62 (CF, `FY`).
+- **Abrufe:** Ein Call holt bis zu 2 IDs mit allen Periodentypen in derselben Antwort (`simfin_client.py` Zeile 421, `MAX_BATCH_SIZE = 2`); Quartale kosten keinen zusätzlichen Call. Hochrechnung: 126 Firmen = 63 Calls, 1.821 = 911, 6.654 = 3.327 (zuzüglich rund 1 % Wiederholungen nach HTTP 429; am 24.09. waren es 911 erfolgreiche Calls und 8 Wiederholungen). Ein Credit-Wert steht weder im Code noch im Log.
+- **Short Term Debt:** Fehlt im jüngsten Bilanzquartal bei 47 von 126 Firmen. Der FY-Pfad rechnet ein fehlendes Short Term Debt als 0 und markiert es mit `debt_component_missing_defaulted_zero` (`simfin_client.py` Zeilen 254 bis 257); `net_debt` ist nur leer („nicht bewertbar“), wenn Short Term Debt, Long Term Debt und Schulden-Cashflow alle fehlen (Zeilen 265 bis 269). Von den 47 fehlt der Wert auch im letzten Ankerjahr (Bilanz Q4) bei 44, in mindestens einem der 3 Ankerjahre bei 46, in allen 3 bei 38; Long Term Debt fehlt im letzten Ankerjahr zusätzlich bei 7 von 47. Ob die fehlenden Werte echte Nullen sind, ist nicht belegt.
+- **Aktienzahl:** Der Fundamentaldaten-Cache (PL, BS, CF) enthält keine Aktienzahl-Spalte; sie kommt aus einer anderen Quelle.
+
+**Nicht belegt:** ob SimFin die Quartale später nachliefert und wann; wie die Abdeckung nach Größenklasse aussieht; ob die Quartalswerte inhaltlich stimmen (Auffälligkeiten bei AXTA Cashflow Q3/Q4 2025 sowie ALSN und NRP Abschreibungen Q1 2026 sind nicht untersucht); ob TTM aus Jahreswert plus laufendem Jahr minus Vorjahreszeitraum mehr Firmen abdecken würde.
