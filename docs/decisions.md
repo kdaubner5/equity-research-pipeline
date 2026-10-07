@@ -1759,3 +1759,57 @@ Diese Antworten gelten erst mit dem Entscheidungskommentar von Konstantin und de
 **Grenzen (bekannt, akzeptiert):** Drei Jahre sind kein Zyklus; ein Verhältnis unter 1 kann Rückgang nach dem Gipfel oder Tief bedeuten, die Marke ist eine Mahnung, keine Diagnose. Die Marken sagen nichts über die Ursache (einmalige Sonderlast, Übernahme, Währung). Firmen mit unterschiedlichem letztem Fiskaljahr werden nicht auf ein Kalenderjahr bezogen.
 
 **How to apply (nach Freigabe):** neue Dateien `config/trend_guard.yaml`, `src/config_layer/trend_guard.py`, `src/metrics_layer/trend.py`, `src/gates_layer/trend_guard.py`, Archiv und CSV (`src/store_layer/`), Aufruf `run_trend_guard.py`; Tests wie in Abschnitt 8, zuerst. Unverändert: `simfin_client.py`, `stage1_gates.py`, `stage2_gates.py`, `thresholds.yaml`, `config/stage2.yaml`.
+
+## 2026-10-07: Trend-Guard – Messung, Handprüfung gegen Yahoo Finance und Entscheidungen (Befund und Protokoll, Klasse A)
+
+Reine Befund- und Messdokumentation sowie Entscheidungen von Konstantin vom 07.10.2026. Es ändert sich keine Schwelle und kein Code. Quellen: die Kommentare auf PR #70 (Messung auf Kopien, Master `c3c24c1`, 0 SimFin-Aufrufe, kein `data\`) und der Auftrag von Konstantin vom 07.10.2026 (Handprüfung gegen Yahoo Finance). Die Handprüfung selbst ist von mir nicht nachgeprüft; ihre Zahlen stehen hier so, wie Konstantin sie genannt hat.
+
+### 1. Messung des Trend-Guards (Belegt: Kommentar auf PR #70)
+
+Eingaben: Stufe-1-Lauf der 126 Überlebenden (`2026-09-30T18:53:07`, Vorfilter 1.821 von 6.654), Stufe-2-Replay mit 41 Bestandenen (Lauf `12:30:00`). Hashes der Eingaben vorher = nachher; Lauf Exit 0.
+
+**Gesamt:** **95 von 126** ohne Marke (`trend_clear`), **25 von 126** mit mindestens einer Marke (`trend_marked`), **6 von 126** nicht auswertbar (`trend_not_evaluable`).
+
+**Hypothesen H-T1 bis H-T7 (Soll gegen Ist), alle erfüllt:**
+
+| Hypothese | Soll | Ist |
+|---|---|---|
+| H-T1 (T3 ROIC unter Untergrenze) | 10 von 126, davon 5 von 41 | 10 von 126 (AMPH, BCC, CRI, JBI, KAI, LYTS, MTDR, SAIA, THRM, TNC), davon 5 von 41 (AMPH, BCC, JBI, MTDR, TNC) |
+| H-T2 (T2 Marge fällt) | 10–25 von 126, 3–10 von 41 | 15 von 126, 7 von 41 (AMPH, BCC, JBI, MGM, SLVM, TNC, UFPI) |
+| H-T3 (T1 Umsatz fällt seltener als T2) | T1 seltener als T2 | 1 von 126 (NRP), 0 von 41 |
+| H-T4 (nicht auswertbar) | dieselben 6 veralteten Firmen | APOG, DOX, GSL, HUBG, PRG, TREX, alle `trend_fundamentals_stale`; sonst keine |
+| H-T5 (die 41 bleiben) | Status, Flags, Rang unverändert | Hash von `stage2_v2_results.db` vorher = nachher; 35 `passed`, 6 `passed_with_flags`; Rang 41 von 41 gesetzt, unverändert |
+| H-T6 (T4 Margenspitze) | 0 von 29 Z-Firmen, 0–10 von 97 K-Firmen | 0 von 29, 5 von 97 (ELA, FLXS, GCMG, KMT, PEGA), keine unter den 41 |
+| H-T7 (Marken unter den 41) | mindestens 5 von 41, Obergrenze 20; nicht auswertbar: 0 | 8 von 41 markiert, 0 von 41 nicht auswertbar |
+
+**Die 8 markierten unter den 41 (mit Marken):** AMPH (Marge fällt + ROIC), BCC (Marge + ROIC), JBI (Marge + ROIC), TNC (Marge + ROIC), MGM (Marge), SLVM (Marge), UFPI (Marge), MTDR (ROIC). Vier von 41 tragen zwei Marken (AMPH, BCC, JBI, TNC); unter allen 126 sind es sechs (zusätzlich CRI, SAIA). BCC, JBI, SLVM, MTDR sind Zykliker; AMPH und MTDR sind zugleich in Stufe 2 schon auffällig (AMPH als Neuzugang mit Perzentil 0,364, MTDR mit Flag `fcf_yield_unverified`).
+
+**Nicht geprüft:** ob die Marken inhaltlich „richtig“ sind (nur Zählung gegen die Hypothesen). Bei Zyklikern kann ein Margen- oder ROIC-Rückgang normal sein.
+
+### 2. Entscheidung Q2 (Folgeentscheidung) und Platzhalter
+
+- **Marken zählen vorerst nicht im Rang.** Die Marken bleiben reine Anzeige; Status, Flags und Rang der 41 bleiben unverändert.
+- **Platzhalter 0,90 / 0,90 / 1,25 bleiben unverändert** (`config/trend_guard.yaml`). Jede Änderung ist eine eigene Entscheidung.
+- **Grenze von T4 (bekannt):** `trend_margin_peak` vergleicht die Marge des letzten Jahres mit dem Dreijahresmittel. Es erfasst also nur einen **Sprung** gegenüber diesem Mittel, **nicht ein dauerhaft hohes Niveau**: Eine Firma, deren Marge seit drei Jahren durchgehend hoch ist, wird nicht markiert.
+
+### 3. Handprüfung gegen Yahoo Finance am 07.10.2026 (Angabe von Konstantin, ungeprüft von mir)
+
+- **XPER (Rang 4 der 41) ist ein Datenfehler.** SimFin-ID 983817 mischt Adeia-Daten (110,3 Mio. Aktien, Fundamentaldaten 2019–2025) mit dem Kurs von Xperi Inc.; Yahoo zeigt 48,8 Mio. Aktien.
+- **Die Zuordnung in unseren Dateien ist sauber:** 0 von 126 mit mehrfacher ID, Namen konsistent. Der Fehler liegt in den SimFin-Daten, nicht in unserer Verarbeitung.
+- **Entscheidung:** XPER wird aus der Kandidatenliste genommen. Das ist eine **Lese-Entscheidung, keine Systemänderung**: Code, Konfiguration und Stufe-2-Ergebnis bleiben unverändert; die Kandidatenliste wird beim Lesen ohne XPER betrachtet (dann 40 von 41).
+- **Bestätigt gegen Yahoo (Aktienzahl stimmt, Abweichung höchstens 2 %):** TASK, AMPH, DFIN, JBI, PPC, MDXG, PLAB, MGM, MAT, ACEL, SBH, TCMD, OPCH.
+
+### 4. Entscheidung: kein automatisches Warnsignal für „Dividende in den Fundamentaldaten, keine im Preisfenster“
+
+Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein Fehlalarm. Es wird **kein** automatisches Warnsignal gebaut. Stattdessen gilt ein **fester Schritt in Stufe 3**: Aktienzahl, Marktkapitalisierung und freier Cashflow jedes Finalisten werden gegen Yahoo bzw. den 10-K geprüft. Bei weiteren Treffern des Musters wird **neu entschieden**.
+
+### 5. Offene Beobachtungen für Stufe 3 (keine Entscheidung)
+
+- **JBI, PLAB, MDXG** weichen beim freien Cashflow bzw. beim EBITDA stark von Yahoo ab; die Definition ist zu klären.
+- **PPC** ist ein Rohstoffzykliker außerhalb der Sektorliste (`cyclical_sector`).
+
+### 6. Bekannte Lücken
+
+- Die Yahoo-Prüfung deckt die genannten Firmen ab, nicht alle 41; die Prüfung der Finalisten in Stufe 3 ist der feste Schritt dafür.
+- Die Hypothesen sind erfüllt, über die inhaltliche Richtigkeit der Marken sagt das nichts.
+- Die Messung nennt keine Zahlen für Rangwirkung; die Folgeentscheidung über eine Rangwirkung steht weiter aus (hier nur: vorerst nicht).
