@@ -90,7 +90,9 @@ class Stage2Result:
     info_flags: Tuple[str, ...]
 
 
-def _not_evaluable(reason) -> Stage2Result:
+def not_evaluable_result(reason) -> Stage2Result:
+    """A not_evaluable Stage2Result carrying one explicit invalid_reason and no values - for a
+    survivor whose input could not even be built (the runner names the cause)."""
     return Stage2Result(
         status=NOT_EVALUABLE,
         flags=(),
@@ -152,9 +154,15 @@ def _peer_base_multiples(inputs, config, as_of_year):
     return base, ev_results
 
 
+def peer_base_size(inputs: Mapping[str, ValuationInput], *, as_of: date, config: Stage2Config) -> int:
+    """Number of companies in the peer base (supported profile, sector code, valid EV/EBITDA)."""
+    base, _ = _peer_base_multiples(inputs, config, as_of.year)
+    return len(base)
+
+
 def _evaluate_company(vi: ValuationInput, ev_result: MetricResult, base, *, as_of_year, config) -> Stage2Result:
     if not vi.profile_supported:
-        return _not_evaluable(PROFILE_UNSUPPORTED)
+        return not_evaluable_result(PROFILE_UNSUPPORTED)
 
     assignment: Optional[PeerAssignment] = None
     if vi.sector_code is None:
@@ -249,7 +257,7 @@ def evaluate_stage2(
     for ticker in survivors:
         vi = inputs.get(ticker)
         if vi is None:
-            results[ticker] = _not_evaluable(VALUATION_INPUT_MISSING)
+            results[ticker] = not_evaluable_result(VALUATION_INPUT_MISSING)
             continue
         results[ticker] = _evaluate_company(
             vi, ev_results.get(ticker, MetricResult(value=None, invalid_reason=NO_SECTOR_CODE)), base,

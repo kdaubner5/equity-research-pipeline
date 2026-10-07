@@ -347,3 +347,8 @@ def test_normalized_mean_ebitda_exactly_zero_is_invalid_not_a_division_error():
 def test_normalized_enterprise_value_exactly_zero_is_invalid():
     # EV = 800 + (-800) = 0
     assert _norm(three_periods(ebitda=100.0, net_debt=-800.0)).invalid_reason == "ev_non_positive"
+
+
+def test_normalized_multiple_that_overflows_to_infinity_is_not_valid():
+    periods = three_periods(ebitda=1e-320)  # mean EBITDA 1e-320: 1000 / 1e-320 overflows
+    assert _norm(periods).invalid_reason == "non_finite_input"
