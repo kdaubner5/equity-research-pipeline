@@ -31,7 +31,7 @@ def fixture_periods(company_id):
         return json.load(f)["periods"]
 
 
-def period(fiscal_year, *, revenue=100.0, ebit=20.0, ebitda=30.0, equity=150.0, net_debt=50.0, total_assets=300.0, flags=()):
+def period(fiscal_year, *, revenue=100.0, ebit=40.0, ebitda=30.0, equity=150.0, net_debt=50.0, total_assets=300.0, flags=()):
     """The period keys the Trend-Guard reads (same shape as the Stage-1 mapper's output)."""
     return {
         "fiscal_year": fiscal_year, "revenue": revenue, "ebit": ebit, "ebitda": ebitda, "equity": equity,
