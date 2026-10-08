@@ -607,3 +607,62 @@ def test_a_last_window_row_with_close_zero_after_stale_valid_rows_is_price_stale
     assert row["market_cap_usd"] == 10.0 * 20_000_000  # valued at that price, not at 0
     (survivors,) = survivors_files(tmp_path)
     assert survivors.read_text(encoding="utf-8").split() == []
+
+
+# --- rule state and close price (docs/decisions.md "Regelstand und Kurs je Lauf") ---------------------------
+
+
+def test_the_run_archives_close_price_and_shares_and_its_rule_state(monkeypatch, tmp_path, clock):
+    from store_layer.rule_state import RULE_FILES
+
+    scenario(monkeypatch)
+    code, _ = do_run(tmp_path, clock)
+    assert code == run_universe.EXIT_OK
+    rows = read_archive(tmp_path / "archive.db")
+    assert (rows[2]["close_price_usd"], rows[2]["shares_outstanding"]) == (10.0, 1_000_000.0)
+    # no_shares: the close price stays, the share count and the market cap are empty
+    assert (rows[5]["close_price_usd"], rows[5]["shares_outstanding"], rows[5]["market_cap_usd"]) == (10.0, None, None)
+    # no price data at all, and an entry never asked for prices: nothing to keep
+    assert (rows[6]["close_price_usd"], rows[6]["shares_outstanding"]) == (None, None)
+    assert (rows[11]["close_price_usd"], rows[11]["shares_outstanding"]) == (None, None)
+
+    conn = sqlite3.connect(tmp_path / "archive.db")
+    try:
+        assert conn.execute("SELECT step, run_timestamp FROM run_rule_state").fetchall() == [("prefilter", RUN_TS)]
+        assert {r[0] for r in conn.execute("SELECT path FROM run_rule_files")} == set(RULE_FILES)
+        thresholds_sha = conn.execute("SELECT sha256 FROM run_rule_files WHERE path = 'config/thresholds.yaml'").fetchone()[0]
+    finally:
+        conn.close()
+    assert thresholds_sha == compute_config_hash(tmp_path / "thresholds.yaml")  # the file the run really used
+
+
+def test_a_missing_rule_file_stops_the_run_before_anything_is_fetched_or_written(monkeypatch, tmp_path, clock):
+    from store_layer.rule_state import RuleStateError
+
+    fake, _ = scenario(monkeypatch)
+
+    def broken(**kwargs):
+        raise RuleStateError("rule file config/stage2.yaml not readable")
+
+    monkeypatch.setattr(run_universe, "capture_rule_state", broken)
+    code, _ = do_run(tmp_path, clock)
+    assert code == run_universe.EXIT_TECHNICAL_FAILURE
+    assert fake.requests == []
+    assert not (tmp_path / "archive.db").exists() and survivors_files(tmp_path) == []
+
+
+def test_a_threshold_file_changed_between_hash_and_capture_stops_the_run(monkeypatch, tmp_path, clock):
+    import dataclasses
+
+    real = run_universe.capture_rule_state
+
+    def changed(**kwargs):
+        state = real(**kwargs)
+        files = tuple(dataclasses.replace(f, sha256="0" * 64) if f.path == "config/thresholds.yaml" else f for f in state.files)
+        return dataclasses.replace(state, files=files)
+
+    fake, _ = scenario(monkeypatch)
+    monkeypatch.setattr(run_universe, "capture_rule_state", changed)
+    code, _ = do_run(tmp_path, clock)
+    assert code == run_universe.EXIT_TECHNICAL_FAILURE and fake.requests == []
+    assert not (tmp_path / "archive.db").exists()

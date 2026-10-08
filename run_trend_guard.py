@@ -56,6 +56,7 @@ from gates_layer.trend_guard import (  # noqa: E402
     not_evaluable_trend_result,
 )
 from metrics_layer.result import MetricInputError  # noqa: E402
+from store_layer.rule_state import RuleStateError, capture_rule_state, require_same_bytes  # noqa: E402
 from store_layer.trend_store import export_trend_csv, save_trend_results  # noqa: E402
 
 import run_stage2  # noqa: E402  (reuses its read-only archive readers; it puts src/ on the path itself)
@@ -163,6 +164,19 @@ def run(
             thresholds = load_thresholds(thresholds_path)  # roic (T3) and data_quality_reconciliation are used
         except ThresholdsConfigError as exc:
             raise TrendRunError(f"thresholds config invalid: {exc}") from exc
+        # Rule state once, at the start (docs/decisions.md "Regelstand und Kurs je Lauf", Punkt 6): a missing or
+        # unreadable rule file stops the run before anything is evaluated or written.
+        try:
+            rule_state = capture_rule_state(
+                rule_paths={
+                    "config/thresholds.yaml": thresholds_path,
+                    "config/stage2.yaml": stage2_config_path,
+                    "config/trend_guard.yaml": trend_config_path,
+                }
+            )
+            require_same_bytes(rule_state, "config/trend_guard.yaml", config_hash)
+        except RuleStateError as exc:
+            raise TrendRunError(str(exc)) from exc
 
         try:
             prefilter_ts, rows = run_stage2.load_prefilter_rows(db_path, prefilter_run_timestamp)
@@ -219,7 +233,7 @@ def run(
             save_trend_results(
                 run_timestamp, results=results, stage1_run_timestamp=stage1_run_timestamp,
                 prefilter_run_timestamp=prefilter_ts, as_of=as_of, config_hash=config_hash, simfin_ids=simfin_ids,
-                db_path=archive_db_path,
+                rule_state=rule_state, db_path=archive_db_path,
             )
         except Exception as exc:
             if csv_path is not None:

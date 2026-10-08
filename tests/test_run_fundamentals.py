@@ -52,7 +52,7 @@ def excluded(simfin_id, ticker, reason="market_cap_below_min"):
 
 def seed_db(db_path, *, run_timestamp=RUN_TS, survivor_ids=(1, 2, 3), excluded_ids=()):
     results = [passed(i, f"T{i}") for i in survivor_ids] + [excluded(i, f"X{i}") for i in excluded_ids]
-    save_universe_prefilter(run_timestamp, results, config_hash="deadbeef", db_path=db_path)
+    save_universe_prefilter(run_timestamp, results, config_hash="deadbeef", db_path=db_path, rule_state=None)
     return [i for i in survivor_ids]
 
 

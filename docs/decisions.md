@@ -1920,3 +1920,215 @@ Stand des Ordners baselines\stage2\: Hash vorher = nachher (SHA-256 über die Li
 - **Aktienzahl:** Der Fundamentaldaten-Cache (PL, BS, CF) enthält keine Aktienzahl-Spalte; sie kommt aus einer anderen Quelle.
 
 **Nicht belegt:** ob SimFin die Quartale später nachliefert und wann; wie die Abdeckung nach Größenklasse aussieht; ob die Quartalswerte inhaltlich stimmen (Auffälligkeiten bei AXTA Cashflow Q3/Q4 2025 sowie ALSN und NRP Abschreibungen Q1 2026 sind nicht untersucht); ob TTM aus Jahreswert plus laufendem Jahr minus Vorjahreszeitraum mehr Firmen abdecken würde.
+
+## 2026-10-08: Regelstand und Kurs je Lauf im Archiv (Roadmap A.1; Issues #28, #36, #48) (Agent-Entscheidung, Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin; **bis dahin wird kein Code geschrieben.** Branch `agent/regelstand-kurs-entwurf` (von `master`), nur Dokumentation. Klasse C: Der Text ändert das Archiv-Schema und legt fest, was als Beleg eines Laufs gilt. Keine echte Datenbank, keine SimFin-Calls; Tests würden nur auf Kopien oder Testdaten laufen.
+
+**In einfachen Worten**
+- Das Archiv soll jeden Lauf so festhalten, dass man später sieht, **mit welchen Regeln** und **zu welchem Kurs** er gerechnet hat. Heute steht nur ein Hash (eine Art Fingerabdruck) der Schwellen-Datei im Archiv. Aus einem Hash lässt sich der Inhalt nicht zurückrechnen, und er sagt nichts darüber, welcher Code lief oder ob jemand die Dateien gerade geändert hatte.
+- Vorschlag: Je Lauf speichern wir (1) die Kennnummer des Code-Stands (Commit), (2) den **Inhalt** der Regel-Dateien, (3) eine **Marke**, wenn beim Lauf nicht committete Änderungen vorlagen, und (4) den **letzten Schlusskurs im Datensatz** je Firma des Vorfilters mit dem Kursdatum.
+- **Schlimmster Fall:** Ohne diese Spur ändert sich eine Regel, ohne dass das Archiv es zeigt, und die Erfolgsbilanz vergleicht Läufe mit verschiedenen Regeln, als wären sie gleich (genau das, was der Hash heute nicht verhindert, siehe Befund unten). Mit der Änderung selbst ist das Risiko klein: Es kommen nur neue Tabellen und Spalten dazu, bestehende Werte bleiben unverändert. Zurückdrehen lässt sich der Code; ein Archiv, das schon mit den neuen Tabellen geschrieben wurde, behält sie.
+
+**Befund (belegt aus Repo und Issues, Stand `master` vom 08.10.2026):**
+- In `docs/decisions.md` steht **kein freigegebener Text** zu Regelstand mit Inhalt, Commit oder Marke und keiner zu „Kurs am Lauftag". Der Eintrag „Masterplan v1.1 übernommen" (Entscheidung 4) und der Eintrag zum Store-Layer (Entscheidung 5) haben den Kurs ausdrücklich **vertagt**, bis ein Preis-Client existiert (Issue #28). Deshalb gibt es hier nur diesen Entwurf.
+- `runs.config_hash` ist der Hash der Datei `config/thresholds.yaml` (nach Normalisierung der Zeilenenden). `stage2_runs.config_hash` und `trend_runs.config_hash` hashen je ihre eigene Datei (`stage2.yaml`, `trend_guard.yaml`). `universe_prefilter.config_hash` gehört zum Vorfilter-Lauf. `config/sector_profiles.yaml` ist in keinem Hash.
+- Es wird **kein Code-Commit** gespeichert, **keine Marke** für nicht committete Änderungen und **kein Dateiinhalt**. Das Sammel-Issue #48 beschreibt: Läufe vor und nach einer Regeländerung tragen denselben Hash (Beispiel: Status-Vorrang aus PR #47); Issue #36: ein Hash lässt sich nicht zurückrechnen, eine nicht committete Änderung hinterlässt einen Hash ohne Git-Stand.
+- Von den Kursen ist im Archiv heute nur `universe_prefilter.market_cap_usd` und `price_date` (je Firma des Vorfilters) gespeichert, **nicht der Schlusskurs selbst** und nicht die Aktienzahl. Beide stehen im Datensatz der Preise (`PriceRow.close`, `PriceRow.shares` in `src/data_layer/simfin_universe.py`); die Marktkapitalisierung wird daraus berechnet. Ein Preis-Client wie in Issue #28 beschrieben (stooq/yfinance) ist nicht nötig, weil SimFin Free die Kurse liefert (Masterplan v2.0 Abschnitt 3 und Roadmap 0.5).
+
+**Entscheidung (Entwurf):**
+
+1. **Was je Lauf gespeichert wird.** Für jeden Lauf eines Schritts (Vorfilter, Stufe 1, Stufe 2, Trend-Guard) mit seinem `run_timestamp`:
+   - `git_commit`: die 40 Zeichen von `git rev-parse HEAD` zum Zeitpunkt des Laufs;
+   - `code_state`: `clean`, `dirty` oder `unknown` (siehe Punkt 3);
+   - `dirty_paths`: bei `dirty` die Liste der betroffenen Pfade (höchstens 50, danach ein Hinweis „und N weitere");
+   - die **Regel-Dateien mit Inhalt** (Punkt 2).
+   Altläufe behalten `NULL` („nicht erfasst"). **Kein Rückfüllen**: Eine nachträglich eingesetzte Regel wäre eine Behauptung ohne Beleg.
+
+2. **Regel-Dateien.** Gespeichert wird der **Inhalt** (UTF-8, Zeilenenden auf `\n` normalisiert, derselbe Weg wie bei den bestehenden Hashes), dazu sein SHA-256. Die Liste der Regel-Dateien ist eine Konstante im Code mit Test: `config/thresholds.yaml`, `config/stage2.yaml`, `config/trend_guard.yaml`, `config/sector_profiles.yaml`. **Nicht dazu gehören** `config/bash_guard.yaml` (Schutz des Agenten, keine Screening-Regel) und `config/universe.txt` (Pilotliste). Ein Test schlägt an, wenn eine neue Datei in `config/` weder in der Liste noch in der Ausnahmeliste steht, damit eine neue Regel-Datei nicht stillschweigend fehlt. Der bestehende `config_hash` bleibt unverändert (Kompatibilität, keine Hash-Änderung in `runs`).
+
+3. **Marke „nicht committete Änderungen".** `code_state` wird aus `git status --porcelain` (nur Lesen) bestimmt:
+   - `dirty`, wenn eine **versionierte** Datei geändert, hinzugefügt oder gelöscht (auch in der Staging-Area) ist, oder eine **nicht versionierte** Datei in `config/`, `src/` oder eine Datei `run_*.py` im Wurzelverzeichnis liegt. Sonstige nicht versionierte Dateien (z. B. persönliche Skripte im Wurzelverzeichnis wie `check_tickers.py`) zählen **nicht**, sonst wäre jeder Lauf auf Konstantins PC „dirty".
+   - `clean`, wenn nichts davon zutrifft.
+   - `unknown` (gespeichert als Text, nicht als Wahrheitswert), wenn `git` nicht aufrufbar ist oder das Verzeichnis kein Repository ist (z. B. eine Kopie ohne `.git`). Dann steht `git_commit` als `NULL`. Der Bericht des Laufs nennt das ausdrücklich, statt still „clean" zu behaupten.
+   Warum nur eine Marke und kein vollständiger Diff? Für die **Regeln** ist der Inhalt gespeichert (Punkt 2). Für den **Code** genügt Commit plus Marke plus Pfadliste, um zu wissen, dass der Lauf nicht genau diesem Commit entspricht; ein vollständiger Diff würde große Texte ins Archiv bringen. Bei Bedarf ist das eine spätere Entscheidung.
+
+4. **Kurs am Lauftag.** Gespeichert wird je Firma der Vorfilter-Zeile `universe_prefilter` der **letzte Schlusskurs im Datensatz** und die **Aktienzahl** derselben Zeile, in Dollar, zusammen mit dem schon vorhandenen `price_date`. „Kurs am Lauftag" heißt also: der letzte Schlusskurs im Datensatz des **Vorfilter-Laufs**, nicht ein Kurs zu einer Uhrzeit des Lauftags. Bei Firmen, die der Vorfilter bestanden hat, ist er höchstens so alt wie der Schwellenwert `max_price_age_days` in `config/thresholds.yaml` erlaubt; bei im Vorfilter ausgeschlossenen Firmen (z. B. `price_stale`) kann er viel älter sein, `price_date` zeigt es. Neue, **nullbare** Spalten `close_price_usd REAL` und `shares_outstanding REAL` in `universe_prefilter`; `NULL` bei Altläufen und wo `close` bzw. `shares` im Datensatz fehlen. Beide Spalten sind **unabhängig** befüllbar: Ist die Aktienzahl leer oder nicht positiv, ist `market_cap_usd` `NULL` (Ausschluss `no_shares`), `close_price_usd` kann trotzdem einen Wert haben. Kein Wechselkurs hier (der gehört zur Messlatte, Roadmap 0.3).
+   - **Zuordnung zu den Läufen der Stufen (Lücke, Entscheidung nötig):** `runs` (Stufe 1) hat keine Spalte, die auf den Vorfilter-Lauf verweist; Stufe 2 und Trend-Guard haben `prefilter_run_timestamp`. Ohne Verweis ist der Kurs einem Stufe-1-Lauf nicht zuordenbar. Der Entwurf schlägt vor, in `runs` eine nullbare Spalte `prefilter_run_timestamp TEXT` zu ergänzen (Altläufe `NULL`); ob das sein soll, ist Frage 5 unten.
+   - **Abweichung von früherem Text:** Der Store-Layer-Eintrag (Entscheidung 5) dachte `price_at_run` in `run_results` und `eliminated_results`. Dieser Entwurf **ersetzt** das durch die Vorfilter-Spalten, weil der Kurs dort für alle Firmen des Vorfilters (auch die ausgeschiedenen) schon eine Zeile hat und Stufe 1 den Kurs nicht neu abruft. Er greift auf Masterplan v2.0 Abschnitt 8 („Regelstand je Lauf", „Kurs am Lauftag") zurück.
+   - **Alternative:** eine eigene Tabelle `run_prices`. Verworfen für den Entwurf: Die Zeilen (eine je Firma und Lauf) liegen schon in `universe_prefilter`; zwei Tabellen mit demselben Schlüssel bringen nur Pflegeaufwand.
+   - Nur für Firmen, die im Vorfilter ein Ergebnis haben; Firmen ohne Preisdaten bekommen `NULL` (nicht 0).
+
+5. **Wo es gespeichert wird (Schema).** Nur **neue** Tabellen mit `CREATE TABLE IF NOT EXISTS` (wie bei Stufe 2 und Trend-Guard) plus zwei nullbare Spalten per `ALTER TABLE ... ADD COLUMN` in `universe_prefilter` nach dem bestehenden Muster der `_ensure_*`-Funktionen:
+   - `run_rule_state(step TEXT, run_timestamp TEXT, git_commit TEXT, code_state TEXT, dirty_paths TEXT, PRIMARY KEY (step, run_timestamp))` mit `step` in `prefilter`, `stage1`, `stage2`, `trend`;
+   - `run_rule_files(step TEXT, run_timestamp TEXT, path TEXT, sha256 TEXT NOT NULL, PRIMARY KEY (step, run_timestamp, path))`;
+   - `rule_file_contents(sha256 TEXT PRIMARY KEY, content TEXT NOT NULL)`, dedupliziert: gleiche Dateien in vielen Läufen werden einmal gespeichert; Test: `sha256(content)` stimmt mit dem Schlüssel überein.
+   Die Vorfilter-Spalten sind die **einzige** Änderung an einer bestehenden Tabelle; Werte der bestehenden Spalten bleiben unverändert (Golden Master: 0 Diffs).
+
+6. **Wann und wie geschrieben.** In derselben Transaktion wie die Ergebnisse des Laufs („alles oder nichts": bricht das Schreiben ab, bleibt vom Lauf nichts stehen). Bei `save_stage2_results` und `save_trend_results` ist das schon so; `save_run_results` und `save_universe_prefilter` schließen heute mit einem eigenen `commit` ab, der Regelstand wird dort in **dieselbe** Verbindung und denselben `commit` geschrieben. Die vier Speicherfunktionen bekommen den Regelstand als **Pflichtparameter ohne Default**; wer keinen hat (z. B. Tests), übergibt ihn ausdrücklich (`None`), konsistent mit „keine stillen Defaults" (Entscheidung 2 zu `config_hash`). **Das ändert alle bestehenden Aufrufe, auch in Tests**; diese werden mechanisch angepasst (Übergabe von `None`), und „unverändert" im Testplan meint: Anzahl und Namen der Tests bleiben gleich (gemessen an den Test-IDs), keine Erwartung wird geändert. Das Auslesen von Git und der Dateien liegt in einem eigenen kleinen Modul. **Zeitpunkt:** Der Regelstand wird **einmal beim Start des Laufs** erfasst (die Dateien werden dabei einmal gelesen, und dieselben Bytes dienen dem Hash, dem Laden der Regeln und dem Archiv) und mit den Ergebnissen geschrieben; ein Stufe-1-Volllauf kann Stunden dauern, ein späteres Lesen könnte einen anderen Stand erwischen. **Fehlerfälle:** Fehlt eine Regel-Datei oder ist sie nicht lesbar, **bricht der Lauf ab** und schreibt nichts (kein stilles Weglassen, `CLAUDE.md`). Alle vier Regel-Dateien werden bei jedem Schritt gespeichert, weil die Stufen sie gemeinsam nutzen. Ob der Pilot-Runner `run_stage1.py` (23 Firmen, schreibt ebenfalls `runs`) den Regelstand schreibt, ist Frage 6 unten; ohne Antwort gilt: er schreibt ihn, damit kein Lauf ohne Spur im Archiv steht.
+
+7. **Zusammenhang mit den Issues.**
+   - **#36** (Konfigurationsinhalt statt nur Hash): geht in Punkt 2 auf. **#48** (Regelversion): Commit plus `code_state` machen sichtbar, dass die Code-Logik nicht dem Hash entspricht; die Vergleichbarkeit von Läufen mit gleichem Hash aber anderem Code wird damit prüfbar, nicht automatisch hergestellt. Der Teil „Profil-YAML in den Hash" in #48 wird durch den Inhalt von `sector_profiles.yaml` (Punkt 2) abgedeckt; die übrigen Punkte des Sammel-Issues bleiben offen.
+   - **#28** (Preis-Client stooq/yfinance): wird mit Punkt 4 überholt, weil SimFin die Kurse liefert (Roadmap 0.5; Schließen entscheidet Konstantin).
+
+8. **Testplan (pytest, nur Kopien oder Testdaten; vor dem Code).**
+   - Regelstand auslesen in einem **temporären Git-Repository** (`tmp_path`, `git init`): `clean` nach Commit; `dirty` nach Änderung einer versionierten Datei, nach Staging, nach Löschung; `dirty` bei neuer nicht versionierter Datei in `config/` oder `src/` oder als `run_*.py`; **nicht** `dirty` bei nicht versionierter Datei sonst im Wurzelverzeichnis; `unknown` ohne Repository und bei nicht aufrufbarem `git` (Aufruf wird in einem Test ersetzt); Pfadliste bei mehr als 50 Treffern gekürzt mit Hinweis.
+   - Regel-Dateien: Inhalt wird gespeichert, Zeilenenden `\r\n` und `\n` ergeben denselben SHA-256; `sha256(content)` stimmt; gleiche Datei in zwei Läufen ergibt eine Zeile in `rule_file_contents`; Test auf die Liste der Regel-Dateien gegen den Inhalt von `config/` (neue Datei ohne Eintrag lässt den Test fehlschlagen).
+   - Kurs: `close_price_usd` und `shares_outstanding` werden für Firmen mit Preisdaten gespeichert, `NULL` ohne; Rundtest: `close_price_usd × shares_outstanding` entspricht der gespeicherten Marktkapitalisierung (Rechenweg im Vorfilter prüfen, bevor die Spalte geschrieben wird).
+   - Migration: ein Archiv ohne die neuen Tabellen und Spalten wird beim Öffnen ergänzt, Altzeilen behalten `NULL`, nichts geht verloren; zweimaliges `init` ändert nichts.
+   - Atomarität: bricht das Schreiben ab, bleibt vom Lauf nichts stehen (Muster von `trend_store`).
+   - Fehlerfälle und Runner: fehlende oder nicht lesbare Regel-Datei bricht den Lauf ab (Test je Datei); `git rev-parse HEAD` gelingt, aber `git status` scheitert: `git_commit` bleibt gespeichert, `code_state` ist `unknown`; Test, dass jeder der Runner (`run_universe.py`, `run_stage1.py`, `run_stage1_full.py`, `run_stage2.py`, `run_trend_guard.py`) den Regelstand an die Speicherfunktion übergibt (geprüft an den übergebenen Argumenten); `close_price_usd` mit leerer Aktienzahl: `close` gespeichert, `market_cap_usd` `NULL`; Verweis `runs.prefilter_run_timestamp`, falls beschlossen; die gespeicherten Bytes einer Regel-Datei sind dieselben, die `compute_config_hash` hasht.
+   - Atomarität und Wiederholung: Schreibversuch zweimal mit derselben Datei in zwei Läufen ergibt keinen Fehler (`INSERT OR IGNORE` bei `rule_file_contents`), und je Speicherfunktion bricht ein erzwungener Fehler mitten im Schreiben den ganzen Lauf ab (nicht nur beim Trend-Guard).
+   - Regression: bestehende Testsuite grün (Anzahl und Namen der Tests gleich, nur die Aufrufe mechanisch angepasst); Golden Master der bestehenden Tabellen (`run_results`, `eliminated_results`, `universe_prefilter` ohne die neuen Spalten): 0 Diffs gegen die Kopie eines Referenzarchivs. Die echte `data/run_archive.db` wird nicht geöffnet.
+
+9. **Wirkung auf Ergebnisse.** Keine: Weder Schwellen noch Status, Flags oder Rang ändern sich. Hypothese vor der Umsetzung: Auf einer Archiv-Kopie bleiben alle Zeilen der bestehenden Tabellen (außer den zwei neuen Vorfilter-Spalten) bitgleich, und `close_price_usd` ist für jede Vorfilter-Zeile mit `price_date` ungleich `NULL` gefüllt (auf der Kopie des Laufs vom 24.09.: Zahl der Zeilen mit Kurs von 6.654 geprüften Firmen, 1.821 davon bestanden; gemessen, nicht geschätzt).
+
+**Bekannte Lücken und Ungeprüftes:**
+- Ob `close` im Preis-Cache bereinigt (Splits, Dividenden) oder roh ist, ist nicht geprüft; für die Messlatte (Roadmap 0.3) ist das relevant, für diese Spalte nicht (es geht um den Kurs am Tag).
+- Belegt im Code: Die Marktkapitalisierung ist `last.close × last.shares` mit derselben letzten Preiszeile (`src/gates_layer/universe_prefilter.py`); der Rundtest prüft nur Zeilen mit beiden Werten.
+- `universe_prefilter.config_hash` ist der Hash von `config/thresholds.yaml` (die Gruppe `prefilter` liegt dort), kein eigener Vorfilter-Hash.
+- Die Liste der Regel-Dateien und die Obergrenze von 50 Pfaden stehen bewusst als Konstanten im Code mit Test, nicht in `config/`: Sie sichern die Spur des Archivs und sollen nicht per Konfiguration verändert werden können; ob die 50 ein Parameter in `config/` sein soll, ist Konstantins Entscheidung (Frage 4).
+- Eine neue, nicht versionierte Datei in `tests/` oder `docs/` bleibt `clean`; Regel-Dateien und Code (`config/`, `src/`, `run_*.py`) sind der Maßstab (Frage 4).
+- Der Zeitpunkt der Erfassung (einmal beim Start) schützt vor Änderungen während des Laufs, nicht davor, dass ein Lauf mit einem Stand beginnt, der später zurückgenommen wird.
+- Auf Konstantins PC kann der Repo-Ordner eine Kopie ohne `.git` sein; dann steht `unknown`.
+- Die Regel „versionierte Änderungen = dirty" markiert auch reine Dokuänderungen als dirty. Das ist gewollt vorsichtig und kann später verfeinert werden.
+- Wie der Replay-Stand der früheren Baselines (außerhalb des Repos) hineinpasst, ist nicht Teil dieses Entwurfs; sie bleiben `NULL`.
+
+**Entscheidung von Konstantin (08.10.2026):** „#78 bitte auch so umsetzen." Das gilt als **Annahme des Entwurfs mit meinen Vorschlägen zu allen offenen Fragen**, mit dem Merge dieses Texts:
+1. Der Entwurf (Punkte 1 bis 9) gilt.
+2. Liste der Regel-Dateien: `thresholds.yaml`, `stage2.yaml`, `trend_guard.yaml`, `sector_profiles.yaml`; `bash_guard.yaml` und `universe.txt` gehören nicht dazu.
+3. „Kurs am Lauftag" = letzter Schlusskurs im Datensatz des Vorfilter-Laufs mit Kursdatum.
+4. Die Marke `dirty` gilt bei Änderungen an versionierten Dateien und bei neuen, nicht versionierten Dateien in `config/`, `src/` und `run_*.py`; die Obergrenze von 50 Pfaden bleibt eine Konstante im Code.
+5. `runs` bekommt die nullbare Spalte `prefilter_run_timestamp`.
+6. Der Pilot-Runner `run_stage1.py` schreibt den Regelstand ebenfalls.
+
+**Umsetzung:** Code und Tests entstehen **erst nach dem Merge dieses Texts** durch Konstantin, in einem eigenen Branch und PR (Klasse C, ein Kritiker-Lauf, höchstens zwei Runden), wie in Punkt 8 festgelegt: Tests zuerst, nur auf Kopien oder Testdaten, nicht auf der echten Datenbank, ohne SimFin.
+
+**Alternativen:** (a) Spalte `config_snapshot` je Lauf (Issue #36, Variante a): einfacher, aber redundant und deckt nur eine Datei; verworfen zugunsten der deduplizierten Tabelle. (b) Voller Git-Diff im Archiv: genauer, aber groß; vertagt. (c) Nur Commit ohne Dateiinhalt: zu schwach, weil eine nicht committete Änderung nicht rekonstruierbar ist.
+
+**Offene Fragen für Konstantin (getrennt zu beantworten):**
+1. Soll der Entwurf so gelten (Punkte 1 bis 9)? Ja oder nein.
+2. Ist die Liste der Regel-Dateien (Punkt 2) richtig, insbesondere `sector_profiles.yaml` dabei und `bash_guard.yaml`/`universe.txt` nicht?
+3. Reicht „Kurs = letzter Schlusskurs im Datensatz mit Kursdatum" (Punkt 4), oder soll es ein Kurs zu einem festen Zeitpunkt sein? (Letzteres bräuchte eine andere Quelle und würde Roadmap 0.3 berühren.)
+4. Soll die Marke bei jeder versionierten Änderung gesetzt werden (Punkt 3) oder nur bei Änderungen in `config/`, `src/` und `run_*.py`? Und soll die Obergrenze von 50 gespeicherten Pfaden eine feste Konstante bleiben oder in `config/` stehen?
+5. Soll `runs` (Stufe 1) eine nullbare Spalte `prefilter_run_timestamp` bekommen, damit der Kurs einem Stufe-1-Lauf zuordenbar ist (Punkt 4)? Ohne sie ist der Kurs nur über den Vorfilter-Lauf selbst auffindbar.
+6. Soll der Pilot-Runner `run_stage1.py` (23 Firmen) den Regelstand ebenfalls schreiben (Punkt 6)? Vorschlag: ja.
+
+**How to apply (nach Freigabe):** Neues Modul für das Auslesen des Regelstands (Git mit `git -C <Repo-Wurzel> status --porcelain -z`, nur Lesen, mit Zeitlimit, und die Dateien), neue Funktionen im Store-Layer für die Tabellen, Änderungen im Gates-Layer (`PrefilterResult` und `evaluate_prefilter` in `src/gates_layer/universe_prefilter.py` bekommen `close` und `shares`; für im Runner ausgeschlossene Firmen `NULL`; das ist Klasse C, weil dort die Kern-Logik des Vorfilters liegt, die Werte des Ergebnisses ändern sich aber nicht), zwei nullbare Spalten in `universe_prefilter` mit Migration (`_prefilter_rows` und der `INSERT` in `src/store_layer/db.py`), Anpassung der Speicherfunktionen und der Runner (`run_universe.py`, `run_stage1.py`, `run_stage1_full.py`, `run_stage2.py`, `run_trend_guard.py`), Tests wie in Punkt 8 zuerst. Ein Kritiker-Lauf und ein Klasse-C-Bericht am PR; Merge nur durch Konstantin.
+
+**Erklärung für Laien:** *Hash* = Fingerabdruck einer Datei (ändert sich bei jeder Änderung, lässt sich aber nicht zurücklesen). *Commit* = ein gespeicherter Stand des Codes mit Kennnummer. *dirty* = es gibt Änderungen, die noch nicht gespeichert sind. *Transaktion* = alles oder nichts: Entweder wird der ganze Lauf ins Archiv geschrieben oder gar nichts.
+
+## 2026-10-08: Messlatte für das Forward-Log (Masterplan Abschnitt 8, Roadmap 0.3) (Agent-Entscheidung, Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin. Branch `agent/messlatte-entwurf` (von `master`), nur Dokumentation. Klasse C: Der Text legt fest, woran der Erfolg des Systems gemessen wird und wann abgebrochen wird. Keine Daten abgerufen, kein Code, keine Konfiguration; Roadmap 0.3 verlangt den Eintrag **vor dem ersten archivierten Lauf (A.3)**.
+
+**In einfachen Worten**
+- Das Forward-Log hält fest, was das System wann gesagt hat. Ob das **gut** war, sagt erst ein Vergleich mit einem Maßstab, der **vorher** feststeht. Sonst lässt sich jedes Ergebnis im Nachhinein schönreden.
+- Dieser Entwurf legt fünf Dinge fest: **Womit** wird verglichen (Maßstab), **in welcher Währung**, **wie werden die Käufe gewichtet**, **über welchen Zeitraum** und **wann wird abgebrochen**. Es gibt drei Optionen und eine Empfehlung.
+- **Währung (das Depot ist in Euro):** Kauft der Anleger US-Aktien und vergleicht sie mit einem ebenfalls ungesicherten US-Maßstab, treffen Euro-Dollar-Schwankungen beide Seiten gleich. Der **Vorsprung oder Rückstand gegenüber dem Maßstab ist dann in Euro und in Dollar praktisch derselbe** (siehe Punkt 2). Der Wechselkurs verändert aber die **absolute** Euro-Rendite des Depots und kann ein kleines Plus oder Minus leicht überdecken. Deshalb zeigt die Messlatte beides getrennt: den Vergleich mit dem Maßstab und die Euro-Rendite mit einer eigenen Zeile „Währungseffekt".
+- **Wichtigste Grenze:** Bei 10–15 Positionen zeigt das Log in 12–24 Monaten nur **grobes Versagen und Prozessfehler**, keinen kleinen Vorsprung (Masterplan Abschnitt 8). Die Messlatte beweist nichts über Können; sie verhindert nur, dass ein schlechtes Ergebnis unbemerkt bleibt.
+- **Schlimmster Fall:** Ohne diese Festlegung wird nach dem ersten Lauf ein bequemer Maßstab gewählt (z. B. ein schwacher Index im guten Jahr) oder die Währung so, dass das Ergebnis besser aussieht. Das ist kein Datenfehler, sondern ein Fehler der Ehrlichkeit. Mit einem falsch gewählten, aber schriftlich festgelegten Maßstab ist der Schaden kleiner: Er ist sichtbar und kann mit einer neuen Entscheidung geändert werden (nicht rückwirkend).
+
+**Grundlage.** Masterplan Abschnitt 8 („Messlatte vor dem ersten archivierten Lauf festlegen": Vergleichsmaßstab, Währung und Gewichtung, Zeitraum 18 bis 24 Monate, Abbruchkriterium) und Roadmap 0.3. Die Entscheidung über das konkrete Instrument legt laut Masterplan Konstantin fest. Schon festgehalten (Masterplan Abschnitt 8): Das Forward-Log speichert den ganzen Trichter; der Kurs am Lauftag je Firma kommt mit Roadmap A.1.
+
+### 1. Was gemessen wird (drei Fragen, getrennt)
+
+| Frage | Wozu | Wie |
+|---|---|---|
+| **F1: Trägt die Auswahl?** | Ist die Auswahl des Systems besser als ein passender Maßstab? | Käufe (bzw. Finalisten) gegen den Vergleichsmaßstab |
+| **F2: Trägt Konstantins Urteil?** | Fügt Stufe 3 und 4 etwas zum mechanischen Screen hinzu? | gekaufte gegen nicht gekaufte Namen derselben Stufe (Masterplan Abschnitt 8) |
+| **F3: Lohnt es sich für das Depot?** | Euro-Rendite nach Währung | Käufe in Euro, mit Währungseffekt als eigener Zeile |
+
+Das Abbruchkriterium (Punkt 6) hängt nur an F1 und an Prozesskennzahlen, **nicht** an F3: Eine Euro-Dollar-Bewegung soll das System weder retten noch beenden.
+
+### 2. Währung: warum sie hier weniger ausmacht, als es scheint (und wo doch)
+
+Sind Käufe und Maßstab **beide in Dollar notierte, nicht abgesicherte** Anlagen und werden über **denselben Zeitraum** gemessen, gilt (1 + Rendite der Käufe in Euro) ÷ (1 + Rendite des Maßstabs in Euro) = (1 + Rendite der Käufe in Dollar) ÷ (1 + Rendite des Maßstabs in Dollar). Der Wechselkurs kürzt sich heraus. Das ist Rechnung, keine Messung. **Aber nur für dieses Verhältnis, nicht für den Abstand in Prozentpunkten:** Käufe +10 % und Maßstab +5 % in Dollar sind ein Vorsprung von 5 Prozentpunkten; bei einem Dollar, der 15 % an Wert gegenüber dem Euro verliert (Faktor 0,85), sind es in Euro −6,5 % gegen −10,75 %, also nur noch 4,25 Prozentpunkte Abstand. Das Verhältnis (1,10 ÷ 1,05) ist in beiden Währungen gleich, der Abstand nicht. Deshalb wird **jede Prozentpunkt-Schwelle in Dollar festgelegt** (Punkt 6), und die Kennzahl der Messlatte ist die **Relativrendite** (Verhältnis minus 1). Die Kürzung gilt außerdem nur bei Einmalkauf ohne Zwischenflüsse: Dividenden, die zu einem anderen Wechselkurs als dem Kaufkurs umgerechnet werden, brechen sie leicht (Näherung).
+
+Der Wechselkurs spielt trotzdem eine Rolle:
+1. **Absolute Euro-Rendite (F3):** Ein Plus von 8 % in Dollar kann in Euro bei fallendem Dollar ein Minus sein. Wer „im Depot" misst, sieht beides vermischt.
+2. **Maßstab in anderer Währung oder abgesichert** (z. B. ein weltweiter Euro-ETF, ein währungsgesicherter ETF): Dann kürzt sich der Wechselkurs **nicht** heraus, und der Vergleich misst auch die Währungswette. Das ist für F1 zu vermeiden.
+3. **Kaufzeitpunkte:** Käufe an verschiedenen Tagen haben verschiedene Wechselkurse. Das Herauskürzen gilt nur, wenn der Maßstab zum selben Zeitpunkt „gekauft" wird (Punkt 3).
+4. **Nicht geprüft:** Welche Wechselkursquelle benutzt wird (kostenlos, nachvollziehbar, z. B. ein Referenzkurs der Zentralbank); Kosten und Steuern beim Währungswechsel sind nicht Teil der Messlatte. Ob ein Euro-Handelsplatz-ETF und ein Dollar-Fonds dieselbe Rendite liefern, ist nicht geprüft.
+
+### 3. Optionen
+
+**Option A: Einfacher Index-Vergleich in Euro (Depotsicht).**
+- *Maßstab:* ein breiter US-Index (z. B. ein Gesamtmarkt- oder S&P-500-ETF, ungesichert, in Euro gehandelt und ausschüttend wiederangelegt).
+- *Währung:* Euro. *Gewichtung:* gleich gewichtet. *Zeitraum:* 24 Monate ab erstem Kauf. *Abbruch:* nach 24 Monaten liegen die Käufe hinter dem Maßstab.
+- *Vorteile:* sehr einfach, entspricht der Sicht eines Euro-Depots; schwer zu manipulieren.
+- *Nachteile:* Der Index ist nach Marktwert gewichtet (Großkonzerne dominieren); die Auswahl des Systems (gesund, vorerst bis 10 Mrd. $, Qualität/Value) wird gegen den falschen Maßstab gemessen; ein Rückstand kann „nur" ein Größen- oder Stilrückstand sein.
+
+**Option B: Faktorgerechter Maßstab, Vergleich in Dollar, Euro-Rendite getrennt (Empfehlung).**
+- *Maßstab:* zwei Maßstäbe nebeneinander, beide ungesichert in Dollar: ein breiter Index (wie A) **und** ein Faktor-Maßstab für Qualität/Value in der Größenklasse des Systems (z. B. ein US-Mid-/Small-Cap-Value- oder Quality-Fonds). Das konkrete Instrument legt Konstantin fest; ob ein passender, kostenloser und lang genug verfügbarer Kursverlauf existiert, ist **nicht geprüft**.
+- *Währung:* Vergleich mit dem Maßstab in Dollar (oder Euro; ist nach Punkt 2 gleich), zusätzlich die Euro-Rendite der Käufe mit Zeile „Währungseffekt".
+- *Gewichtung:* **gleich gewichtet** für F1 und F2 (misst die Auswahl, nicht die Positionsgröße); zusätzlich **nach tatsächlicher Positionsgröße** für F3 (Depot).
+- *Zeitraum:* mindestens 24 Monate ab dem jeweiligen „Gekauft-Datum"; Zwischenbericht nach 12 Monaten ohne Entscheidungswirkung.
+- *Abbruch:* siehe Punkt 6 (Rückstand gegen **beide** Maßstäbe nach 24 Monaten plus Prozesskennzahlen).
+- *Vorteile:* trennt Auswahl, Urteil und Währung; der Faktor-Maßstab verhindert, dass ein bloßer Stilrückstand als Versagen gilt; der breite Index zeigt, was Konstantin mit einem ETF gehabt hätte.
+- *Nachteile:* mehr Aufwand (zwei Kursreihen und ein Wechselkurs); die Wahl des Faktor-Maßstabs ist selbst subjektiv; ein Faktor-ETF kann Kosten und Steuerfolgen haben, die hier nicht gerechnet werden (nicht geprüft).
+
+**Option C: Eigener Kontrollkorb (mechanischer Screen als Maßstab).**
+- *Maßstab:* ein gleich gewichteter Korb der obersten N Firmen des Stufe-2-Rangs desselben Laufs, ohne Stufe 3 und 4.
+- *Währung:* egal (beide Seiten Dollar-Aktien, Wechselkurs kürzt sich heraus); Euro nur für F3.
+- *Zeitraum:* wie B. *Abbruch:* nur für F2 (Urteil).
+- *Vorteile:* misst genau die Frage, die der Masterplan als Mehrwert nennt (Konstantins Urteil gegen den mechanischen Screen); kein externer Maßstab nötig.
+- *Nachteile:* sagt nichts darüber, ob der Screen selbst etwas taugt (F1); der Korb hängt von N und vom Rang ab; die Stichprobe ist klein; das Ergebnis ist ohne einen externen Maßstab nicht einzuordnen.
+
+### 4. Empfehlung (Entwurf)
+
+**Option B**, und Option C als Zusatz für F2, wenn Stufe 3 läuft. Begründung: Die Frage „Taugt die Auswahl?" lässt sich nur gegen einen Maßstab mit ähnlichem Stil und ähnlicher Größe sauber beantworten; gegen einen Marktindex allein würde ein Stilrückstand wie Versagen aussehen oder ein Stilvorsprung wie Können. Die Währung wird nicht „weggewählt", sondern **getrennt ausgewiesen**: Der Vergleich mit dem Maßstab ist währungsneutral (Punkt 2), und die Euro-Sicht des Depots steht daneben. **Das ist eine Abweichung vom Masterplan Abschnitt 8 („in Euro gerechnet, wie das Depot"):** F1 und das Abbruchkriterium werden in Dollar gerechnet (als Relativrendite ist das Ergebnis in Euro gleich, als Prozentpunkt-Abstand nicht, siehe Punkt 2); F3 (Depotsicht) bleibt in Euro. Der Masterplan sagt auch, der Wechselkurs könne einen Vorsprung „leicht überdecken"; das gilt für F3, nicht für F1. Die Abweichung wird mit dem Merge dieses Textes wirksam und ändert den Masterplan-Text nicht; Konstantin kann sie ablehnen (dann gilt Euro für alles, mit dem Nachteil aus Punkt 2). Ebenso ist die Forderung nach **zwei** Maßstäben in Option B eine Verschärfung gegenüber „ein Index oder ein ETF" im Masterplan.
+
+### 5. Festlegungen für Option B (Entwurf; Zahlen sind Startwerte ohne Messgrundlage)
+
+1. **„Gekauft"-Zeitpunkt:** Für F2 und das Abbruchkriterium zählt ein Name ab dem **Signaltag** (Datum des Laufs, Kurs am Lauftag nach Roadmap A.1, also der letzte Schlusskurs im Datensatz mit Datum), unabhängig davon, ob und wann gekauft wird. Für F3 zählt der **tatsächliche Kaufkurs und das tatsächliche Kaufdatum**. So wird ein Rückstand durch langsames Kaufen nicht dem System angelastet, und ein Nichtkaufen wird sichtbar.
+2. **Gleiche Zeitpunkte für den Maßstab:** Der Maßstab wird am selben Tag mit demselben Betrag „gekauft" und am selben Tag bewertet wie der Name (nachgebildete Käufe). Neue Käufe später bekommen ihren eigenen Startpunkt.
+3. **Dividenden:** Gesamtrendite (Ausschüttungen wiederangelegt) auf beiden Seiten. Ob die verwendeten Kurse bereinigt sind und ob SimFin Free bereinigte Kurse liefert, ist **nicht geprüft**; ohne bereinigte Kurse wäre die Seite der Aktien benachteiligt.
+4. **Kosten und Steuern:** Nicht in der Messlatte (weder Spesen noch Abgeltungsteuer noch Quellensteuer). Sie werden im Bericht getrennt als Hinweis genannt. Ob das den Vergleich mit einem thesaurierenden ETF verzerrt, ist **nicht geprüft**.
+5. **Wechselkurs:** Eine feste, kostenlose, nachvollziehbare Quelle für den Euro-Dollar-Kurs je Stichtag; die Auswahl legt Konstantin fest, bevor der erste Lauf archiviert wird. Nicht geprüft, welche Quelle in Frage kommt und ob sie für den Zeitraum lückenlos ist.
+6. **Zeitraum:** mindestens 24 Monate (Masterplan: 18 bis 24); erst dann gilt das Abbruchkriterium. Ein Zwischenbericht nach 12 Monaten ändert nichts.
+
+### 6. Abbruchkriterium (Entwurf, Startwerte als Platzhalter, ohne Messgrundlage)
+
+Schriftlich vorab. Das System wird **nicht fortgeführt, bis Konstantin neu entschieden hat**, wenn eine der folgenden Bedingungen eintritt. **Nur Kriterium 1 ist an die Mindestdauer gebunden; die Kriterien 2 und 3 sind Frühwarnungen und gelten laufend** (Prüfung nach jedem Lauf, sobald die Mindestzahl erreicht ist).
+1. **Rückstand (erst nach mindestens 24 Monaten ab dem Signaltag der jeweiligen Position; Positionen unter 24 Monaten zählen noch nicht):** Die Relativrendite in **Dollar** der gleich gewichteten Käufe liegt gegenüber dem **stärkeren der beiden Maßstäbe** um mehr als **X Prozentpunkte pro Jahr** im Minus (Startwert-Platzhalter X = 3; kein Beleg, Konstantin setzt ihn). **Warnung:** Bei 10–15 Positionen streut der Abstand zu einem Index von Jahr zu Jahr vermutlich stark (ungeprüfte Schätzung des Kritikers, keine Messung: grob mittlerer einstelliger bis niedriger zweistelliger Prozentbereich); ein Rückstand von 3 Prozentpunkten wäre dann auch ohne Fehler des Systems keine Seltenheit, X = 3 kann also einen **Fehlalarm** auslösen und fängt kein „grobes" Versagen. Das Kriterium ist deshalb ein Anlass zum Nachdenken und zur Neuentscheidung durch Konstantin, kein Urteil.
+2. **Kill-Kriterien greifen auffällig oft (laufend):** Von den Finalisten, die in Stufe 3 geprüft wurden (alle Läufe zusammen, **mindestens 10 geprüfte Finalisten**, sonst keine Auswertung), scheiden mehr als **Y Prozent durch Kill-Kriterium** aus (Platzhalter Y = 50; kein Beleg). Datenfehler zählen hier **nicht** mit (sie stehen in Kriterium 3).
+3. **Datenqualität (laufend):** Die Handprüfung findet bei mehr als **Z Prozent** der geprüften Finalisten (mindestens 10 geprüft) einen Datenfehler, der die Aufnahme geändert hätte (Platzhalter Z = 20; kein Beleg; gleichwertig mit „mehr als 2 von 10"). Das fängt einen Prozessfehler, den die Rendite noch nicht zeigt. **Hinweis zum Beispiel:** Die Handprüfung vom 07.10.2026 fand einen Datenfehler bei XPER (Rang 4 der 41 in Stufe 2, nicht in Stufe 3; Angabe von Konstantin, ungeprüft von mir); es wäre ein Beispiel für diese Art von Fehler, nicht für eine ausgelöste Bedingung.
+
+Die Platzhalter ändern nur durch eine eigene Entscheidung (analog zu den Trend-Guard-Platzhaltern). Eine Währungsbewegung allein löst kein Kriterium aus, denn Kriterium 1 misst die Relativrendite in Dollar gegen ungesicherte Maßstäbe.
+
+### 7. Was die Messlatte nicht leistet
+
+- Sie **beweist keinen Vorsprung**. Bei 10–15 Positionen braucht es grob gerechnet Jahrzehnte, um 2–3 % pro Jahr vom Zufall zu trennen (Masterplan Abschnitt 8); sie erkennt grobes Versagen und Prozessfehler.
+- Sie ersetzt keine Prüfung der Daten: Die Zahlen des Forward-Logs sind nur so gut wie die Handprüfung der Finalisten (feste Stufe-3-Prüfung).
+- Sie legt kein Instrument fest: ETF-Namen, Kennnummern und Verfügbarkeit klärt Konstantin.
+
+### 8. Offene Fragen für Konstantin (getrennt zu beantworten)
+
+1. **Option:** A, B (empfohlen), C allein, oder B plus C?
+2. **Instrumente:** Welcher breite Index-Maßstab und welcher Faktor-Maßstab (Option B)? Das Instrument legt laut Masterplan er fest.
+3. **Wechselkursquelle** für die Euro-Rendite (Punkt 5, Nr. 5).
+4. **Startwerte** X, Y, Z (Punkt 6), die Mindestzahl von 10 geprüften Finalisten und die Mindestdauer 24 Monate; bei Option C zusätzlich die Größe **N** des Kontrollkorbs.
+5. **Kosten und Steuern:** nur als Hinweis (Entwurf) oder in die Messlatte?
+6. **„Gekauft"-Zeitpunkt** (Punkt 5, Nr. 1): Signaltag für F1/F2 und tatsächlicher Kauf für F3 so in Ordnung?
+
+### 9. Bekannte Lücken und Ungeprüftes
+
+- Es wurden **keine Daten** abgerufen und keine Instrumente geprüft; Verfügbarkeit, Kosten und Kursverlauf eines Faktor-Maßstabs sind offen.
+- Ob SimFin Free bereinigte Kurse (Dividenden, Splits) liefert, ist nicht geprüft; die Kurse im Cache sind laut bisherigen Einträgen für den Vorfilter und die Marktkapitalisierung genutzt worden, nicht für Renditen.
+- Der Wechselkurs-Kürzungssatz (Punkt 2) gilt nur bei gleichem Zeitraum und gleicher Währung beider Seiten; bei Käufen zu verschiedenen Zeitpunkten ist er eine Näherung, solange Maßstab und Kauf nicht zeitgleich nachgebildet werden.
+- Die Platzhalter X = 3, Y = 50, Z = 20 haben keine Messgrundlage und sind ausdrücklich nur Startwerte zur Entscheidung.
+- Steuern, Spesen und Quellensteuer sind nicht gerechnet (Punkt 5, Nr. 4).
+
+### 10. Entscheidung von Konstantin (08.10.2026)
+
+Konstantin hat die **Empfehlung (Option B)** angenommen: „Ja, deine Empfehlung für #77 passt." Als Beschluss gilt damit, mit dem Merge dieses Texts:
+- **Option B** für F1 und das Abbruchkriterium (zwei ungesicherte Dollar-Maßstäbe, ein breiter Index und ein Faktor-Maßstab für Qualität/Value; Vergleich als Relativrendite in Dollar; Euro-Rendite der Käufe mit eigener Zeile „Währungseffekt"). **Option C** kommt als Zusatz für F2 (Urteil), wenn Stufe 3 läuft.
+- Die Festlegungen aus Punkt 5 (Signaltag für F1 und F2, tatsächlicher Kauf für F3, nachgebildete Maßstabskäufe am selben Tag, Gesamtrendite, Kosten und Steuern nur als Hinweis, Mindestdauer 24 Monate für Kriterium 1) und das Abbruchkriterium aus Punkt 6 **mit den Platzhaltern X = 3, Y = 50, Z = 20 und der Mindestzahl von 10 geprüften Finalisten** gelten als Startwerte. Sie ändern sich nur durch eine eigene Entscheidung.
+- Die Abweichung vom Masterplan §8 (Vergleich in Dollar statt Euro, zwei Maßstäbe statt einem) gilt damit als angenommen.
+
+**Noch offen (nicht entschieden, weil Konstantin sie nicht genannt hat):** Die **konkreten Instrumente** beider Maßstäbe (Frage 2), die **Wechselkursquelle** (Frage 3) und die Größe N für Option C (Frage 4). Vor dem ersten archivierten Lauf (Roadmap A.3) müssen sie feststehen; bis dahin ist die Messlatte nicht vollständig. Ob der Faktor-Maßstab zur Größenklasse passt, ist neu zu entscheiden, sobald die Obergrenze der Marktkapitalisierung entfällt (Roadmap C.8).
+
+**Alternativen zur ganzen Messlatte:** (a) gar keine feste Messlatte, nur Bericht: verworfen, weil jedes Ergebnis dann nachträglich zurechtgelegt werden kann. (b) Messlatte erst nach dem ersten Zwischenbericht festlegen: verworfen; Roadmap 0.3 und Masterplan Abschnitt 8 verlangen sie vor dem ersten archivierten Lauf.
+
+**How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag. Danach: Roadmap A.1 (Kurs am Lauftag), A.3 (erster archivierter Lauf) und ein späterer Messbericht (Spur P) nach den hier festgelegten Regeln.

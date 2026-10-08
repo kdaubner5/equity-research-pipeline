@@ -84,9 +84,9 @@ class World:
             rows.append(prefilter_row(record["id"], ticker))
         rows.extend(extra_prefilter)
         init_db(self.source_db)
-        save_universe_prefilter(PREFILTER_TS, rows, config_hash="deadbeef", db_path=self.source_db)
+        save_universe_prefilter(PREFILTER_TS, rows, config_hash="deadbeef", db_path=self.source_db, rule_state=None)
         stage1 = {t: s1(PASSED_WITH_FLAGS, ("roic",)) if t == "SCSC" else s1() for t in survivors}
-        save_run_results(STAGE1_TS, stage1, config_hash="c", db_path=self.source_db)
+        save_run_results(STAGE1_TS, stage1, config_hash="c", db_path=self.source_db, rule_state=None)
 
     def run(self, **overrides):
         kwargs = dict(
@@ -514,3 +514,65 @@ def test_a_market_cap_of_the_wrong_type_is_isolated_not_a_traceback(tmp_path):
     assert rows["CENT"] == ("not_evaluable", "market_cap_malformed")
     assert rows["SCSC"][0] == "passed"
     assert world.stage2("SELECT peer_base_size FROM stage2_runs") == [(8,)]
+
+
+# ---------------------------------------------------------------- rule state (docs/decisions.md "Regelstand und Kurs je Lauf")
+
+
+def _stage2_argv(world):
+    return [
+        "--db-path", str(world.source_db), "--archive-db-path", str(world.archive_db), "--csv-dir", str(world.csv_dir),
+        "--fundamentals-cache-dir", str(world.cache_root), "--stage1-run-timestamp", STAGE1_TS,
+    ]
+
+
+def test_the_run_archives_its_rule_state_with_the_four_rule_files(tmp_path):
+    from store_layer.rule_state import RULE_FILES
+
+    world = World(tmp_path)
+    assert run_stage2.main(_stage2_argv(world)) == 0
+    assert [r[0] for r in world.stage2("SELECT step FROM run_rule_state")] == ["stage2"]
+    assert {r[0] for r in world.stage2("SELECT path FROM run_rule_files")} == set(RULE_FILES)
+
+
+def test_a_missing_rule_file_stops_stage2_and_writes_nothing(monkeypatch, tmp_path):
+    from store_layer.rule_state import RuleStateError
+
+    def broken(**kwargs):
+        raise RuleStateError("rule file config/trend_guard.yaml not readable")
+
+    monkeypatch.setattr(run_stage2, "capture_rule_state", broken)
+    world = World(tmp_path)
+    assert run_stage2.main(_stage2_argv(world)) == 1
+    assert nothing_written(world)
+
+
+def test_the_stored_rule_files_are_the_ones_the_run_really_used(tmp_path):
+    from rule_state_helpers import custom_copy, expected_sha, stored_sha
+
+    world = World(tmp_path)
+    used = {
+        "config/thresholds.yaml": ("--thresholds-path", custom_copy(tmp_path, run_stage2.DEFAULT_THRESHOLDS_PATH)),
+        "config/stage2.yaml": ("--stage2-config-path", custom_copy(tmp_path, run_stage2.DEFAULT_STAGE2_PATH)),
+        "config/sector_profiles.yaml": ("--sector-profiles-path", custom_copy(tmp_path, run_stage2.DEFAULT_SECTOR_PROFILES_PATH)),
+    }
+    argv = _stage2_argv(world) + [arg for flag, path in used.values() for arg in (flag, str(path))]
+    assert run_stage2.main(argv) == 0
+    for relative, (_, path) in used.items():
+        assert stored_sha(world.archive_db, relative) == expected_sha(path)
+
+
+def test_a_rule_file_changed_between_hash_and_capture_stops_stage2(monkeypatch, tmp_path):
+    import dataclasses
+
+    real = run_stage2.capture_rule_state
+
+    def changed(**kwargs):
+        state = real(**kwargs)
+        files = tuple(dataclasses.replace(f, sha256="0" * 64) if f.path == "config/stage2.yaml" else f for f in state.files)
+        return dataclasses.replace(state, files=files)
+
+    monkeypatch.setattr(run_stage2, "capture_rule_state", changed)
+    world = World(tmp_path)
+    assert run_stage2.main(_stage2_argv(world)) == 1
+    assert nothing_written(world)

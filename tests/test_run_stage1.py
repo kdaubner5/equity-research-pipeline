@@ -327,7 +327,7 @@ def test_run_stage1_rejects_a_malformed_companies_list_shape(monkeypatch, tmp_pa
 
 
 def test_run_stage1_rolls_back_the_csv_if_the_db_write_then_fails(monkeypatch, tmp_path):
-    # save_run_results() is the authoritative archive and is written last,
+    # save_run_results(, rule_state=None) is the authoritative archive and is written last,
     # after export_survivors_csv() - if it then fails, the already-written
     # CSV is removed again so a nonzero exit code keeps meaning "nothing was
     # written" (Entscheidung 3), not "CSV written, archive silently missing
@@ -355,3 +355,56 @@ def test_run_stage1_rolls_back_the_csv_if_the_db_write_then_fails(monkeypatch, t
 
     assert exit_code == run_stage1.EXIT_TECHNICAL_FAILURE
     assert list(csv_dir.glob("*.csv")) == []  # rolled back, not left orphaned
+
+
+# --- rule state (docs/decisions.md "Regelstand und Kurs je Lauf", Frage 6: the pilot runner writes it too) -----
+
+
+def test_the_pilot_run_archives_its_rule_state(monkeypatch, tmp_path):
+    from store_layer.rule_state import RULE_FILES
+
+    tickers = run_stage1.load_universe(run_stage1.DEFAULT_UNIVERSE_PATH)
+    _install_fake_simfin(monkeypatch, {ticker: _load_raw(ticker) for ticker in tickers})
+    db_path = tmp_path / "run_archive.db"
+
+    exit_code = run_stage1.run(
+        db_path=db_path, csv_dir=tmp_path / "runs", api_key="fake-key", run_timestamp="2026-09-22T09:00:00", out=io.StringIO()
+    )
+
+    assert exit_code == run_stage1.EXIT_OK
+    conn = sqlite3.connect(db_path)
+    try:
+        assert conn.execute("SELECT step, run_timestamp FROM run_rule_state").fetchall() == [("stage1", "2026-09-22T09:00:00")]
+        assert {r[0] for r in conn.execute("SELECT path FROM run_rule_files")} == set(RULE_FILES)
+        assert conn.execute("SELECT prefilter_run_timestamp FROM runs").fetchone() == (None,)  # the pilot has no prefilter run
+    finally:
+        conn.close()
+
+
+def test_the_pilot_run_stops_on_a_missing_rule_file_and_writes_nothing(monkeypatch, tmp_path):
+    from store_layer.rule_state import RuleStateError
+
+    def broken(**kwargs):
+        raise RuleStateError("rule file config/thresholds.yaml not readable")
+
+    monkeypatch.setattr(run_stage1, "capture_rule_state", broken)
+    db_path = tmp_path / "run_archive.db"
+    exit_code = run_stage1.run(db_path=db_path, csv_dir=tmp_path / "runs", api_key="fake-key", out=io.StringIO())
+    assert exit_code == run_stage1.EXIT_TECHNICAL_FAILURE
+    assert not db_path.exists() and not (tmp_path / "runs").exists()
+
+
+def test_the_pilot_run_stores_the_threshold_file_it_really_used(monkeypatch, tmp_path):
+    from rule_state_helpers import custom_copy, expected_sha, stored_sha
+
+    tickers = run_stage1.load_universe(run_stage1.DEFAULT_UNIVERSE_PATH)
+    _install_fake_simfin(monkeypatch, {ticker: _load_raw(ticker) for ticker in tickers})
+    thresholds = custom_copy(tmp_path, run_stage1.DEFAULT_THRESHOLDS_PATH)
+    db_path = tmp_path / "run_archive.db"
+
+    exit_code = run_stage1.run(
+        db_path=db_path, csv_dir=tmp_path / "runs", api_key="fake-key", thresholds_path=thresholds, out=io.StringIO()
+    )
+
+    assert exit_code == run_stage1.EXIT_OK
+    assert stored_sha(db_path, "config/thresholds.yaml") == expected_sha(thresholds)
