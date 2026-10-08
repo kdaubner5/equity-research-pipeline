@@ -2236,3 +2236,38 @@ Fondsgröße (justETF, Momentaufnahme): iShares S&P 500 rund 140 Mrd. €, iShar
 **Was Konstantin entscheiden muss:** Auswahl je Index (oder meine Empfehlung); ob eine Kursquelle für ETFs gesucht werden soll (nächster Schritt: Quellenprüfung ohne Kosten, nur öffentliche Quellen, keine SimFin-Calls).
 
 **How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag. Danach: Kursquelle prüfen, Eintrag nachziehen, dann Roadmap A.3.
+
+## 2026-10-08: Messlatte – Auswahl der ETFs und Kursquelle (Agent-Vorschlag mit Entscheidung von Konstantin, Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin. Ergänzt den Eintrag „Messlatte – ETF-Kandidaten“ (gleicher PR). Nur Dokumentation, keine Daten für das System abgerufen; die Abrufe unten waren einzelne lesende Proben von öffentlichen Seiten.
+
+**Entscheidung von Konstantin (08.10.2026):** „Ja deine beiden ETF-Vorschläge sind gut.“ Als Beschluss gilt damit mit dem Merge:
+1. **S&P 500:** iShares Core S&P 500 UCITS ETF USD (Acc), ISIN IE00B5BMR087.
+2. **MSCI World:** Xtrackers MSCI World UCITS ETF 1C, ISIN IE00BJ0KDQ92.
+
+Zur Kursquelle sagte er: Die Kurse müssen immer aktualisiert werden; es soll recherchiert werden, welche Schnittstelle (API) am zuverlässigsten und kostenlos ist. **Eine Entscheidung zur Quelle hat er noch nicht getroffen;** der Rest dieses Eintrags ist Recherche und Vorschlag des Agenten.
+
+**In einfachen Worten:** Für die Messlatte brauchen wir täglich oder wöchentlich nur drei Kursreihen: den S&P-500-ETF in Dollar, den MSCI-World-ETF in Euro und den Wechselkurs Euro/Dollar. Das sind wenige Abrufe pro Tag, daher reichen die Grenzen der kostenlosen Angebote locker. Kritisch ist nicht die Menge, sondern die Verlässlichkeit: Kein kostenloser Anbieter garantiert etwas. Deshalb schlage ich vor, die Kurse selbst zu speichern und zwei Quellen gegeneinander zu prüfen.
+
+**Belegt (Probe von diesem Server am 08.10.2026, lesend, je ein Abruf):**
+- **Yahoo Finance (inoffizielle Schnittstelle, wie sie auch das Python-Paket yfinance nutzt):** liefert für `CSPX.L` (iShares S&P 500, Londoner Börse, **Währung USD**), `XDWD.DE` (Xtrackers MSCI World, Xetra, **Währung EUR**) und `EURUSD=X` (Wechselkurs) Kurse zurück. Erster Handelstag laut Antwort: 15.09.2010 (CSPX.L) und 15.08.2014 (XDWD.DE). Das deckt die Wunschwährungen aus dem Eintrag zu PR #82 ab: Dollar-Reihe für F1, Euro-Reihe für F3, Wechselkurs für die Zeile „Währungseffekt“.
+- **Stooq (kostenlose CSV-Dateien):** lieferte beim Abruf keine Daten, sondern eine Seite, die einen Browser mit JavaScript verlangt (Bot-Prüfung). Ich habe sie nicht umgangen. Für ein automatisches Skript ist Stooq damit nach diesem Befund nicht geeignet.
+
+**Belegt (Websuche, Vergleichs- und Herstellerseiten, nicht selbst geprüft):** Alpha Vantage kostenlos: 25 Abrufe pro Tag, 5 pro Minute. Twelve Data kostenlos: 800 pro Tag, 8 pro Minute, über 30 Jahre Tageskurse. Financial Modeling Prep kostenlos: 250 Abrufe pro Tag, Tagesendkurse. Marketstack kostenlos: 100 Abrufe pro Monat, ein Jahr Verlauf. Alpaca und Finnhub: Schwerpunkt US-Aktien. Für Yahoo: nur für den persönlichen Gebrauch, inoffiziell, kann ohne Ankündigung ausfallen oder begrenzt werden.
+
+**Ungeprüft:** Ob Alpha Vantage, Twelve Data und FMP im kostenlosen Tarif die Londoner und Xetra-Linien der beiden ETFs liefern; ob die Yahoo-Zahlen lückenlos und mit den Fondsunterlagen vereinbar sind; Nutzungsbedingungen von Yahoo für den vorgesehenen Zweck; wie lange die Probe so weiterfunktioniert.
+
+**Vorschlag (Agent, von Konstantin nicht bestätigt):**
+1. **Hauptquelle Yahoo Finance** (kostenlos, ohne Schlüssel, alle drei Reihen belegt), **Zweitquelle** ein kostenloser Anbieter mit eigenem Schlüssel (zuerst Twelve Data prüfen), sobald dort die Abdeckung der beiden ETFs belegt ist.
+2. **Eigene Speicherung:** Jeder abgerufene Schlusskurs wird mit Abrufdatum in der eigenen Datenbank abgelegt, nicht nur bei Bedarf geholt. Dann ist die Messlatte unabhängig davon, ob eine Quelle später ausfällt oder Werte ändert.
+3. **Abgleich:** Einmal pro Woche vergleichen sich beide Quellen; weichen die Schlusskurse um mehr als einen Schwellenwert ab, wird die Reihe als „ungeprüft“ markiert und gemeldet. Die Schwelle ist ein Platzhalter ohne Messgrundlage und gehört in eine YAML-Datei (Regel des Projekts: keine Zahlen im Code).
+4. **Schlüssel:** Falls die Zweitquelle einen Schlüssel braucht, liegt er nicht auf dem Server (Eintrag „Autonomer Betrieb“, Nr. 5); die Abrufe laufen dann auf Konstantins Rechner.
+5. **Umsetzung** erst nach Merge und eigener Entscheidung; sie ist Code mit Tests (Klasse C wegen neuer Daten und Regeln) und Teil von Roadmap A.3 oder davor.
+
+**Risiken:** Yahoo kann Abrufe ohne Vorwarnung blockieren oder ändern; Schlusskurse einer Börsenlinie sind nicht der Fondspreis (Abweichung meist klein, nicht gemessen); ein ETF kann die Linie wechseln oder schließen.
+
+**Alternativen:** (a) Nur ein bezahlter Anbieter: zuverlässiger, aber das Projekt hat 0 € Fixkosten als Ziel; verworfen. (b) Nur Zweitquelle ohne Yahoo: Abdeckung der Linien ungeprüft. (c) Kurse von Hand eintragen: bei drei Reihen machbar, aber fehleranfällig und für Dauerbetrieb nicht tragfähig.
+
+**Was Konstantin entscheiden muss:** (1) Ist Yahoo als Hauptquelle mit eigener Speicherung und Zweitquelle in Ordnung? (2) Soll ich die Abdeckung bei Twelve Data (und FMP) belegen, soweit ohne Schlüssel möglich?
+
+**How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag.
