@@ -2177,3 +2177,27 @@ Alle drei Punkte müssen wie im gemergten Eintrag (Punkt 10) vor dem ersten arch
 **Alternativen:** (a) MSCI World als alleiniger Maßstab für alles (F1, F3, Abbruch): einfacher, aber der Wechselkurs kürzt sich nicht heraus und die Länderverteilung vermischt sich mit der Auswahl; verworfen. (b) MSCI World nur als F3-Vergleich (gewählt). (c) Gar kein Weltindex: verworfen, weil Konstantin ihn als reale Alternative sehen will.
 
 **How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag. Die Instrumente, N und die Wechselkursquelle werden in einem Folgeeintrag festgehalten; danach Roadmap A.3.
+
+## 2026-10-08: Messlatte – Instrumente, Größe N und Wechselkursquelle (Agent-Entscheidung, Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin. Branch `agent/messlatte-instrumente`, nur Dokumentation. Baut auf dem Eintrag „Messlatte – Nachtrag“ (PR #81) auf; Merge von #81 vor diesem Eintrag. Ändert am Eintrag „Messlatte für das Forward-Log“ **eine** Sache, die Konstantin ausdrücklich so entschieden hat (Punkt 2 unten). Keine Daten abgerufen, keine Instrumente geprüft.
+
+**In einfachen Worten:** Konstantin hat die offenen Punkte der Messlatte beantwortet. Verglichen wird mit dem S&P 500 (Auswahl, in Dollar) und einem MSCI World (Depot, in Euro), beide als gewöhnliche thesaurierende ETFs. Einen zweiten US-Maßstab für Qualität/Value gibt es nicht; den Stilvergleich übernimmt der Kontrollkorb aus den 10 bestplatzierten Firmen des mechanischen Rangs. Die Wechselkursquelle darf bis zum ersten Kauf warten.
+
+**Entscheidung von Konstantin (08.10.2026), in seinen Worten:** „Die Wechselkursquelle kann warten.“ – „Nimm den S&P 500 und MSCI World.“ – „Wir brauchen keinen US Qualität Ersatz. Ok ja dann nehmen wir Option C.“ (auf meinen Vorschlag N = 10) – „Ganz normale ETFs thesaurierend bitte.“ Als Beschluss gilt mit dem Merge:
+1. **Instrumente:** ein **S&P-500-ETF** und ein **MSCI-World-ETF**, jeweils **thesaurierend** (Ausschüttungen werden im Fonds wieder angelegt, damit die Reihe die Gesamtrendite zeigt). Welcher konkrete ETF (Anbieter, Kennnummer ISIN, Handelswährung) gewählt wird, ist **nicht** entschieden; das legt der Agent mit Belegen vor, Konstantin bestätigt.
+2. **Kein zweiter US-Maßstab für Qualität/Value.** Das ändert Option B im Eintrag „Messlatte“ (dort: zwei Dollar-Maßstäbe): Für F1 gibt es nur den S&P 500. Den Stil- und Größenvergleich übernimmt **Option C**, die damit nicht nur Zusatz für F2 ist, sondern der zweite Vergleichsmaßstab der Auswahl.
+3. **Größe N = 10** für Option C: gleich gewichteter Korb der obersten 10 Firmen im Stufe-2-Rang desselben Laufs (ohne Stufe 3 und 4). 10 entspricht der Mindestzahl geprüfter Finalisten im Eintrag „Messlatte“. Ändert sich die Zahl der Finalisten deutlich, wird N neu entschieden.
+4. **Wechselkursquelle:** darf bis zum ersten Kauf warten. Sie wird für die Euro-Sicht F3 und die Zeile „Währungseffekt“ gebraucht. Das ändert die Formulierung „vor dem ersten archivierten Lauf“ (Eintrag „Messlatte“, Punkt 10) für diesen einen Punkt; Instrumente und N stehen damit vor A.3 fest (Punkt 1 bis 3), sobald die konkreten ETFs bestätigt sind.
+
+**Folgen und Fragen, die daraus entstehen (Agent-Vorschlag, nicht von Konstantin bestätigt):**
+- **Abbruchkriterium 1** verglich mit dem stärkeren von zwei Maßstäben. Mit nur dem S&P 500 gibt es nichts zu vergleichen; Vorschlag: Vergleich mit dem S&P 500. Ob auch Option C ins Abbruchkriterium eingeht, ist **offen**; bis zur Antwort gilt: Abbruch nur gegen den S&P 500, Option C nur zur Einordnung. Der Platzhalter X (3 Prozentpunkte pro Jahr) hat dafür keine Messgrundlage und ändert sich nicht.
+- **Währung:** Ein S&P-500-ETF muss für F1 als **Dollar-Reihe** vorliegen (Dollar-Handelslinie oder Dollar-Fondspreis). Ein Euro-Handelsplatz würde den Wechselkurs in den Maßstab mischen. Der MSCI-World-ETF für F3 soll als **Euro-Reihe** vorliegen.
+- **Kursverlauf:** Ein ETF hat nur eine begrenzte Historie und Gebühren; das gilt als Eigenschaft eines realen Vergleichs und ist für 24 Monate ab Start kein Problem.
+- Option C braucht pro Lauf den gespeicherten Stufe-2-Rang. Ob er heute im Archiv vollständig vorliegt, wurde **nicht geprüft**.
+
+**Ungeprüft:** Verfügbarkeit, Kosten, Steuern, Länge des Kursverlaufs und Quelle der ETF-Kurse (kostenlos, Dollar und Euro), Zusammensetzung des MSCI World, ob der Stufe-2-Rang im Archiv für Option C reicht.
+
+**Alternativen:** (a) Zweiten US-Maßstab für Qualität/Value behalten: verworfen, Konstantin braucht ihn nicht. (b) N = alle Firmen, die den Filter bestehen (41 bzw. 126 im Kandidaten- und Trend-Guard-Lauf): misst den Durchschnitt der Gruppe, nicht die Auswahl; verworfen. (c) Reine Indizes statt ETFs: verworfen, Konstantin will gewöhnliche ETFs.
+
+**How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag. Nächste Schritte: konkrete ETFs mit Belegen vorlegen (Konstantin bestätigt), Entscheidung zu Option C im Abbruchkriterium, dann Roadmap A.3.
