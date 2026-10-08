@@ -392,3 +392,19 @@ def test_the_pilot_run_stops_on_a_missing_rule_file_and_writes_nothing(monkeypat
     exit_code = run_stage1.run(db_path=db_path, csv_dir=tmp_path / "runs", api_key="fake-key", out=io.StringIO())
     assert exit_code == run_stage1.EXIT_TECHNICAL_FAILURE
     assert not db_path.exists() and not (tmp_path / "runs").exists()
+
+
+def test_the_pilot_run_stores_the_threshold_file_it_really_used(monkeypatch, tmp_path):
+    from rule_state_helpers import custom_copy, expected_sha, stored_sha
+
+    tickers = run_stage1.load_universe(run_stage1.DEFAULT_UNIVERSE_PATH)
+    _install_fake_simfin(monkeypatch, {ticker: _load_raw(ticker) for ticker in tickers})
+    thresholds = custom_copy(tmp_path, run_stage1.DEFAULT_THRESHOLDS_PATH)
+    db_path = tmp_path / "run_archive.db"
+
+    exit_code = run_stage1.run(
+        db_path=db_path, csv_dir=tmp_path / "runs", api_key="fake-key", thresholds_path=thresholds, out=io.StringIO()
+    )
+
+    assert exit_code == run_stage1.EXIT_OK
+    assert stored_sha(db_path, "config/thresholds.yaml") == expected_sha(thresholds)

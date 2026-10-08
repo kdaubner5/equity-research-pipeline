@@ -68,7 +68,7 @@ from gates_layer.stage2_gates import (  # noqa: E402
 )
 from metrics_layer.plausibility import SHARE_AMBIGUOUS, SHARE_OK, SHARE_SUSPECT, SHARE_UNCHECKED  # noqa: E402
 from metrics_layer.result import MetricInputError  # noqa: E402
-from store_layer.rule_state import RuleStateError, capture_rule_state  # noqa: E402
+from store_layer.rule_state import RuleStateError, capture_rule_state, require_same_bytes  # noqa: E402
 from store_layer.stage2_store import export_stage2_csv, save_stage2_results  # noqa: E402
 
 EXIT_OK = 0
@@ -279,6 +279,7 @@ def run(
                     "config/sector_profiles.yaml": sector_profiles_path,
                 }
             )
+            require_same_bytes(rule_state, "config/stage2.yaml", config_hash)
         except RuleStateError as exc:
             raise Stage2RunError(str(exc)) from exc
 

@@ -68,7 +68,7 @@ from config_layer.sector_profiles import (  # noqa: E402
 from data_layer import simfin_fundamentals as sf  # noqa: E402
 from gates_layer.stage1_gates import GateResult, NOT_EVALUABLE, unsupported_business_model_result  # noqa: E402
 from store_layer.db import DEFAULT_CSV_DIR, DEFAULT_DB_PATH, export_survivors_csv, save_run_results  # noqa: E402
-from store_layer.rule_state import RuleStateError, capture_rule_state  # noqa: E402
+from store_layer.rule_state import RuleStateError, capture_rule_state, require_same_bytes  # noqa: E402
 
 from run_fundamentals import DEFAULT_CACHE_DIR as DEFAULT_FUNDAMENTALS_CACHE_DIR  # noqa: E402
 from run_fundamentals import FundamentalsRunError, load_survivor_ids  # noqa: E402
@@ -239,6 +239,7 @@ def run(
             rule_state = capture_rule_state(
                 rule_paths={"config/thresholds.yaml": thresholds_path, "config/sector_profiles.yaml": sector_profiles_path}
             )
+            require_same_bytes(rule_state, "config/thresholds.yaml", config_hash)
         except RuleStateError as exc:
             raise Stage1FullRunError(str(exc)) from exc
 

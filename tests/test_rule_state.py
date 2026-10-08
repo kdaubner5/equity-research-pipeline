@@ -302,3 +302,45 @@ def test_write_does_not_commit(tmp_path):
     names = {row[0] for row in check.execute("SELECT name FROM sqlite_master WHERE type='table'")}
     rows = check.execute("SELECT COUNT(*) FROM run_rule_state").fetchone()[0] if "run_rule_state" in names else 0
     assert rows == 0
+
+
+# --- review findings (critic round 1) --------------------------------------------------------------------------
+
+
+def test_the_path_limit_is_exactly_fifty():
+    assert MAX_DIRTY_PATHS == 50  # the decision fixes the number; a changed constant must be a deliberate decision
+
+
+def test_status_is_asked_with_untracked_files_normal_and_without_index_refresh(tmp_path, monkeypatch):
+    import subprocess as sp
+
+    seen = []
+    real_run = sp.run
+
+    def spy(command, **kwargs):
+        seen.append(command)
+        return real_run(command, **kwargs)
+
+    monkeypatch.setattr("store_layer.rule_state.subprocess.run", spy)
+    capture_rule_state(make_repo(tmp_path))
+    status_calls = [c for c in seen if "status" in c]
+    assert status_calls and all("--untracked-files=normal" in c and "--no-optional-locks" in c for c in status_calls)
+
+
+def test_a_user_setting_that_hides_untracked_files_does_not_make_it_clean(tmp_path):
+    root = make_repo(tmp_path)
+    git(root, "config", "status.showUntrackedFiles", "no")
+    (root / "src" / "new_module.py").write_text("x\n", encoding="utf-8")
+    state = capture_rule_state(root)
+    assert state.code_state == CODE_DIRTY and state.dirty_paths == ("src/new_module.py",)
+
+
+def test_require_same_bytes_accepts_the_matching_hash_and_stops_otherwise(tmp_path):
+    from store_layer.rule_state import require_same_bytes
+
+    state = capture_rule_state(make_repo(tmp_path))
+    require_same_bytes(state, "config/stage2.yaml", state.files[1].sha256)
+    with pytest.raises(RuleStateError, match="changed while the run started"):
+        require_same_bytes(state, "config/stage2.yaml", "0" * 64)
+    with pytest.raises(ValueError):
+        require_same_bytes(state, "config/bash_guard.yaml", "0" * 64)

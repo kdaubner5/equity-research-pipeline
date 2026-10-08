@@ -544,3 +544,20 @@ def test_run_a_missing_rule_file_is_a_technical_failure_and_writes_nothing(monke
         assert conn.execute("SELECT COUNT(*) FROM runs").fetchone() == (0,)
     finally:
         conn.close()
+
+
+def test_run_stores_the_threshold_and_profile_files_it_really_used(tmp_path):
+    from rule_state_helpers import custom_copy, expected_sha, stored_sha
+
+    raw = _load_raw("UFPT")
+    db_path = tmp_path / "archive.db"
+    seed_db(db_path, survivors=[(raw["id"], "UFPT")])
+    seed_cache(tmp_path / "cache" / "2026-09-24", raw["id"], raw)
+    thresholds = custom_copy(tmp_path, rsf.DEFAULT_THRESHOLDS_PATH)
+    profiles = custom_copy(tmp_path, rsf.DEFAULT_SECTOR_PROFILES_PATH)
+
+    exit_code, _ = do_run(tmp_path, db_path=db_path, thresholds_path=thresholds, sector_profiles_path=profiles)
+
+    assert exit_code == rsf.EXIT_OK
+    assert stored_sha(db_path, "config/thresholds.yaml") == expected_sha(thresholds)
+    assert stored_sha(db_path, "config/sector_profiles.yaml") == expected_sha(profiles)

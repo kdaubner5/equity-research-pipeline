@@ -68,7 +68,7 @@ from store_layer.db import (  # noqa: E402
     export_universe_survivors,
     save_universe_prefilter,
 )
-from store_layer.rule_state import RuleStateError, capture_rule_state  # noqa: E402
+from store_layer.rule_state import RuleStateError, capture_rule_state, require_same_bytes  # noqa: E402
 
 DEFAULT_CACHE_DIR = _REPO_ROOT / "data" / "cache" / "universe"
 
@@ -222,6 +222,7 @@ def run(
         # file that is missing or unreadable stops the run before anything is fetched or written.
         try:
             rule_state = capture_rule_state(rule_paths={"config/thresholds.yaml": thresholds_path})
+            require_same_bytes(rule_state, "config/thresholds.yaml", config_hash)
         except RuleStateError as exc:
             raise UniverseRunError(str(exc)) from exc
         as_of = as_of or date.today()

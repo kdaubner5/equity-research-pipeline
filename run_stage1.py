@@ -60,7 +60,7 @@ from gates_layer.stage1_gates import (  # noqa: E402
 from metrics_layer.result import MetricInputError  # noqa: E402
 from pipeline import evaluate_company  # noqa: E402
 from store_layer.db import DEFAULT_CSV_DIR, DEFAULT_DB_PATH, export_survivors_csv, save_run_results  # noqa: E402
-from store_layer.rule_state import RuleStateError, capture_rule_state  # noqa: E402
+from store_layer.rule_state import RuleStateError, capture_rule_state, require_same_bytes  # noqa: E402
 
 DEFAULT_UNIVERSE_PATH = _REPO_ROOT / "config" / "universe.txt"
 DEFAULT_ENV_PATH = _REPO_ROOT / ".env"
@@ -275,6 +275,7 @@ def run(
         # missing or unreadable rule file stops the run before anything is fetched or written.
         try:
             rule_state = capture_rule_state(rule_paths={"config/thresholds.yaml": thresholds_path})
+            require_same_bytes(rule_state, "config/thresholds.yaml", config_hash)
         except RuleStateError as exc:
             raise Stage1RunError(str(exc)) from exc
         tickers = load_universe(universe_path)

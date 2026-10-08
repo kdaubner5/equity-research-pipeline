@@ -61,8 +61,9 @@ class RuleState:
 def _run_git(root, args):
     """(returncode, stdout bytes). Any failure to run git (missing, timeout) is returncode 127 with no output."""
     try:
+        # --no-optional-locks: `git status` must not refresh the index (read-only towards the repository)
         completed = subprocess.run(
-            ["git", "-C", str(root), *args], capture_output=True, timeout=GIT_TIMEOUT_SECONDS, check=False
+            ["git", "--no-optional-locks", "-C", str(root), *args], capture_output=True, timeout=GIT_TIMEOUT_SECONDS, check=False
         )
     except (OSError, subprocess.SubprocessError):
         return 127, b""
@@ -126,11 +127,29 @@ def capture_rule_state(repo_root=REPO_ROOT, *, rule_paths=None, git_runner=None)
     commit = out.decode("ascii", "replace").strip() if code == 0 else ""
     if not _COMMIT.match(commit):
         return RuleState(git_commit=None, code_state=CODE_UNKNOWN, dirty_paths=(), files=files)
-    code, out = run(["status", "--porcelain", "-z"])
+    # --untracked-files=normal: a user's status.showUntrackedFiles=no must not turn an untracked rule file into 'clean'
+    code, out = run(["status", "--porcelain", "-z", "--untracked-files=normal"])
     if code != 0:
         return RuleState(git_commit=commit, code_state=CODE_UNKNOWN, dirty_paths=(), files=files)
     dirty = _parse_status(out)
     return RuleState(git_commit=commit, code_state=CODE_DIRTY if dirty else CODE_CLEAN, dirty_paths=dirty, files=files)
+
+
+def require_same_bytes(rule_state, relative, expected_sha256):
+    """Raise RuleStateError when the stored content of a rule file is not the file whose hash the run recorded.
+
+    The runners load a rule file, hash it for the archive and capture its content in separate reads; this check
+    makes sure the same bytes went into all of them (a file changed in between stops the run, nothing is written).
+    """
+    for rule_file in rule_state.files:
+        if rule_file.path == relative:
+            if rule_file.sha256 != expected_sha256:
+                raise RuleStateError(
+                    f"rule file {relative} changed while the run started: stored content sha256 {rule_file.sha256[:12]} "
+                    f"differs from the config hash {expected_sha256[:12]} the run recorded"
+                )
+            return
+    raise ValueError(f"not a captured rule file: {relative}")
 
 
 def init_rule_state_tables(connection):

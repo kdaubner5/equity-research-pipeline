@@ -56,7 +56,7 @@ from gates_layer.trend_guard import (  # noqa: E402
     not_evaluable_trend_result,
 )
 from metrics_layer.result import MetricInputError  # noqa: E402
-from store_layer.rule_state import RuleStateError, capture_rule_state  # noqa: E402
+from store_layer.rule_state import RuleStateError, capture_rule_state, require_same_bytes  # noqa: E402
 from store_layer.trend_store import export_trend_csv, save_trend_results  # noqa: E402
 
 import run_stage2  # noqa: E402  (reuses its read-only archive readers; it puts src/ on the path itself)
@@ -174,6 +174,7 @@ def run(
                     "config/trend_guard.yaml": trend_config_path,
                 }
             )
+            require_same_bytes(rule_state, "config/trend_guard.yaml", config_hash)
         except RuleStateError as exc:
             raise TrendRunError(str(exc)) from exc
 

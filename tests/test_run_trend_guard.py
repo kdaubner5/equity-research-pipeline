@@ -434,3 +434,34 @@ def test_a_missing_rule_file_stops_the_trend_run_and_writes_nothing(monkeypatch,
     world = TrendWorld(tmp_path)
     assert run_trend_guard.main(_trend_argv(world)) == 1
     assert nothing_written(world)
+
+
+def test_the_stored_rule_files_are_the_ones_the_run_really_used(tmp_path):
+    from rule_state_helpers import custom_copy, expected_sha, stored_sha
+
+    world = TrendWorld(tmp_path)
+    used = {
+        "config/thresholds.yaml": ("--thresholds-path", custom_copy(tmp_path, run_trend_guard.DEFAULT_THRESHOLDS_PATH)),
+        "config/stage2.yaml": ("--stage2-config-path", custom_copy(tmp_path, run_trend_guard.DEFAULT_STAGE2_PATH)),
+        "config/trend_guard.yaml": ("--trend-config-path", custom_copy(tmp_path, run_trend_guard.DEFAULT_TREND_GUARD_PATH)),
+    }
+    argv = _trend_argv(world) + [arg for flag, path in used.values() for arg in (flag, str(path))]
+    assert run_trend_guard.main(argv) == 0
+    for relative, (_, path) in used.items():
+        assert stored_sha(world.archive_db, relative) == expected_sha(path)
+
+
+def test_a_rule_file_changed_between_hash_and_capture_stops_the_trend_run(monkeypatch, tmp_path):
+    import dataclasses
+
+    real = run_trend_guard.capture_rule_state
+
+    def changed(**kwargs):
+        state = real(**kwargs)
+        files = tuple(dataclasses.replace(f, sha256="0" * 64) if f.path == "config/trend_guard.yaml" else f for f in state.files)
+        return dataclasses.replace(state, files=files)
+
+    monkeypatch.setattr(run_trend_guard, "capture_rule_state", changed)
+    world = TrendWorld(tmp_path)
+    assert run_trend_guard.main(_trend_argv(world)) == 1
+    assert nothing_written(world)

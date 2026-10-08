@@ -649,3 +649,20 @@ def test_a_missing_rule_file_stops_the_run_before_anything_is_fetched_or_written
     assert code == run_universe.EXIT_TECHNICAL_FAILURE
     assert fake.requests == []
     assert not (tmp_path / "archive.db").exists() and survivors_files(tmp_path) == []
+
+
+def test_a_threshold_file_changed_between_hash_and_capture_stops_the_run(monkeypatch, tmp_path, clock):
+    import dataclasses
+
+    real = run_universe.capture_rule_state
+
+    def changed(**kwargs):
+        state = real(**kwargs)
+        files = tuple(dataclasses.replace(f, sha256="0" * 64) if f.path == "config/thresholds.yaml" else f for f in state.files)
+        return dataclasses.replace(state, files=files)
+
+    fake, _ = scenario(monkeypatch)
+    monkeypatch.setattr(run_universe, "capture_rule_state", changed)
+    code, _ = do_run(tmp_path, clock)
+    assert code == run_universe.EXIT_TECHNICAL_FAILURE and fake.requests == []
+    assert not (tmp_path / "archive.db").exists()
