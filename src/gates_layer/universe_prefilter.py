@@ -80,6 +80,11 @@ class PrefilterResult:
     median_dollar_volume_usd: float | None
     median_window_rows: int | None  # rows that went into the median; None if no row qualified
     price_date: date | None
+    # Last priced row's close and share count, kept next to the market cap (docs/decisions.md "Regelstand und Kurs
+    # je Lauf", Punkt 4). Independent of each other: a non-positive share count gives shares_outstanding None and no
+    # market cap, but the close stays. None where the data has none. Defaults keep older positional constructions valid.
+    close_price_usd: float | None = None
+    shares_outstanding: float | None = None
 
 
 def has_delisted_marker(ticker):
@@ -124,10 +129,14 @@ def evaluate_prefilter(entry, price_rows, *, as_of, thresholds: PrefilterThresho
 
     market_cap = None
     shares_ok = False
+    close_price = None
+    shares_outstanding = None
     if priced:
         last = priced[-1]
+        close_price = last.close
         shares_ok = last.shares is not None and last.shares > 0
         if shares_ok:
+            shares_outstanding = last.shares
             market_cap = last.close * last.shares
 
     window_rows = [row for row in rows if _has_price_and_volume(row)][-thresholds.adv_window_trading_days :]
@@ -147,6 +156,8 @@ def evaluate_prefilter(entry, price_rows, *, as_of, thresholds: PrefilterThresho
         median_dollar_volume_usd=median_dollar_volume,
         median_window_rows=median_window_rows,
         price_date=price_date,
+        close_price_usd=close_price,
+        shares_outstanding=shares_outstanding,
     )
 
 

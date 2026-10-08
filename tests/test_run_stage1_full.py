@@ -101,7 +101,7 @@ def excluded(simfin_id, ticker, reason="market_cap_below_min"):
 def seed_db(db_path, *, run_timestamp=RUN_TS, survivors=(), excluded_ids=()):
     """survivors: [(simfin_id, ticker), ...]."""
     results = [passed(i, ticker) for i, ticker in survivors] + [excluded(i, f"X{i}") for i in excluded_ids]
-    save_universe_prefilter(run_timestamp, results, config_hash="deadbeef", db_path=db_path)
+    save_universe_prefilter(run_timestamp, results, config_hash="deadbeef", db_path=db_path, rule_state=None)
 
 
 def seed_cache(cache_dir, simfin_id, response, *, outcome=sf.FETCH_OK, statements=sf.DEFAULT_STATEMENTS):
@@ -393,7 +393,7 @@ def test_run_two_survivors_sharing_a_ticker_is_a_technical_failure_nothing_writt
     assert exit_code == rsf.EXIT_TECHNICAL_FAILURE
     # db_path already exists (seed_db wrote universe_prefilter into it) -
     # the assertion is that NO run_results/eliminated_results/runs rows
-    # were ever written, i.e. save_run_results() was never reached.
+    # were ever written, i.e. save_run_results(, rule_state=None) was never reached.
     assert sqlite3.connect(db_path).execute("SELECT COUNT(*) FROM runs").fetchone() == (0,)
     assert list((tmp_path / "runs").glob("*.csv")) == []
 
@@ -498,3 +498,66 @@ def test_16_pilot_cache_path_matches_live_evaluate_ticker_exactly(tmp_path):
             assert row["cash_conversion"] == expected.cash_conversion
             assert row["net_income_margin"] == expected.net_income_margin
             assert row["invalid_reasons"] == ",".join(expected.invalid_reasons)
+
+
+# --- rule state and prefilter reference (docs/decisions.md "Regelstand und Kurs je Lauf") ---------------------
+
+
+def test_run_archives_its_rule_state_and_the_prefilter_run_it_came_from(tmp_path):
+    from store_layer.rule_state import RULE_FILES
+
+    raw = _load_raw("UFPT")
+    db_path = tmp_path / "archive.db"
+    seed_db(db_path, survivors=[(raw["id"], "UFPT")])
+    seed_cache(tmp_path / "cache" / "2026-09-24", raw["id"], raw)
+
+    exit_code, _ = do_run(tmp_path, db_path=db_path)
+
+    assert exit_code == rsf.EXIT_OK
+    conn = sqlite3.connect(db_path)
+    try:
+        (archive_ts,) = conn.execute("SELECT run_timestamp FROM runs").fetchone()
+        assert conn.execute("SELECT prefilter_run_timestamp FROM runs").fetchone() == ("2026-09-24T18:13:48",)
+        assert conn.execute("SELECT step, run_timestamp FROM run_rule_state").fetchall() == [("stage1", archive_ts)]
+        assert {r[0] for r in conn.execute("SELECT path FROM run_rule_files")} == set(RULE_FILES)
+    finally:
+        conn.close()
+
+
+def test_run_a_missing_rule_file_is_a_technical_failure_and_writes_nothing(monkeypatch, tmp_path):
+    from store_layer.rule_state import RuleStateError
+
+    raw = _load_raw("UFPT")
+    db_path = tmp_path / "archive.db"
+    seed_db(db_path, survivors=[(raw["id"], "UFPT")])
+    seed_cache(tmp_path / "cache" / "2026-09-24", raw["id"], raw)
+
+    def broken(**kwargs):
+        raise RuleStateError("rule file config/thresholds.yaml not readable")
+
+    monkeypatch.setattr(rsf, "capture_rule_state", broken)
+    exit_code, _ = do_run(tmp_path, db_path=db_path)
+    assert exit_code == rsf.EXIT_TECHNICAL_FAILURE
+    assert not (tmp_path / "runs").exists()
+    conn = sqlite3.connect(db_path)
+    try:
+        assert conn.execute("SELECT COUNT(*) FROM runs").fetchone() == (0,)
+    finally:
+        conn.close()
+
+
+def test_run_stores_the_threshold_and_profile_files_it_really_used(tmp_path):
+    from rule_state_helpers import custom_copy, expected_sha, stored_sha
+
+    raw = _load_raw("UFPT")
+    db_path = tmp_path / "archive.db"
+    seed_db(db_path, survivors=[(raw["id"], "UFPT")])
+    seed_cache(tmp_path / "cache" / "2026-09-24", raw["id"], raw)
+    thresholds = custom_copy(tmp_path, rsf.DEFAULT_THRESHOLDS_PATH)
+    profiles = custom_copy(tmp_path, rsf.DEFAULT_SECTOR_PROFILES_PATH)
+
+    exit_code, _ = do_run(tmp_path, db_path=db_path, thresholds_path=thresholds, sector_profiles_path=profiles)
+
+    assert exit_code == rsf.EXIT_OK
+    assert stored_sha(db_path, "config/thresholds.yaml") == expected_sha(thresholds)
+    assert stored_sha(db_path, "config/sector_profiles.yaml") == expected_sha(profiles)

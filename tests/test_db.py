@@ -125,7 +125,7 @@ def test_save_run_results_only_survivors_are_archived(tmp_path):
     gate_results = _simulated_run_gate_results()
     run_timestamp = "2026-09-15T14:30:00"
 
-    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path, rule_state=None)
 
     rows = _query_run(db_path, run_timestamp)
     archived_tickers = {row["ticker"] for row in rows}
@@ -153,7 +153,7 @@ def test_save_run_results_full_funnel_partitions_every_company_exactly_once(tmp_
     gate_results = _simulated_run_gate_results()
     run_timestamp = "2026-09-21T09:00:00"
 
-    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path, rule_state=None)
 
     survivor_tickers = {row["ticker"] for row in _query_run(db_path, run_timestamp)}
     eliminated_tickers = {row["ticker"] for row in _query_eliminated(db_path, run_timestamp)}
@@ -190,7 +190,7 @@ def test_save_run_results_unrecognized_status_raises_instead_of_vanishing(tmp_pa
     gate_results = {"BOGUS01": bogus}
 
     with pytest.raises(ValueError, match="BOGUS01"):
-        save_run_results("2026-09-21T09:00:00", gate_results, config_hash=None, db_path=db_path)
+        save_run_results("2026-09-21T09:00:00", gate_results, config_hash=None, db_path=db_path, rule_state=None)
 
 
 def test_save_run_results_eliminated_rows_have_expected_columns(tmp_path):
@@ -198,7 +198,7 @@ def test_save_run_results_eliminated_rows_have_expected_columns(tmp_path):
     gate_results = _simulated_run_gate_results()
     run_timestamp = "2026-09-21T09:00:00"
 
-    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path, rule_state=None)
     eliminated_by_ticker = {row["ticker"]: row for row in _query_eliminated(db_path, run_timestamp)}
 
     # ORBT18: not_evaluable (insufficient_years, no valid hard fail) - its
@@ -269,7 +269,7 @@ def test_failed_with_invalid_reasons_is_archived_as_eliminated_and_countable_as_
     db_path = tmp_path / "archive.db"
     run_timestamp = "2026-09-30T10:00:00"
 
-    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path, rule_state=None)
 
     assert [ticker for ticker, _ in rank_companies(gate_results)] == ["CLEAN01"]
     assert {row["ticker"] for row in _query_run(db_path, run_timestamp)} == {"CLEAN01"}
@@ -296,7 +296,7 @@ def test_zero_eliminated_run_writes_empty_eliminated_table(tmp_path):
     gate_results = _zero_eliminated_gate_results()
     run_timestamp = "2026-09-15T08:00:00"
 
-    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path, rule_state=None)
 
     assert _query_eliminated(db_path, run_timestamp) == []
     run_row = _query_runs_table(db_path, run_timestamp)
@@ -309,7 +309,7 @@ def test_save_run_results_rank_position_matches_rank_companies(tmp_path):
     gate_results = _simulated_run_gate_results()
     run_timestamp = "2026-09-15T14:30:00"
 
-    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path, rule_state=None)
 
     rows = _query_run(db_path, run_timestamp)
     rank_by_ticker = {row["ticker"]: row["rank_position"] for row in rows}
@@ -324,8 +324,8 @@ def test_save_run_results_two_timestamps_do_not_overwrite_each_other(tmp_path):
     db_path = tmp_path / "archive.db"
     gate_results = _simulated_run_gate_results()
 
-    save_run_results("2026-09-15T14:30:00", gate_results, config_hash=None, db_path=db_path)
-    save_run_results("2026-09-16T09:00:00", gate_results, config_hash=None, db_path=db_path)
+    save_run_results("2026-09-15T14:30:00", gate_results, config_hash=None, db_path=db_path, rule_state=None)
+    save_run_results("2026-09-16T09:00:00", gate_results, config_hash=None, db_path=db_path, rule_state=None)
 
     rows_day1 = _query_run(db_path, "2026-09-15T14:30:00")
     rows_day2 = _query_run(db_path, "2026-09-16T09:00:00")
@@ -341,13 +341,13 @@ def test_save_run_results_same_timestamp_twice_raises(tmp_path):
     gate_results = _simulated_run_gate_results()
     run_timestamp = "2026-09-15T14:30:00"
 
-    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path, rule_state=None)
 
     # a forward-log is a historical record: re-saving the same run_timestamp
     # is a caller bug that must raise (composite primary key violation),
     # never silently overwrite the already-archived run
     with pytest.raises(sqlite3.IntegrityError):
-        save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
+        save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path, rule_state=None)
 
     # the original rows must be untouched by the failed second attempt, in
     # BOTH run_results and eliminated_results (single shared transaction)
@@ -366,7 +366,7 @@ def test_export_survivors_csv_matches_db_for_same_run(tmp_path):
     gate_results = _simulated_run_gate_results()
     run_timestamp = "2026-09-15T14:30:00"
 
-    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path, rule_state=None)
     csv_path = export_survivors_csv(run_timestamp, gate_results, output_dir=csv_dir)
 
     db_rows = {row["ticker"]: row for row in _query_run(db_path, run_timestamp)}
@@ -423,7 +423,7 @@ def test_zero_survivor_run_still_writes_runs_row_and_header_only_csv(tmp_path):
     run_timestamp = "2026-09-15T08:00:00"
     assert rank_companies(gate_results) == []  # sanity: genuinely 0 survivors
 
-    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path)
+    save_run_results(run_timestamp, gate_results, config_hash=None, db_path=db_path, rule_state=None)
     csv_path = export_survivors_csv(run_timestamp, gate_results, output_dir=csv_dir)
 
     run_row = _query_runs_table(db_path, run_timestamp)
@@ -460,12 +460,12 @@ def test_zero_survivor_run_and_survivor_run_coexist(tmp_path):
 
     zero_gate_results = _zero_survivor_gate_results()
     zero_timestamp = "2026-09-15T08:00:00"
-    save_run_results(zero_timestamp, zero_gate_results, config_hash=None, db_path=db_path)
+    save_run_results(zero_timestamp, zero_gate_results, config_hash=None, db_path=db_path, rule_state=None)
     zero_csv_path = export_survivors_csv(zero_timestamp, zero_gate_results, output_dir=csv_dir)
 
     real_gate_results = _simulated_run_gate_results()
     real_timestamp = "2026-09-15T14:30:00"
-    save_run_results(real_timestamp, real_gate_results, config_hash=None, db_path=db_path)
+    save_run_results(real_timestamp, real_gate_results, config_hash=None, db_path=db_path, rule_state=None)
     real_csv_path = export_survivors_csv(real_timestamp, real_gate_results, output_dir=csv_dir)
 
     zero_run_row = _query_runs_table(db_path, zero_timestamp)
@@ -554,7 +554,7 @@ def test_new_db_has_config_hash_column_in_runs_table(tmp_path):
 def test_save_run_results_persists_config_hash_in_runs_table(tmp_path):
     db_path = tmp_path / "archive.db"
     run_timestamp = "2026-09-23T18:00:00"
-    save_run_results(run_timestamp, _zero_eliminated_gate_results(), config_hash="abc123", db_path=db_path)
+    save_run_results(run_timestamp, _zero_eliminated_gate_results(), config_hash="abc123", db_path=db_path, rule_state=None)
     run_row = _query_runs_table(db_path, run_timestamp)
     assert run_row["config_hash"] == "abc123"
 
@@ -562,7 +562,7 @@ def test_save_run_results_persists_config_hash_in_runs_table(tmp_path):
 def test_save_run_results_persists_data_quality_flags_in_both_tables(tmp_path):
     db_path = tmp_path / "archive.db"
     run_timestamp = "2026-09-21T16:00:00"
-    save_run_results(run_timestamp, _gate_results_with_data_quality_flags(), config_hash=None, db_path=db_path)
+    save_run_results(run_timestamp, _gate_results_with_data_quality_flags(), config_hash=None, db_path=db_path, rule_state=None)
 
     survivors = {row["ticker"]: row for row in _query_run(db_path, run_timestamp)}
     assert survivors["SURV_FLAGGED"]["data_quality_flags"] == ",".join(_DQ_FLAGS)
@@ -633,7 +633,7 @@ def test_init_db_upgrades_an_existing_archive_and_stays_idempotent(tmp_path):
     assert _query_eliminated(db_path, "2026-09-01T09:00:00")[0]["data_quality_flags"] == ""
 
     # and a new run on the upgraded archive persists flags next to the old rows
-    save_run_results("2026-09-21T16:00:00", _gate_results_with_data_quality_flags(), config_hash=None, db_path=db_path)
+    save_run_results("2026-09-21T16:00:00", _gate_results_with_data_quality_flags(), config_hash=None, db_path=db_path, rule_state=None)
     new_rows = {row["ticker"]: row for row in _query_run(db_path, "2026-09-21T16:00:00")}
     assert new_rows["SURV_FLAGGED"]["data_quality_flags"] == ",".join(_DQ_FLAGS)
 
@@ -660,7 +660,7 @@ def _profiled_gate_results():
 def test_unsupported_business_model_is_archived_as_eliminated_and_the_partition_still_holds(tmp_path):
     db_path = tmp_path / "archive.db"
     gate_results = _profiled_gate_results()
-    save_run_results("2026-09-30T10:00:00", gate_results, config_hash=None, db_path=db_path)
+    save_run_results("2026-09-30T10:00:00", gate_results, config_hash=None, db_path=db_path, rule_state=None)
 
     survivors = {row["ticker"] for row in _query_run(db_path, "2026-09-30T10:00:00")}
     eliminated = {row["ticker"]: row for row in _query_eliminated(db_path, "2026-09-30T10:00:00")}
@@ -687,12 +687,12 @@ def test_an_unrecognized_status_still_raises_after_adding_unsupported_business_m
         cash_conversion=None, net_income_margin=None,
     )
     with pytest.raises(ValueError, match="BOGUS02"):
-        save_run_results("2026-09-30T10:00:00", {"BOGUS02": bogus}, config_hash=None, db_path=tmp_path / "a.db")
+        save_run_results("2026-09-30T10:00:00", {"BOGUS02": bogus}, config_hash=None, db_path=tmp_path / "a.db", rule_state=None)
 
 
 def test_profile_and_borderline_are_persisted_in_both_tables_and_null_when_not_checked(tmp_path):
     db_path = tmp_path / "archive.db"
-    save_run_results("2026-09-30T10:00:00", _profiled_gate_results(), config_hash=None, db_path=db_path)
+    save_run_results("2026-09-30T10:00:00", _profiled_gate_results(), config_hash=None, db_path=db_path, rule_state=None)
     survivors = {row["ticker"]: row for row in _query_run(db_path, "2026-09-30T10:00:00")}
     eliminated = {row["ticker"]: row for row in _query_eliminated(db_path, "2026-09-30T10:00:00")}
 
@@ -711,8 +711,8 @@ def test_borderline_marker_does_not_change_survivor_status_flags_or_rank_in_the_
     plain = {t: r for t, r in _simulated_run_gate_results().items() if r.status in ("passed", "passed_with_flags")}
     marked = {t: dataclasses.replace(r, profile="non_financial", borderline_sector=True) for t, r in plain.items()}
     db_plain, db_marked = tmp_path / "plain.db", tmp_path / "marked.db"
-    save_run_results("2026-09-30T10:00:00", plain, config_hash=None, db_path=db_plain)
-    save_run_results("2026-09-30T10:00:00", marked, config_hash=None, db_path=db_marked)
+    save_run_results("2026-09-30T10:00:00", plain, config_hash=None, db_path=db_plain, rule_state=None)
+    save_run_results("2026-09-30T10:00:00", marked, config_hash=None, db_path=db_marked, rule_state=None)
 
     def core(db_path):
         return [
@@ -781,7 +781,7 @@ def test_init_db_adds_profile_columns_to_an_older_archive_without_touching_rows_
     assert _query_eliminated(db_path, "2026-09-01T09:00:00")[0]["borderline_sector"] is None
 
     # a new run on the migrated archive records its profile next to the old rows
-    save_run_results("2026-09-30T10:00:00", _profiled_gate_results(), config_hash=None, db_path=db_path)
+    save_run_results("2026-09-30T10:00:00", _profiled_gate_results(), config_hash=None, db_path=db_path, rule_state=None)
     assert {r["ticker"]: r["profile"] for r in _query_eliminated(db_path, "2026-09-30T10:00:00")}["ELIM_BANK"] == "banks"
 
 
@@ -817,7 +817,7 @@ def test_init_db_upgrades_an_existing_runs_table_and_stays_idempotent(tmp_path):
 
     # a new run on the upgraded archive persists its own config_hash next to the old, NULL row
     save_run_results(
-        "2026-09-23T18:00:00", _zero_eliminated_gate_results(), config_hash="def456", db_path=db_path
+        "2026-09-23T18:00:00", _zero_eliminated_gate_results(), config_hash="def456", db_path=db_path, rule_state=None
     )
     new_row = _query_runs_table(db_path, "2026-09-23T18:00:00")
     assert new_row["config_hash"] == "def456"
@@ -879,6 +879,8 @@ def test_init_db_creates_the_universe_prefilter_table_idempotently(tmp_path):
         "status",
         "reason",
         "config_hash",
+        "close_price_usd",  # added by docs/decisions.md "Regelstand und Kurs je Lauf" (Punkt 4)
+        "shares_outstanding",
     ]
 
 
@@ -896,13 +898,13 @@ def test_an_archive_from_before_the_table_gets_it_without_touching_old_data(tmp_
     init_db(db_path)
     assert "config_hash" in _table_columns(db_path, "universe_prefilter")
     assert _query_runs_table(db_path, "2026-09-01T09:00:00")["companies_evaluated"] == 3
-    save_universe_prefilter(_PF_TS, _pf_mixed_results(), config_hash="abc123", db_path=db_path)
+    save_universe_prefilter(_PF_TS, _pf_mixed_results(), config_hash="abc123", db_path=db_path, rule_state=None)
     assert len(_query_prefilter(db_path)) == 5
 
 
 def test_save_universe_prefilter_archives_passed_and_excluded_with_their_values(tmp_path):
     db_path = tmp_path / "archive.db"
-    save_universe_prefilter(_PF_TS, _pf_mixed_results(), config_hash="abc123", db_path=db_path)
+    save_universe_prefilter(_PF_TS, _pf_mixed_results(), config_hash="abc123", db_path=db_path, rule_state=None)
     rows = _query_prefilter(db_path)
     assert set(rows) == {1, 2, 3, 4, 5}
     assert rows[1]["status"] == "passed" and rows[1]["reason"] is None
@@ -920,14 +922,14 @@ def test_save_universe_prefilter_archives_passed_and_excluded_with_their_values(
 
 def test_save_universe_prefilter_never_overwrites_and_leaves_no_partial_run(tmp_path):
     db_path = tmp_path / "archive.db"
-    save_universe_prefilter(_PF_TS, _pf_mixed_results(), config_hash="abc123", db_path=db_path)
+    save_universe_prefilter(_PF_TS, _pf_mixed_results(), config_hash="abc123", db_path=db_path, rule_state=None)
     with pytest.raises(sqlite3.IntegrityError):
-        save_universe_prefilter(_PF_TS, [_pf_result(9, "NEW"), _pf_result(1, "AAA")], config_hash="other", db_path=db_path)
+        save_universe_prefilter(_PF_TS, [_pf_result(9, "NEW"), _pf_result(1, "AAA")], config_hash="other", db_path=db_path, rule_state=None)
     rows = _query_prefilter(db_path)
     assert set(rows) == {1, 2, 3, 4, 5}  # the new company 9 was rolled back with the failing insert
     assert {row["config_hash"] for row in rows.values()} == {"abc123"}
     # a later run under a new timestamp is fine, and both runs coexist
-    save_universe_prefilter("2026-09-25T14:30:00", [_pf_result(1, "AAA")], config_hash="def456", db_path=db_path)
+    save_universe_prefilter("2026-09-25T14:30:00", [_pf_result(1, "AAA")], config_hash="def456", db_path=db_path, rule_state=None)
     assert len(_query_prefilter(db_path, "2026-09-25T14:30:00")) == 1 and len(_query_prefilter(db_path)) == 5
 
 
@@ -946,19 +948,19 @@ def test_save_universe_prefilter_never_overwrites_and_leaves_no_partial_run(tmp_
 def test_save_universe_prefilter_refuses_inconsistent_input_and_writes_nothing(tmp_path, results, message):
     db_path = tmp_path / "archive.db"
     with pytest.raises(ValueError, match=message):
-        save_universe_prefilter(_PF_TS, results, config_hash="abc123", db_path=db_path)
+        save_universe_prefilter(_PF_TS, results, config_hash="abc123", db_path=db_path, rule_state=None)
     assert not db_path.exists()  # validation runs before the archive is even opened
 
 
 @pytest.mark.parametrize("bad_hash", [None, "", 123])
 def test_save_universe_prefilter_requires_a_real_config_hash(tmp_path, bad_hash):
     with pytest.raises(ValueError, match="config_hash"):
-        save_universe_prefilter(_PF_TS, [_pf_result(1)], config_hash=bad_hash, db_path=tmp_path / "a.db")
+        save_universe_prefilter(_PF_TS, [_pf_result(1)], config_hash=bad_hash, db_path=tmp_path / "a.db", rule_state=None)
 
 
 def test_save_universe_prefilter_requires_a_string_timestamp(tmp_path):
     with pytest.raises(TypeError):
-        save_universe_prefilter(datetime.datetime(2026, 9, 24), [_pf_result(1)], config_hash="h", db_path=tmp_path / "a.db")
+        save_universe_prefilter(datetime.datetime(2026, 9, 24), [_pf_result(1)], config_hash="h", db_path=tmp_path / "a.db", rule_state=None)
 
 
 def test_export_universe_survivors_lists_only_passed_tickers_sorted_one_per_line(tmp_path):
@@ -1003,7 +1005,7 @@ def test_a_delisted_marker_row_is_archived_with_no_values(tmp_path):
     marked = _pf_result(
         6, "OLD_old", status=_pf.EXCLUDED, reason=_pf.DELISTED_MARKER, cap=None, median=None, rows=None, price_date=None
     )
-    save_universe_prefilter(_PF_TS, [_pf_result(1, "AAA"), marked], config_hash="abc123", db_path=db_path)
+    save_universe_prefilter(_PF_TS, [_pf_result(1, "AAA"), marked], config_hash="abc123", db_path=db_path, rule_state=None)
     row = _query_prefilter(db_path)[6]
     assert (row["status"], row["reason"]) == ("excluded", "delisted_marker")
     assert row["market_cap_usd"] is None and row["median_dollar_volume_usd"] is None and row["price_date"] is None
