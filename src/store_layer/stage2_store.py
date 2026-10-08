@@ -14,6 +14,8 @@ import csv
 import sqlite3
 from pathlib import Path
 
+from store_layer.rule_state import write_rule_state
+
 STAGE2_CSV_FIELDNAMES = [
     "rank_position",
     "ticker",
@@ -139,10 +141,12 @@ def save_stage2_results(
     config_hash,
     peer_base_size,
     simfin_ids,
+    rule_state,
     db_path,
 ):
     """Persist one Stage-2 run in a single transaction: the stage2_runs row and one
-    stage2_results row per company in results (ticker -> Stage2Result).
+    stage2_results row per company in results (ticker -> Stage2Result). rule_state (store_layer.rule_state.RuleState;
+    required, None = none to report) is written as step 'stage2' in the same transaction.
 
     ranked is gates_layer.stage2_gates.rank_stage2()'s output; only those companies get a
     rank_position (1-based, in that order). simfin_ids maps every ticker in results to its
@@ -170,6 +174,8 @@ def save_stage2_results(
                 ),
             )
             connection.executemany("INSERT INTO stage2_results VALUES (" + ",".join("?" * 22) + ")", rows)
+            if rule_state is not None:
+                write_rule_state(connection, "stage2", run_timestamp, rule_state)
     finally:
         connection.close()
 

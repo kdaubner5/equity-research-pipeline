@@ -128,7 +128,7 @@ def test_pilot_distribution_matches_the_snapshot():
 def test_pilot_run_round_trips_through_the_store_with_data_quality_flags(tmp_path):
     gate_results = evaluate_all_pilots()
     db_path = tmp_path / "pilots.db"
-    save_run_results("2026-09-21T18:00:00", gate_results, config_hash=compute_config_hash(), db_path=db_path)
+    save_run_results("2026-09-21T18:00:00", gate_results, config_hash=compute_config_hash(), db_path=db_path, rule_state=None)
 
     connection = sqlite3.connect(db_path)
     try:

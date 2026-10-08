@@ -46,7 +46,7 @@ def setup_run(tmp_path, survivors, *, cached=()):
     profiles_path.write_text(PROFILES_YAML, encoding="utf-8")
     db_path = tmp_path / "archive.db"
     save_universe_prefilter(
-        RUN_TS, [prefilter_row(*row) for row in survivors], config_hash="deadbeef", db_path=db_path
+        RUN_TS, [prefilter_row(*row) for row in survivors], config_hash="deadbeef", db_path=db_path, rule_state=None
     )
     cache_dir = tmp_path / "cache" / "2026-09-24"
     for ticker in cached:
@@ -202,7 +202,7 @@ def test_sector_codes_can_be_read_from_a_path_containing_hash_and_percent(tmp_pa
     odd_dir.mkdir()
     db_path = odd_dir / "archive.db"
     save_universe_prefilter(
-        RUN_TS, [prefilter_row(1, "AAA", STANDARD), prefilter_row(2, "BBB", BANK)], config_hash="deadbeef", db_path=db_path
+        RUN_TS, [prefilter_row(1, "AAA", STANDARD), prefilter_row(2, "BBB", BANK)], config_hash="deadbeef", db_path=db_path, rule_state=None
     )
     assert rsf.load_survivor_sector_codes(db_path, RUN_TS) == {1: STANDARD, 2: BANK}
 

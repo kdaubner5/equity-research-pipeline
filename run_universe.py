@@ -68,6 +68,7 @@ from store_layer.db import (  # noqa: E402
     export_universe_survivors,
     save_universe_prefilter,
 )
+from store_layer.rule_state import RuleStateError, capture_rule_state, require_same_bytes  # noqa: E402
 
 DEFAULT_CACHE_DIR = _REPO_ROOT / "data" / "cache" / "universe"
 
@@ -217,6 +218,13 @@ def run(
             thresholds, config_hash = resolve_thresholds(thresholds_path)
         except Stage1RunError as exc:
             raise UniverseRunError(str(exc)) from exc
+        # Rule state once, at the start of the run (docs/decisions.md "Regelstand und Kurs je Lauf", Punkt 6): a rule
+        # file that is missing or unreadable stops the run before anything is fetched or written.
+        try:
+            rule_state = capture_rule_state(rule_paths={"config/thresholds.yaml": thresholds_path})
+            require_same_bytes(rule_state, "config/thresholds.yaml", config_hash)
+        except RuleStateError as exc:
+            raise UniverseRunError(str(exc)) from exc
         as_of = as_of or date.today()
         run_cache_dir = Path(cache_dir) / as_of.isoformat()
         stats = su.LoaderStats()
@@ -289,7 +297,7 @@ def run(
         try:
             if complete:
                 survivors_path = export_universe_survivors(run_timestamp, results, output_dir=survivors_dir)
-            save_universe_prefilter(run_timestamp, results, config_hash=config_hash, db_path=db_path)
+            save_universe_prefilter(run_timestamp, results, config_hash=config_hash, rule_state=rule_state, db_path=db_path)
         except Exception as exc:
             if survivors_path is not None:
                 survivors_path.unlink(missing_ok=True)
