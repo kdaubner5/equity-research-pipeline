@@ -1821,8 +1821,8 @@ Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein 
 **In einfachen Worten**
 - Heute prüft und übernimmt Konstantin jeden Änderungsvorschlag (PR) selbst. „Übernehmen" heißt Merge: Die Änderung kommt in die Hauptversion `master`.
 - Vorschlag: Der Agent übernimmt bestimmte, ungefährliche Änderungen selbst, wenn automatische Prüfungen und der Kritiker bestanden sind. Alles, was Regeln, Schwellen, Daten oder die Autonomie selbst ändert, bleibt bei Konstantin.
-- **Schlimmster Fall:** Eine falsch eingestufte oder zu locker geprüfte Änderung landet in `master`. Zum Beispiel verschiebt eine Schwelle still, welche Firmen bestehen, oder eine Regel macht den Agenten freier. Dann ändert sich die Kandidatenliste, ohne dass es jemand merkt, und die Erfolgsbilanz vergleicht Unvergleichbares. Zurückholen lässt sich der Code, nicht ein Archiv, das schon mit ihm geschrieben wurde.
-- **Wirkung:** Gering, solange nur Dokumentation und Code mit identischem Ergebnis delegiert werden (siehe Wirkungsabschätzung). Spürbar wird sie erst mit Stufe M3.
+- **Schlimmster Fall:** Eine falsch eingestufte oder zu locker geprüfte Änderung landet in `master`. Zum Beispiel verschiebt eine Schwelle still, welche Firmen bestehen, oder eine Regel macht den Agenten freier. Dann ändert sich die Kandidatenliste, ohne dass es jemand merkt, und die Erfolgsbilanz vergleicht Unvergleichbares. Zurückholen lässt sich der Code, nicht ein Archiv, das schon mit ihm geschrieben wurde. Ein zweiter schlimmer Fall: Ein ohne Mensch gemergter Test oder Code wird bei Konstantin lokal ausgeführt, mit `data/`, echter Datenbank und SimFin-Schlüssel, und in jeder späteren Agent-Sitzung; die CI schützt dagegen nicht. Deshalb delegiert Stufe M1 nach Beschluss von Konstantin (08.10.2026) **keine** Tests und keinen Code.
+- **Wirkung:** Gering. M1 delegiert nur Dokumentation außerhalb der Kernpfade. Heute gibt es unter `docs/` keine solche bestehende Datei (siehe Punkt 2); **der Wert von M1 ist deshalb gering, M1 testet vor allem die Maschinerie** (Konto, Regeln, CI, Guard-Ausnahme, Negativtests). Spürbar entlasten würde erst eine spätere Stufe, die Code delegiert (M2, M3), und genau dort liegt das Risiko lokal ausgeführten Codes.
 - Begriffe: **Head-SHA** = Kennnummer des geprüften Standes eines PR. **Squash** = alle Änderungen eines PR werden ein einziger Eintrag in `master`. **Code-Owner** = Person, deren Freigabe GitHub für bestimmte Dateien verlangt. **Kernpfade** = Dateien, die die Regeln selbst festlegen oder durchsetzen. **Golden Master** = gespeicherte Referenzergebnisse, mit denen ein Lauf verglichen wird.
 
 **Abhängigkeit.** Die Roadmap-Punkte, auf die dieser Text verweist (B.1, B.3, B.6, B.10 bis B.15), stehen in `docs/roadmap.md` auf dem Branch `agent/plan-v2` (PR #74); auf `master` gibt es die Roadmap erst mit dem Merge dieses PR. Bis dahin laufen die Verweise ins Leere; der Merge von PR #74 ist Voraussetzung, damit dieser Text eindeutig lesbar ist.
@@ -1837,7 +1837,7 @@ Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein 
 
 **Entscheidung (Entwurf):**
 
-1. **Stufen und geänderte Regelstellen.** Jede Stufe wird durch einen eigenen Klasse-C-PR aktiviert, den Konstantin mergt. Vor der Aktivierung einer Stufe gilt für sie unverändert: Claude Code mergt nie.
+1. **Stufen und geänderte Regelstellen.** Jede Stufe wird durch einen eigenen Klasse-C-PR aktiviert, den Konstantin mergt. Vor der Aktivierung einer Stufe gilt für sie unverändert: Claude Code mergt nie selbständig.
 
    | Stufe | Delegiert | Zusätzlich nötig |
    |---|---|---|
@@ -1847,25 +1847,30 @@ Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein 
    | M3 | Umsetzung einer bereits gemergten Entscheidung, auch Klasse C (Punkt 8) | eigene Freigabe durch Konstantin |
    | in keiner Stufe | Kernpfade (Punkt 3), Entscheidungstexte, Regeln, Rechte | – |
 
-   Der Aktivierungs-PR ändert ausdrücklich diese Stellen (alle Klasse C):
+   Der Aktivierungs-PR ändert mindestens diese Stellen (alle Klasse C); er listet jede betroffene Stelle einzeln auf und prüft die Liste gegen den dann geltenden Wortlaut:
 
    | Datei | Stelle | heute | neu |
    |---|---|---|---|
-   | `docs/decisions.md` | „Autonomer Betrieb", Nr. 2 (freigegebener Text) | „Der Agent … mergt nie" | nur noch für die nicht delegierten Klassen |
-   | `CLAUDE.md` | Abschnitt „Arbeitsweise", Merges und Pushes; „Arbeitsmodus", Stopp bei „Merge" | Claude Code mergt nie | Verweis auf die Stufe und die Kernpfade |
+   | `docs/decisions.md` | „Autonomer Betrieb", Nr. 2 (freigegebener Text) | „Der Agent … mergt nie"; „höchstens einen PR" je Schicht | nur noch für die nicht delegierten Klassen; die Grenze je Schicht muss zu den Parametern aus Punkt 10 passen |
+   | `CLAUDE.md` | Abschnitt „Arbeitsweise", Merges und Pushes (Voraussetzungen und Freigabeformat „ausschließlich" in `docs/arbeitsweise.md`, Abschnitt C); „Arbeitsmodus", Stopp bei „Merge" | Claude Code mergt nie selbständig | Verweis auf die Stufe und die Kernpfade; die Tore dieses Entwurfs stehen dann ebenfalls in einem Regeltext, nicht nur hier |
+   | `docs/arbeitsweise.md` | A: „Merge-Bedingung (nicht überlesen)" (Voraussetzungen stehen „ausschließlich" in Abschnitt C); Definition „Runde" (heute je Commit) | je Commit | je Aufgabe (Issue), wie in Punkt 5 c |
    | `docs/arbeitsweise.md` | C: „Merge-Regel für Claude Code", „Ausdrückliche Freigabe", „Harte Grenzen" (Merge-Wege) | Freigabe je PR durch Konstantin | für delegierte Klassen ersetzt durch den gemergten Aktivierungs-PR |
-   | `docs/arbeitsweise.md` | G: „Branch-Schutz nicht verfügbar", „kein CI" | offen | je nach V2 und V3 |
+   | `docs/arbeitsweise.md` | C: „Merge-Voraussetzungen (a)" (Klasse A: Tests grün genügen) | Tests grün | zusätzlich Kritiker-Bericht und die Tore aus Punkt 5 (strenger als heute) |
+   | `docs/arbeitsweise.md` | C: Klasse A „Befund- und Messdokumentation in `decisions.md`" | Klasse A | Kernpfad, nicht delegierbar (Punkt 3 und 4) |
    | `docs/arbeitsweise.md` | D: „Merges der Klasse C" | bei Konstantin | nur bei M3 geändert |
-   | `.claude/settings.json`, `config/bash_guard.yaml` | Deny `gh pr merge` | gesperrt | genau eine Form erlaubt (Punkt 9, V4) |
+   | `docs/arbeitsweise.md` | E: „Berührung von Klasse C ohne Freigabe" | Stopp | bei M3 für die im Block genannten Dateien anders (Punkt 8) |
+   | `docs/arbeitsweise.md` | G: „Branch-Schutz nicht verfügbar", „kein CI" | offen | je nach V2 und V3 |
+   | `.claude/settings.json`, `src/hooks/`, `config/bash_guard.yaml` | Deny `gh pr merge` | gesperrt | das Deny selbst wird geändert (keine zusätzliche Allow-Zeile, denn Deny schlägt Allow); die Einschränkung auf genau eine Form setzt der Hook um (Punkt 9, V4) |
 
    Die ausdrückliche Freigabe je PR (`merge #<PR> <Kurz-SHA>`) gilt für alles Nicht-Delegierte unverändert.
 
-2. **Positivliste für M1.** Delegierbar sind nur (a) **neue** Dateien `tests/test_*.py` (Status „hinzugefügt", kein Symlink; Änderungen an bestehenden Tests sind mindestens Klasse B) und (b) Dateien unter `docs/`, die nicht Kernpfad sind. Alles andere ist nicht delegierbar, auch wenn es Klasse A wäre. Neue Tests führen Code aus, auch in der CI; deshalb laufen CI-Workflows nur mit Leserecht und ohne Geheimnisse (Punkt 5).
+2. **Positivliste für M1 (Beschluss von Konstantin, 08.10.2026: M1 delegiert keine neuen Tests, nur Dokumentation außerhalb der Kernpfade).** Delegierbar sind nur **benannte** Dokumentdateien oder -ordner, nicht „alles unter `docs/`". Geprüft im Repo (`git ls-files docs` auf `master`): Dort liegen nur `docs/arbeitsweise.md`, `docs/bash-guard.md`, `docs/decisions.md` und `docs/masterplan.md`, dazu mit PR #74 `docs/roadmap.md`. **Alle sind Kernpfade (Punkt 3); heute gibt es keine bestehende Datei, die M1 delegieren könnte.** Eine Wurzel-README gibt es nicht. Vorschlag (muss der Aktivierungs-PR neu anlegen und Konstantin freigeben): ein neuer Ordner `docs/berichte/` mit Textdateien `*.md` als Platz für Berichte und Messprotokolle ohne Regelwirkung. Für diese Positivliste gilt: nur Endung `.md`, nur Dateimodus 100644 (kein Symlink, nichts Ausführbares), nur Status „hinzugefügt" (Änderungen und Löschungen bestehender Dateien bleiben bei Konstantin). Eine Datei `CODEOWNERS` (Wurzel, `docs/`, `.github/`) ist Kernpfad. Alles andere ist nicht delegierbar, auch wenn es Klasse A wäre, insbesondere alle Tests, Skripte, Konfigurationen und Code. Neue Texte in `docs/berichte/` können Anweisungen an spätere Agent-Sitzungen enthalten; das ist ein Restrisiko (V5). Delegierte Tests oder Code gäbe es erst in M2 und M3 und würden dort lokal bei Konstantin ausgeführt (Restrisiken).
 
 3. **Kernpfade: in keiner Stufe delegiert, unabhängig vom Inhalt.**
    - Regeltexte: `CLAUDE.md`, `docs/arbeitsweise.md`, `docs/decisions.md`, `docs/masterplan.md`, `docs/roadmap.md`, `docs/bash-guard.md`.
    - Erzwingung: `.claude/`, `.github/`, `src/hooks/` samt den Tests des Hooks (`tests/test_bash_guard.py` und weitere zum Hook), `config/bash_guard.yaml`, `config/merge_delegation.yaml`.
    - Steuerung der Tests und des Aufbaus: `pyproject.toml`, `requirements.txt`, `pytest.ini`, `setup.cfg`, `tox.ini`, jede `conftest.py`, `.gitattributes`.
+   - Dateien mit Wirkung auf Git und Prüfung: `CODEOWNERS` an allen drei Orten (Wurzel, `docs/`, `.github/`), `.gitignore`, `.gitmodules`.
    - Die Delegation selbst: das Klassifizierungsskript, seine Tests und seine Pfadlisten; ab M2 die Golden-Master-Referenz und der Vergleicher; ab M3 der Leser der maschinenlesbaren Entscheidungsdaten (Punkt 8).
 
    Schon heute „immer Klasse C" (Abschnitt C) sind `CLAUDE.md`, `docs/arbeitsweise.md`, `.claude/`, `.github/`, freigegebene Texte in `docs/decisions.md` und Einträge dort, die Rechte erteilen oder Regeln ändern. **Neu** ist: die ganze Datei `docs/decisions.md` ist Kernpfad, auch Befund- und Messdokumentation (die ist bisher Klasse A); dazu `docs/masterplan.md`, `docs/roadmap.md`, `docs/bash-guard.md`, `src/hooks/`, `config/bash_guard.yaml`, die Steuerdateien und die Delegationsdateien. Begründung: Sie beschreiben oder erzwingen die Regeln; Masterplan und Roadmap enthalten Zweck, Schwellen und Reihenfolge. Die Aktualisierung der Roadmap-Spalte „Stand" wäre für sich delegierbar, lässt sich mechanisch aber nicht von inhaltlichen Änderungen trennen und bleibt bei Konstantin.
@@ -1874,6 +1879,7 @@ Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein 
    - Eingabe ist `git diff --raw -z --no-renames` gegen die Basis (liefert Status, Pfade und Dateimodi): Ohne Umbenennungserkennung erscheint eine Umbenennung als Löschung plus Neuanlage, **beide** Pfade zählen; Löschungen zählen wie Änderungen, Symlinks, Moduswechsel und Submodule sind nicht delegierbar. Pfade werden ohne Beachtung der Groß-/Kleinschreibung verglichen (Konstantins PC ist Windows).
    - Das Skript und seine Pfadlisten werden aus dem Basisstand (`master`) geladen, nicht aus dem PR. Ein PR, der sie ändert, ist Kernpfad und damit nicht delegierbar.
    - Die Pfadlisten stehen in `config/merge_delegation.yaml` und werden gegen die Code-Owner-Datei geprüft (Test).
+   - Ein PR mit einem Kernpfad bekommt vom Skript die Einstufung „nicht delegierbar", unabhängig von der Klasse nach Abschnitt C (Befunddokumentation in `decisions.md` wäre dort Klasse A). Tor b schlägt dann fehl, und Konstantin mergt wie heute.
    - Gemischte PRs: höchste Klasse. Unbekannte Pfade: nicht delegierbar. Das Aufteilen eines Vorhabens, um eine delegierbare Klasse zu erreichen, bleibt verboten (Abschnitt C, „Gemischte PRs").
    - Hochstufen kann nur Konstantin, über die angeforderte Review und die Code-Owner-Pflicht, nicht über ein Label (ein Konto mit Schreibrecht kann Labels entfernen).
    - Der Agent setzt keine Klasse selbst.
@@ -1881,7 +1887,7 @@ Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein 
 5. **Merge-Tore, ehrlich getrennt.**
 
    *Von GitHub erzwungen* (nur wenn V3 technisch belegt ist):
-   - a) CI grün auf dem Head-SHA (pytest, Klassenprüfung); die Prüfungen sind an die Actions-App gebunden, der Workflow-Code kommt aus `master`, Rechte `contents: read`, keine Geheimnisse.
+   - a) CI grün auf dem Head-SHA (pytest, Klassenprüfung); die Prüfungen sind an die Actions-App gebunden, der Workflow-Code kommt aus `master`, Rechte `contents: read`, keine Geheimnisse. Die Klassenprüfung läuft in einem eigenen Job, der keinen Code aus dem PR ausführt (sonst könnte dieser Code ihr Ergebnis verändern); das ist vor allem für M2 und M3 wichtig, in M1 gibt es keine delegierten Tests.
    - b) Klasse laut Skript passt zur Stufe (A bei M1, A oder B bei M2).
    - d) Golden Master identisch (nur Klasse B).
    - e) Der Branch ist auf dem aktuellen Stand von `master` (zwei einzeln grüne PRs können zusammen brechen); Squash ist der einzige zugelassene Merge-Weg; Kernpfade brauchen die Freigabe von Konstantin als Code-Owner. Der Befehl bindet den Merge zusätzlich an den geprüften Stand (`gh pr merge <Nummer> --squash --match-head-commit <voller SHA>`); das schützt vor einem Push zwischen Prüfung und Merge, es erzwingt aber nichts, denn der Aufrufer setzt die Option selbst.
@@ -1907,7 +1913,7 @@ Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein 
    - **V1: Guard lauffähig in jeder Sitzungsumgebung** (Cloud-Sitzung und VPS; Roadmap B.11). Der Hook ruft `~/venvs/equity/bin/python` auf. Fehlt dieses Venv, ist jeder Bash-Aufruf gesperrt, weil der Hook geschlossen ausfällt (beobachtet am 08.10.2026 in einer Cloud-Sitzung: kein Git, kein pytest; auch ein Kritiker ohne Bash kann keine Tests ausführen).
    - **V2: CI auf GitHub** (Roadmap B.12) mit pytest und Klassenprüfung als erforderliche Prüfung, Leserecht, ohne Geheimnisse. Heute gibt es keine CI (Abschnitt G, kein `.github/`).
    - **V3: Getrennte Identität und Schutz von `master`** (Roadmap B.6). Ein zweites GitHub-Konto für den Agenten mit eng begrenzten Rechten (nicht für Status, Workflows, Einstellungen) **und** durchgesetzte Regeln auf `master`: PR-Pflicht, erforderliche Prüfungen, Kernpfade nur mit Freigabe von Konstantin als Code-Owner, kein Direkt-Push für das Agent-Konto. Dazu eine **Token-Inventur**: Das bisherige Token von Konstantin liegt in keiner Agent-Umgebung (`~/.config/gh`, Git-Zugangsdaten); es ist ungeprüft, über welche Anbindung die Cloud-Sitzungen heute auf GitHub schreiben. Bei einem öffentlichen Repo muss das Tor den Autor der Kommentare prüfen. Laut Abschnitt G ist Branch-Schutz heute nicht verfügbar. Ob der Tarif Regelwerke und die Code-Owner-Pflicht für dieses Repo zulässt, ist ungeprüft; Optionen und Kosten (bezahlter Tarif, öffentliches Repo, anderer Weg) klärt B.6, das berührt die 0-€-Regel, und es entscheidet Konstantin. **Ist V3 nicht technisch belegt, wird M1 nicht aktiviert.**
-   - **V4: Merge-Weg im Guard eng geöffnet, Lücke 4 geschlossen** (Roadmap B.3). `gh pr merge` ist in `.claude/settings.json` (Deny) und in `config/bash_guard.yaml` gesperrt. Die Ausnahme erlaubt genau eine Form: numerische PR-Nummer, `--squash`, `--match-head-commit` mit vollem 40-stelligem SHA, ohne `--admin`, `--auto` und `-R`; jede andere Form bleibt gesperrt. Lücke 4 aus `docs/bash-guard.md` (Edit/Write-Werkzeug auf den Hook selbst) ist vorher gemergt. Die Option-Namen und ob `gh` einen Kurz-SHA akzeptiert, ist nicht geprüft; das geschieht vor der Aktivierung gegen die Hilfe von `gh pr merge`.
+   - **V4: Merge-Weg im Guard eng geöffnet, Lücke 4 geschlossen** (Roadmap B.3). `gh pr merge` ist in `.claude/settings.json` (Deny, Zeile 57 laut Prüfung vom 08.10.2026) und im Hook gesperrt (`config/bash_guard.yaml`, Zeilen 83, 163, 180). **Eine Ausnahme verlangt, das Deny selbst zu ändern, nicht eine zusätzliche Allow-Zeile: Deny schlägt Allow** („Autonomer Betrieb": Deny vor Ask vor Allow). Das Deny `Bash(gh pr merge:*)` muss entfallen oder enger werden, und die Einschränkung setzt dann der Hook um (`src/hooks/`, nicht nur `config/bash_guard.yaml`). Erlaubt wird genau eine Form: numerische PR-Nummer, `--squash`, `--match-head-commit` mit vollem 40-stelligem SHA; jede andere Option (auch `--admin`, `--auto`, `-R`, `-b`, `-d`, `-t`, `-A`) und jede andere Form bleibt gesperrt. Der Hook ist laut `docs/bash-guard.md` keine Sicherheitsgrenze; die wirksame Grenze liefert V3. Lücke 4 aus `docs/bash-guard.md` (Edit/Write-Werkzeug auf den Hook selbst) ist vorher gemergt. Die Option-Namen und ob `gh` einen Kurz-SHA akzeptiert, ist nicht geprüft; das geschieht vor der Aktivierung gegen die Hilfe von `gh pr merge`.
    - **V5: Entscheidung zu fremden Texten** (Prompt-Injection, Roadmap B.10) gemergt. Der Agent liest SEC-Einreichungen und Webseiten und würde mit der Delegation auch mergen können.
    - **V6: Negativtests der Tore mit dem Agent-Konto, in einem Testrepository mit denselben Regeln** (nicht gegen das echte `master`, denn `gh pr merge` hat keinen Probelauf). (1) Ein PR mit Änderung an einem Kernpfad wird nicht gemergt. (2) Ein PR mit rotem Test wird nicht gemergt. (3) Ein PR ohne Kritiker-Bericht zum Head-SHA wird nicht gemergt. (4) Ein Merge mit veraltetem SHA und ein Merge mit nicht aktuellem Branch scheitern. (5) Ein Direkt-Push auf `master` scheitert. (6) Das Agent-Konto kann einen eigenen PR nicht als Code-Owner freigeben und kein Label oder keine Review-Anforderung entfernen. (7) Ein gemischter PR wird als die höhere Klasse eingestuft. (8) Umbenennung eines Kernpfades in einen anderen Ordner, Löschung eines Tests, Symlink, abweichende Groß-/Kleinschreibung: alle nicht delegierbar. (9) Ein PR, der das Klassifizierungsskript ändert, wird nicht mit dem geänderten Skript eingestuft.
 
@@ -1927,7 +1933,9 @@ Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein 
 - Ob der Golden Master und die Quartalsläufe ohne `data/` in der CI laufen, ist offen (Roadmap B.1; die alten Referenzen liegen außerhalb des Repos). M2 hängt daran.
 - Ob der GitHub-Tarif Regelwerke und Code-Owner-Pflicht für dieses Repo erlaubt, ist ungeprüft (V3).
 - Der Golden Master deckt nur ab, was er misst. Klasse B ist nur so sicher wie er.
-- **Neue Tests in M1 laufen auch außerhalb der CI.** Ein ohne Mensch gemergter `tests/test_*.py` wird bei jedem lokalen `pytest` ausgeführt, auch auf Konstantins PC mit `data/`, echter Datenbank und SimFin-Schlüssel, und in jeder späteren Agent-Sitzung. Punkt 2 schützt nur die CI. Möglich wären: Tests aus M1 herausnehmen (nur `docs/` delegieren) oder delegierte Tests nur in der CI laufen lassen. Das ist offen und eine Entscheidung für Konstantin (Frage 6).
+- **Tests und Code laufen auch außerhalb der CI.** Ein ohne Mensch gemergter Test wird bei jedem lokalen `pytest` ausgeführt, auch auf Konstantins PC mit `data/`, echter Datenbank und SimFin-Schlüssel, und in jeder späteren Agent-Sitzung; die CI schützt nur sich selbst. **Beschluss von Konstantin (08.10.2026): M1 delegiert keine Tests.** Das Risiko bleibt für M2 und M3 bestehen (geänderte Tests und Code); dort müssten delegierte Tests und Code vor der Aktivierung zusätzlich geschützt werden (z. B. nur in der CI laufen lassen), und das ist bei der Entscheidung zu M2 und M3 zu klären.
+- **Der Wert von M1 ist gering.** Nach dem Beschluss gibt es heute keine delegierbare bestehende Datei (Punkt 2); M1 prüft vor allem die Maschinerie (Konto, Regeln, CI, Guard-Ausnahme, Negativtests), nicht die Entlastung von Konstantin.
+- Neue Dokumente in einem delegierten Ordner können Anweisungen für spätere Agent-Sitzungen enthalten (V5).
 
 **Alternativen:**
 - **Sammelfreigabe (sofort nutzbar, keine neue Berechtigung):** Konstantin nennt mehrere Paare in einer Nachricht (`merge #73 abc1234`, `merge #74 def5678`, jeweils ein Paar je Zeile), der Agent legt jedem PR eine Zusammenfassung in einfacher Sprache bei. Das klärt nur Abschnitt C, „Ausdrückliche Freigabe" (je Paar, nicht je Nachricht). Es spart Zeit je Merge, nicht die Entscheidung.
@@ -1937,9 +1945,13 @@ Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein 
 - Volle Delegation einschließlich der Kernpfade: verworfen. Der Agent könnte seine eigenen Regeln, Schwellen und Daten ändern und sich freigeben (Abschnitt C, Begründung).
 
 **Offene Fragen für Konstantin** (getrennt zu beantworten):
-1. Soll dieser Text (Prinzip, Kernpfade, Stufen M1 und M2, Voraussetzungen) gelten? Ja oder nein.
-2. Soll Stufe M3 schon jetzt mit entschieden werden oder erst nach Erfahrung mit M1 und M2? Ohne M3 bleibt die Entlastung klein (siehe Wirkungsabschätzung).
-3. Welcher Weg für V3 (zweites Konto, Tarif, öffentliches Repo)?
-4. Soll die Sammelfreigabe schon vor allem anderen gelten?
-5. Start- und Zielwert für das Erfolgsmaß (Punkt 11).
-6. Sollen neue Tests in M1 delegierbar sein, obwohl sie lokal bei Konstantin laufen (siehe Restrisiken), oder gilt in M1 nur `docs/`?
+*Entschieden am 08.10.2026 von Konstantin (gilt als Beschluss erst mit dem Merge dieses Texts):* Stufe M1 delegiert keine neuen Tests, nur Dokumentation außerhalb der Kernpfade.
+
+Die Fragen sind unabhängig voneinander; ein „Ja“ bei einer Frage entscheidet keine andere.
+1. **Grundsatz:** Sollen Prinzip, Kernpfade, Tore (Punkt 5) und Voraussetzungen V1–V6 als Regelwerk gelten, ohne dass damit eine Stufe aktiviert wird? Ja oder nein.
+2. **Stufe M1:** Soll M1 (nur Dokumentation außerhalb der Kernpfade, heute keine bestehende Datei, Wert gering) überhaupt aktiviert werden, oder erst mit M2? Aktiviert wird sie in jedem Fall erst durch einen eigenen PR (B.14) nach V1–V6.
+3. **Stufe M2** (Klasse B, auch Code mit identischem Ergebnis): jetzt mit entscheiden oder erst nach Erfahrung mit M1? Hier liegt das Risiko lokal ausgeführter Tests und Codes (Restrisiken).
+4. **Stufe M3** (Umsetzung gemergter Entscheidungen): jetzt mit entscheiden oder später? Ohne M2 und M3 bleibt die Entlastung klein (siehe Wirkungsabschätzung).
+5. **Weg für V3:** zweites Konto, Tarif, öffentliches Repo?
+6. **Sammelfreigabe:** Soll sie schon vor allem anderen gelten?
+7. **Erfolgsmaß:** Start- und Zielwert (Punkt 11).
