@@ -2134,3 +2134,46 @@ Konstantin hat die **Empfehlung (Option B)** angenommen: „Ja, deine Empfehlung
 **Alternativen zur ganzen Messlatte:** (a) gar keine feste Messlatte, nur Bericht: verworfen, weil jedes Ergebnis dann nachträglich zurechtgelegt werden kann. (b) Messlatte erst nach dem ersten Zwischenbericht festlegen: verworfen; Roadmap 0.3 und Masterplan Abschnitt 8 verlangen sie vor dem ersten archivierten Lauf.
 
 **How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag. Danach: Roadmap A.1 (Kurs am Lauftag), A.3 (erster archivierter Lauf) und ein späterer Messbericht (Spur P) nach den hier festgelegten Regeln.
+
+## 2026-10-08: Messlatte – Nachtrag: Maßstab für die Depotsicht (F3) und Kandidaten für F1 (Agent-Entscheidung, Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin. Branch `agent/messlatte-nachtrag` (von `master`), nur Dokumentation. Ergänzt den gemergten Eintrag „Messlatte für das Forward-Log" (Abschnitt 10, Entscheidung von Konstantin); ändert dessen Entscheidungen nicht, es legt nur einen offenen Punkt fest. Keine Daten abgerufen, keine Instrumente geprüft.
+
+**In einfachen Worten:** Für die Frage „Lohnt es sich für ein Euro-Depot?" (F3) vergleichen wir die Käufe mit einem **MSCI World in Euro**, weil ein MSCI World als Vergleich gewollt ist (Deutung des Agenten, nicht belegt). Für die Frage „Trägt die Auswahl?" (F1) bleiben es US-Maßstäbe in Dollar, damit der Wechselkurs und die Länderverteilung das Ergebnis nicht verfälschen. Das Abbruchkriterium hängt weiter an F1 und den Prozesskennzahlen, nicht an F3.
+
+**Entscheidung von Konstantin (08.10.2026):** „Als Vergleich einen MSCI World" und, nach dem Vorschlag mit der Aufteilung, „Ja passt so". Als Beschluss gilt damit, mit dem Merge dieses Texts:
+1. **F3 (Depotsicht):** Maßstab ist ein **MSCI World, gerechnet in Euro**. Das ist die Opportunität des Depots, nicht der Maßstab der Auswahl.
+2. **F1 (Auswahl) und das Abbruchkriterium:** unverändert **US-Maßstäbe in Dollar** (ein breiter US-Index und ein US-Maßstab für Qualität/Value, Option B). MSCI World ist dort **nicht** Maßstab, weil er neben den USA auch andere Länder und Währungen enthält: Der Wechselkurs kürzt sich dann nicht heraus (Eintrag „Messlatte", Punkt 2), und ein Rückstand könnte an der Länderverteilung liegen statt an der Auswahl.
+3. **F2 (Urteil):** unverändert Option C als Zusatz, wenn Stufe 3 läuft.
+
+**Folgen für den gemergten Text (zur Klarheit, keine neue Regel):**
+- Die Euro-Sicht F3 stellt die **Euro-Rendite der Käufe** (Dollar-Kurs über den Wechselkurs in Euro) neben die **Euro-Rendite des MSCI World**. Die Wechselkursquelle brauchen die Euro-Sicht und die Zeile „Währungseffekt“ des gemergten Eintrags (nicht F1-Rendite in Dollar). Ist der MSCI World als Dollar-Reihe geführt, braucht er sie ebenfalls. **Offene Frage an Konstantin (kein Beschluss):** Darf die Wechselkursquelle bis zum ersten Kauf warten? Der gemergte Eintrag (Punkt 10) verlangt sie wie die anderen offenen Punkte vor A.3; dieser Nachtrag ändert das nicht. Konstantins Bemerkung, Wechselkurse seien vorerst nicht so wichtig, ist der Anlass der Frage, keine Antwort darauf.
+- **Grenze von F3:** Der Abstand zum MSCI World sagt nur, ob sich die Käufe gegenüber dieser Alternative gelohnt haben, nicht, ob die Auswahl gut war. Die Käufe sind reine US-Aktien; ein Abstand kann an der Länderverteilung oder am Dollar liegen. Das Urteil über die Auswahl kommt aus F1.
+- F3 geht **nicht** in das Abbruchkriterium ein (unverändert, Eintrag „Messlatte", Punkt 1 und 6).
+- Für F3 gelten dieselben Regeln wie für die übrigen Sichten (Eintrag „Messlatte“): Start des Vergleichs ist der tatsächliche Kauftag, nicht der Signaltag (Signaltag nur bei F1); gerechnet wird die Gesamtrendite, bei den Käufen mit Dividenden, beim MSCI World als thesaurierende Reihe oder mit wiedereingerechneten Ausschüttungen. So steht es im gemergten Eintrag, Punkt 5 (Nr. 1 und 3); offen bleibt dort, ob SimFin Free bereinigte Kurse liefert.
+- Die Platzhalter X, Y, Z ändern sich nicht.
+
+**Kandidaten für die beiden US-Maßstäbe in F1 (nur Kategorien; ungeprüft: Verfügbarkeit als ETF, Kosten, Länge des Kursverlaufs, Steuerbehandlung; die Wahl trifft Konstantin):**
+
+| Rolle | Kandidat (Index) | Vorteil | Nachteil |
+|---|---|---|---|
+| Breiter US-Index | S&P 500 | sehr verbreitet, einfach zu erklären | nur Großkonzerne, passt nicht zur Größenklasse des Systems |
+| Breiter US-Index | breiter US-Gesamtmarkt (z. B. mit Mid und Small Caps) | enthält auch kleinere Firmen, näher am Universum | weniger verbreitet; die Auswahl des konkreten Index/ETF muss geklärt werden |
+| Qualität/Value | US-Qualitätsindex (Qualitätsfaktor) | misst den Stil der Qualitätsbedingungen | meist große Firmen, passt nicht zur Größenklasse; Value fehlt |
+| Qualität/Value | US-Mid-/Small-Cap-Value-Index | passt zu Größenklasse und Value-Teil | Qualität fehlt; Small Caps schwanken stark |
+
+Die Größenklasse des Systems ist heute begrenzt (Marktkapitalisierung 300 Mio. bis 10 Mrd. $); entfällt die Obergrenze (Roadmap C.8), ist der Qualität/Value-Maßstab neu zu entscheiden.
+
+**Noch offen (nicht entschieden):**
+1. Das **konkrete Instrument** für den breiten US-Index und für Qualität/Value (je ein Index oder ein ETF; ausschüttend oder thesaurierend; in Euro oder Dollar gehandelt).
+2. Das **konkrete Instrument für MSCI World** (Index oder ein bestimmter ETF) und ob er in der Auswertung als Euro-Reihe oder als Dollar-Reihe mit Wechselkurs geführt wird.
+3. Die **Größe N** des Kontrollkorbs (Option C) und die **Wechselkursquelle**.
+Alle drei Punkte müssen wie im gemergten Eintrag (Punkt 10) vor dem ersten archivierten Lauf (Roadmap A.3) feststehen, solange Konstantin die Frage zur Wechselkursquelle (oben) nicht anders beantwortet.
+
+**Begriffe:** Ein ETF ist ein börsengehandelter Fonds, der einen Index nachbildet. Thesaurierend heißt: Ausschüttungen werden im Fonds wieder angelegt; ausschüttend heißt: sie werden ausgezahlt. Für einen fairen Vergleich zählt die Gesamtrendite (Kurs plus Ausschüttungen).
+
+**Ungeprüft:** Die Zusammensetzung des MSCI World (Länder, Währungen, Gewichte) wurde nicht nachgesehen; die Aussage, dass er neben den USA andere Länder und Währungen enthält, ist allgemein bekannt, nicht aus dem Repo belegt. Kosten, Steuern (z. B. thesaurierend gegen ausschüttend) und die Verfügbarkeit einer kostenlosen Kursreihe sind nicht geprüft.
+
+**Alternativen:** (a) MSCI World als alleiniger Maßstab für alles (F1, F3, Abbruch): einfacher, aber der Wechselkurs kürzt sich nicht heraus und die Länderverteilung vermischt sich mit der Auswahl; verworfen. (b) MSCI World nur als F3-Vergleich (gewählt). (c) Gar kein Weltindex: verworfen, weil Konstantin ihn als reale Alternative sehen will.
+
+**How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag. Die Instrumente, N und die Wechselkursquelle werden in einem Folgeeintrag festgehalten; danach Roadmap A.3.
