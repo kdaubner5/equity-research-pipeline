@@ -2203,13 +2203,13 @@ Alle drei Punkte müssen wie im gemergten Eintrag (Punkt 10) vor dem ersten arch
 
 **How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag. Nächste Schritte: konkrete ETFs mit Belegen vorlegen (Konstantin bestätigt), Entscheidung zu Option C im Abbruchkriterium, dann Roadmap A.3.
 
-## 2026-10-09: Messlatte – ETF-Kandidaten für S&P 500 und MSCI World (Agent-Vorschlag, Klasse C; Entwurf, kein Code)
+## 2026-10-08: Messlatte – ETF-Kandidaten für S&P 500 und MSCI World (Agent-Vorschlag, Klasse C; Entwurf, kein Code)
 
 **Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin und seiner Auswahl. Branch `agent/messlatte-etfs`, nur Dokumentation. Setzt Punkt 1 des Eintrags „Messlatte – Instrumente, Größe N und Wechselkursquelle“ (PR #82) um: gewöhnliche, thesaurierende ETFs für den S&P 500 und den MSCI World. **Die Auswahl trifft Konstantin; hier steht nur eine Vorauswahl mit Belegen.**
 
-**In einfachen Worten:** Es gibt mehrere gleichartige Fonds auf denselben Index. Sie unterscheiden sich vor allem in Kosten pro Jahr (TER), Alter und Anbieter. Ich schlage je Index zwei Kandidaten vor und empfehle einen. Alle vier sind in Irland aufgelegte, thesaurierende UCITS-Fonds mit physischer Nachbildung und gut verkauft; sie sind in Deutschland handelbar (Xetra beim Xtrackers belegt, bei den anderen nicht geprüft).
+**In einfachen Worten:** Es gibt mehrere gleichartige Fonds auf denselben Index. Sie unterscheiden sich vor allem in Kosten pro Jahr (TER), Alter und Anbieter. Ich schlage je Index zwei Kandidaten vor und empfehle einen. Alle vier sind laut den Vergleichsseiten in Irland aufgelegte, thesaurierende Fonds nach europäischem Fondsrecht (UCITS) und bilden den Index mit echten Aktien nach (nicht über Tauschgeschäfte). Eine Euro-Handelslinie an der Xetra ist für den iShares S&P 500 und den Xtrackers MSCI World belegt, für die anderen beiden nicht geprüft.
 
-**Belegt (Websuche am 09.10.2026, Anbieter- und Vergleichsseiten, nicht die Fondsunterlagen selbst):**
+**Belegt (Websuche und Abgleich am 08.10.2026 auf Vergleichsseiten wie justETF und Fondsdatenbanken; die Anbieterseiten und Fondsunterlagen selbst wurden nicht geprüft; die Zahlen sind Momentaufnahmen):**
 
 | Index | Fonds (ISIN) | Kosten pro Jahr (TER) | Start | Fondswährung |
 |---|---|---|---|---|
@@ -2218,15 +2218,16 @@ Alle drei Punkte müssen wie im gemergten Eintrag (Punkt 10) vor dem ersten arch
 | MSCI World | Xtrackers MSCI World UCITS ETF 1C (IE00BJ0KDQ92) | 0,12 % | 22.07.2014 | USD |
 | MSCI World | iShares Core MSCI World UCITS ETF USD (Acc) (IE00B4L5Y983) | 0,20 % | Sept. 2009 | USD (laut Namen) |
 
-Fondsgröße: iShares S&P 500 rund 135 Mrd. € (07.08.2026); iShares MSCI World über 100 Mrd. €. Für Vanguard und Xtrackers nicht erhoben.
+Fondsgröße (justETF, Momentaufnahme): iShares S&P 500 rund 140 Mrd. €, iShares MSCI World rund 133 Mrd. €, Vanguard S&P 500 rund 33 Mrd. €, Xtrackers MSCI World rund 22 Mrd. €. Alle vier sind groß genug, dass eine Schließung nicht zu erwarten ist; das ist eine Einschätzung des Agenten, nicht belegt.
 
 **Vorschlag (Agent, von Konstantin nicht bestätigt):**
 - **S&P 500: iShares Core S&P 500 (IE00B5BMR087).** Gleiche Kosten wie der Vanguard, aber seit 2010 am Markt: Die Reihe deckt jeden Signaltag der Forward-Log-Zeit ab, auch einen Rückblick auf frühere Läufe (die Läufe vom 24.09. und 30.09. liegen vor der Baseline).
 - **MSCI World: Xtrackers MSCI World 1C (IE00BJ0KDQ92).** Mit 0,12 % deutlich günstiger als der iShares (0,20 %), seit 2014 am Markt, an der Xetra handelbar. Der Kostenunterschied von 0,08 Prozentpunkten pro Jahr ist klein.
-- Zur Währung (Vorschlag aus dem Eintrag zu #82): F1 braucht den S&P 500 als **Dollar-Reihe** (Fondspreis in USD), F3 den MSCI World als **Euro-Reihe** (Xetra-Handelslinie in EUR). Beide Fonds haben laut Quellen USD als Fondswährung; ob es die jeweils gewünschte Handelslinie gibt, ist **nicht geprüft**.
+- Zur Währung (Vorschlag aus dem Eintrag zu #82): F1 braucht den S&P 500 als **Dollar-Reihe** (Fondspreis oder Börsenkurs in USD; der iShares S&P 500 hat laut justETF eine USD-Linie an der Londoner Börse), F3 den MSCI World als **Euro-Reihe** (Börsenkurs der Xetra-Linie in EUR). Fondspreis und Börsenkurs sind nicht dasselbe, weichen aber meist nur wenig ab. Beide Fonds haben laut Quellen USD als Fondswährung; ob es die jeweils gewünschte Handelslinie gibt, ist **nicht geprüft**.
 
 **Ungeprüft und wichtig:**
-- **Woher kommt die Kursreihe?** SimFin Free liefert nach bisherigem Wissen Aktienkurse; ob dort ETFs enthalten sind, ist nicht geprüft. Eine kostenlose Quelle für ETF-Kurse in USD und EUR (mit Ausschüttungsangaben nicht nötig, da thesaurierend) muss noch gefunden und mit 0 € Fixkosten abgeglichen werden. Das ist die eigentliche offene Frage vor A.3.
+- Begriffe: TER = jährliche Kosten des Fonds in Prozent; UCITS = europäisches Fondsrecht; Handelslinie = die Börse und Währung, in der der Fonds gehandelt wird; Tracking-Differenz = Abstand zwischen Fonds und Index.
+- **Woher kommt die Kursreihe?** SimFin Free liefert nach bisherigem Wissen Aktienkurse; ob dort ETFs enthalten sind, ist nicht geprüft. Eine kostenlose Quelle für ETF-Kurse in USD und EUR muss noch gefunden und mit 0 € Fixkosten abgeglichen werden. Das ist die eigentliche offene Frage vor A.3.
 - Börsenkürzel, genaue Handelslinien, Steuern (Vorabpauschale bei thesaurierenden Fonds in Deutschland), Tracking-Differenz zum Index, Quellenzuverlässigkeit der Zahlen oben (Aggregatorseiten, Stand der TER).
 - Ob der Start 2009/2010 gegenüber 2014/2019 für die Auswertung in der Praxis eine Rolle spielt: für die Forward-Log-Zeit ab 2026 nein, nur für Rückblicke.
 
