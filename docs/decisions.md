@@ -2139,7 +2139,7 @@ Konstantin hat die **Empfehlung (Option B)** angenommen: „Ja, deine Empfehlung
 
 **Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin. Branch `agent/messlatte-nachtrag` (von `master`), nur Dokumentation. Ergänzt den gemergten Eintrag „Messlatte für das Forward-Log" (Abschnitt 10, Entscheidung von Konstantin); ändert dessen Entscheidungen nicht, es legt nur einen offenen Punkt fest. Keine Daten abgerufen, keine Instrumente geprüft.
 
-**In einfachen Worten:** Für die Frage „Lohnt es sich für ein Euro-Depot?" (F3) vergleichen wir die Käufe mit einem **MSCI World in Euro**, weil ein MSCI World als Vergleich gewollt ist. Für die Frage „Trägt die Auswahl?" (F1) bleiben es US-Maßstäbe in Dollar, damit der Wechselkurs und die Länderverteilung das Ergebnis nicht verfälschen. Das Abbruchkriterium hängt weiter nur an F1.
+**In einfachen Worten:** Für die Frage „Lohnt es sich für ein Euro-Depot?" (F3) vergleichen wir die Käufe mit einem **MSCI World in Euro**, weil ein MSCI World als Vergleich gewollt ist (Deutung des Agenten, nicht belegt). Für die Frage „Trägt die Auswahl?" (F1) bleiben es US-Maßstäbe in Dollar, damit der Wechselkurs und die Länderverteilung das Ergebnis nicht verfälschen. Das Abbruchkriterium hängt weiter nur an F1.
 
 **Entscheidung von Konstantin (08.10.2026):** „Als Vergleich einen MSCI World" und, nach dem Vorschlag mit der Aufteilung, „Ja passt so". Als Beschluss gilt damit, mit dem Merge dieses Texts:
 1. **F3 (Depotsicht):** Maßstab ist ein **MSCI World, gerechnet in Euro**. Das ist die Opportunität des Depots, nicht der Maßstab der Auswahl.
@@ -2147,8 +2147,10 @@ Konstantin hat die **Empfehlung (Option B)** angenommen: „Ja, deine Empfehlung
 3. **F2 (Urteil):** unverändert Option C als Zusatz, wenn Stufe 3 läuft.
 
 **Folgen für den gemergten Text (zur Klarheit, keine neue Regel):**
-- Die Euro-Sicht F3 stellt die **Euro-Rendite der Käufe** (Dollar-Kurs über den Wechselkurs in Euro) neben die **Euro-Rendite des MSCI World**. Für den MSCI World braucht es dabei keinen eigenen Wechselkurs, wenn er als Euro-Reihe vorliegt; für die Käufe braucht es die Wechselkursquelle. Die Wechselkursquelle bleibt damit nur für F3 nötig; ob sie bis zum ersten Kauf warten darf, ist weiter Konstantins Entscheidung (Roadmap 0.3).
+- Die Euro-Sicht F3 stellt die **Euro-Rendite der Käufe** (Dollar-Kurs über den Wechselkurs in Euro) neben die **Euro-Rendite des MSCI World**. Für den MSCI World braucht es dabei keinen eigenen Wechselkurs, wenn er als Euro-Reihe vorliegt; für die Käufe braucht es die Wechselkursquelle. Die Wechselkursquelle bleibt damit nur für F3 nötig; Konstantin hat gesagt, der Wechselkurs sei vorerst nicht so wichtig, weil nur US-Werte gekauft werden. Vorschlag des Agenten, gilt mit dem Merge: Die Wechselkursquelle darf bis zum ersten Kauf warten (die Kurshistorie lässt sich nachträglich holen; F1 und Abbruchkriterium brauchen sie nicht).
+- **Grenze von F3:** Der Abstand zum MSCI World sagt nur, ob sich die Käufe gegenüber dieser Alternative gelohnt haben, nicht, ob die Auswahl gut war. Die Käufe sind reine US-Aktien; ein Abstand kann an der Länderverteilung oder am Dollar liegen. Das Urteil über die Auswahl kommt aus F1.
 - F3 geht **nicht** in das Abbruchkriterium ein (unverändert, Eintrag „Messlatte", Punkt 1 und 6).
+- Für F3 gelten dieselben Regeln wie für die übrigen Sichten (Eintrag „Messlatte“): Start des Vergleichs ist der tatsächliche Kauftag, nicht der Signaltag (Signaltag nur bei F1); gerechnet wird die Gesamtrendite, bei den Käufen mit Dividenden, beim MSCI World als thesaurierende Reihe oder mit wiedereingerechneten Ausschüttungen. So steht es im gemergten Eintrag, Punkt 5 (Nr. 1 und 3); offen bleibt dort, ob SimFin Free bereinigte Kurse liefert.
 - Die Platzhalter X, Y, Z ändern sich nicht.
 
 **Kandidaten für die beiden US-Maßstäbe in F1 (nur Kategorien; ungeprüft: Verfügbarkeit als ETF, Kosten, Länge des Kursverlaufs, Steuerbehandlung; die Wahl trifft Konstantin):**
@@ -2157,16 +2159,18 @@ Konstantin hat die **Empfehlung (Option B)** angenommen: „Ja, deine Empfehlung
 |---|---|---|---|
 | Breiter US-Index | S&P 500 | sehr verbreitet, einfach zu erklären | nur Großkonzerne, passt nicht zur Größenklasse des Systems |
 | Breiter US-Index | breiter US-Gesamtmarkt (z. B. mit Mid und Small Caps) | enthält auch kleinere Firmen, näher am Universum | weniger verbreitet; die Auswahl des konkreten Index/ETF muss geklärt werden |
-| Qualität/Value, passende Größe | US-Qualitätsindex (Qualitätsfaktor) | misst den Stil der Qualitätsbedingungen | meist große Firmen; Value fehlt |
-| Qualität/Value, passende Größe | US-Mid-/Small-Cap-Value-Index | passt zu Größenklasse und Value-Teil | Qualität fehlt; Small Caps schwanken stark |
+| Qualität/Value | US-Qualitätsindex (Qualitätsfaktor) | misst den Stil der Qualitätsbedingungen | meist große Firmen, passt nicht zur Größenklasse; Value fehlt |
+| Qualität/Value | US-Mid-/Small-Cap-Value-Index | passt zu Größenklasse und Value-Teil | Qualität fehlt; Small Caps schwanken stark |
 
 Die Größenklasse des Systems ist heute begrenzt (Marktkapitalisierung 300 Mio. bis 10 Mrd. $); entfällt die Obergrenze (Roadmap C.8), ist der Qualität/Value-Maßstab neu zu entscheiden.
 
 **Noch offen (nicht entschieden):**
 1. Das **konkrete Instrument** für den breiten US-Index und für Qualität/Value (je ein Index oder ein ETF; ausschüttend oder thesaurierend; in Euro oder Dollar gehandelt).
 2. Das **konkrete Instrument für MSCI World** (Index oder ein bestimmter ETF) und ob er in der Auswertung als Euro-Reihe oder als Dollar-Reihe mit Wechselkurs geführt wird.
-3. Die **Größe N** des Kontrollkorbs (Option C) und die **Wechselkursquelle**.
-Vor dem ersten archivierten Lauf (Roadmap A.3) müssen sie feststehen, es sei denn, Konstantin entscheidet etwas anderes.
+3. Die **Größe N** des Kontrollkorbs (Option C) und die **Wechselkursquelle** (Letztere erst vor dem ersten Kauf nötig).
+Vor dem ersten archivierten Lauf (Roadmap A.3) müssen die Instrumente der drei Maßstäbe (zwei US-Maßstäbe, MSCI World) und die Größe N feststehen. Die Wechselkursquelle darf bis zum ersten Kauf warten (siehe oben).
+
+**Begriffe:** Ein ETF ist ein börsengehandelter Fonds, der einen Index nachbildet. Thesaurierend heißt: Ausschüttungen werden im Fonds wieder angelegt; ausschüttend heißt: sie werden ausgezahlt. Für einen fairen Vergleich zählt die Gesamtrendite (Kurs plus Ausschüttungen).
 
 **Ungeprüft:** Die Zusammensetzung des MSCI World (Länder, Währungen, Gewichte) wurde nicht nachgesehen; die Aussage, dass er neben den USA andere Länder und Währungen enthält, ist allgemein bekannt, nicht aus dem Repo belegt. Kosten, Steuern (z. B. thesaurierend gegen ausschüttend) und die Verfügbarkeit einer kostenlosen Kursreihe sind nicht geprüft.
 
