@@ -1839,7 +1839,7 @@ Das Abbruchkriterium (Punkt 6) hängt nur an F1 und an Prozesskennzahlen, **nich
 
 ### 2. Währung: warum sie hier weniger ausmacht, als es scheint (und wo doch)
 
-Sind Käufe und Maßstab **beide in Dollar notierte, nicht abgesicherte** Anlagen und werden über **denselben Zeitraum** gemessen, gilt (1 + Rendite der Käufe in Euro) ÷ (1 + Rendite des Maßstabs in Euro) = (1 + Rendite der Käufe in Dollar) ÷ (1 + Rendite des Maßstabs in Dollar). Der Wechselkurs kürzt sich heraus. Das ist Rechnung, keine Messung.
+Sind Käufe und Maßstab **beide in Dollar notierte, nicht abgesicherte** Anlagen und werden über **denselben Zeitraum** gemessen, gilt (1 + Rendite der Käufe in Euro) ÷ (1 + Rendite des Maßstabs in Euro) = (1 + Rendite der Käufe in Dollar) ÷ (1 + Rendite des Maßstabs in Dollar). Der Wechselkurs kürzt sich heraus. Das ist Rechnung, keine Messung. **Aber nur für dieses Verhältnis, nicht für den Abstand in Prozentpunkten:** Käufe +10 % und Maßstab +5 % in Dollar sind ein Vorsprung von 5 Prozentpunkten; bei einem Dollar, der 15 % an Wert gegenüber dem Euro verliert (Faktor 0,85), sind es in Euro −6,5 % gegen −10,75 %, also nur noch 4,25 Prozentpunkte Abstand. Das Verhältnis (1,10 ÷ 1,05) ist in beiden Währungen gleich, der Abstand nicht. Deshalb wird **jede Prozentpunkt-Schwelle in Dollar festgelegt** (Punkt 6), und die Kennzahl der Messlatte ist die **Relativrendite** (Verhältnis minus 1). Die Kürzung gilt außerdem nur bei Einmalkauf ohne Zwischenflüsse: Dividenden, die zu einem anderen Wechselkurs als dem Kaufkurs umgerechnet werden, brechen sie leicht (Näherung).
 
 Der Wechselkurs spielt trotzdem eine Rolle:
 1. **Absolute Euro-Rendite (F3):** Ein Plus von 8 % in Dollar kann in Euro bei fallendem Dollar ein Minus sein. Wer „im Depot" misst, sieht beides vermischt.
@@ -1873,7 +1873,7 @@ Der Wechselkurs spielt trotzdem eine Rolle:
 
 ### 4. Empfehlung (Entwurf)
 
-**Option B**, und Option C als Zusatz für F2, wenn Stufe 3 läuft. Begründung: Die Frage „Taugt die Auswahl?" lässt sich nur gegen einen Maßstab mit ähnlichem Stil und ähnlicher Größe sauber beantworten; gegen einen Marktindex allein würde ein Stilrückstand wie Versagen aussehen oder ein Stilvorsprung wie Können. Die Währung wird nicht „weggewählt", sondern **getrennt ausgewiesen**: Der Vergleich mit dem Maßstab ist währungsneutral (Punkt 2), und die Euro-Sicht des Depots steht daneben. Das weicht von der Formulierung im Masterplan Abschnitt 8 („in Euro gerechnet") nur insoweit ab, als der Vergleich in Dollar oder Euro gleich ausfällt und die Euro-Rendite zusätzlich getrennt berichtet wird.
+**Option B**, und Option C als Zusatz für F2, wenn Stufe 3 läuft. Begründung: Die Frage „Taugt die Auswahl?" lässt sich nur gegen einen Maßstab mit ähnlichem Stil und ähnlicher Größe sauber beantworten; gegen einen Marktindex allein würde ein Stilrückstand wie Versagen aussehen oder ein Stilvorsprung wie Können. Die Währung wird nicht „weggewählt", sondern **getrennt ausgewiesen**: Der Vergleich mit dem Maßstab ist währungsneutral (Punkt 2), und die Euro-Sicht des Depots steht daneben. **Das ist eine Abweichung vom Masterplan Abschnitt 8 („in Euro gerechnet, wie das Depot"):** F1 und das Abbruchkriterium werden in Dollar gerechnet (als Relativrendite ist das Ergebnis in Euro gleich, als Prozentpunkt-Abstand nicht, siehe Punkt 2); F3 (Depotsicht) bleibt in Euro. Der Masterplan sagt auch, der Wechselkurs könne einen Vorsprung „leicht überdecken"; das gilt für F3, nicht für F1. Die Abweichung wird mit dem Merge dieses Textes wirksam und ändert den Masterplan-Text nicht; Konstantin kann sie ablehnen (dann gilt Euro für alles, mit dem Nachteil aus Punkt 2). Ebenso ist die Forderung nach **zwei** Maßstäben in Option B eine Verschärfung gegenüber „ein Index oder ein ETF" im Masterplan.
 
 ### 5. Festlegungen für Option B (Entwurf; Zahlen sind Startwerte ohne Messgrundlage)
 
@@ -1886,12 +1886,12 @@ Der Wechselkurs spielt trotzdem eine Rolle:
 
 ### 6. Abbruchkriterium (Entwurf, Startwerte als Platzhalter, ohne Messgrundlage)
 
-Schriftlich vorab. Das System wird **nicht fortgeführt, bis Konstantin neu entschieden hat**, wenn nach mindestens 24 Monaten eine der Bedingungen eintritt:
-1. **Rückstand:** Die gleich gewichteten Käufe (F1, Dollar oder Euro gleich) liegen hinter **beiden** Maßstäben, und zwar um mehr als **X Prozentpunkte pro Jahr** (Startwert-Platzhalter X = 3; kein Beleg, Konstantin setzt ihn). Bei 10–15 Positionen ist ein kleiner Rückstand statistisch nicht von Zufall zu trennen; das Kriterium soll nur **grobes** Versagen fangen.
-2. **Kill-Kriterien greifen auffällig oft:** Von den Finalisten, die in Stufe 3 geprüft werden, scheiden mehr als **Y Prozent** durch Kill-Kriterium oder Datenfehler aus (Platzhalter Y = 50; kein Beleg). Das fängt einen Prozessfehler, den die Rendite noch nicht zeigt (Beispiel aus der Handprüfung vom 07.10.2026: ein Datenfehler bei XPER).
-3. **Datenqualität:** Die Handprüfung findet in mehr als **Z von 10** geprüften Finalisten einen Datenfehler, der die Aufnahme geändert hätte (Platzhalter Z = 2; kein Beleg).
+Schriftlich vorab. Das System wird **nicht fortgeführt, bis Konstantin neu entschieden hat**, wenn eine der folgenden Bedingungen eintritt. **Nur Kriterium 1 ist an die Mindestdauer gebunden; die Kriterien 2 und 3 sind Frühwarnungen und gelten laufend** (Prüfung nach jedem Lauf, sobald die Mindestzahl erreicht ist).
+1. **Rückstand (erst nach mindestens 24 Monaten ab dem Signaltag der jeweiligen Position; Positionen unter 24 Monaten zählen noch nicht):** Die Relativrendite in **Dollar** der gleich gewichteten Käufe liegt gegenüber dem **stärkeren der beiden Maßstäbe** um mehr als **X Prozentpunkte pro Jahr** im Minus (Startwert-Platzhalter X = 3; kein Beleg, Konstantin setzt ihn). **Warnung:** Bei 10–15 Positionen streut der Abstand zu einem Index von Jahr zu Jahr vermutlich stark (ungeprüfte Schätzung des Kritikers, keine Messung: grob mittlerer einstelliger bis niedriger zweistelliger Prozentbereich); ein Rückstand von 3 Prozentpunkten wäre dann auch ohne Fehler des Systems keine Seltenheit, X = 3 kann also einen **Fehlalarm** auslösen und fängt kein „grobes" Versagen. Das Kriterium ist deshalb ein Anlass zum Nachdenken und zur Neuentscheidung durch Konstantin, kein Urteil.
+2. **Kill-Kriterien greifen auffällig oft (laufend):** Von den Finalisten, die in Stufe 3 geprüft wurden (alle Läufe zusammen, **mindestens 10 geprüfte Finalisten**, sonst keine Auswertung), scheiden mehr als **Y Prozent durch Kill-Kriterium** aus (Platzhalter Y = 50; kein Beleg). Datenfehler zählen hier **nicht** mit (sie stehen in Kriterium 3).
+3. **Datenqualität (laufend):** Die Handprüfung findet bei mehr als **Z Prozent** der geprüften Finalisten (mindestens 10 geprüft) einen Datenfehler, der die Aufnahme geändert hätte (Platzhalter Z = 20; kein Beleg; gleichwertig mit „mehr als 2 von 10"). Das fängt einen Prozessfehler, den die Rendite noch nicht zeigt. **Hinweis zum Beispiel:** Die Handprüfung vom 07.10.2026 fand einen Datenfehler bei XPER (Rang 4 der 41 in Stufe 2, nicht in Stufe 3; Angabe von Konstantin, ungeprüft von mir); es wäre ein Beispiel für diese Art von Fehler, nicht für eine ausgelöste Bedingung.
 
-Die Platzhalter ändern nur durch eine eigene Entscheidung (analog zu den Trend-Guard-Platzhaltern). Eine Währungsbewegung allein löst kein Kriterium aus (Punkt 1 vergleicht mit ungesicherten Maßstäben).
+Die Platzhalter ändern nur durch eine eigene Entscheidung (analog zu den Trend-Guard-Platzhaltern). Eine Währungsbewegung allein löst kein Kriterium aus, denn Kriterium 1 misst die Relativrendite in Dollar gegen ungesicherte Maßstäbe.
 
 ### 7. Was die Messlatte nicht leistet
 
@@ -1904,7 +1904,7 @@ Die Platzhalter ändern nur durch eine eigene Entscheidung (analog zu den Trend-
 1. **Option:** A, B (empfohlen), C allein, oder B plus C?
 2. **Instrumente:** Welcher breite Index-Maßstab und welcher Faktor-Maßstab (Option B)? Das Instrument legt laut Masterplan er fest.
 3. **Wechselkursquelle** für die Euro-Rendite (Punkt 5, Nr. 5).
-4. **Startwerte** X, Y, Z (Punkt 6) und die Mindestdauer 24 Monate.
+4. **Startwerte** X, Y, Z (Punkt 6), die Mindestzahl von 10 geprüften Finalisten und die Mindestdauer 24 Monate; bei Option C zusätzlich die Größe **N** des Kontrollkorbs.
 5. **Kosten und Steuern:** nur als Hinweis (Entwurf) oder in die Messlatte?
 6. **„Gekauft"-Zeitpunkt** (Punkt 5, Nr. 1): Signaltag für F1/F2 und tatsächlicher Kauf für F3 so in Ordnung?
 
@@ -1913,7 +1913,7 @@ Die Platzhalter ändern nur durch eine eigene Entscheidung (analog zu den Trend-
 - Es wurden **keine Daten** abgerufen und keine Instrumente geprüft; Verfügbarkeit, Kosten und Kursverlauf eines Faktor-Maßstabs sind offen.
 - Ob SimFin Free bereinigte Kurse (Dividenden, Splits) liefert, ist nicht geprüft; die Kurse im Cache sind laut bisherigen Einträgen für den Vorfilter und die Marktkapitalisierung genutzt worden, nicht für Renditen.
 - Der Wechselkurs-Kürzungssatz (Punkt 2) gilt nur bei gleichem Zeitraum und gleicher Währung beider Seiten; bei Käufen zu verschiedenen Zeitpunkten ist er eine Näherung, solange Maßstab und Kauf nicht zeitgleich nachgebildet werden.
-- Die Platzhalter X = 3, Y = 50, Z = 2 haben keine Messgrundlage und sind ausdrücklich nur Startwerte zur Entscheidung.
+- Die Platzhalter X = 3, Y = 50, Z = 20 haben keine Messgrundlage und sind ausdrücklich nur Startwerte zur Entscheidung.
 - Steuern, Spesen und Quellensteuer sind nicht gerechnet (Punkt 5, Nr. 4).
 
 **Alternativen zur ganzen Messlatte:** (a) gar keine feste Messlatte, nur Bericht: verworfen, weil jedes Ergebnis dann nachträglich zurechtgelegt werden kann. (b) Messlatte erst nach dem ersten Zwischenbericht festlegen: verworfen; Roadmap 0.3 und Masterplan Abschnitt 8 verlangen sie vor dem ersten archivierten Lauf.
