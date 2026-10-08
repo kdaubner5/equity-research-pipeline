@@ -2202,3 +2202,36 @@ Alle drei Punkte müssen wie im gemergten Eintrag (Punkt 10) vor dem ersten arch
 **Alternativen:** (a) Zweiten US-Maßstab für Qualität/Value behalten: verworfen, Konstantin braucht ihn nicht. (b) N = alle Firmen, die den Filter bestehen (41 von 126 bestanden Stufe 2 im Replay vom 07.10.2026): misst den Durchschnitt der Gruppe, nicht die Auswahl; verworfen. (c) Reine Indizes statt ETFs: verworfen, Konstantin will gewöhnliche ETFs.
 
 **How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag. Nächste Schritte: konkrete ETFs mit Belegen vorlegen (Konstantin bestätigt), Entscheidung zu Option C im Abbruchkriterium, dann Roadmap A.3.
+
+## 2026-10-09: Messlatte – ETF-Kandidaten für S&P 500 und MSCI World (Agent-Vorschlag, Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin und seiner Auswahl. Branch `agent/messlatte-etfs`, nur Dokumentation. Setzt Punkt 1 des Eintrags „Messlatte – Instrumente, Größe N und Wechselkursquelle“ (PR #82) um: gewöhnliche, thesaurierende ETFs für den S&P 500 und den MSCI World. **Die Auswahl trifft Konstantin; hier steht nur eine Vorauswahl mit Belegen.**
+
+**In einfachen Worten:** Es gibt mehrere gleichartige Fonds auf denselben Index. Sie unterscheiden sich vor allem in Kosten pro Jahr (TER), Alter und Anbieter. Ich schlage je Index zwei Kandidaten vor und empfehle einen. Alle vier sind in Irland aufgelegte, thesaurierende UCITS-Fonds mit physischer Nachbildung und gut verkauft; sie sind in Deutschland handelbar (Xetra beim Xtrackers belegt, bei den anderen nicht geprüft).
+
+**Belegt (Websuche am 09.10.2026, Anbieter- und Vergleichsseiten, nicht die Fondsunterlagen selbst):**
+
+| Index | Fonds (ISIN) | Kosten pro Jahr (TER) | Start | Fondswährung |
+|---|---|---|---|---|
+| S&P 500 | iShares Core S&P 500 UCITS ETF USD (Acc) (IE00B5BMR087) | 0,07 % | 19.05.2010 | USD (laut Namen) |
+| S&P 500 | Vanguard S&P 500 UCITS ETF USD Accumulating (IE00BFMXXD54) | 0,07 % | 14.05.2019 | USD (laut Namen) |
+| MSCI World | Xtrackers MSCI World UCITS ETF 1C (IE00BJ0KDQ92) | 0,12 % | 22.07.2014 | USD |
+| MSCI World | iShares Core MSCI World UCITS ETF USD (Acc) (IE00B4L5Y983) | 0,20 % | Sept. 2009 | USD (laut Namen) |
+
+Fondsgröße: iShares S&P 500 rund 135 Mrd. € (07.08.2026); iShares MSCI World über 100 Mrd. €. Für Vanguard und Xtrackers nicht erhoben.
+
+**Vorschlag (Agent, von Konstantin nicht bestätigt):**
+- **S&P 500: iShares Core S&P 500 (IE00B5BMR087).** Gleiche Kosten wie der Vanguard, aber seit 2010 am Markt: Die Reihe deckt jeden Signaltag der Forward-Log-Zeit ab, auch einen Rückblick auf frühere Läufe (die Läufe vom 24.09. und 30.09. liegen vor der Baseline).
+- **MSCI World: Xtrackers MSCI World 1C (IE00BJ0KDQ92).** Mit 0,12 % deutlich günstiger als der iShares (0,20 %), seit 2014 am Markt, an der Xetra handelbar. Der Kostenunterschied von 0,08 Prozentpunkten pro Jahr ist klein, aber über zwei Jahre Messzeit ebenfalls gegen die Käufe gerechnet.
+- Zur Währung (Vorschlag aus dem Eintrag zu #82): F1 braucht den S&P 500 als **Dollar-Reihe** (Fondspreis in USD), F3 den MSCI World als **Euro-Reihe** (Xetra-Handelslinie in EUR). Beide Fonds haben laut Quellen USD als Fondswährung; ob es die jeweils gewünschte Handelslinie gibt, ist **nicht geprüft**.
+
+**Ungeprüft und wichtig:**
+- **Woher kommt die Kursreihe?** SimFin Free liefert nach bisherigem Wissen Aktienkurse; ob dort ETFs enthalten sind, ist nicht geprüft. Eine kostenlose Quelle für ETF-Kurse in USD und EUR (mit Ausschüttungsangaben nicht nötig, da thesaurierend) muss noch gefunden und mit 0 € Fixkosten abgeglichen werden. Das ist die eigentliche offene Frage vor A.3.
+- Börsenkürzel, genaue Handelslinien, Steuern (Vorabpauschale bei thesaurierenden Fonds in Deutschland), Tracking-Differenz zum Index, Quellenzuverlässigkeit der Zahlen oben (Aggregatorseiten, Stand der TER).
+- Ob der Start 2009/2010 gegenüber 2014/2019 für die Auswertung in der Praxis eine Rolle spielt: für die Forward-Log-Zeit ab 2026 nein, nur für Rückblicke.
+
+**Alternativen:** Vanguard S&P 500 (gleich günstig, aber erst seit 2019); iShares MSCI World (länger am Markt, teurer); ein einziger „All-World“-Fonds statt MSCI World (anderer Index, verworfen, weil Konstantin MSCI World genannt hat).
+
+**Was Konstantin entscheiden muss:** Auswahl je Index (oder meine Empfehlung); ob eine Kursquelle für ETFs gesucht werden soll (nächster Schritt: Quellenprüfung ohne Kosten, nur öffentliche Quellen, keine SimFin-Calls).
+
+**How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag. Danach: Kursquelle prüfen, Eintrag nachziehen, dann Roadmap A.3.
