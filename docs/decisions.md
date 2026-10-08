@@ -2230,7 +2230,7 @@ Alle drei Punkte müssen wie im gemergten Eintrag (Punkt 10) vor dem ersten arch
 
 **Bekannte Lücken (Ungeprüftes):**
 - Mehrere Aussagen im Masterplan stützen sich auf Quellen außerhalb des Repos und sind dort nicht gekennzeichnet: die Beobachtung vom 08.10.2026 in der Cloud-Sitzung (Roadmap B.11), „PATK als Fusionsfall" (A.4), der Stufe-3-Pilot, die Backlog-Prüfung vom 06.10. (0.5), die Token-Laufzeit von 30 Tagen (B.7) und die Preise von EODHD und FMP (Abschnitt 7).
-- Die Zahl „44 von 97" im Masterplan Abschnitt 4 steht erst mit PR #72 (Anhang D, Abschnitt 4) in `docs/decisions.md`; bis dahin trägt der Masterplan die Quelle selbst.
+- Die Zahl „44 von 97" im Masterplan Abschnitt 4 hat ihre Quelle seit dem Merge von PR #72 in `docs/decisions.md` (Eintrag „Zweck und Zahlenbasis", Anhang D, Abschnitt 4).
 - Die Klassen der Roadmap-Zeilen sind Einstufungen des Agenten, nicht gemessen.
 
 **Alternativen:** (a) keinen Eintrag schreiben und den Masterplan allein gelten lassen: einfacher, aber die Abweichungen 1 und 8 wirken dann ohne Spur in diesem Dokument, und die Entscheidungshistorie bricht. (b) Jede Abweichung als eigenen Eintrag: genauer, aber acht Einträge ohne neuen Inhalt. Gewählt ist ein Sammeleintrag wie bei Version 1.1.
