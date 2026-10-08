@@ -1820,7 +1820,9 @@ Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein 
 
 ### 1. Zweck
 
-Das System ist ein systematischer Gesundheitsfilter über US-Nichtfinanzwerte. Es reduziert das Universum auf wenige Titel mit solider Bilanz und Ertragsqualität. Es sucht keine Preisfehler und verspricht keinen Vorsprung; Stufe 2 dient der Rangfolge unter gesunden Titeln. Banken, Versicherer und weitere Finanztitel sind bewusst ausgenommen.
+Das System ist ein systematischer Gesundheitsfilter über börsennotierte US-Unternehmen. Es reduziert das Universum auf wenige Titel mit solider Bilanz und Ertragsqualität; die Größe der Firma ist nachrangig. Es sucht keine Preisfehler und verspricht keinen Vorsprung. Stufe 2 hat echte Gates (EV/EBITDA und FCF-Rendite; wer durchfällt, scheidet aus) und ordnet die Bestandenen. Banken, Versicherer und REITs sind vorerst ausgenommen und kommen später mit eigenen Modulen. Für Zweck und Leitprinzip gilt im Übrigen der Masterplan v2.0 (Abschnitt 1).
+
+*Änderung am 08.10.2026 auf Anweisung von Konstantin („wir machen weiter wie im Masterplan v2.0"): Abschnitt 1 wurde an den Masterplan v2.0 angeglichen (Roadmap 0.1, Masterplan Abschnitt 12, Abweichung 7). Vorher stand dort „US-Nichtfinanzwerte", „Finanztitel bewusst ausgenommen" und „Stufe 2 dient der Rangfolge". Die Abschnitte 2 bis 6 und der Anhang sind unverändert.*
 
 ### 2. Zahlenbasis
 
