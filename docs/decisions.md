@@ -1916,6 +1916,15 @@ Die Platzhalter ändern nur durch eine eigene Entscheidung (analog zu den Trend-
 - Die Platzhalter X = 3, Y = 50, Z = 20 haben keine Messgrundlage und sind ausdrücklich nur Startwerte zur Entscheidung.
 - Steuern, Spesen und Quellensteuer sind nicht gerechnet (Punkt 5, Nr. 4).
 
+### 10. Entscheidung von Konstantin (08.10.2026)
+
+Konstantin hat die **Empfehlung (Option B)** angenommen: „Ja, deine Empfehlung für #77 passt." Als Beschluss gilt damit, mit dem Merge dieses Texts:
+- **Option B** für F1 und das Abbruchkriterium (zwei ungesicherte Dollar-Maßstäbe, ein breiter Index und ein Faktor-Maßstab für Qualität/Value; Vergleich als Relativrendite in Dollar; Euro-Rendite der Käufe mit eigener Zeile „Währungseffekt"). **Option C** kommt als Zusatz für F2 (Urteil), wenn Stufe 3 läuft.
+- Die Festlegungen aus Punkt 5 (Signaltag für F1 und F2, tatsächlicher Kauf für F3, nachgebildete Maßstabskäufe am selben Tag, Gesamtrendite, Kosten und Steuern nur als Hinweis, Mindestdauer 24 Monate für Kriterium 1) und das Abbruchkriterium aus Punkt 6 **mit den Platzhaltern X = 3, Y = 50, Z = 20 und der Mindestzahl von 10 geprüften Finalisten** gelten als Startwerte. Sie ändern sich nur durch eine eigene Entscheidung.
+- Die Abweichung vom Masterplan §8 (Vergleich in Dollar statt Euro, zwei Maßstäbe statt einem) gilt damit als angenommen.
+
+**Noch offen (nicht entschieden, weil Konstantin sie nicht genannt hat):** Die **konkreten Instrumente** beider Maßstäbe (Frage 2), die **Wechselkursquelle** (Frage 3) und die Größe N für Option C (Frage 4). Vor dem ersten archivierten Lauf (Roadmap A.3) müssen sie feststehen; bis dahin ist die Messlatte nicht vollständig. Ob der Faktor-Maßstab zur Größenklasse passt, ist neu zu entscheiden, sobald die Obergrenze der Marktkapitalisierung entfällt (Roadmap C.8).
+
 **Alternativen zur ganzen Messlatte:** (a) gar keine feste Messlatte, nur Bericht: verworfen, weil jedes Ergebnis dann nachträglich zurechtgelegt werden kann. (b) Messlatte erst nach dem ersten Zwischenbericht festlegen: verworfen; Roadmap 0.3 und Masterplan Abschnitt 8 verlangen sie vor dem ersten archivierten Lauf.
 
 **How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag. Danach: Roadmap A.1 (Kurs am Lauftag), A.3 (erster archivierter Lauf) und ein späterer Messbericht (Spur P) nach den hier festgelegten Regeln.
