@@ -1813,3 +1813,118 @@ Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein 
 - Die Yahoo-Prüfung deckt die genannten Firmen ab, nicht alle 41; die Prüfung der Finalisten in Stufe 3 ist der feste Schritt dafür.
 - Die Hypothesen sind erfüllt, über die inhaltliche Richtigkeit der Marken sagt das nichts.
 - Die Messung nennt keine Zahlen für Rangwirkung; die Folgeentscheidung über eine Rangwirkung steht weiter aus (hier nur: vorerst nicht).
+
+## 2026-10-08: Messlatte für das Forward-Log (Masterplan Abschnitt 8, Roadmap 0.3) (Agent-Entscheidung, Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin. Branch `agent/messlatte-entwurf` (von `master`), nur Dokumentation. Klasse C: Der Text legt fest, woran der Erfolg des Systems gemessen wird und wann abgebrochen wird. Keine Daten abgerufen, kein Code, keine Konfiguration; Roadmap 0.3 verlangt den Eintrag **vor dem ersten archivierten Lauf (A.3)**.
+
+**In einfachen Worten**
+- Das Forward-Log hält fest, was das System wann gesagt hat. Ob das **gut** war, sagt erst ein Vergleich mit einem Maßstab, der **vorher** feststeht. Sonst lässt sich jedes Ergebnis im Nachhinein schönreden.
+- Dieser Entwurf legt fünf Dinge fest: **Womit** wird verglichen (Maßstab), **in welcher Währung**, **wie werden die Käufe gewichtet**, **über welchen Zeitraum** und **wann wird abgebrochen**. Es gibt drei Optionen und eine Empfehlung.
+- **Währung (das Depot ist in Euro):** Kauft der Anleger US-Aktien und vergleicht sie mit einem ebenfalls ungesicherten US-Maßstab, treffen Euro-Dollar-Schwankungen beide Seiten gleich. Der **Vorsprung oder Rückstand gegenüber dem Maßstab ist dann in Euro und in Dollar praktisch derselbe** (siehe Punkt 2). Der Wechselkurs verändert aber die **absolute** Euro-Rendite des Depots und kann ein kleines Plus oder Minus leicht überdecken. Deshalb zeigt die Messlatte beides getrennt: den Vergleich mit dem Maßstab und die Euro-Rendite mit einer eigenen Zeile „Währungseffekt".
+- **Wichtigste Grenze:** Bei 10–15 Positionen zeigt das Log in 12–24 Monaten nur **grobes Versagen und Prozessfehler**, keinen kleinen Vorsprung (Masterplan Abschnitt 8). Die Messlatte beweist nichts über Können; sie verhindert nur, dass ein schlechtes Ergebnis unbemerkt bleibt.
+- **Schlimmster Fall:** Ohne diese Festlegung wird nach dem ersten Lauf ein bequemer Maßstab gewählt (z. B. ein schwacher Index im guten Jahr) oder die Währung so, dass das Ergebnis besser aussieht. Das ist kein Datenfehler, sondern ein Fehler der Ehrlichkeit. Mit einem falsch gewählten, aber schriftlich festgelegten Maßstab ist der Schaden kleiner: Er ist sichtbar und kann mit einer neuen Entscheidung geändert werden (nicht rückwirkend).
+
+**Grundlage.** Masterplan Abschnitt 8 („Messlatte vor dem ersten archivierten Lauf festlegen": Vergleichsmaßstab, Währung und Gewichtung, Zeitraum 18 bis 24 Monate, Abbruchkriterium) und Roadmap 0.3. Die Entscheidung über das konkrete Instrument legt laut Masterplan Konstantin fest. Schon festgehalten (Masterplan Abschnitt 8): Das Forward-Log speichert den ganzen Trichter; der Kurs am Lauftag je Firma kommt mit Roadmap A.1.
+
+### 1. Was gemessen wird (drei Fragen, getrennt)
+
+| Frage | Wozu | Wie |
+|---|---|---|
+| **F1: Trägt die Auswahl?** | Ist die Auswahl des Systems besser als ein passender Maßstab? | Käufe (bzw. Finalisten) gegen den Vergleichsmaßstab |
+| **F2: Trägt Konstantins Urteil?** | Fügt Stufe 3 und 4 etwas zum mechanischen Screen hinzu? | gekaufte gegen nicht gekaufte Namen derselben Stufe (Masterplan Abschnitt 8) |
+| **F3: Lohnt es sich für das Depot?** | Euro-Rendite nach Währung | Käufe in Euro, mit Währungseffekt als eigener Zeile |
+
+Das Abbruchkriterium (Punkt 6) hängt nur an F1 und an Prozesskennzahlen, **nicht** an F3: Eine Euro-Dollar-Bewegung soll das System weder retten noch beenden.
+
+### 2. Währung: warum sie hier weniger ausmacht, als es scheint (und wo doch)
+
+Sind Käufe und Maßstab **beide in Dollar notierte, nicht abgesicherte** Anlagen und werden über **denselben Zeitraum** gemessen, gilt (1 + Rendite der Käufe in Euro) ÷ (1 + Rendite des Maßstabs in Euro) = (1 + Rendite der Käufe in Dollar) ÷ (1 + Rendite des Maßstabs in Dollar). Der Wechselkurs kürzt sich heraus. Das ist Rechnung, keine Messung. **Aber nur für dieses Verhältnis, nicht für den Abstand in Prozentpunkten:** Käufe +10 % und Maßstab +5 % in Dollar sind ein Vorsprung von 5 Prozentpunkten; bei einem Dollar, der 15 % an Wert gegenüber dem Euro verliert (Faktor 0,85), sind es in Euro −6,5 % gegen −10,75 %, also nur noch 4,25 Prozentpunkte Abstand. Das Verhältnis (1,10 ÷ 1,05) ist in beiden Währungen gleich, der Abstand nicht. Deshalb wird **jede Prozentpunkt-Schwelle in Dollar festgelegt** (Punkt 6), und die Kennzahl der Messlatte ist die **Relativrendite** (Verhältnis minus 1). Die Kürzung gilt außerdem nur bei Einmalkauf ohne Zwischenflüsse: Dividenden, die zu einem anderen Wechselkurs als dem Kaufkurs umgerechnet werden, brechen sie leicht (Näherung).
+
+Der Wechselkurs spielt trotzdem eine Rolle:
+1. **Absolute Euro-Rendite (F3):** Ein Plus von 8 % in Dollar kann in Euro bei fallendem Dollar ein Minus sein. Wer „im Depot" misst, sieht beides vermischt.
+2. **Maßstab in anderer Währung oder abgesichert** (z. B. ein weltweiter Euro-ETF, ein währungsgesicherter ETF): Dann kürzt sich der Wechselkurs **nicht** heraus, und der Vergleich misst auch die Währungswette. Das ist für F1 zu vermeiden.
+3. **Kaufzeitpunkte:** Käufe an verschiedenen Tagen haben verschiedene Wechselkurse. Das Herauskürzen gilt nur, wenn der Maßstab zum selben Zeitpunkt „gekauft" wird (Punkt 3).
+4. **Nicht geprüft:** Welche Wechselkursquelle benutzt wird (kostenlos, nachvollziehbar, z. B. ein Referenzkurs der Zentralbank); Kosten und Steuern beim Währungswechsel sind nicht Teil der Messlatte. Ob ein Euro-Handelsplatz-ETF und ein Dollar-Fonds dieselbe Rendite liefern, ist nicht geprüft.
+
+### 3. Optionen
+
+**Option A: Einfacher Index-Vergleich in Euro (Depotsicht).**
+- *Maßstab:* ein breiter US-Index (z. B. ein Gesamtmarkt- oder S&P-500-ETF, ungesichert, in Euro gehandelt und ausschüttend wiederangelegt).
+- *Währung:* Euro. *Gewichtung:* gleich gewichtet. *Zeitraum:* 24 Monate ab erstem Kauf. *Abbruch:* nach 24 Monaten liegen die Käufe hinter dem Maßstab.
+- *Vorteile:* sehr einfach, entspricht der Sicht eines Euro-Depots; schwer zu manipulieren.
+- *Nachteile:* Der Index ist nach Marktwert gewichtet (Großkonzerne dominieren); die Auswahl des Systems (gesund, vorerst bis 10 Mrd. $, Qualität/Value) wird gegen den falschen Maßstab gemessen; ein Rückstand kann „nur" ein Größen- oder Stilrückstand sein.
+
+**Option B: Faktorgerechter Maßstab, Vergleich in Dollar, Euro-Rendite getrennt (Empfehlung).**
+- *Maßstab:* zwei Maßstäbe nebeneinander, beide ungesichert in Dollar: ein breiter Index (wie A) **und** ein Faktor-Maßstab für Qualität/Value in der Größenklasse des Systems (z. B. ein US-Mid-/Small-Cap-Value- oder Quality-Fonds). Das konkrete Instrument legt Konstantin fest; ob ein passender, kostenloser und lang genug verfügbarer Kursverlauf existiert, ist **nicht geprüft**.
+- *Währung:* Vergleich mit dem Maßstab in Dollar (oder Euro; ist nach Punkt 2 gleich), zusätzlich die Euro-Rendite der Käufe mit Zeile „Währungseffekt".
+- *Gewichtung:* **gleich gewichtet** für F1 und F2 (misst die Auswahl, nicht die Positionsgröße); zusätzlich **nach tatsächlicher Positionsgröße** für F3 (Depot).
+- *Zeitraum:* mindestens 24 Monate ab dem jeweiligen „Gekauft-Datum"; Zwischenbericht nach 12 Monaten ohne Entscheidungswirkung.
+- *Abbruch:* siehe Punkt 6 (Rückstand gegen **beide** Maßstäbe nach 24 Monaten plus Prozesskennzahlen).
+- *Vorteile:* trennt Auswahl, Urteil und Währung; der Faktor-Maßstab verhindert, dass ein bloßer Stilrückstand als Versagen gilt; der breite Index zeigt, was Konstantin mit einem ETF gehabt hätte.
+- *Nachteile:* mehr Aufwand (zwei Kursreihen und ein Wechselkurs); die Wahl des Faktor-Maßstabs ist selbst subjektiv; ein Faktor-ETF kann Kosten und Steuerfolgen haben, die hier nicht gerechnet werden (nicht geprüft).
+
+**Option C: Eigener Kontrollkorb (mechanischer Screen als Maßstab).**
+- *Maßstab:* ein gleich gewichteter Korb der obersten N Firmen des Stufe-2-Rangs desselben Laufs, ohne Stufe 3 und 4.
+- *Währung:* egal (beide Seiten Dollar-Aktien, Wechselkurs kürzt sich heraus); Euro nur für F3.
+- *Zeitraum:* wie B. *Abbruch:* nur für F2 (Urteil).
+- *Vorteile:* misst genau die Frage, die der Masterplan als Mehrwert nennt (Konstantins Urteil gegen den mechanischen Screen); kein externer Maßstab nötig.
+- *Nachteile:* sagt nichts darüber, ob der Screen selbst etwas taugt (F1); der Korb hängt von N und vom Rang ab; die Stichprobe ist klein; das Ergebnis ist ohne einen externen Maßstab nicht einzuordnen.
+
+### 4. Empfehlung (Entwurf)
+
+**Option B**, und Option C als Zusatz für F2, wenn Stufe 3 läuft. Begründung: Die Frage „Taugt die Auswahl?" lässt sich nur gegen einen Maßstab mit ähnlichem Stil und ähnlicher Größe sauber beantworten; gegen einen Marktindex allein würde ein Stilrückstand wie Versagen aussehen oder ein Stilvorsprung wie Können. Die Währung wird nicht „weggewählt", sondern **getrennt ausgewiesen**: Der Vergleich mit dem Maßstab ist währungsneutral (Punkt 2), und die Euro-Sicht des Depots steht daneben. **Das ist eine Abweichung vom Masterplan Abschnitt 8 („in Euro gerechnet, wie das Depot"):** F1 und das Abbruchkriterium werden in Dollar gerechnet (als Relativrendite ist das Ergebnis in Euro gleich, als Prozentpunkt-Abstand nicht, siehe Punkt 2); F3 (Depotsicht) bleibt in Euro. Der Masterplan sagt auch, der Wechselkurs könne einen Vorsprung „leicht überdecken"; das gilt für F3, nicht für F1. Die Abweichung wird mit dem Merge dieses Textes wirksam und ändert den Masterplan-Text nicht; Konstantin kann sie ablehnen (dann gilt Euro für alles, mit dem Nachteil aus Punkt 2). Ebenso ist die Forderung nach **zwei** Maßstäben in Option B eine Verschärfung gegenüber „ein Index oder ein ETF" im Masterplan.
+
+### 5. Festlegungen für Option B (Entwurf; Zahlen sind Startwerte ohne Messgrundlage)
+
+1. **„Gekauft"-Zeitpunkt:** Für F2 und das Abbruchkriterium zählt ein Name ab dem **Signaltag** (Datum des Laufs, Kurs am Lauftag nach Roadmap A.1, also der letzte Schlusskurs im Datensatz mit Datum), unabhängig davon, ob und wann gekauft wird. Für F3 zählt der **tatsächliche Kaufkurs und das tatsächliche Kaufdatum**. So wird ein Rückstand durch langsames Kaufen nicht dem System angelastet, und ein Nichtkaufen wird sichtbar.
+2. **Gleiche Zeitpunkte für den Maßstab:** Der Maßstab wird am selben Tag mit demselben Betrag „gekauft" und am selben Tag bewertet wie der Name (nachgebildete Käufe). Neue Käufe später bekommen ihren eigenen Startpunkt.
+3. **Dividenden:** Gesamtrendite (Ausschüttungen wiederangelegt) auf beiden Seiten. Ob die verwendeten Kurse bereinigt sind und ob SimFin Free bereinigte Kurse liefert, ist **nicht geprüft**; ohne bereinigte Kurse wäre die Seite der Aktien benachteiligt.
+4. **Kosten und Steuern:** Nicht in der Messlatte (weder Spesen noch Abgeltungsteuer noch Quellensteuer). Sie werden im Bericht getrennt als Hinweis genannt. Ob das den Vergleich mit einem thesaurierenden ETF verzerrt, ist **nicht geprüft**.
+5. **Wechselkurs:** Eine feste, kostenlose, nachvollziehbare Quelle für den Euro-Dollar-Kurs je Stichtag; die Auswahl legt Konstantin fest, bevor der erste Lauf archiviert wird. Nicht geprüft, welche Quelle in Frage kommt und ob sie für den Zeitraum lückenlos ist.
+6. **Zeitraum:** mindestens 24 Monate (Masterplan: 18 bis 24); erst dann gilt das Abbruchkriterium. Ein Zwischenbericht nach 12 Monaten ändert nichts.
+
+### 6. Abbruchkriterium (Entwurf, Startwerte als Platzhalter, ohne Messgrundlage)
+
+Schriftlich vorab. Das System wird **nicht fortgeführt, bis Konstantin neu entschieden hat**, wenn eine der folgenden Bedingungen eintritt. **Nur Kriterium 1 ist an die Mindestdauer gebunden; die Kriterien 2 und 3 sind Frühwarnungen und gelten laufend** (Prüfung nach jedem Lauf, sobald die Mindestzahl erreicht ist).
+1. **Rückstand (erst nach mindestens 24 Monaten ab dem Signaltag der jeweiligen Position; Positionen unter 24 Monaten zählen noch nicht):** Die Relativrendite in **Dollar** der gleich gewichteten Käufe liegt gegenüber dem **stärkeren der beiden Maßstäbe** um mehr als **X Prozentpunkte pro Jahr** im Minus (Startwert-Platzhalter X = 3; kein Beleg, Konstantin setzt ihn). **Warnung:** Bei 10–15 Positionen streut der Abstand zu einem Index von Jahr zu Jahr vermutlich stark (ungeprüfte Schätzung des Kritikers, keine Messung: grob mittlerer einstelliger bis niedriger zweistelliger Prozentbereich); ein Rückstand von 3 Prozentpunkten wäre dann auch ohne Fehler des Systems keine Seltenheit, X = 3 kann also einen **Fehlalarm** auslösen und fängt kein „grobes" Versagen. Das Kriterium ist deshalb ein Anlass zum Nachdenken und zur Neuentscheidung durch Konstantin, kein Urteil.
+2. **Kill-Kriterien greifen auffällig oft (laufend):** Von den Finalisten, die in Stufe 3 geprüft wurden (alle Läufe zusammen, **mindestens 10 geprüfte Finalisten**, sonst keine Auswertung), scheiden mehr als **Y Prozent durch Kill-Kriterium** aus (Platzhalter Y = 50; kein Beleg). Datenfehler zählen hier **nicht** mit (sie stehen in Kriterium 3).
+3. **Datenqualität (laufend):** Die Handprüfung findet bei mehr als **Z Prozent** der geprüften Finalisten (mindestens 10 geprüft) einen Datenfehler, der die Aufnahme geändert hätte (Platzhalter Z = 20; kein Beleg; gleichwertig mit „mehr als 2 von 10"). Das fängt einen Prozessfehler, den die Rendite noch nicht zeigt. **Hinweis zum Beispiel:** Die Handprüfung vom 07.10.2026 fand einen Datenfehler bei XPER (Rang 4 der 41 in Stufe 2, nicht in Stufe 3; Angabe von Konstantin, ungeprüft von mir); es wäre ein Beispiel für diese Art von Fehler, nicht für eine ausgelöste Bedingung.
+
+Die Platzhalter ändern nur durch eine eigene Entscheidung (analog zu den Trend-Guard-Platzhaltern). Eine Währungsbewegung allein löst kein Kriterium aus, denn Kriterium 1 misst die Relativrendite in Dollar gegen ungesicherte Maßstäbe.
+
+### 7. Was die Messlatte nicht leistet
+
+- Sie **beweist keinen Vorsprung**. Bei 10–15 Positionen braucht es grob gerechnet Jahrzehnte, um 2–3 % pro Jahr vom Zufall zu trennen (Masterplan Abschnitt 8); sie erkennt grobes Versagen und Prozessfehler.
+- Sie ersetzt keine Prüfung der Daten: Die Zahlen des Forward-Logs sind nur so gut wie die Handprüfung der Finalisten (feste Stufe-3-Prüfung).
+- Sie legt kein Instrument fest: ETF-Namen, Kennnummern und Verfügbarkeit klärt Konstantin.
+
+### 8. Offene Fragen für Konstantin (getrennt zu beantworten)
+
+1. **Option:** A, B (empfohlen), C allein, oder B plus C?
+2. **Instrumente:** Welcher breite Index-Maßstab und welcher Faktor-Maßstab (Option B)? Das Instrument legt laut Masterplan er fest.
+3. **Wechselkursquelle** für die Euro-Rendite (Punkt 5, Nr. 5).
+4. **Startwerte** X, Y, Z (Punkt 6), die Mindestzahl von 10 geprüften Finalisten und die Mindestdauer 24 Monate; bei Option C zusätzlich die Größe **N** des Kontrollkorbs.
+5. **Kosten und Steuern:** nur als Hinweis (Entwurf) oder in die Messlatte?
+6. **„Gekauft"-Zeitpunkt** (Punkt 5, Nr. 1): Signaltag für F1/F2 und tatsächlicher Kauf für F3 so in Ordnung?
+
+### 9. Bekannte Lücken und Ungeprüftes
+
+- Es wurden **keine Daten** abgerufen und keine Instrumente geprüft; Verfügbarkeit, Kosten und Kursverlauf eines Faktor-Maßstabs sind offen.
+- Ob SimFin Free bereinigte Kurse (Dividenden, Splits) liefert, ist nicht geprüft; die Kurse im Cache sind laut bisherigen Einträgen für den Vorfilter und die Marktkapitalisierung genutzt worden, nicht für Renditen.
+- Der Wechselkurs-Kürzungssatz (Punkt 2) gilt nur bei gleichem Zeitraum und gleicher Währung beider Seiten; bei Käufen zu verschiedenen Zeitpunkten ist er eine Näherung, solange Maßstab und Kauf nicht zeitgleich nachgebildet werden.
+- Die Platzhalter X = 3, Y = 50, Z = 20 haben keine Messgrundlage und sind ausdrücklich nur Startwerte zur Entscheidung.
+- Steuern, Spesen und Quellensteuer sind nicht gerechnet (Punkt 5, Nr. 4).
+
+### 10. Entscheidung von Konstantin (08.10.2026)
+
+Konstantin hat die **Empfehlung (Option B)** angenommen: „Ja, deine Empfehlung für #77 passt." Als Beschluss gilt damit, mit dem Merge dieses Texts:
+- **Option B** für F1 und das Abbruchkriterium (zwei ungesicherte Dollar-Maßstäbe, ein breiter Index und ein Faktor-Maßstab für Qualität/Value; Vergleich als Relativrendite in Dollar; Euro-Rendite der Käufe mit eigener Zeile „Währungseffekt"). **Option C** kommt als Zusatz für F2 (Urteil), wenn Stufe 3 läuft.
+- Die Festlegungen aus Punkt 5 (Signaltag für F1 und F2, tatsächlicher Kauf für F3, nachgebildete Maßstabskäufe am selben Tag, Gesamtrendite, Kosten und Steuern nur als Hinweis, Mindestdauer 24 Monate für Kriterium 1) und das Abbruchkriterium aus Punkt 6 **mit den Platzhaltern X = 3, Y = 50, Z = 20 und der Mindestzahl von 10 geprüften Finalisten** gelten als Startwerte. Sie ändern sich nur durch eine eigene Entscheidung.
+- Die Abweichung vom Masterplan §8 (Vergleich in Dollar statt Euro, zwei Maßstäbe statt einem) gilt damit als angenommen.
+
+**Noch offen (nicht entschieden, weil Konstantin sie nicht genannt hat):** Die **konkreten Instrumente** beider Maßstäbe (Frage 2), die **Wechselkursquelle** (Frage 3) und die Größe N für Option C (Frage 4). Vor dem ersten archivierten Lauf (Roadmap A.3) müssen sie feststehen; bis dahin ist die Messlatte nicht vollständig. Ob der Faktor-Maßstab zur Größenklasse passt, ist neu zu entscheiden, sobald die Obergrenze der Marktkapitalisierung entfällt (Roadmap C.8).
+
+**Alternativen zur ganzen Messlatte:** (a) gar keine feste Messlatte, nur Bericht: verworfen, weil jedes Ergebnis dann nachträglich zurechtgelegt werden kann. (b) Messlatte erst nach dem ersten Zwischenbericht festlegen: verworfen; Roadmap 0.3 und Masterplan Abschnitt 8 verlangen sie vor dem ersten archivierten Lauf.
+
+**How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag. Danach: Roadmap A.1 (Kurs am Lauftag), A.3 (erster archivierter Lauf) und ein späterer Messbericht (Spur P) nach den hier festgelegten Regeln.
