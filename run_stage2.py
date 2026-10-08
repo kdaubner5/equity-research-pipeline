@@ -68,6 +68,7 @@ from gates_layer.stage2_gates import (  # noqa: E402
 )
 from metrics_layer.plausibility import SHARE_AMBIGUOUS, SHARE_OK, SHARE_SUSPECT, SHARE_UNCHECKED  # noqa: E402
 from metrics_layer.result import MetricInputError  # noqa: E402
+from store_layer.rule_state import RuleStateError, capture_rule_state  # noqa: E402
 from store_layer.stage2_store import export_stage2_csv, save_stage2_results  # noqa: E402
 
 EXIT_OK = 0
@@ -268,6 +269,18 @@ def run(
             profiles = load_sector_profiles(sector_profiles_path)
         except SectorProfilesConfigError as exc:
             raise Stage2RunError(f"sector profiles config invalid: {exc}") from exc
+        # Rule state once, at the start (docs/decisions.md "Regelstand und Kurs je Lauf", Punkt 6): a missing or
+        # unreadable rule file stops the run before anything is evaluated or written.
+        try:
+            rule_state = capture_rule_state(
+                rule_paths={
+                    "config/thresholds.yaml": thresholds_path,
+                    "config/stage2.yaml": stage2_config_path,
+                    "config/sector_profiles.yaml": sector_profiles_path,
+                }
+            )
+        except RuleStateError as exc:
+            raise Stage2RunError(str(exc)) from exc
 
         prefilter_ts, rows = load_prefilter_rows(db_path, prefilter_run_timestamp)
         stage1_results = load_stage1_survivors(db_path, stage1_run_timestamp)
@@ -354,6 +367,7 @@ def run(
                 config_hash=config_hash,
                 peer_base_size=base_summary.size,
                 simfin_ids=simfin_ids,
+                rule_state=rule_state,
                 db_path=archive_db_path,
             )
         except Exception as exc:

@@ -41,6 +41,7 @@ from typing import Dict
 
 from gates_layer.stage1_gates import FAILED, GateResult, NOT_EVALUABLE, UNSUPPORTED_BUSINESS_MODEL, rank_companies
 from gates_layer.universe_prefilter import EXCLUDED, PASSED, PREFILTER_REASONS
+from store_layer.rule_state import write_rule_state
 
 # Anchored to the repo root (src/store_layer/db.py -> repo root is two
 # parents up), not the process's current working directory - a cron
@@ -91,6 +92,17 @@ def _ensure_config_hash_column(connection, table):
     existing_columns = {row[1] for row in connection.execute(f"PRAGMA table_info({table})")}
     if "config_hash" not in existing_columns:
         connection.execute(f"ALTER TABLE {table} ADD COLUMN config_hash TEXT")
+
+
+def _ensure_nullable_column(connection, table, column, sql_type):
+    """Add a nullable column to a table created before it existed (docs/decisions.md "Regelstand und Kurs je Lauf").
+
+    No default: existing rows read back NULL, meaning "not recorded then" (like config_hash in runs). A second call
+    is a no-op (PRAGMA table_info check). table/column/sql_type are always this module's own constants.
+    """
+    existing_columns = {row[1] for row in connection.execute(f"PRAGMA table_info({table})")}
+    if column not in existing_columns:
+        connection.execute(f"ALTER TABLE {table} ADD COLUMN {column} {sql_type}")
 
 
 def _ensure_data_quality_flags_column(connection, table):
@@ -177,7 +189,8 @@ def init_db(db_path=DEFAULT_DB_PATH):
                 run_timestamp TEXT PRIMARY KEY,
                 companies_evaluated INTEGER NOT NULL,
                 survivors_count INTEGER NOT NULL,
-                config_hash TEXT
+                config_hash TEXT,
+                prefilter_run_timestamp TEXT
             )
             """
         )
@@ -201,6 +214,8 @@ def init_db(db_path=DEFAULT_DB_PATH):
                 status TEXT NOT NULL,
                 reason TEXT,
                 config_hash TEXT NOT NULL,
+                close_price_usd REAL,
+                shares_outstanding REAL,
                 PRIMARY KEY (run_timestamp, simfin_id)
             )
             """
@@ -210,6 +225,9 @@ def init_db(db_path=DEFAULT_DB_PATH):
         _ensure_profile_columns(connection, "run_results")
         _ensure_profile_columns(connection, "eliminated_results")
         _ensure_config_hash_column(connection, "runs")
+        _ensure_nullable_column(connection, "runs", "prefilter_run_timestamp", "TEXT")
+        _ensure_nullable_column(connection, "universe_prefilter", "close_price_usd", "REAL")
+        _ensure_nullable_column(connection, "universe_prefilter", "shares_outstanding", "REAL")
         connection.commit()
     finally:
         connection.close()
@@ -278,9 +296,16 @@ def _eliminated_rows(gate_results: Dict[str, GateResult]):
     ]
 
 
-def save_run_results(run_timestamp, gate_results, *, config_hash, db_path=DEFAULT_DB_PATH):
+def save_run_results(
+    run_timestamp, gate_results, *, config_hash, rule_state, prefilter_run_timestamp=None, db_path=DEFAULT_DB_PATH
+):
     """Persist one run: exactly one `runs` row, its survivors in `run_results`,
     and its eliminated companies in `eliminated_results`.
+
+    rule_state (store_layer.rule_state.RuleState, docs/decisions.md "Regelstand und Kurs je Lauf", Punkt 6) is
+    written in the same transaction as step 'stage1'; required, no default, None for a caller with no real rule
+    state (e.g. a test of archiving mechanics) - then no rule-state rows are written. prefilter_run_timestamp is
+    the universe_prefilter run the survivors came from (NULL = not recorded).
 
     config_hash (docs/decisions.md, "Schwellen nach config/thresholds.yaml")
     is the SHA-256 of the thresholds file that produced this run's
@@ -333,9 +358,12 @@ def save_run_results(run_timestamp, gate_results, *, config_hash, db_path=DEFAUL
     connection = sqlite3.connect(db_path)
     try:
         connection.execute(
-            "INSERT INTO runs (run_timestamp, companies_evaluated, survivors_count, config_hash) VALUES (?, ?, ?, ?)",
-            (run_timestamp, len(gate_results), len(survivor_rows), config_hash),
+            "INSERT INTO runs (run_timestamp, companies_evaluated, survivors_count, config_hash, prefilter_run_timestamp) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (run_timestamp, len(gate_results), len(survivor_rows), config_hash, prefilter_run_timestamp),
         )
+        if rule_state is not None:
+            write_rule_state(connection, "stage1", run_timestamp, rule_state)
         connection.executemany(
             """
             INSERT INTO run_results (
@@ -457,12 +485,14 @@ def _prefilter_rows(results):
                 result.price_date.isoformat() if result.price_date is not None else None,
                 result.status,
                 result.reason,
+                result.close_price_usd,
+                result.shares_outstanding,
             )
         )
     return rows
 
 
-def save_universe_prefilter(run_timestamp, results, *, config_hash, db_path=DEFAULT_DB_PATH):
+def save_universe_prefilter(run_timestamp, results, *, config_hash, rule_state, db_path=DEFAULT_DB_PATH):
     """Persist one universe pre-filter run: one universe_prefilter row per
     company - passed and excluded alike, with market cap / median dollar
     volume / price date kept for the excluded ones too.
@@ -474,6 +504,10 @@ def save_universe_prefilter(run_timestamp, results, *, config_hash, db_path=DEFA
     Plain INSERT in one transaction, never REPLACE: the archive is a
     historical record, so re-saving a (run_timestamp, simfin_id) fails
     (sqlite3.IntegrityError) and leaves the run's other rows unwritten.
+
+    Each row also keeps the close price and the share count of the last priced row (close_price_usd /
+    shares_outstanding, NULL where the data has none), and rule_state (required, None = none to report) is
+    written as step 'prefilter' in the same transaction (docs/decisions.md "Regelstand und Kurs je Lauf").
     """
     _require_run_timestamp_str(run_timestamp)
     if not isinstance(config_hash, str) or not config_hash:
@@ -488,11 +522,13 @@ def save_universe_prefilter(run_timestamp, results, *, config_hash, db_path=DEFA
             INSERT INTO universe_prefilter (
                 run_timestamp, simfin_id, ticker, sector_code, market_cap_usd,
                 median_dollar_volume_usd, median_window_rows, price_date,
-                status, reason, config_hash
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                status, reason, config_hash, close_price_usd, shares_outstanding
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            [(run_timestamp, *row, config_hash) for row in rows],
+            [(run_timestamp, *row[:9], config_hash, *row[9:]) for row in rows],
         )
+        if rule_state is not None:
+            write_rule_state(connection, "prefilter", run_timestamp, rule_state)
         connection.commit()
     finally:
         connection.close()

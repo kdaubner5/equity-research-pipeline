@@ -68,6 +68,7 @@ from config_layer.sector_profiles import (  # noqa: E402
 from data_layer import simfin_fundamentals as sf  # noqa: E402
 from gates_layer.stage1_gates import GateResult, NOT_EVALUABLE, unsupported_business_model_result  # noqa: E402
 from store_layer.db import DEFAULT_CSV_DIR, DEFAULT_DB_PATH, export_survivors_csv, save_run_results  # noqa: E402
+from store_layer.rule_state import RuleStateError, capture_rule_state  # noqa: E402
 
 from run_fundamentals import DEFAULT_CACHE_DIR as DEFAULT_FUNDAMENTALS_CACHE_DIR  # noqa: E402
 from run_fundamentals import FundamentalsRunError, load_survivor_ids  # noqa: E402
@@ -232,6 +233,14 @@ def run(
             profiles = load_sector_profiles(sector_profiles_path)
         except SectorProfilesConfigError as exc:
             raise Stage1FullRunError(f"sector profiles config invalid: {exc}") from exc
+        # Rule state once, at the start (docs/decisions.md "Regelstand und Kurs je Lauf", Punkt 6): a missing or
+        # unreadable rule file stops the run before anything is evaluated or written.
+        try:
+            rule_state = capture_rule_state(
+                rule_paths={"config/thresholds.yaml": thresholds_path, "config/sector_profiles.yaml": sector_profiles_path}
+            )
+        except RuleStateError as exc:
+            raise Stage1FullRunError(str(exc)) from exc
 
         source_run_timestamp, rows = load_survivors(db_path, run_timestamp)
 
@@ -311,7 +320,10 @@ def run(
         csv_path = None
         try:
             csv_path = export_survivors_csv(run_timestamp_archive, gate_results, output_dir=csv_dir)
-            save_run_results(run_timestamp_archive, gate_results, config_hash=config_hash, db_path=archive_db_path)
+            save_run_results(
+                run_timestamp_archive, gate_results, config_hash=config_hash, rule_state=rule_state,
+                prefilter_run_timestamp=source_run_timestamp, db_path=archive_db_path,
+            )
         except Exception as exc:
             if csv_path is not None:
                 csv_path.unlink(missing_ok=True)

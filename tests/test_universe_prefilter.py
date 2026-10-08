@@ -376,3 +376,41 @@ def test_unknown_underscore_tickers_are_listed_but_not_treated_as_marked():
     tickers = ["A_x", "B_old", "C", None, "D_delisted", "E_merged", "F_OLD"]
     assert pf.unknown_underscore_tickers(tickers) == ["A_x", "E_merged"]
     assert evaluate(rows(), entry=entry_with_ticker("E_merged")).reason is None  # a new marker form is not excluded
+
+
+# --- close price and share count kept next to the market cap (docs/decisions.md "Regelstand und Kurs je Lauf", Punkt 4) ---
+
+
+def test_close_price_and_share_count_of_the_last_priced_row_are_kept():
+    result = evaluate(rows())
+    assert (result.close_price_usd, result.shares_outstanding) == (CLOSE, 20_000_000)
+
+
+@pytest.mark.parametrize("shares", [None, 0, -5.0])
+def test_close_price_survives_a_missing_or_non_positive_share_count(shares):
+    result = evaluate(rows(shares=shares))
+    assert result.reason == pf.NO_SHARES
+    assert result.close_price_usd == CLOSE
+    assert result.shares_outstanding is None and result.market_cap_usd is None
+
+
+def test_a_stale_company_keeps_its_old_close_price_and_date():
+    result = evaluate(rows(last=AS_OF - timedelta(days=30)))
+    assert result.reason == pf.PRICE_STALE
+    assert result.close_price_usd == CLOSE and result.price_date == AS_OF - timedelta(days=30)
+
+
+def test_no_price_data_means_no_close_price_and_no_shares():
+    result = evaluate(None)
+    assert result.reason == pf.NO_PRICE_DATA
+    assert (result.close_price_usd, result.shares_outstanding) == (None, None)
+
+
+def test_market_cap_is_close_times_shares_for_a_row_with_both():
+    result = evaluate(rows(close=12.5, shares=8_000_000))
+    assert result.market_cap_usd == result.close_price_usd * result.shares_outstanding == 100_000_000.0
+
+
+def test_runner_excluded_has_no_close_price_and_no_shares():
+    result = pf.runner_excluded(ENTRY, pf.NOT_FETCHED)
+    assert (result.close_price_usd, result.shares_outstanding) == (None, None)

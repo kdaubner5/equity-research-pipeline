@@ -60,6 +60,7 @@ from gates_layer.stage1_gates import (  # noqa: E402
 from metrics_layer.result import MetricInputError  # noqa: E402
 from pipeline import evaluate_company  # noqa: E402
 from store_layer.db import DEFAULT_CSV_DIR, DEFAULT_DB_PATH, export_survivors_csv, save_run_results  # noqa: E402
+from store_layer.rule_state import RuleStateError, capture_rule_state  # noqa: E402
 
 DEFAULT_UNIVERSE_PATH = _REPO_ROOT / "config" / "universe.txt"
 DEFAULT_ENV_PATH = _REPO_ROOT / ".env"
@@ -270,6 +271,12 @@ def run(
         if api_key is None:
             api_key = resolve_api_key()
         thresholds, config_hash = resolve_thresholds(thresholds_path)
+        # Rule state once, at the start (docs/decisions.md "Regelstand und Kurs je Lauf", Punkt 6 und Frage 6): a
+        # missing or unreadable rule file stops the run before anything is fetched or written.
+        try:
+            rule_state = capture_rule_state(rule_paths={"config/thresholds.yaml": thresholds_path})
+        except RuleStateError as exc:
+            raise Stage1RunError(str(exc)) from exc
         tickers = load_universe(universe_path)
         try:
             company_list = fetch_companies_list(api_key)
@@ -301,7 +308,7 @@ def run(
         csv_path = None
         try:
             csv_path = export_survivors_csv(run_timestamp, gate_results, output_dir=csv_dir)
-            save_run_results(run_timestamp, gate_results, config_hash=config_hash, db_path=db_path)
+            save_run_results(run_timestamp, gate_results, config_hash=config_hash, rule_state=rule_state, db_path=db_path)
         except Exception as exc:
             if csv_path is not None:
                 csv_path.unlink(missing_ok=True)

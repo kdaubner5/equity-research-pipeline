@@ -300,7 +300,7 @@ def _seed_stage2(db_path, passed, failed):
     save_stage2_results(
         "2026-10-07T12:00:00", results=results, ranked=ranked, stage1_run_timestamp=STAGE1_TS,
         prefilter_run_timestamp=PREFILTER_TS, as_of="2026-09-24", config_hash="x", peer_base_size=9,
-        simfin_ids={}, db_path=db_path,
+        simfin_ids={}, db_path=db_path, rule_state=None,
     )
 
 
@@ -386,7 +386,7 @@ def test_the_stage2_block_counts_passers_with_flags_too(tmp_path):
     save_stage2_results(
         "2026-10-07T12:00:00", results=results, ranked=[("CENT", results["CENT"]), ("SCSC", results["SCSC"])],
         stage1_run_timestamp=STAGE1_TS, prefilter_run_timestamp=PREFILTER_TS, as_of="2026-09-24", config_hash="x",
-        peer_base_size=9, simfin_ids={}, db_path=stage2_db,
+        peer_base_size=9, simfin_ids={}, db_path=stage2_db, rule_state=None,
     )
     code, out = world.run(stage2_results_db_path=stage2_db, stage2_run_timestamp="2026-10-07T12:00:00")
     assert code == 0, out
@@ -403,3 +403,34 @@ def test_a_caller_side_input_error_aborts_before_anything_is_written(tmp_path, m
     monkeypatch.setattr(run_trend_guard, "evaluate_trend", boom)
     code, _ = world.run()
     assert code == run_trend_guard.EXIT_TECHNICAL_FAILURE and nothing_written(world)
+
+
+# ---------------------------------------------------------------- rule state (docs/decisions.md "Regelstand und Kurs je Lauf")
+
+
+def _trend_argv(world):
+    return [
+        "--db-path", str(world.source_db), "--archive-db-path", str(world.archive_db), "--csv-dir", str(world.csv_dir),
+        "--fundamentals-cache-dir", str(world.cache_root), "--stage1-run-timestamp", STAGE1_TS, "--run-timestamp", TREND_TS,
+    ]
+
+
+def test_the_run_archives_its_rule_state_with_the_four_rule_files(tmp_path):
+    from store_layer.rule_state import RULE_FILES
+
+    world = TrendWorld(tmp_path)
+    assert run_trend_guard.main(_trend_argv(world)) == 0
+    assert world.trend("SELECT step, run_timestamp FROM run_rule_state") == [("trend", TREND_TS)]
+    assert {r[0] for r in world.trend("SELECT path FROM run_rule_files")} == set(RULE_FILES)
+
+
+def test_a_missing_rule_file_stops_the_trend_run_and_writes_nothing(monkeypatch, tmp_path):
+    from store_layer.rule_state import RuleStateError
+
+    def broken(**kwargs):
+        raise RuleStateError("rule file config/stage2.yaml not readable")
+
+    monkeypatch.setattr(run_trend_guard, "capture_rule_state", broken)
+    world = TrendWorld(tmp_path)
+    assert run_trend_guard.main(_trend_argv(world)) == 1
+    assert nothing_written(world)
