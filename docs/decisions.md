@@ -1813,3 +1813,78 @@ Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein 
 - Die Yahoo-Prüfung deckt die genannten Firmen ab, nicht alle 41; die Prüfung der Finalisten in Stufe 3 ist der feste Schritt dafür.
 - Die Hypothesen sind erfüllt, über die inhaltliche Richtigkeit der Marken sagt das nichts.
 - Die Messung nennt keine Zahlen für Rangwirkung; die Folgeentscheidung über eine Rangwirkung steht weiter aus (hier nur: vorerst nicht).
+
+## 2026-10-08: Regelstand und Kurs je Lauf im Archiv (Roadmap A.1; Issues #28, #36, #48) (Agent-Entscheidung, Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin; **bis dahin wird kein Code geschrieben.** Branch `agent/regelstand-kurs-entwurf` (von `master`), nur Dokumentation. Klasse C: Der Text ändert das Archiv-Schema und legt fest, was als Beleg eines Laufs gilt. Keine echte Datenbank, keine SimFin-Calls; Tests würden nur auf Kopien oder Testdaten laufen.
+
+**In einfachen Worten**
+- Das Archiv soll jeden Lauf so festhalten, dass man später sieht, **mit welchen Regeln** und **zu welchem Kurs** er gerechnet hat. Heute steht nur ein Hash (eine Art Fingerabdruck) der Schwellen-Datei im Archiv. Aus einem Hash lässt sich der Inhalt nicht zurückrechnen, und er sagt nichts darüber, welcher Code lief oder ob jemand die Dateien gerade geändert hatte.
+- Vorschlag: Je Lauf speichern wir (1) die Kennnummer des Code-Stands (Commit), (2) den **Inhalt** der Regel-Dateien, (3) eine **Marke**, wenn beim Lauf nicht committete Änderungen vorlagen, und (4) den **letzten Schlusskurs im Datensatz** je Firma des Vorfilters mit dem Kursdatum.
+- **Schlimmster Fall:** Ohne diese Spur ändert sich eine Regel, ohne dass das Archiv es zeigt, und die Erfolgsbilanz vergleicht Läufe mit verschiedenen Regeln, als wären sie gleich (genau das, was der Hash heute nicht verhindert, siehe Befund unten). Mit der Änderung selbst ist das Risiko klein: Es kommen nur neue Tabellen und Spalten dazu, bestehende Werte bleiben unverändert. Zurückdrehen lässt sich der Code; ein Archiv, das schon mit den neuen Tabellen geschrieben wurde, behält sie.
+
+**Befund (belegt aus Repo und Issues, Stand `master` vom 08.10.2026):**
+- In `docs/decisions.md` steht **kein freigegebener Text** zu Regelstand mit Inhalt, Commit oder Marke und keiner zu „Kurs am Lauftag". Der Eintrag „Masterplan v1.1 übernommen" (Entscheidung 4) und der Eintrag zum Store-Layer (Entscheidung 5) haben den Kurs ausdrücklich **vertagt**, bis ein Preis-Client existiert (Issue #28). Deshalb gibt es hier nur diesen Entwurf.
+- `runs.config_hash` ist der Hash der Datei `config/thresholds.yaml` (nach Normalisierung der Zeilenenden). `stage2_runs.config_hash` und `trend_runs.config_hash` hashen je ihre eigene Datei (`stage2.yaml`, `trend_guard.yaml`). `universe_prefilter.config_hash` gehört zum Vorfilter-Lauf. `config/sector_profiles.yaml` ist in keinem Hash.
+- Es wird **kein Code-Commit** gespeichert, **keine Marke** für nicht committete Änderungen und **kein Dateiinhalt**. Das Sammel-Issue #48 beschreibt: Läufe vor und nach einer Regeländerung tragen denselben Hash (Beispiel: Status-Vorrang aus PR #47); Issue #36: ein Hash lässt sich nicht zurückrechnen, eine nicht committete Änderung hinterlässt einen Hash ohne Git-Stand.
+- Von den Kursen ist im Archiv heute nur `universe_prefilter.market_cap_usd` und `price_date` (je Firma des Vorfilters) gespeichert, **nicht der Schlusskurs selbst** und nicht die Aktienzahl. Beide stehen im Datensatz der Preise (`PriceRow.close`, `PriceRow.shares` in `src/data_layer/simfin_universe.py`); die Marktkapitalisierung wird daraus berechnet. Ein Preis-Client wie in Issue #28 beschrieben (stooq/yfinance) ist nicht nötig, weil SimFin Free die Kurse liefert (Masterplan v2.0 Abschnitt 3 und Roadmap 0.5).
+
+**Entscheidung (Entwurf):**
+
+1. **Was je Lauf gespeichert wird.** Für jeden Lauf eines Schritts (Vorfilter, Stufe 1, Stufe 2, Trend-Guard) mit seinem `run_timestamp`:
+   - `git_commit`: die 40 Zeichen von `git rev-parse HEAD` zum Zeitpunkt des Laufs;
+   - `code_state`: `clean`, `dirty` oder `unknown` (siehe Punkt 3);
+   - `dirty_paths`: bei `dirty` die Liste der betroffenen Pfade (höchstens 50, danach ein Hinweis „und N weitere");
+   - die **Regel-Dateien mit Inhalt** (Punkt 2).
+   Altläufe behalten `NULL` („nicht erfasst"). **Kein Rückfüllen**: Eine nachträglich eingesetzte Regel wäre eine Behauptung ohne Beleg.
+
+2. **Regel-Dateien.** Gespeichert wird der **Inhalt** (UTF-8, Zeilenenden auf `\n` normalisiert, derselbe Weg wie bei den bestehenden Hashes), dazu sein SHA-256. Die Liste der Regel-Dateien ist eine Konstante im Code mit Test: `config/thresholds.yaml`, `config/stage2.yaml`, `config/trend_guard.yaml`, `config/sector_profiles.yaml`. **Nicht dazu gehören** `config/bash_guard.yaml` (Schutz des Agenten, keine Screening-Regel) und `config/universe.txt` (Pilotliste). Ein Test schlägt an, wenn eine neue Datei in `config/` weder in der Liste noch in der Ausnahmeliste steht, damit eine neue Regel-Datei nicht stillschweigend fehlt. Der bestehende `config_hash` bleibt unverändert (Kompatibilität, keine Hash-Änderung in `runs`).
+
+3. **Marke „nicht committete Änderungen".** `code_state` wird aus `git status --porcelain` (nur Lesen) bestimmt:
+   - `dirty`, wenn eine **versionierte** Datei geändert, hinzugefügt oder gelöscht (auch in der Staging-Area) ist, oder eine **nicht versionierte** Datei in `config/`, `src/` oder eine Datei `run_*.py` im Wurzelverzeichnis liegt. Sonstige nicht versionierte Dateien (z. B. persönliche Skripte im Wurzelverzeichnis wie `check_tickers.py`) zählen **nicht**, sonst wäre jeder Lauf auf Konstantins PC „dirty".
+   - `clean`, wenn nichts davon zutrifft.
+   - `unknown` (gespeichert als Text, nicht als Wahrheitswert), wenn `git` nicht aufrufbar ist oder das Verzeichnis kein Repository ist (z. B. eine Kopie ohne `.git`). Dann steht `git_commit` als `NULL`. Der Bericht des Laufs nennt das ausdrücklich, statt still „clean" zu behaupten.
+   Warum nur eine Marke und kein vollständiger Diff? Für die **Regeln** ist der Inhalt gespeichert (Punkt 2). Für den **Code** genügt Commit plus Marke plus Pfadliste, um zu wissen, dass der Lauf nicht genau diesem Commit entspricht; ein vollständiger Diff würde große Texte ins Archiv bringen. Bei Bedarf ist das eine spätere Entscheidung.
+
+4. **Kurs am Lauftag.** Gespeichert wird je Firma der Vorfilter-Zeile `universe_prefilter` der **letzte Schlusskurs im Datensatz** und die **Aktienzahl** derselben Zeile, in Dollar, zusammen mit dem schon vorhandenen `price_date`. „Kurs am Lauftag" heißt also: der letzte Schlusskurs im Datensatz (höchstens 5 Tage alt, siehe Vorfilter), nicht ein Kurs zu einer Uhrzeit des Lauftags. Neue, **nullbare** Spalten `close_price_usd REAL` und `shares_outstanding REAL` in `universe_prefilter`; `NULL` bei Altläufen und bei Firmen ohne Kurs. Kein Wechselkurs hier (der gehört zur Messlatte, Roadmap 0.3).
+   - **Alternative:** eine eigene Tabelle `run_prices`. Verworfen für den Entwurf: Die Zeilen (eine je Firma und Lauf) liegen schon in `universe_prefilter`; zwei Tabellen mit demselben Schlüssel bringen nur Pflegeaufwand.
+   - Nur für Firmen, die im Vorfilter ein Ergebnis haben; Firmen ohne Preisdaten bekommen `NULL` (nicht 0).
+
+5. **Wo es gespeichert wird (Schema).** Nur **neue** Tabellen mit `CREATE TABLE IF NOT EXISTS` (wie bei Stufe 2 und Trend-Guard) plus zwei nullbare Spalten per `ALTER TABLE ... ADD COLUMN` in `universe_prefilter` nach dem bestehenden Muster der `_ensure_*`-Funktionen:
+   - `run_rule_state(step TEXT, run_timestamp TEXT, git_commit TEXT, code_state TEXT, dirty_paths TEXT, PRIMARY KEY (step, run_timestamp))` mit `step` in `prefilter`, `stage1`, `stage2`, `trend`;
+   - `run_rule_files(step TEXT, run_timestamp TEXT, path TEXT, sha256 TEXT NOT NULL, PRIMARY KEY (step, run_timestamp, path))`;
+   - `rule_file_contents(sha256 TEXT PRIMARY KEY, content TEXT NOT NULL)`, dedupliziert: gleiche Dateien in vielen Läufen werden einmal gespeichert; Test: `sha256(content)` stimmt mit dem Schlüssel überein.
+   Die Vorfilter-Spalten sind die **einzige** Änderung an einer bestehenden Tabelle; Werte der bestehenden Spalten bleiben unverändert (Golden Master: 0 Diffs).
+
+6. **Wann und wie geschrieben.** In derselben Transaktion wie die Ergebnisse des Laufs (alles oder nichts, wie beim Trend-Guard). Die Funktionen der Runner bekommen den Regelstand als **Pflichtparameter ohne Default**; wer keinen hat (z. B. Tests), übergibt ihn ausdrücklich (`None`), konsistent mit „keine stillen Defaults" (Entscheidung 2 zu `config_hash`). Das Auslesen von Git und der Dateien liegt in einem eigenen kleinen Modul, die Runner rufen es einmal je Lauf auf.
+
+7. **Zusammenhang mit den Issues.**
+   - **#36** (Konfigurationsinhalt statt nur Hash): geht in Punkt 2 auf. **#48** (Regelversion): Commit plus `code_state` machen sichtbar, dass die Code-Logik nicht dem Hash entspricht; die Vergleichbarkeit von Läufen mit gleichem Hash aber anderem Code wird damit prüfbar, nicht automatisch hergestellt. Der Teil „Profil-YAML in den Hash" in #48 wird durch den Inhalt von `sector_profiles.yaml` (Punkt 2) abgedeckt; die übrigen Punkte des Sammel-Issues bleiben offen.
+   - **#28** (Preis-Client stooq/yfinance): wird mit Punkt 4 überholt, weil SimFin die Kurse liefert (Roadmap 0.5; Schließen entscheidet Konstantin).
+
+8. **Testplan (pytest, nur Kopien oder Testdaten; vor dem Code).**
+   - Regelstand auslesen in einem **temporären Git-Repository** (`tmp_path`, `git init`): `clean` nach Commit; `dirty` nach Änderung einer versionierten Datei, nach Staging, nach Löschung; `dirty` bei neuer nicht versionierter Datei in `config/` oder `src/` oder als `run_*.py`; **nicht** `dirty` bei nicht versionierter Datei sonst im Wurzelverzeichnis; `unknown` ohne Repository und bei nicht aufrufbarem `git` (Aufruf wird in einem Test ersetzt); Pfadliste bei mehr als 50 Treffern gekürzt mit Hinweis.
+   - Regel-Dateien: Inhalt wird gespeichert, Zeilenenden `\r\n` und `\n` ergeben denselben SHA-256; `sha256(content)` stimmt; gleiche Datei in zwei Läufen ergibt eine Zeile in `rule_file_contents`; Test auf die Liste der Regel-Dateien gegen den Inhalt von `config/` (neue Datei ohne Eintrag lässt den Test fehlschlagen).
+   - Kurs: `close_price_usd` und `shares_outstanding` werden für Firmen mit Preisdaten gespeichert, `NULL` ohne; Rundtest: `close_price_usd × shares_outstanding` entspricht der gespeicherten Marktkapitalisierung (Rechenweg im Vorfilter prüfen, bevor die Spalte geschrieben wird).
+   - Migration: ein Archiv ohne die neuen Tabellen und Spalten wird beim Öffnen ergänzt, Altzeilen behalten `NULL`, nichts geht verloren; zweimaliges `init` ändert nichts.
+   - Atomarität: bricht das Schreiben ab, bleibt vom Lauf nichts stehen (Muster von `trend_store`).
+   - Regression: bestehende Testsuite unverändert grün; Golden Master der bestehenden Tabellen (`run_results`, `eliminated_results`, `universe_prefilter` ohne die neuen Spalten): 0 Diffs gegen die Kopie eines Referenzarchivs. Die echte `data/run_archive.db` wird nicht geöffnet.
+
+9. **Wirkung auf Ergebnisse.** Keine: Weder Schwellen noch Status, Flags oder Rang ändern sich. Hypothese vor der Umsetzung: Auf einer Archiv-Kopie bleiben alle Zeilen der bestehenden Tabellen (außer den zwei neuen Vorfilter-Spalten) bitgleich, und die Vorfilter-Zeile jeder der 1.821 Firmen mit Preisdaten bekommt einen Kurs (die Zahl der Firmen ohne Kurs wird gemessen, nicht geschätzt).
+
+**Bekannte Lücken und Ungeprüftes:**
+- Ob `close` im Preis-Cache bereinigt (Splits, Dividenden) oder roh ist, ist nicht geprüft; für die Messlatte (Roadmap 0.3) ist das relevant, für diese Spalte nicht (es geht um den Kurs am Tag).
+- Ob die Marktkapitalisierung genau `close × shares` ist oder die Aktienzahl einer anderen Zeile nutzt, wird beim Testen gegen den Vorfilter-Code geprüft, nicht hier behauptet.
+- Auf Konstantins PC kann der Repo-Ordner eine Kopie ohne `.git` sein; dann steht `unknown`.
+- Die Regel „versionierte Änderungen = dirty" markiert auch reine Dokuänderungen als dirty. Das ist gewollt vorsichtig und kann später verfeinert werden.
+- Wie der Replay-Stand der früheren Baselines (außerhalb des Repos) hineinpasst, ist nicht Teil dieses Entwurfs; sie bleiben `NULL`.
+
+**Alternativen:** (a) Spalte `config_snapshot` je Lauf (Issue #36, Variante a): einfacher, aber redundant und deckt nur eine Datei; verworfen zugunsten der deduplizierten Tabelle. (b) Voller Git-Diff im Archiv: genauer, aber groß; vertagt. (c) Nur Commit ohne Dateiinhalt: zu schwach, weil eine nicht committete Änderung nicht rekonstruierbar ist.
+
+**Offene Fragen für Konstantin (getrennt zu beantworten):**
+1. Soll der Entwurf so gelten (Punkte 1 bis 9)? Ja oder nein.
+2. Ist die Liste der Regel-Dateien (Punkt 2) richtig, insbesondere `sector_profiles.yaml` dabei und `bash_guard.yaml`/`universe.txt` nicht?
+3. Reicht „Kurs = letzter Schlusskurs im Datensatz mit Kursdatum" (Punkt 4), oder soll es ein Kurs zu einem festen Zeitpunkt sein? (Letzteres bräuchte eine andere Quelle und würde Roadmap 0.3 berühren.)
+4. Soll die Marke bei jeder versionierten Änderung gesetzt werden (Punkt 3) oder nur bei Änderungen in `config/`, `src/` und `run_*.py`?
+
+**How to apply (nach Freigabe):** Neues Modul für das Auslesen des Regelstands (Git und Dateien), neue Funktionen im Store-Layer für die Tabellen, zwei nullbare Spalten in `universe_prefilter` mit Migration, Anpassung der vier Runner (`run_universe.py`, `run_stage1_full.py`, `run_stage2.py`, `run_trend_guard.py`), Tests wie in Punkt 8 zuerst. Ein Kritiker-Lauf und ein Klasse-C-Bericht am PR; Merge nur durch Konstantin.
