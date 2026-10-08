@@ -2222,7 +2222,7 @@ Fondsgröße: iShares S&P 500 rund 135 Mrd. € (07.08.2026); iShares MSCI World
 
 **Vorschlag (Agent, von Konstantin nicht bestätigt):**
 - **S&P 500: iShares Core S&P 500 (IE00B5BMR087).** Gleiche Kosten wie der Vanguard, aber seit 2010 am Markt: Die Reihe deckt jeden Signaltag der Forward-Log-Zeit ab, auch einen Rückblick auf frühere Läufe (die Läufe vom 24.09. und 30.09. liegen vor der Baseline).
-- **MSCI World: Xtrackers MSCI World 1C (IE00BJ0KDQ92).** Mit 0,12 % deutlich günstiger als der iShares (0,20 %), seit 2014 am Markt, an der Xetra handelbar. Der Kostenunterschied von 0,08 Prozentpunkten pro Jahr ist klein, aber über zwei Jahre Messzeit ebenfalls gegen die Käufe gerechnet.
+- **MSCI World: Xtrackers MSCI World 1C (IE00BJ0KDQ92).** Mit 0,12 % deutlich günstiger als der iShares (0,20 %), seit 2014 am Markt, an der Xetra handelbar. Der Kostenunterschied von 0,08 Prozentpunkten pro Jahr ist klein.
 - Zur Währung (Vorschlag aus dem Eintrag zu #82): F1 braucht den S&P 500 als **Dollar-Reihe** (Fondspreis in USD), F3 den MSCI World als **Euro-Reihe** (Xetra-Handelslinie in EUR). Beide Fonds haben laut Quellen USD als Fondswährung; ob es die jeweils gewünschte Handelslinie gibt, ist **nicht geprüft**.
 
 **Ungeprüft und wichtig:**
