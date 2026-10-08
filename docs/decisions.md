@@ -2193,7 +2193,7 @@ Alle drei Punkte müssen wie im gemergten Eintrag (Punkt 10) vor dem ersten arch
 **Folgen und Fragen, die daraus entstehen (Agent-Vorschlag, nicht von Konstantin bestätigt):**
 - **Abbruchkriterium 1** verglich mit dem stärkeren von zwei Maßstäben. Mit nur dem S&P 500 gibt es nichts zu vergleichen; Vorschlag: Vergleich mit dem S&P 500. Ob auch Option C ins Abbruchkriterium eingeht, ist **offen**; bis zur Antwort gilt: Abbruch nur gegen den S&P 500, Option C nur zur Einordnung. Der Platzhalter X (3 Prozentpunkte pro Jahr) hat dafür keine Messgrundlage und ändert sich nicht.
 - **Währung:** Ein S&P-500-ETF muss für F1 als **Dollar-Reihe** vorliegen (Dollar-Handelslinie oder Dollar-Fondspreis). Ein Euro-Handelsplatz würde den Wechselkurs in den Maßstab mischen. Der MSCI-World-ETF für F3 soll als **Euro-Reihe** vorliegen.
-- **Kursverlauf:** Ein ETF hat nur eine begrenzte Historie und Gebühren; das gilt als Eigenschaft eines realen Vergleichs und ist für 24 Monate ab Start kein Problem.
+- **Kursverlauf und Kosten:** Ein ETF hat Gebühren, die im Fondspreis stecken; der Vergleich mit einem echten ETF ist damit etwas strenger als einer mit dem Index. Ob die Historie der gewählten ETFs für alle Signaltage reicht, ist ungeprüft (siehe unten).
 - Option C braucht pro Lauf den gespeicherten Stufe-2-Rang. Ob er heute im Archiv vollständig vorliegt, wurde **nicht geprüft**.
 
 **Ungeprüft:** Verfügbarkeit, Kosten, Steuern, Länge des Kursverlaufs und Quelle der ETF-Kurse (kostenlos, Dollar und Euro), Zusammensetzung des MSCI World, ob der Stufe-2-Rang im Archiv für Option C reicht.
