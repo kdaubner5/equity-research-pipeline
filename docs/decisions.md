@@ -1887,6 +1887,16 @@ Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein 
 - Die Regel „versionierte Änderungen = dirty" markiert auch reine Dokuänderungen als dirty. Das ist gewollt vorsichtig und kann später verfeinert werden.
 - Wie der Replay-Stand der früheren Baselines (außerhalb des Repos) hineinpasst, ist nicht Teil dieses Entwurfs; sie bleiben `NULL`.
 
+**Entscheidung von Konstantin (08.10.2026):** „#78 bitte auch so umsetzen." Das gilt als **Annahme des Entwurfs mit meinen Vorschlägen zu allen offenen Fragen**, mit dem Merge dieses Texts:
+1. Der Entwurf (Punkte 1 bis 9) gilt.
+2. Liste der Regel-Dateien: `thresholds.yaml`, `stage2.yaml`, `trend_guard.yaml`, `sector_profiles.yaml`; `bash_guard.yaml` und `universe.txt` gehören nicht dazu.
+3. „Kurs am Lauftag" = letzter Schlusskurs im Datensatz des Vorfilter-Laufs mit Kursdatum.
+4. Die Marke `dirty` gilt bei Änderungen an versionierten Dateien und bei neuen, nicht versionierten Dateien in `config/`, `src/` und `run_*.py`; die Obergrenze von 50 Pfaden bleibt eine Konstante im Code.
+5. `runs` bekommt die nullbare Spalte `prefilter_run_timestamp`.
+6. Der Pilot-Runner `run_stage1.py` schreibt den Regelstand ebenfalls.
+
+**Umsetzung:** Code und Tests entstehen **erst nach dem Merge dieses Texts** durch Konstantin, in einem eigenen Branch und PR (Klasse C, ein Kritiker-Lauf, höchstens zwei Runden), wie in Punkt 8 festgelegt: Tests zuerst, nur auf Kopien oder Testdaten, nicht auf der echten Datenbank, ohne SimFin.
+
 **Alternativen:** (a) Spalte `config_snapshot` je Lauf (Issue #36, Variante a): einfacher, aber redundant und deckt nur eine Datei; verworfen zugunsten der deduplizierten Tabelle. (b) Voller Git-Diff im Archiv: genauer, aber groß; vertagt. (c) Nur Commit ohne Dateiinhalt: zu schwach, weil eine nicht committete Änderung nicht rekonstruierbar ist.
 
 **Offene Fragen für Konstantin (getrennt zu beantworten):**
