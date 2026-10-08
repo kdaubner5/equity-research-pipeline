@@ -1816,7 +1816,7 @@ Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein 
 
 ## 2026-10-07: Zweck und Zahlenbasis (07.10.2026) (Agent-Entscheidung, Klasse C; Entwurf, nur Text)
 
-**Status: Entwurf, nicht freigegeben.** Der Text gilt erst, wenn Konstantin ihn per Merge auf `master` gebracht hat. Branch `agent/zweck-zahlenbasis` (von `master`), nur Dokumentation. Klasse C: Der Abschnitt legt Verfahren fest (welche Zahlenbasis die Stufen verwenden, welche Quelle nicht Grundlage ist). Auftrag und Fassung der Abschnitte 1 bis 6 stammen von Konstantin (2026-10-07). Keine echte Datenbank, kein `data/`, kein Code, keine Konfiguration; die Zahlen im Anhang stammen aus den Messungen vom 2026-10-07 (nur lesend auf den Kopien unter `C:\Users\<Benutzer>\baselines\`) und einem freigegebenen Abrufblock mit 23 SimFin-Calls.
+**Status: Entwurf, nicht freigegeben.** Der Text gilt erst, wenn Konstantin ihn per Merge auf `master` gebracht hat. Branch `agent/zweck-zahlenbasis` (von `master`), nur Dokumentation. Klasse C: Der Abschnitt legt Verfahren fest (welche Zahlenbasis die Stufen verwenden, welche Quelle nicht Grundlage ist). Auftrag und Fassung der Abschnitte 2 bis 6 stammen von Konstantin (2026-10-07); Abschnitt 1 wurde am 2026-10-08 auf seine Anweisung an den Masterplan v2.0 angeglichen (Vermerk dort). Keine echte Datenbank, kein `data/`, kein Code, keine Konfiguration; die Zahlen im Anhang stammen aus den Messungen vom 2026-10-07 (nur lesend auf den Kopien unter `C:\Users\<Benutzer>\baselines\`) und einem freigegebenen Abrufblock mit 23 SimFin-Calls.
 
 ### 1. Zweck
 
