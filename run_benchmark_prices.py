@@ -14,6 +14,7 @@ Exit-Code: 0 = alles gespeichert und ohne Auffaelligkeit; 1 = gespeichert, aber 
 abgelehnter Kurs, gescheiterter Abruf, veraltete Reihe); 2 = Abbruch (Konfiguration oder Schluessel fehlt).
 """
 
+import sqlite3
 import sys
 import time
 import urllib.request
@@ -25,20 +26,10 @@ sys.path.insert(0, str(_REPO_ROOT / "src"))
 
 from config_layer.benchmarks import DEFAULT_BENCHMARKS_PATH, BenchmarksConfigError, load_benchmarks  # noqa: E402
 from data_layer.alphavantage_prices import AlphaVantageError, fetch_daily  # noqa: E402
-from probe_alphavantage import KEY_NAME, load_dotenv_if_present  # noqa: E402
+from data_layer.env_file import resolve_api_key  # noqa: E402
 from store_layer import benchmark_store  # noqa: E402
 
 DEFAULT_DB_PATH = _REPO_ROOT / "data" / "benchmark_prices.db"
-
-
-def _resolve_key():
-    load_dotenv_if_present()
-    import os
-
-    key = os.environ.get(KEY_NAME, "").strip()
-    if not key:
-        raise RuntimeError(f"{KEY_NAME} fehlt (weder Umgebung noch .env).")
-    return key
 
 
 def main(
@@ -54,7 +45,7 @@ def main(
     now = now or (lambda: datetime.now().isoformat(timespec="seconds"))
     try:
         config = load_benchmarks(config_path)
-        api_key = _resolve_key()
+        api_key = resolve_api_key()
     except (BenchmarksConfigError, RuntimeError) as exc:
         print(f"ABBRUCH: {exc}")
         return 2
@@ -73,7 +64,17 @@ def main(
                 print(line)
                 warnings.append(line)
                 continue
-            report = benchmark_store.store_fetch(connection, config, entry.symbol, rows, now())
+            try:
+                report = benchmark_store.store_fetch(connection, config, entry.symbol, rows, now())
+            except (sqlite3.Error, benchmark_store.BenchmarkStoreError) as exc:
+                line = f"{entry.symbol}: SPEICHERN FEHLGESCHLAGEN ({type(exc).__name__})"
+                try:
+                    benchmark_store.record_failed_fetch(connection, entry.symbol, now(), "store_error", type(exc).__name__)
+                except sqlite3.Error:
+                    pass
+                print(line)
+                warnings.append(line)
+                continue
             print(
                 f"{entry.symbol}: {report.inserted} neu, {report.replaced_provisional} vorläufig ersetzt, "
                 f"{report.unchanged} unverändert"

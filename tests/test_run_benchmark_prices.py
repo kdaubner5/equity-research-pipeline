@@ -8,6 +8,7 @@ from datetime import date
 import pytest
 
 import run_benchmark_prices as run
+from data_layer import env_file
 
 CFG_TEXT = """
 source: alphavantage
@@ -39,7 +40,7 @@ def env(tmp_path, monkeypatch):
     cfg = tmp_path / "benchmarks.yaml"
     cfg.write_text(CFG_TEXT, encoding="utf-8")
     monkeypatch.setenv("ALPHAVANTAGE_API_KEY", "SUPERGEHEIM")
-    monkeypatch.setattr(run, "load_dotenv_if_present", lambda *a, **k: None)
+    monkeypatch.setattr(env_file, "load_dotenv_if_present", lambda *a, **k: None)
     return {"cfg": cfg, "db": tmp_path / "data" / "benchmark_prices.db"}
 
 
@@ -139,7 +140,7 @@ def test_conflict_and_gap_make_the_exit_code_1_and_are_printed(env, capsys):
 
 def test_stale_series_is_warned_even_if_the_fetch_succeeds(env, capsys):
     code, _ = call(env, [GOOD_A, GOOD_B], today=date(2026, 11, 20))
-    assert code == 1 and "älter" in capsys.readouterr().out
+    assert code == 1 and "Tage alt" in capsys.readouterr().out
 
 
 def test_key_never_appears_in_output_or_database(env, capsys):
@@ -151,3 +152,26 @@ def test_key_never_appears_in_output_or_database(env, capsys):
 def test_default_database_path_is_inside_the_data_folder_and_the_real_archive_is_never_named():
     assert run.DEFAULT_DB_PATH.name == "benchmark_prices.db" and run.DEFAULT_DB_PATH.parent.name == "data"
     assert "run_archive" not in str(run.DEFAULT_DB_PATH)
+
+
+def test_a_storage_error_on_one_symbol_is_reported_and_the_other_symbol_still_runs(env, monkeypatch, capsys):
+    original = run.benchmark_store.store_fetch
+
+    def failing(connection, config, symbol, rows, fetched_at):
+        if symbol == "CSPX.LON":
+            raise sqlite3.OperationalError("disk I/O error")
+        return original(connection, config, symbol, rows, fetched_at)
+
+    monkeypatch.setattr(run.benchmark_store, "store_fetch", failing)
+    code, _ = call(env, [GOOD_A, GOOD_B])
+    out = capsys.readouterr().out
+    assert code == 1 and "SPEICHERN FEHLGESCHLAGEN" in out
+    assert {row[0] for row in stored(env)} == {"XDWD.DEX"}
+    connection = sqlite3.connect(env["db"])
+    status = connection.execute("SELECT status FROM benchmark_fetches WHERE symbol='CSPX.LON'").fetchone()
+    connection.close()
+    assert status == ("store_error",)
+
+
+def test_runner_does_not_depend_on_the_one_off_probe_script():
+    assert "probe_alphavantage" not in open(run.__file__, encoding="utf-8").read()

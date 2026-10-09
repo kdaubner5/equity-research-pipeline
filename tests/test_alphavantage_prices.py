@@ -83,3 +83,8 @@ def test_http_error_network_error_and_bad_json_become_typed_errors_without_the_k
     with pytest.raises(av.AlphaVantageError) as info:
         av.fetch_daily("CSPX.LON", "SECRET", opener=http_error)
     assert "429" in str(info.value)
+
+
+def test_a_currency_field_in_the_payload_is_ignored():
+    payload = {"Meta Data": {"currency": "XYZ"}, "currency": "XYZ", "Time Series (Daily)": {"2026-10-08": {"4. close": "1.5", "currency": "XYZ"}}}
+    assert av.parse_daily(payload, "k") == {"2026-10-08": "1.5"}

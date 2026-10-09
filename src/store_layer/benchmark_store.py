@@ -15,11 +15,13 @@ Eigene Datei, nicht das Run-Archiv. Regeln:
 import math
 import sqlite3
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 STATUS_OK = "ok"
+STATUS_PARTIAL = "partial"  # gespeichert, aber Zeilen abgelehnt
+STATUS_EMPTY = "empty"  # nichts Verwertbares im Abruf
 
 
 class BenchmarkStoreError(Exception):
@@ -68,11 +70,14 @@ class FetchReport:
     replaced_provisional: int = 0
     conflicts: List[Tuple[str, float, float]] = field(default_factory=list)  # (Datum, gespeichert, neu)
     rejected: List[str] = field(default_factory=list)
+    empty: bool = False  # keine einzige verwertbare Zeile
     jumps: List[str] = field(default_factory=list)
     gaps: List[str] = field(default_factory=list)
 
     def warnings(self) -> List[str]:
         lines = []
+        if self.empty:
+            lines.append(f"{self.symbol}: Abruf ohne verwertbare Kurse (nichts gespeichert)")
         for day, stored, new in self.conflicts:
             lines.append(f"{self.symbol}: Konflikt am {day}: gespeichert {stored}, neu geliefert {new} (nicht überschrieben)")
         for day in self.rejected:
@@ -95,6 +100,8 @@ def connect(path) -> sqlite3.Connection:
 
 
 def _parse_price(raw) -> Optional[float]:
+    if isinstance(raw, bool) or (isinstance(raw, str) and "_" in raw):
+        return None
     try:
         value = float(raw)
     except (TypeError, ValueError):
@@ -105,8 +112,12 @@ def _parse_price(raw) -> Optional[float]:
 
 
 def _parse_date(raw) -> Optional[date]:
+    """Nur die Schreibweise JJJJ-MM-TT (Python 3.11+ nimmt sonst auch 20261008 oder Wochendaten)."""
+    text = str(raw)
+    if len(text) != 10 or text[4] != "-" or text[7] != "-":
+        return None
     try:
-        return date.fromisoformat(str(raw))
+        return date.fromisoformat(text)
     except ValueError:
         return None
 
@@ -129,11 +140,14 @@ def store_fetch(connection, config, symbol, rows: Dict[str, object], fetched_at)
     valid: Dict[str, float] = {}
     for raw_day, raw_close in rows.items():
         close = _parse_price(raw_close)
-        if close is None or _parse_date(raw_day) is None:
+        parsed_day = _parse_date(raw_day)
+        if close is None or parsed_day is None:
             report.rejected.append(str(raw_day))
             continue
-        valid[str(raw_day)] = close
+        day_key = parsed_day.isoformat()  # eine Schreibweise je Tag: Vergleiche und Sortierung als Text bleiben richtig
+        valid[day_key] = close  # nur JJJJ-MM-TT wird angenommen, also gibt es je Tag genau einen Schluessel
     days = sorted(valid)
+    report.empty = not days
 
     with connection:  # eine Transaktion je Symbol: alles oder nichts
         last_stored = connection.execute(
@@ -144,20 +158,32 @@ def store_fetch(connection, config, symbol, rows: Dict[str, object], fetched_at)
         gap_limit = timedelta(days=config.gap_calendar_days)
         if days and last_stored is not None:
             previous, first = date.fromisoformat(last_stored), date.fromisoformat(days[0])
-            if first > previous and first - previous > gap_limit:
+            if first - previous > gap_limit:
                 report.gaps.append(f"zwischen {last_stored} und {days[0]} fehlen Kurse (zu lange nicht abgerufen)")
         for before, after in zip(days, days[1:]):
             if date.fromisoformat(after) - date.fromisoformat(before) > gap_limit:
                 report.gaps.append(f"im Abruf zwischen {before} und {after}")
 
         jump_days = set()
-        for before, after in zip(days, days[1:]):
+        pairs = list(zip(days, days[1:]))
+        if days:
+            before_first = connection.execute(
+                "SELECT price_date, close FROM benchmark_prices WHERE symbol = ? AND price_date < ? "
+                "ORDER BY price_date DESC LIMIT 1",
+                (symbol, days[0]),
+            ).fetchone()
+            if before_first is not None:
+                valid_with_stored = dict(valid)
+                valid_with_stored[before_first[0]] = before_first[1]
+                pairs = [(before_first[0], days[0])] + pairs
+                valid = valid_with_stored
+        for before, after in pairs:
             change = abs(valid[after] / valid[before] - 1) * 100
             if round(change, 9) > config.jump_threshold_pct:  # Rundung gegen Gleitkomma-Rauschen an der Grenze
                 jump_days.add(after)
                 report.jumps.append(after)
 
-        newest = days[-1] if days else None
+        newest = max(days[-1], last_stored) if days and last_stored else (days[-1] if days else None)
         for day in days:
             close = valid[day]
             provisional = day == newest
@@ -190,10 +216,17 @@ def store_fetch(connection, config, symbol, rows: Dict[str, object], fetched_at)
                     (symbol, day, stored_close, close, fetched_at),
                 )
 
+        # Nur der juengste gespeicherte Tag bleibt vorlaeufig; alles davor ist endgueltig.
+        connection.execute(
+            "UPDATE benchmark_prices SET provisional = 0 WHERE symbol = ? AND provisional = 1 AND price_date < "
+            "(SELECT MAX(price_date) FROM benchmark_prices WHERE symbol = ?)",
+            (symbol, symbol),
+        )
+        status = STATUS_EMPTY if report.empty else (STATUS_PARTIAL if report.rejected else STATUS_OK)
         connection.execute(
             "INSERT INTO benchmark_fetches (symbol, fetched_at, rows_returned, first_date, last_date, status, message) "
             "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (symbol, fetched_at, len(rows), days[0] if days else None, days[-1] if days else None, STATUS_OK, None),
+            (symbol, fetched_at, len(rows), days[0] if days else None, days[-1] if days else None, status, None),
         )
     return report
 
@@ -230,5 +263,20 @@ def stale_warning(connection, config, symbol, today: date) -> Optional[str]:
         return f"{symbol}: noch kein Kurs gespeichert"
     age = (today - date.fromisoformat(last)).days
     if age > config.stale_warn_days:
-        return f"{symbol}: letzter gespeicherter Kurs vom {last} ist {age} Tage älter als heute (Schwelle {config.stale_warn_days})"
+        return f"{symbol}: letzter gespeicherter Kurs vom {last} ist {age} Tage alt (Schwelle {config.stale_warn_days})"
+    return None
+
+
+def open_issue(connection, symbol, price_date: str) -> Optional[str]:
+    """Hinweis, wenn zu diesem Kursdatum ein ungeloester Konflikt oder ein Sprung-Kennzeichen vorliegt (sonst None);
+    die Auswertung soll so einen Kurs nicht unbemerkt nutzen."""
+    if connection.execute(
+        "SELECT 1 FROM benchmark_price_conflicts WHERE symbol = ? AND price_date = ? LIMIT 1", (symbol, price_date)
+    ).fetchone():
+        return "Konflikt"
+    row = connection.execute(
+        "SELECT flag FROM benchmark_prices WHERE symbol = ? AND price_date = ?", (symbol, price_date)
+    ).fetchone()
+    if row and row[0]:
+        return row[0]
     return None

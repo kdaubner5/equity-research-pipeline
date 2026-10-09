@@ -193,3 +193,54 @@ def test_staleness_check(conn, cfg):
     put(conn, cfg, {"2026-10-01": 100.0})
     assert store.stale_warning(conn, cfg, "CSPX.LON", date(2026, 10, 15)) is None  # 14 Tage
     assert "2026-10-01" in store.stale_warning(conn, cfg, "CSPX.LON", date(2026, 10, 16))  # 15 Tage
+
+
+def test_empty_fetch_is_a_warning_and_logged_as_empty(conn, cfg):
+    report = put(conn, cfg, {})
+    assert report.empty and report.warnings()
+    assert conn.execute("SELECT status, rows_returned FROM benchmark_fetches").fetchone() == ("empty", 0)
+
+
+def test_fetch_with_only_rejected_rows_is_empty_and_partial_status_for_some_rejected(conn, cfg):
+    assert put(conn, cfg, {"2026-10-05": 0.0}).empty
+    put(conn, cfg, {"2026-10-05": 100.0, "2026-10-06": -1.0}, symbol="XDWD.DEX")
+    statuses = [r[0] for r in conn.execute("SELECT status FROM benchmark_fetches ORDER BY fetch_id")]
+    assert statuses == ["empty", "partial"]
+
+
+def test_dates_are_normalized_and_other_spellings_are_rejected(conn, cfg):
+    report = put(conn, cfg, {"20261008": 100.0, "2026-10-07": 99.0, "2026-W41-3": 98.0})
+    assert [row[0] for row in prices(conn)] == ["2026-10-07"]
+    assert sorted(report.rejected) == sorted(["20261008", "2026-W41-3"])
+
+
+def test_first_day_of_a_fetch_is_compared_with_the_stored_previous_day_for_jumps(conn, cfg):
+    put(conn, cfg, {"2026-10-01": 100.0, "2026-10-02": 100.0})
+    report = put(conn, cfg, {"2026-10-05": 150.0})
+    assert report.jumps == ["2026-10-05"]
+    assert prices(conn)[-1][3] == "jump"
+
+
+def test_a_provisional_day_missing_from_the_next_fetch_becomes_final_once_a_newer_day_exists(conn, cfg):
+    put(conn, cfg, {"2026-10-01": 100.0, "2026-10-02": 101.0})  # 10-02 vorlaeufig
+    put(conn, cfg, {"2026-10-05": 102.0})  # 10-02 kommt nicht mehr vor
+    assert [(r[0], r[2]) for r in prices(conn)] == [("2026-10-01", 0), ("2026-10-02", 0), ("2026-10-05", 1)]
+
+
+def test_an_older_fetch_does_not_make_an_old_day_provisional(conn, cfg):
+    put(conn, cfg, {"2026-10-05": 102.0})
+    put(conn, cfg, {"2026-10-01": 100.0})
+    assert [(r[0], r[2]) for r in prices(conn)] == [("2026-10-01", 0), ("2026-10-05", 1)]
+
+
+def test_open_issue_reports_conflict_and_jump_for_the_reader(conn, cfg):
+    put(conn, cfg, {"2026-10-05": 100.0, "2026-10-06": 130.0, "2026-10-07": 131.0})
+    put(conn, cfg, {"2026-10-05": 55.0, "2026-10-06": 130.0, "2026-10-07": 131.0})
+    assert store.open_issue(conn, "CSPX.LON", "2026-10-05") == "Konflikt"
+    assert store.open_issue(conn, "CSPX.LON", "2026-10-06") == "jump"
+    assert store.open_issue(conn, "CSPX.LON", "2026-10-07") is None
+
+
+def test_price_parsing_is_strict_about_booleans_and_underscores(conn, cfg):
+    report = put(conn, cfg, {"2026-10-05": True, "2026-10-06": "1_000", "2026-10-07": "100.5"})
+    assert [row[0] for row in prices(conn)] == ["2026-10-07"] and len(report.rejected) == 2
