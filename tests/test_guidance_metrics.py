@@ -70,3 +70,47 @@ def test_difference_to_table_value_is_reported_or_none_if_missing():
     assert g.difference(0.12, 0.10) == pytest.approx(0.02)  # Guidance minus Tabellenwert
     assert g.difference(None, 0.12) is None and g.difference(0.1, None) is None
     assert not math.isnan(g.difference(0.1, 0.1))
+
+
+def test_negative_enterprise_value_is_refused_like_the_stage2_metric():
+    result = g.ev_ebitda_guidance(1000.0, -1200.0, 100.0)
+    assert result.value is None and result.invalid_reason == g.EV_NON_POSITIVE
+
+
+def test_zero_enterprise_value_is_refused():
+    assert g.ev_ebitda_guidance(1000.0, -1000.0, 100.0).invalid_reason == g.EV_NON_POSITIVE
+
+
+def test_implausibly_high_multiples_and_yields_are_refused_when_a_limit_is_given():
+    assert g.ev_ebitda_guidance(1000.0, 0.0, 0.0001, implausible_above=100.0).invalid_reason == g.EV_EBITDA_IMPLAUSIBLY_HIGH
+    assert g.ev_ebitda_guidance(1000.0, 0.0, 10.0, implausible_above=100.0).value == pytest.approx(100.0)  # genau an der Grenze: erlaubt
+    assert g.fcf_yield_guidance(600.0, 1000.0, implausible_above=0.5).invalid_reason == g.FCF_YIELD_IMPLAUSIBLY_HIGH
+    assert g.fcf_yield_guidance(500.0, 1000.0, implausible_above=0.5).value == pytest.approx(0.5)
+
+
+def test_huge_integers_do_not_crash():
+    assert g.fcf_yield_guidance(10**400, 1000.0).invalid_reason == g.INSUFFICIENT_EVIDENCE
+    assert g.ev_ebitda_guidance(10**400, 1.0, 1.0).invalid_reason == g.INSUFFICIENT_EVIDENCE
+
+
+def test_zero_fcf_gives_zero_yield():
+    assert g.fcf_yield_guidance(0.0, 1000.0).value == 0.0
+
+
+@pytest.mark.parametrize("bad", [True, "x", None, float("nan")])
+def test_ev_ebitda_and_leverage_refuse_bool_text_and_nan(bad):
+    assert g.ev_ebitda_guidance(1000.0, bad, 100.0).value is None
+    assert g.ev_ebitda_guidance(1000.0, 10.0, bad).value is None
+    assert g.net_debt_ebitda_latest_quarter(bad, 100.0).value is None
+    assert g.net_debt_ebitda_latest_quarter(100.0, bad).value is None
+    assert g.difference(bad, 0.1) is None
+
+
+def test_market_cap_problem_is_reported_before_the_ebitda_problem():
+    assert g.ev_ebitda_guidance(-1.0, 0.0, -1.0).invalid_reason == g.MARKET_CAP_UNUSABLE
+
+
+def test_classify_leverage_refuses_nan():
+    thresholds = NetDebtEbitdaThresholds(clean_pass_below=2.3, fail_at_or_above=2.5)
+    with pytest.raises(ValueError):
+        g.classify_leverage(float("nan"), thresholds)
