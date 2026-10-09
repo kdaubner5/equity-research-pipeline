@@ -130,34 +130,63 @@ def main(argv=None):
             f" – {text}{distance}" + _compare(lev.value, args.table_net_debt_ebitda, percent=False)
         )
 
+    if args.price is not None and args.shares is None:
+        ok = False
+        print("\nEinstiegsgrenze: nicht gerechnet, weil --price ohne --shares angegeben wurde (die Aktienzahl fehlt).")
     if args.shares is not None:
         target_yield = stage2.fcf_yield.clean_pass_above
         limits = [
             ("FCF-Rendite", guidance.price_limit_fcf_yield(args.fcf_guidance, args.shares, target_yield)),
-            ("EV/EBITDA", guidance.price_limit_ev_ebitda(args.ebitda_guidance, args.net_debt, args.shares, args.peer_multiple)),
+            (
+                "EV/EBITDA",
+                guidance.price_limit_ev_ebitda(
+                    args.ebitda_guidance, args.net_debt, args.shares, args.peer_multiple,
+                    implausible_above=stage2.ev_ebitda.implausible_above,
+                ),
+            ),
         ]
-        print("\nEinstiegsgrenze (Preis je Aktie, bis zu dem die Firma die eigenen Bewertungsgrenzen mit den heutigen Zahlen erfüllt; kein Kursziel, keine Prognose):")
+        print("\nEinstiegsgrenze (Preis je Aktie an der Kante der eigenen Bewertungsregeln, gerechnet mit den eingetragenen Zahlen; kein Kursziel, keine Prognose):")
+        print("  Basis der Zahlen: so wie eingetragen. Stammen FCF und EBITDA aus der Guidance, ist die Grenze eine Rechnung auf Basis einer Managementprognose (nicht geprüft).")
         for name, result in limits:
             if result.value is None:
-                print(f"  über {name}: unzureichende Evidenz oder nicht berechenbar ({result.invalid_reason})")
+                ok = False
+                reason = (
+                    "Zielvielfaches unplausibel hoch (Einheitenfehler? Grenze aus config/stage2.yaml)"
+                    if result.invalid_reason == guidance.EV_EBITDA_IMPLAUSIBLY_HIGH
+                    else f"unzureichende Evidenz oder nicht berechenbar ({result.invalid_reason})"
+                )
+                print(f"  über {name}: {reason}")
                 continue
             if name == "FCF-Rendite":
-                basis = f"Zielrendite {_de(target_yield * 100, 1)} % (config/stage2.yaml, fcf_yield.clean_pass_above)"
+                basis = (
+                    f"Zielrendite {_de(target_yield * 100, 1)} % (config/stage2.yaml, fcf_yield.clean_pass_above; "
+                    "die Regel verlangt strikt darüber, der Preis muss also etwas unter der Kante liegen)"
+                )
             else:
-                basis = f"Zielvielfaches {_g(args.peer_multiple)} (Peer-Grenze des Laufs, von Hand eingetragen)"
+                basis = f"Zielvielfaches {_g(args.peer_multiple)} (von Hand eingetragene Drittelgrenze der Peer-Gruppe; Peer-Werte beruhen auf Ist-EBITDA, das hier eingetragene EBITDA kann ein anderer Zeitbezug sein)"
             print(f"  über {name}: {_de(result.value)}  [{basis}]")
         limit = guidance.entry_limit(limits)
         if limit.price is None:
-            ok = False
             print("  Ergebnis: keine Grenze berechenbar (unzureichende Evidenz).")
         else:
-            print(f"  Ergebnis: Grenze {_de(limit.price)} (bindend: {limit.binding})" + (f"; nicht berechenbar: {', '.join(limit.missing)}" if limit.missing else ""))
+            warning = ""
+            if limit.missing:
+                warning = f"; ACHTUNG: {', '.join(limit.missing)} nicht berechenbar, die strengere Grenze fehlt, die Grenze kann zu hoch sein"
+            print(f"  Ergebnis: Kante {_de(limit.price)} (bindend = die strengere Grenze: {limit.binding}){warning}")
             gap = guidance.distance_to_limit(limit.price, args.price)
             if gap is not None:
                 where = "über" if gap > 0 else "unter"
-                print(f"  Kurs {_de(args.price)} liegt {_de(abs(gap) * 100, 1)} % {where} der Grenze" + (" (zu teuer nach den eigenen Regeln)" if gap > 0 else " (Spielraum)"))
+                print(f"  Kurs {_de(args.price)} liegt {_de(abs(gap) * 100, 1)} % {where} der Grenze (kein Kauf- oder Verkaufssignal)")
             elif args.price is not None:
+                ok = False
                 print("  Kurs unbrauchbar (muss größer als 0 sein)")
+        if args.price is not None and args.market_cap is not None and guidance._number(args.price) and guidance._number(args.market_cap):
+            print(
+                f"  Gegenprobe: Kurs × Aktienzahl = {_g(args.price * args.shares)}, eingetragene Marktkapitalisierung = {_g(args.market_cap)} "
+                "(sollten ähnlich sein; sonst stimmt die Aktienzahl oder der Kurs nicht)"
+            )
+        print("  Hinweise: Der Enterprise Value enthält keine Minderheitsanteile und Vorzugsaktien; die Aktienzahl soll verwässert und über alle Aktiengattungen gerechnet sein.")
+        print("  Die Grenze wird nicht gespeichert und ist keine Kauforder; sie wird mit jedem neuen Quartal oder jeder neuen Guidance neu gerechnet.")
     print("Hinweis: nur Rechnung aus den eingegebenen Zahlen; Quelle und Datum jeder Zahl gehören in den One-Pager.")
     print("Hinweis: Guidance-Werte und das EBITDA der letzten zwölf Monate haben einen anderen Zeitbezug als die Tabellenwerte (Dreijahresschnitt bzw. Geschäftsjahr); der Abstand ist ein Vergleich, kein Fehler.")
     return 0 if ok else 1

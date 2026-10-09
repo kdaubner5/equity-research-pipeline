@@ -123,7 +123,7 @@ def price_limit_fcf_yield(fcf, shares, target_yield) -> MetricResult:
     return MetricResult(value=fcf_n / target_n / shares_n)
 
 
-def price_limit_ev_ebitda(ebitda, net_debt, shares, target_multiple) -> MetricResult:
+def price_limit_ev_ebitda(ebitda, net_debt, shares, target_multiple, *, implausible_above=None) -> MetricResult:
     """Preis je Aktie, bei dem EV/EBITDA genau das Zielvielfache erreicht: (Zielvielfaches x EBITDA - Nettoschulden) / Aktienzahl."""
     ebitda_n, debt_n, shares_n, target_n = _number(ebitda), _number(net_debt), _number(shares), _number(target_multiple)
     if ebitda_n is None or debt_n is None or shares_n is None or target_n is None:
@@ -134,6 +134,8 @@ def price_limit_ev_ebitda(ebitda, net_debt, shares, target_multiple) -> MetricRe
         return MetricResult(value=None, invalid_reason=SHARES_UNUSABLE)
     if target_n <= 0:
         return MetricResult(value=None, invalid_reason=TARGET_UNUSABLE)
+    if implausible_above is not None and target_n > implausible_above:
+        return MetricResult(value=None, invalid_reason=EV_EBITDA_IMPLAUSIBLY_HIGH)
     equity_value = target_n * ebitda_n - debt_n
     if equity_value <= 0:
         return MetricResult(value=None, invalid_reason=LIMIT_NON_POSITIVE)

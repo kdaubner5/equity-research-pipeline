@@ -167,3 +167,8 @@ def test_distance_to_the_limit_is_the_price_relative_to_the_limit():
     assert g.distance_to_limit(8.0, 10.0) == pytest.approx(0.25)  # Kurs 25 % ueber der Grenze: zu teuer
     assert g.distance_to_limit(10.0, 0.0) is None and g.distance_to_limit(None, 8.0) is None
     assert g.distance_to_limit(0.0, 8.0) is None
+
+
+def test_implausible_target_multiple_is_refused_for_the_price_limit():
+    assert g.price_limit_ev_ebitda(150.0, 200.0, 100.0, 500.0, implausible_above=100.0).invalid_reason == g.EV_EBITDA_IMPLAUSIBLY_HIGH
+    assert g.price_limit_ev_ebitda(150.0, 200.0, 100.0, 100.0, implausible_above=100.0).value is not None

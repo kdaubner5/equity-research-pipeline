@@ -106,8 +106,9 @@ def test_entry_limit_block_is_printed_with_both_limits_the_binding_one_and_the_d
     assert code == 0
     assert "Einstiegsgrenze" in out and "kein Kursziel" in out
     assert "20,00" in out and "10,00" in out  # FCF-Rendite 6 %: 20 je Aktie; EV/EBITDA 8: 10 je Aktie
-    assert "bindend: EV/EBITDA" in out
-    assert "Kurs 12,00 liegt 20,0 % über der Grenze" in out
+    assert "bindend = die strengere Grenze: EV/EBITDA" in out
+    assert "Kurs 12,00 liegt 20,0 % über der Grenze" in out and "kein Kauf- oder Verkaufssignal" in out
+    assert "Managementprognose" in out and "Minderheitsanteile" in out and "keine Kauforder" in out
 
 
 def test_entry_limit_uses_the_stage2_clean_pass_yield_and_says_so(capsys):
@@ -130,3 +131,35 @@ def test_without_shares_no_entry_limit_block_is_printed(capsys):
 def test_price_below_the_limit_is_described_as_room(capsys):
     run.main(["--fcf-guidance", "120", "--shares", "100", "--price", "16"])
     assert "unter der Grenze" in capsys.readouterr().out
+
+
+def test_price_without_shares_is_not_silently_ignored(capsys):
+    code = run.main(["--price", "12"])
+    assert code == 1 and "--price ohne --shares" in capsys.readouterr().out
+
+
+def test_one_missing_limit_is_flagged_as_possibly_too_high_and_exit_code_is_1(capsys):
+    code = run.main(["--fcf-guidance", "120", "--shares", "100"])
+    out = capsys.readouterr().out
+    assert code == 1 and "die strengere Grenze fehlt" in out
+
+
+def test_implausible_peer_multiple_is_refused(capsys):
+    run.main(["--ebitda-guidance", "150", "--net-debt", "200", "--shares", "100", "--peer-multiple", "500"])
+    assert "unplausibel hoch" in capsys.readouterr().out
+
+
+def test_cross_check_of_price_times_shares_against_the_market_cap_is_printed_without_a_verdict(capsys):
+    run.main(["--market-cap", "1000", "--price", "12", "--shares", "100", "--fcf-guidance", "120"])
+    out = capsys.readouterr().out
+    assert "Kurs × Aktienzahl = 1200" in out and "eingetragene Marktkapitalisierung = 1000" in out
+
+
+def test_net_cash_raises_the_ev_ebitda_limit_in_the_output(capsys):
+    run.main(["--ebitda-guidance", "150", "--net-debt", "-200", "--shares", "100", "--peer-multiple", "8"])
+    assert "14,00" in capsys.readouterr().out
+
+
+def test_limit_that_fails_on_non_positive_equity_value_is_reported(capsys):
+    run.main(["--ebitda-guidance", "100", "--net-debt", "900", "--shares", "100", "--peer-multiple", "8"])
+    assert "limit_non_positive" in capsys.readouterr().out
