@@ -2334,7 +2334,7 @@ Zur Kursquelle sagte er: „da wir ja tatsächlich die Kurse immer aktualisieren
 
 **Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin (`docs/arbeitsweise.md`, Abschnitt C/D). Klasse C, weil der Text Rechte erteilt und die Regeln der Autonomie berührt. **Der Text schaltet für sich allein nichts frei.** Die Regel „Claude Code mergt nie selbständig" (`CLAUDE.md`; `docs/arbeitsweise.md`, Abschnitt C; „Autonomer Betrieb", Nr. 2) bleibt unverändert in Kraft, bis der jeweilige Aktivierungs-PR (Roadmap B.14, B.15) von Konstantin gemergt ist.
 
-**Was gilt ab dem Merge, was nicht (Kurzfassung für Konstantin):** *Gilt:* das Regelwerk (Prinzip, Kernpfade, Tore, Voraussetzungen V1–V6) als Grundlage für spätere Entscheidungen; die Richtlinie vom 09.10.2026 (Grundsatzentscheidungen bei Konstantin, Protokollierung, begrenzter Schaden). *Gilt nicht:* jede Delegation. Der Agent mergt weiter nie selbständig; keine Stufe M1 bis M3 ist aktiviert, und `gh pr merge` bleibt gesperrt. *Folgt als eigene PRs:* die Sammelfreigabe in `docs/arbeitsweise.md`, die Prüfung der GitHub-Optionen (Frage 5) und, wenn Konstantin es später will, die Aktivierung einer Stufe.
+**Was gilt ab dem Merge, was nicht (Kurzfassung für Konstantin):** *Gilt:* das Regelwerk (Prinzip, Kernpfade, Tore, Voraussetzungen V1–V6) als Grundlage für spätere Entscheidungen; die Richtlinie vom 09.10.2026 (Grundsatzentscheidungen bei Konstantin, Protokollierung, begrenzter Schaden). *Gilt nicht:* jede Delegation. Der Agent mergt weiter nie selbständig; keine Stufe M1 bis M3 ist aktiviert, und `gh pr merge` bleibt gesperrt. *Folgt als eigener PR:* die Sammelfreigabe in `docs/arbeitsweise.md`. Ein zweites Konto (Frage 5) wird nicht angestrebt; ohne einen anderen Weg bleibt jede Stufe unerfüllbar und Konstantin mergt selbst.
 
 **In einfachen Worten**
 - Heute prüft und übernimmt Konstantin jeden Änderungsvorschlag (PR) selbst. „Übernehmen" heißt Merge: Die Änderung kommt in die Hauptversion `master`.
@@ -2475,22 +2475,22 @@ Was daraus folgt (Auslegung des Agenten, von Konstantin nicht einzeln bestätigt
 1. **Frage 1:** Prinzip, Kernpfade, Tore und V1–V6 gelten als Regelwerk, ohne dass damit eine Stufe aktiviert wird.
 2. **Frage 2:** M1 wird **nicht einzeln** aktiviert; sie wird erst zusammen mit der Entscheidung über M2 behandelt (Grund: M1 delegiert heute keine bestehende Datei, der Aufwand lohnt für M1 allein nicht).
 3. **Frage 3 und 4:** M2 und M3 werden **später** entschieden; heute wird keine Stufe aktiviert. „Erfahrung“ heißt hier: Betrieb ohne Delegation, aber mit dem Regelwerk, den Prüfprotokollen V1–V6 und dem Kritiker-Verfahren (M1 allein bringt wegen der fehlenden Dateien kaum Erfahrung); ob M2 einen eigenen Schritt davor braucht, entscheidet Konstantin, wenn die Frage ansteht.
-4. **Frage 5:** Der Agent prüft Optionen und Kosten für das zweite Konto, den Tarif und ein öffentliches Repo (0-€-Ziel) und legt sie vor; entschieden ist der Weg damit nicht.
+4. **Frage 5:** Konstantin (09.10.2026): „Ich glaube das ein zweites konto keinen sinn macht.“ Ein zweites GitHub-Konto für den Agenten wird deshalb **nicht** angestrebt; die Prüfung von Tarif und öffentlichem Repo ist nicht beauftragt. **Folge (Auslegung des Agenten, von Konstantin nicht bestätigt):** Die Voraussetzung V3 (getrennte Identität und durchgesetzte Regeln auf `master`) ist ohne zweites Konto nicht erfüllbar. Damit bleiben die von GitHub erzwungenen Tore (Punkt 5, Tore a, b, d, e) unerreichbar, und eine Stufe M1 bis M3 ist ohne anderen Weg nicht aktivierbar. Konstantin mergt dann wie bisher selbst; der Text bleibt als Regelwerk für den Fall, dass ein anderer Weg gefunden wird.
 5. **Frage 6:** Die Sammelfreigabe (Klarstellung von Abschnitt C, Klasse C) gilt mit dem Merge dieses Texts.
-6. **Frage 7:** offen; Konstantin nennt Start- und Zielwert (Anzahl der PRs je Woche, die er selbst mergen muss).
+6. **Frage 7:** Konstantin (09.10.2026): „Das Erfolgsmaß is wurscht.“ Es wird **kein** Start- oder Zielwert festgelegt; Punkt 11 entfällt als Voraussetzung. Konstantin: „Du arbeitest ja nach meinem auftrag aber kannst halt dann gleich weiter fortfahren wenn ich dir das sage.“ (Maßstab ist also, dass der Agent nach einem Auftrag ohne Verzögerung weiterarbeiten kann.)
 
-Die Fragen unten sind damit bis auf Frage 5 (Prüfauftrag) und Frage 7 beantwortet; sie bleiben zur Nachvollziehbarkeit stehen.
+Die Fragen unten sind damit beantwortet (Frage 5 mit „kein zweites Konto“, Frage 7 mit „unwichtig“); sie bleiben zur Nachvollziehbarkeit stehen. Ein weiterer Kritiker-Lauf wurde von Konstantin abgelehnt („Bei Frage 3 stimme ich dir zu“, 09.10.2026): Die offenen Restbefunde stehen im Bericht am PR.
 
 **Offene Fragen für Konstantin** (getrennt zu beantworten):
 *Entschieden am 08.10.2026 von Konstantin (gilt als Beschluss erst mit dem Merge dieses Texts):* Stufe M1 delegiert keine neuen Tests, nur Dokumentation außerhalb der Kernpfade.
 
-Beantwortet am 09.10.2026: Frage 1 (Ja), 2 (M1 nicht einzeln), 3 und 4 (später), 6 (Ja, Absicht). Offen: Frage 5 (Prüfauftrag an den Agenten) und Frage 7 (Zahlen von Konstantin).
+Beantwortet am 09.10.2026: Frage 1 (Ja), 2 (M1 nicht einzeln), 3 und 4 (später), 5 (kein zweites Konto), 6 (Ja, Absicht), 7 (unwichtig, kein Wert).
 
 Die Fragen sind unabhängig voneinander; ein „Ja“ bei einer Frage entscheidet keine andere.
 1. **Grundsatz:** Sollen Prinzip, Kernpfade, Tore (Punkt 5) und Voraussetzungen V1–V6 als Regelwerk gelten, ohne dass damit eine Stufe aktiviert wird? Ja oder nein.
 2. **Stufe M1:** Soll M1 (nur Dokumentation außerhalb der Kernpfade, heute keine bestehende Datei, Wert gering) überhaupt aktiviert werden, oder erst mit M2? Aktiviert wird sie in jedem Fall erst durch einen eigenen PR (B.14) nach V1–V6.
 3. **Stufe M2** (Klasse B, auch Code mit identischem Ergebnis): jetzt mit entscheiden oder erst nach Erfahrung mit M1? Hier liegt das Risiko lokal ausgeführter Tests und Codes (Restrisiken).
 4. **Stufe M3** (Umsetzung gemergter Entscheidungen): jetzt mit entscheiden oder später? Ohne M2 und M3 bleibt die Entlastung klein (siehe Wirkungsabschätzung).
-5. **Weg für V3:** zweites Konto, Tarif, öffentliches Repo?
+5. **Weg für V3:** zweites Konto, Tarif, öffentliches Repo? **Beantwortet: kein zweites Konto (siehe oben).**
 6. **Sammelfreigabe:** Soll die Klarstellung (mehrere Paare in einer Nachricht, jedes Paar einzeln gültig) mit dem Merge dieses Texts gelten? Sie ist Klasse C, braucht keine der Stufen und ändert keine Berechtigung. Ja oder nein. **Beantwortet am 09.10.2026: Ja (Absicht); wirksam erst mit dem eigenen PR an `docs/arbeitsweise.md`.**
-7. **Erfolgsmaß:** Start- und Zielwert (Punkt 11).
+7. **Erfolgsmaß:** Start- und Zielwert (Punkt 11). **Beantwortet: unwichtig, kein Wert.**
