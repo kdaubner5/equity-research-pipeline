@@ -2202,3 +2202,37 @@ Alle drei Punkte müssen wie im gemergten Eintrag (Punkt 10) vor dem ersten arch
 **Alternativen:** (a) Zweiten US-Maßstab für Qualität/Value behalten: verworfen, Konstantin braucht ihn nicht. (b) N = alle Firmen, die den Filter bestehen (41 von 126 bestanden Stufe 2 im Replay vom 07.10.2026): misst den Durchschnitt der Gruppe, nicht die Auswahl; verworfen. (c) Reine Indizes statt ETFs: verworfen, Konstantin will gewöhnliche ETFs.
 
 **How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag. Nächste Schritte: konkrete ETFs mit Belegen vorlegen (Konstantin bestätigt), Entscheidung zu Option C im Abbruchkriterium, dann Roadmap A.3.
+
+## 2026-10-08: Masterplan v2.0 übernommen (Agent-Entscheidung, Klasse C; Entwurf, nur Text)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin. Branch `agent/plan-v2-uebernommen` (von `master`), nur Dokumentation. Klasse C, weil der Eintrag festhält, welche freigegebenen Entscheidungen durch den Masterplan v2.0 abgelöst werden oder weiter gelten (`CLAUDE.md`: Einträge, die Regeln oder Verfahren ändern). Kein Code, keine Konfiguration, keine Schwellenänderung, keine Daten.
+
+**In einfachen Worten:** Der neue Masterplan v2.0 (Zweck, Stufen, Messschicht) und die Roadmap stehen seit PR #74 auf `master`. Anders als bei der Version 1.1 (Eintrag „Masterplan v1.1 übernommen" vom 20.09.2026) gibt es dazu noch keinen Eintrag in diesem Dokument. Dieser Eintrag holt das nach: Er nennt, was der Masterplan v2.0 gegenüber freigegebenen Entscheidungen ändert, was davon schon wirkt und was erst mit einem späteren Schritt wirken soll. Wer nur eine Zeile lesen will: **geändert ist nichts an Code, Schwellen oder Daten.**
+
+**Kontext.** PR #74 („Masterplan v2.0 und Roadmap", ersetzt PR #73) hat `docs/masterplan.md` (v2.0 ersetzt v1.1) und `docs/roadmap.md` (neu) auf `master` gebracht. Der Masterplan führt in seinem Änderungsprotokoll (Abschnitt 12) acht Abweichungen von freigegebenen Entscheidungen auf und sagt dazu: bis zum jeweils genannten Schritt gilt die freigegebene Entscheidung. Bei der Version 1.1 wurde das mit einem eigenen Eintrag festgehalten; hier soll es genauso sein, damit ein Leser dieses Dokuments nicht nur im Masterplan nachsehen muss.
+
+**Entscheidung (Entwurf).** Für jede Abweichung steht, ob sie schon mit dem Merge von PR #74 wirkt:
+
+| Nr. | Abweichung (Quelle: Masterplan Abschnitt 12) | Wirkt | Bis dahin / danach |
+|---|---|---|---|
+| 1 | **Rang-Tiebreaker** („Masterplan v1.1 übernommen", Entscheidung 2: Durchschnitt der Perzentil-Ränge innerhalb gleicher Flag-Zahl; nie gebaut) wird abgelöst durch die gebaute Regel aus Stufe 2 (Q7) | **seit dem Merge von PR #74** | Maßgeblich ist die gebaute Regel (Gruppen nach Flag-Zahl, darin Peer-Perzentil, dann Ticker). Code und Tests sind unverändert, weil der Tiebreaker nie gebaut wurde. |
+| 2 | **SEC EDGAR „geparkt, kein weiterer Ausbau"** (SimFin-Client, Entscheidung 9) wird aufgehoben | mit Roadmap C.3 | Bis dahin wird nichts gebaut; C.3 entscheidet auch, ob `src/data_layer/edgar_client.py` wiederverwendet wird. |
+| 3 | **P4 „keine zweite Quelle für die Aktienzahl"** (Stufe 2, Entscheidungen P1–P4) | mit Roadmap C.6 | Bis dahin gilt P4. Die Prüfung der Aktienzahl gegen Yahoo bzw. 10-K bleibt fester Schritt in Stufe 3 (Eintrag vom 07.10.2026). |
+| 4 | **Schuldenregel „Status quo"** (Phase 2.0a, Entscheidung 4) | bleibt bis Roadmap C.3 | unverändert |
+| 5 | **„Keine Größenachse"** in Stufe 2 | bleibt; Frage wird mit Roadmap C.8 neu gestellt | unverändert |
+| 6 | **Keine Daten und kein SimFin-Schlüssel auf dem Server** („Autonomer Betrieb", Nr. 5) | bleibt | Roadmap B.8 und E.3 bräuchten eine eigene Klasse-C-Änderung |
+| 7 | **PR #72 „Zweck und Zahlenbasis“, Abschnitt 1** (Entwurf) | **erledigt: PR #72 wurde nach Angleichung von Abschnitt 1 gemergt** | Konstantin hat entschieden: weiter wie im Masterplan v2.0 (08.10.2026). Abschnitt 1 spricht jetzt von börsennotierten US-Unternehmen, Finanzwerte vorerst ausgenommen, Stufe 2 mit echten Gates. Die Abweichung besteht nicht mehr; sie bleibt als Protokoll stehen. |
+| 8 | **Altman Z''** (Masterplan v1.1, Stufe 1.2; nie gebaut) wird gestrichen | **seit dem Merge von PR #74** | Insolvenzrisiko decken Net Debt/EBITDA, Stock-Flow-Abgleich und Stufe 3 ab. Wiederaufnahme nur, wenn Stufe 3 Fälle übersieht, die Z'' gefunden hätte. |
+
+**Was der Masterplan v2.0 sonst festhält (zur Einordnung, ohne neue Regel in diesem Eintrag):** Zweck als systematischer Gesundheitsfilter über börsennotierte US-Unternehmen (Größe nachrangig; Banken, Versicherer und REITs vorerst ausgenommen); Rechenbasis Geschäftsjahreszahlen; Obergrenze der Marktkapitalisierung soll entfallen, aber erst mit einem eigenen Klasse-C-PR samt Messung (Roadmap C.8); Messlatte vor dem ersten archivierten Lauf (Roadmap 0.3); Betrieb mit Claude Code (Abschnitt 9) ohne neue Rechte. Schwellen und Kennzahlen von Stufe 1 und 2, Portfolioregeln von Stufe 4, Kostenziel 0 €, „kein LLM-Rechnen" und US-only sind unverändert.
+
+**Erledigt: Verhältnis zu PR #72 (Abweichung 7, Roadmap 0.1).** Der Entwurf von PR #72 wich in drei Punkten vom Masterplan v2.0 ab („US-Nichtfinanzwerte“ gegen „börsennotierte US-Unternehmen“; „Finanztitel bewusst ausgenommen“ gegen „vorerst ausgenommen“; „Stufe 2 dient der Rangfolge“ gegen „EV/EBITDA und FCF-Rendite sind echte Gates“). Auf Konstantins Entscheidung („Ja wir machen weiter wie im Masterplan v2.0“, 08.10.2026) wurde Abschnitt 1 vor dem Merge angeglichen und PR #72 gemergt (Eintrag „Zweck und Zahlenbasis“). Die Abschnitte 2 bis 6 und der Anhang standen schon im Einklang mit dem Masterplan.
+
+**Bekannte Lücken (Ungeprüftes):**
+- Mehrere Aussagen im Masterplan stützen sich auf Quellen außerhalb des Repos und sind dort nicht gekennzeichnet: die Beobachtung vom 08.10.2026 in der Cloud-Sitzung (Roadmap B.11), „PATK als Fusionsfall" (A.4), der Stufe-3-Pilot, die Backlog-Prüfung vom 06.10. (0.5), die Token-Laufzeit von 30 Tagen (B.7) und die Preise von EODHD und FMP (Abschnitt 7).
+- Die Zahl „44 von 97" im Masterplan Abschnitt 4 hat ihre Quelle seit dem Merge von PR #72 in `docs/decisions.md` (Eintrag „Zweck und Zahlenbasis", Anhang D, Abschnitt 4).
+- Die Klassen der Roadmap-Zeilen sind Einstufungen des Agenten, nicht gemessen.
+
+**Alternativen:** (a) keinen Eintrag schreiben und den Masterplan allein gelten lassen: einfacher, aber die Abweichungen 1 und 8 wirken dann ohne Spur in diesem Dokument, und die Entscheidungshistorie bricht. (b) Jede Abweichung als eigenen Eintrag: genauer, aber acht Einträge ohne neuen Inhalt. Gewählt ist ein Sammeleintrag wie bei Version 1.1.
+
+**How to apply (nach Freigabe):** Keine Umsetzung nötig. Der Eintrag ist Dokumentation; die spätere Wirkung der Abweichungen 2 bis 6 hängt an den genannten Roadmap-Punkten.
