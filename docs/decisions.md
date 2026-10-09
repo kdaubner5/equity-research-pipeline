@@ -2236,3 +2236,74 @@ Alle drei Punkte müssen wie im gemergten Eintrag (Punkt 10) vor dem ersten arch
 **Alternativen:** (a) keinen Eintrag schreiben und den Masterplan allein gelten lassen: einfacher, aber die Abweichungen 1 und 8 wirken dann ohne Spur in diesem Dokument, und die Entscheidungshistorie bricht. (b) Jede Abweichung als eigenen Eintrag: genauer, aber acht Einträge ohne neuen Inhalt. Gewählt ist ein Sammeleintrag wie bei Version 1.1.
 
 **How to apply (nach Freigabe):** Keine Umsetzung nötig. Der Eintrag ist Dokumentation; die spätere Wirkung der Abweichungen 2 bis 6 hängt an den genannten Roadmap-Punkten.
+
+## 2026-10-08: Messlatte – ETF-Kandidaten für S&P 500 und MSCI World (Agent-Vorschlag, Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin und seiner Auswahl. Branch `agent/messlatte-etfs`, nur Dokumentation. Setzt Punkt 1 des Eintrags „Messlatte – Instrumente, Größe N und Wechselkursquelle“ (PR #82) um: gewöhnliche, thesaurierende ETFs für den S&P 500 und den MSCI World. **Die Auswahl trifft Konstantin; hier steht nur eine Vorauswahl mit Belegen.**
+
+**In einfachen Worten:** Es gibt mehrere gleichartige Fonds auf denselben Index. Sie unterscheiden sich vor allem in Kosten pro Jahr (TER), Alter und Anbieter. Ich schlage je Index zwei Kandidaten vor und empfehle einen. Alle vier sind laut den Vergleichsseiten in Irland aufgelegte, thesaurierende Fonds nach europäischem Fondsrecht (UCITS) und bilden den Index mit echten Aktien nach (nicht über Tauschgeschäfte). Eine Euro-Handelslinie an der Xetra ist für den iShares S&P 500 und den Xtrackers MSCI World auf Vergleichsseiten genannt, bei den anderen beiden nicht geprüft; ob sie für die Messlatte nutzbar ist, ist offen (siehe unten).
+
+**Belegt (Websuche und Abgleich am 08.10.2026 auf Vergleichsseiten wie justETF und Fondsdatenbanken; die Anbieterseiten und Fondsunterlagen selbst wurden nicht geprüft; die Zahlen sind Momentaufnahmen):**
+
+| Index | Fonds (ISIN) | Kosten pro Jahr (TER) | Start | Fondswährung |
+|---|---|---|---|---|
+| S&P 500 | iShares Core S&P 500 UCITS ETF USD (Acc) (IE00B5BMR087) | 0,07 % | 19.05.2010 | USD (laut Namen) |
+| S&P 500 | Vanguard S&P 500 UCITS ETF USD Accumulating (IE00BFMXXD54) | 0,07 % | 14.05.2019 | USD (laut Namen) |
+| MSCI World | Xtrackers MSCI World UCITS ETF 1C (IE00BJ0KDQ92) | 0,12 % | 22.07.2014 | USD |
+| MSCI World | iShares Core MSCI World UCITS ETF USD (Acc) (IE00B4L5Y983) | 0,20 % | Sept. 2009 | USD (laut Namen) |
+
+Fondsgröße (justETF, Momentaufnahme): iShares S&P 500 rund 140 Mrd. €, iShares MSCI World rund 133 Mrd. €, Vanguard S&P 500 rund 33 Mrd. €, Xtrackers MSCI World rund 22 Mrd. €. Alle vier sind groß genug, dass eine Schließung nicht zu erwarten ist; das ist eine Einschätzung des Agenten, nicht belegt.
+
+**Vorschlag (Agent, von Konstantin nicht bestätigt):**
+- **S&P 500: iShares Core S&P 500 (IE00B5BMR087).** Gleiche Kosten wie der Vanguard, aber seit 2010 am Markt: Die Reihe deckt jeden Signaltag der Forward-Log-Zeit ab, auch einen Rückblick auf frühere Läufe (die Läufe vom 24.09. und 30.09. liegen vor der Baseline).
+- **MSCI World: Xtrackers MSCI World 1C (IE00BJ0KDQ92).** Mit 0,12 % deutlich günstiger als der iShares (0,20 %), seit 2014 am Markt, an der Xetra handelbar. Der Kostenunterschied von 0,08 Prozentpunkten pro Jahr ist klein.
+- Zur Währung (Vorschlag aus dem Eintrag zu #82): F1 braucht den S&P 500 als **Dollar-Reihe** (Fondspreis oder Börsenkurs in USD; der iShares S&P 500 hat laut justETF eine USD-Linie an der Londoner Börse), F3 den MSCI World als **Euro-Reihe** (Börsenkurs der Xetra-Linie in EUR). Fondspreis und Börsenkurs sind nicht dasselbe, weichen aber meist nur wenig ab. Beide Fonds haben laut Quellen USD als Fondswährung; ob es die jeweils gewünschte Handelslinie gibt, ist **nicht geprüft**.
+
+**Ungeprüft und wichtig:**
+- Begriffe: TER = jährliche Kosten des Fonds in Prozent; UCITS = europäisches Fondsrecht; Handelslinie = die Börse und Währung, in der der Fonds gehandelt wird; Tracking-Differenz = Abstand zwischen Fonds und Index.
+- **Woher kommt die Kursreihe?** SimFin Free liefert nach bisherigem Wissen Aktienkurse; ob dort ETFs enthalten sind, ist nicht geprüft. Eine kostenlose Quelle für ETF-Kurse in USD und EUR muss noch gefunden und mit 0 € Fixkosten abgeglichen werden. Das ist die eigentliche offene Frage vor A.3.
+- Börsenkürzel, genaue Handelslinien, Steuern (Vorabpauschale bei thesaurierenden Fonds in Deutschland), Tracking-Differenz zum Index, Quellenzuverlässigkeit der Zahlen oben (Aggregatorseiten, Stand der TER).
+- Ob der Start 2009/2010 gegenüber 2014/2019 für die Auswertung in der Praxis eine Rolle spielt: für die Forward-Log-Zeit ab 2026 nein, nur für Rückblicke.
+
+**Alternativen:** Vanguard S&P 500 (gleich günstig, aber erst seit 2019); iShares MSCI World (länger am Markt, teurer); ein einziger „All-World“-Fonds statt MSCI World (anderer Index, verworfen, weil Konstantin MSCI World genannt hat).
+
+**Was Konstantin entscheiden muss:** Auswahl je Index (oder meine Empfehlung); ob eine Kursquelle für ETFs gesucht werden soll (nächster Schritt: Quellenprüfung ohne Kosten, nur öffentliche Quellen, keine SimFin-Calls).
+
+**How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag. Danach: Kursquelle prüfen, Eintrag nachziehen, dann Roadmap A.3.
+
+## 2026-10-08: Messlatte – Auswahl der ETFs (Beschluss) und Kursquelle (Vorschlag) (Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin. Ergänzt den Eintrag „Messlatte – ETF-Kandidaten“ (gleicher PR); die Auswahl dort („Was Konstantin entscheiden muss“) ist mit diesem Eintrag überholt. Nur Dokumentation, keine Daten für das System abgerufen; die Abrufe unten waren einzelne lesende Proben von öffentlichen Seiten.
+
+**Entscheidung von Konstantin (08.10.2026):** „Ja deine beiden Etf vorschläge sind gut“ (und, später am 08.10.2026: „Ja alpha vantage passt.“ „Zusatz für F2 passt“). Als Beschluss gilt damit mit dem Merge:
+1. **S&P 500:** iShares Core S&P 500 UCITS ETF USD (Acc), ISIN IE00B5BMR087.
+2. **MSCI World:** Xtrackers MSCI World UCITS ETF 1C, ISIN IE00BJ0KDQ92.
+3. **Kursquelle:** **Alpha Vantage** mit kostenlosem Schlüssel ist die Hauptquelle (Konstantin: „Ja alpha vantage passt.“). Den Schlüssel besorgt Konstantin; er kommt nicht ins Repo und nicht auf den Server. Ob die Symbole der beiden ETFs im kostenlosen Tarif Daten liefern, ist noch zu prüfen (Vorschlag Punkt 1 unten).
+4. **Option C** (Korb der 10 bestplatzierten Firmen aus Stufe 2) bleibt **Zusatz für F2**, wie im gemergten Eintrag „Messlatte“ (Konstantin: „Zusatz für F2 passt“). Sie ersetzt den gestrichenen zweiten US-Maßstab nicht und zählt nicht im Abbruchkriterium. Folge: Das Abbruchkriterium 1 vergleicht mit dem S&P 500 allein; das Risiko der Größenklasse steht im Eintrag „Messlatte – Instrumente, Größe N und Wechselkursquelle“, Abschnitt „Folgen“.
+
+Zur Kursquelle sagte er: „da wir ja tatsächlich die Kurse immer aktualisieren müssen. Da musst du recherchieren, welche Api am zuverlässigsten und kostenlos ist.“ Sein Kriterium ist also **zuverlässig und kostenlos**. Die Quelle hat er danach mit „Ja alpha vantage passt.“ bestätigt (Punkt 3); der Rest dieses Eintrags ist Recherche und Vorschlag des Agenten.
+
+**In einfachen Worten:** Für die Messlatte brauchen wir täglich oder wöchentlich nur zwei Kursreihen: den S&P-500-ETF in Dollar und den MSCI-World-ETF in Euro. Der Wechselkurs Euro/Dollar kommt für die Zeile „Währungseffekt“ dazu; seine Quelle darf laut Eintrag zu PR #82 warten, dieser Eintrag legt sie nicht fest. Das sind wenige Abrufe pro Tag, daher reichen die Grenzen der kostenlosen Angebote locker. Kritisch ist nicht die Menge, sondern die Verlässlichkeit: Von den kostenlosen Angeboten, die ich gesehen habe, nennt keines eine Verfügbarkeitszusage (nicht systematisch geprüft). Deshalb schlage ich vor, die Kurse selbst zu speichern und zwei Quellen gegeneinander zu prüfen.
+
+**Probe des Agenten am 08.10.2026 (lesend, je ein Abruf von diesem Server; Befehle und Ausschnitte der Antworten stehen im PR-Kommentar zu #84; der Bash-Guard lehnte eine Schleife mit nicht aufgelöster Variable ab, die einzelnen Abrufe wurden danach ohne Umgehung der Regel gemacht):**
+- **Yahoo Finance (inoffizielle Schnittstelle, wie sie auch das Python-Paket yfinance nutzt):** liefert für `CSPX.L` (iShares S&P 500, Londoner Börse, **Währung USD**), `XDWD.DE` (Xtrackers MSCI World, Xetra, **Währung EUR**) und `EURUSD=X` (Wechselkurs) Kurse zurück. Erster Handelstag laut Antwort: 15.09.2010 (CSPX.L) und 15.08.2014 (XDWD.DE). Das deckt die Wunschwährungen aus dem Eintrag zu PR #82 ab: Dollar-Reihe für F1, Euro-Reihe für F3; der Wechselkurs wäre bei Yahoo ebenfalls abrufbar, ist aber zurückgestellt. Der erste Handelstag bei Yahoo (15.09.2010) liegt nach dem Fondsstart (19.05.2010); ob die Reihe damit für jeden Signaltag reicht, hängt vom ersten Signaltag ab (2026) und ist unkritisch.
+- **Stooq (kostenlose CSV-Dateien):** lieferte beim Abruf keine Daten, sondern eine Seite, die einen Browser mit JavaScript verlangt (Bot-Prüfung). Ich habe sie nicht umgangen. Für ein automatisches Skript ist Stooq damit nach diesem Befund nicht geeignet.
+
+**Belegt (Websuche, Vergleichs- und Herstellerseiten, nicht selbst geprüft):** Alpha Vantage kostenlos: 25 Abrufe pro Tag, 5 pro Minute. Twelve Data kostenlos: 800 pro Tag, 8 pro Minute, über 30 Jahre Tageskurse. Financial Modeling Prep kostenlos: 250 Abrufe pro Tag, Tagesendkurse. Marketstack kostenlos: 100 Abrufe pro Monat, ein Jahr Verlauf. Alpaca und Finnhub: laut einer Vergleichsseite Schwerpunkt US-Aktien, nicht selbst geprüft. Marketstack scheidet wegen einem Jahr Verlauf für die Reihen ab 2010 bzw. 2014 aus. Bei Twelve Data sind die 800 „Credits“, nicht zwingend Abrufe; „über 30 Jahre Tageskurse“ ist ungeprüft. Alle Zahlen sind Momentaufnahmen. Für Yahoo: Eine offizielle öffentliche Kurs-Schnittstelle gibt es laut Suchtreffern nicht; das Paket yfinance nennt sich selbst inoffiziell und für Forschung und Lehre, und die Yahoo-Bedingungen verbieten nach Sekundärquellen automatisierten Zugriff ohne bereitgestellte Schnittstelle (Originaltext nicht gelesen). Die Prüfung der Originalbedingungen am 08.10.2026 bestätigt das für automatische Abrufe (siehe Vorschlag Punkt 1). **Meine eigene Probe oben war selbst ein automatischer Abruf** und hätte nach diesen Bedingungen nicht ohne Erlaubnis erfolgen sollen; weitere Yahoo-Abrufe unterbleiben.
+
+**Ungeprüft:** Ob Alpha Vantage, Twelve Data und FMP im kostenlosen Tarif die Londoner und Xetra-Linien der beiden ETFs liefern; ob die Yahoo-Zahlen lückenlos und mit den Fondsunterlagen vereinbar sind; Nutzungsbedingungen von Yahoo im Original und für den vorgesehenen Zweck (ein persönliches Forschungsprojekt mit wenigen Abrufen ist ein anderes Risiko als Dauerbetrieb auf einem Server); ob Yahoo „bereinigte Kurse“ (adjusted close) liefert und wie berechnet; wie lange die Probe so weiterfunktioniert.
+
+**Vorschlag (Agent, von Konstantin nicht bestätigt):**
+1. **Hauptquelle Alpha Vantage (von Konstantin bestätigt); Begründung der Prüfung am 08.10.2026:** Ein Anbieter mit Schlüssel und Nutzungsrecht (kostenloser Schlüssel). Die Dokumentation nennt dort die Börsenendungen `.LON` (London) und `.DEX` (Xetra) für Tageskurse; im kostenlosen Tarif sind 25 Abrufe pro Tag erlaubt, aber nur die letzten 100 Handelstage je Abruf (`compact`). Das genügt für die Forward-Messung, wenn jeder Kurs bei jedem Abruf gespeichert wird (Punkt 2) und mindestens alle paar Wochen abgerufen wird; ein Rückblick auf frühere Jahre ist mit dem kostenlosen Schlüssel nicht möglich. **Twelve Data scheidet im kostenlosen Tarif aus** (nur US-Märkte laut Preisseite, die Euro- und Londoner Linien der beiden ETFs fehlen). **Yahoo scheidet für automatische Abrufe aus:** Die Bedingungen von Yahoo verbieten im Original (Abschnitt 2.4 (i)) den Zugriff mit automatischen Mitteln ohne ausdrückliche vorherige Erlaubnis. FMP war nicht prüfbar (Seite nicht abrufbar). Ob Alpha Vantage die konkreten Symbole der beiden ETFs im kostenlosen Tarif tatsächlich liefert, ist **ungeprüft** und braucht einen kostenlosen Schlüssel von Konstantin; für den Wechselkurs (zurückgestellt) kommt zusätzlich die Europäische Zentralbank als amtliche, kostenlose Quelle in Frage (ungeprüft).
+2. **Eigene Speicherung:** Jeder abgerufene Schlusskurs wird mit Abrufdatum in einer **neuen, getrennten Kurs-Datenbank** abgelegt (nicht in `data/run_archive.db`; für diese gilt die Regel der echten Datenbank), nicht nur bei Bedarf geholt. Dann ist die Messlatte unabhängig davon, ob eine Quelle später ausfällt oder Werte ändert.
+3. **Abgleich:** Einmal pro Woche vergleichen sich beide Quellen; weichen die Schlusskurse um mehr als einen Schwellenwert ab, wird die Reihe als „ungeprüft“ markiert und gemeldet. Die Schwelle ist ein Platzhalter ohne Messgrundlage und gehört in eine YAML-Datei (Regel des Projekts: keine Zahlen im Code).
+4. **Schlüssel:** Falls die Zweitquelle einen Schlüssel braucht, liegt er nicht auf dem Server (Eintrag „Autonomer Betrieb“, Nr. 5); die Abrufe laufen dann auf Konstantins Rechner.
+5. **Umsetzung** erst nach Merge und eigener Entscheidung; sie ist Code mit Tests (Klasse C wegen neuer Daten und Regeln) und Teil von Roadmap A.3 oder davor.
+
+**Risiken:** Yahoo kann Abrufe ohne Vorwarnung blockieren oder ändern; Schlusskurse einer Börsenlinie sind nicht der Fondspreis (Abweichung meist klein, nicht gemessen); ein ETF kann die Linie wechseln oder schließen.
+
+**Alternativen:** (a) Nur ein bezahlter Anbieter: zuverlässiger, aber das Projekt hat 0 € Fixkosten als Ziel; verworfen. (b) Nur Zweitquelle ohne Yahoo: Abdeckung der Linien ungeprüft. (c) Kurse von Hand eintragen: bei drei Reihen machbar, aber fehleranfällig und für Dauerbetrieb nicht tragfähig.
+
+**Was Konstantin entscheiden muss:** (1) Konstantin besorgt den kostenlosen Alpha-Vantage-Schlüssel (nicht ins Repo, nicht auf den Server). (2) Danach prüft der Agent die Symbole der beiden ETFs; erst dann ist die Messlatte komplett.
+
+**How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag.
