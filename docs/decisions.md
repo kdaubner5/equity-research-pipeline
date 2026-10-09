@@ -2307,3 +2307,23 @@ Zur Kursquelle sagte er: „da wir ja tatsächlich die Kurse immer aktualisieren
 **Was Konstantin entscheiden muss:** (1) Konstantin besorgt den kostenlosen Alpha-Vantage-Schlüssel (nicht ins Repo, nicht auf den Server). (2) Danach prüft der Agent die Symbole der beiden ETFs; erst dann ist die Messlatte komplett.
 
 **How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag.
+
+## 2026-10-09: Messlatte – Prüfung der Kursquelle (Befund, Klasse A; Messdokumentation, kein Code)
+
+**Reine Befunddokumentation.** Keine neue Regel, keine Entscheidung. Folgt auf den Eintrag „Messlatte – Auswahl der ETFs (Beschluss) und Kursquelle (Vorschlag)“ (PR #84), in dem Konstantin Alpha Vantage als Hauptquelle bestätigt hat.
+
+**In einfachen Worten:** Das Prüfskript (`probe_alphavantage.py`, PR #85 und #86) lief am 09.10.2026 auf Konstantins Rechner mit seinem kostenlosen Schlüssel. Beide ETFs der Messlatte liefern Tageskurse. Damit ist die Messlatte (Roadmap 0.3) vollständig; nur die Quelle des Wechselkurses darf noch warten.
+
+**Belegt (Ausgabe des Skripts, von Konstantin eingefügt):**
+- `CSPX.LON` (iShares Core S&P 500, Londoner Börse, Dollar): 100 Handelstage, 22.05.2026 bis 08.10.2026, letzter Schlusskurs 838,64.
+- `XDWD.DEX` (Xtrackers MSCI World 1C, Xetra, Euro): 100 Handelstage, 22.05.2026 bis 08.10.2026, letzter Schlusskurs 143,31.
+- Die beiden Schlusskurse stimmen mit den Werten überein, die der Agent am 08.10.2026 bei einer lesenden Einzelprobe von Yahoo gesehen hat (838,64 und 143,31). Das ist eine Übereinstimmung zweier Quellen an einem Tag, kein Dauerbeleg.
+- Der erste Lauf gab für `XDWD.DEX` „Abruflimit“ aus, weil die damalige Fassung zwei Abrufe ohne Pause machte (kostenlos höchstens 1 Abruf pro Sekunde). Mit der Fassung aus PR #86 (13 Sekunden Pause) und einem Einzelabruf klappte es. Verbraucht waren am 09.10.2026 3 von 25 Abrufen.
+
+**Ungeprüft:**
+- Der Tarif liefert kostenlos nur die letzten 100 Handelstage je Abruf. Die eigene Speicherung jedes Kurses (Eintrag zu PR #84, Punkt 2) und ein Abruf mindestens alle paar Wochen sind Voraussetzung; das ist noch nicht gebaut.
+- Ob die Reihe über Monate lückenlos bleibt und wie Alpha Vantage Feiertage, Splits oder Linienwechsel behandelt.
+- Die Quelle des Wechselkurses (Konstantin: „kann warten“).
+- Ob Alpha Vantage mit dem kostenlosen Schlüssel dauerhaft bei den heutigen Bedingungen bleibt.
+
+**Folge:** Roadmap 0.3 ist erledigt, bis auf die Quelle des Wechselkurses. Nächste Schritte der Roadmap: A.2 (Archiv für Stufe 2 und Trend-Guard bereit, Replay auf einer Kopie) und A.3 (erster archivierter Lauf; echte Datenbank, nur mit ausdrücklicher Anweisung von Konstantin mit Umfang und Befristung).
