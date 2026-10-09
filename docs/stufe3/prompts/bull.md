@@ -9,7 +9,7 @@ Regeln: `docs/stufe3/prompts/gemeinsame_regeln.md` gelten vollständig.
 **Suche gezielt nach:**
 - Renditen auf neu investiertes Kapital, die das Management nennt oder die aus den Abschlüssen folgen (ohne eigene Rechnung: Zahlen kommen aus dem Werkzeug oder den Tabellen).
 - Belege für Preissetzungsmacht (Preiserhöhungen, die ohne Mengenverlust durchgingen) oder für Marktanteilsgewinne.
-- Gründe, warum Bear-Punkte weniger schwer wiegen könnten (Einmaleffekte, andere Bilanzierung, Rückgang bereits eingepreist ist nicht belegbar und bleibt außen vor).
+- Gründe, warum Bear-Punkte weniger schwer wiegen könnten (Einmaleffekte, andere Bilanzierung). Ob ein Rückgang schon im Kurs steckt, lässt sich aus den Quellen nicht belegen und bleibt außen vor.
 - Abweichende Sichtweisen im Management oder bei Analysten in den Transkripten.
 
 **Ausgabe (höchstens fünf Punkte):** Aussage · Kurzzitat · Fundstelle, jeweils mit Hinweis, welchen Bear-Punkt sie berührt. Wo es keine Belege gibt: „unzureichende Evidenz“. Keine Kursziele und keine Prognosen.
