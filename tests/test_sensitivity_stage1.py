@@ -173,3 +173,79 @@ def test_cli_reports_a_baseline_mismatch_with_exit_1(tmp_path, capsys):
     make_archive(path, [("LIAR", 0.20, 1.0, 1.2, "failed", "")], [])
     assert cli.main([str(path)]) == 1
     assert "stimmt nicht" in capsys.readouterr().out
+
+
+def test_selection_changes_are_separated_from_rank_only_changes(rows):
+    result = sens.run_sensitivity(rows, thresholds(), steps=(-10,))
+    cell = result.cell("roic.clean_pass_above", -10)  # 0.12 -> 0.108: GREYROIC (0.11) wird sauber: nur Rang
+    assert set(cell.rank_only) == {"GREYROIC"} and cell.selection_changes == 0
+    cell = result.cell("roic.fail_below", -10)  # LOWROIC kommt zu den Ueberlebenden
+    assert set(cell.selection_in) == {"LOWROIC"} and not cell.selection_out and not cell.rank_only
+    cell = sens.run_sensitivity(rows, thresholds(), steps=(-10,)).cell("net_debt_ebitda.beide", -10)
+    assert set(cell.selection_out) == {"EDGE"}
+
+
+def test_duplicate_tickers_in_both_tables_stop_the_test(tmp_path):
+    path = tmp_path / "kopie.db"
+    make_archive(path, [("DUP", 0.2, 1.0, 1.2, "passed", "")], [("DUP", "failed", 0.05, 1.0, 1.2, 0.05, "")])
+    connection = sqlite3.connect(path)
+    with pytest.raises(sens.SensitivityError, match="DUP"):
+        sens.load_stage1_rows(connection, TS)
+    connection.close()
+
+
+def test_cli_output_separates_selection_and_rank_and_warns_about_comparing_steps(tmp_path, capsys):
+    path = tmp_path / "kopie.db"
+    make_archive(path, SURVIVORS, ELIMINATED)
+    cli.main([str(path), "--steps=-10"])
+    out = capsys.readouterr().out
+    assert "Auswahl +1 / -0" in out and "nur Rang 1" in out
+    assert "gleichen Prozentsatz" in out or "denselben Prozentsatz" in out
+    assert "Beide Schwellen einer Kennzahl gemeinsam" in out and "Stufe 2" in out
+
+
+def test_cli_wrong_run_and_bad_steps_exit_2(tmp_path, capsys):
+    path = tmp_path / "kopie.db"
+    make_archive(path, SURVIVORS, ELIMINATED)
+    assert cli.main([str(path), "--run", "1999-01-01T00:00:00"]) == 2
+    for bad in ("--steps=0,abc", "--steps=-100", "--steps="):
+        with pytest.raises(SystemExit) as info:
+            cli.main([str(path), bad])
+        assert info.value.code == 2
+
+
+def test_cli_refuses_links_and_side_files(tmp_path, monkeypatch, capsys):
+    import os
+
+    real = tmp_path / "run_archive.db"
+    make_archive(real, SURVIVORS, ELIMINATED)
+    monkeypatch.setattr(cli, "REAL_ARCHIVE_PATH", real)
+    link = tmp_path / "symlink.db"
+    link.symlink_to(real)
+    hard = tmp_path / "hardlink.db"
+    os.link(real, hard)
+    assert cli.main([str(link)]) == 2 and cli.main([str(hard)]) == 2
+    copy = tmp_path / "kopie.db"
+    copy.write_bytes(real.read_bytes())
+    (tmp_path / "kopie.db-wal").write_bytes(b"x")
+    assert cli.main([str(copy)]) == 2 and "unvollständig" in capsys.readouterr().out
+
+
+def test_cli_with_a_run_without_companies_does_not_divide_by_zero(tmp_path, capsys):
+    path = tmp_path / "kopie.db"
+    make_archive(path, [], [])
+    assert cli.main([str(path), "--steps=10"]) == 0
+    out = capsys.readouterr().out
+    assert "Firmen im Test: 0" in out and "0 von 0" in out
+
+
+def test_the_latest_of_several_runs_is_the_default(tmp_path, capsys):
+    path = tmp_path / "kopie.db"
+    make_archive(path, SURVIVORS, ELIMINATED, run="2026-09-24T00:00:00")
+    connection = sqlite3.connect(path)
+    connection.execute("INSERT INTO runs (run_timestamp, companies_evaluated, survivors_count, config_hash) VALUES (?,?,?,?)",
+                       ("2026-10-07T00:00:00", 0, 0, "x"))
+    connection.commit()
+    connection.close()
+    cli.main([str(path), "--steps=10"])
+    assert "Stufe-1-Lauf: 2026-10-07T00:00:00" in capsys.readouterr().out

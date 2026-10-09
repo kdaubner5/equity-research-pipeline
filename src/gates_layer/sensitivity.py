@@ -30,6 +30,7 @@ from gates_layer.stage1_gates import (
 from metrics_layer.result import MetricResult
 
 STATUSES = (PASSED, PASSED_WITH_FLAGS, FAILED, NOT_EVALUABLE)
+SURVIVOR_STATUSES = (PASSED, PASSED_WITH_FLAGS)
 _NO_VALUE_REASON = "value_not_stored"
 # Nettomarge der Ueberlebenden: nicht gespeichert; sie haben die Grenze bestanden. Ein sehr hoher Platzhalterwert laesst
 # jede lockerere Variante unveraendert; strengere Marge-Varianten werden deshalb ganz uebersprungen.
@@ -73,6 +74,25 @@ class Cell:
     changed: Dict[str, Tuple[str, str]] = field(default_factory=dict)  # Ticker -> (Basis, Variante)
     skipped: Optional[str] = None
 
+    @property
+    def selection_in(self) -> Dict[str, Tuple[str, str]]:
+        """Firmen, die durch die Variante neu zu den Ueberlebenden von Stufe 1 gehoeren."""
+        return {t: c for t, c in self.changed.items() if c[0] not in SURVIVOR_STATUSES and c[1] in SURVIVOR_STATUSES}
+
+    @property
+    def selection_out(self) -> Dict[str, Tuple[str, str]]:
+        """Firmen, die durch die Variante aus den Ueberlebenden herausfallen."""
+        return {t: c for t, c in self.changed.items() if c[0] in SURVIVOR_STATUSES and c[1] not in SURVIVOR_STATUSES}
+
+    @property
+    def rank_only(self) -> Dict[str, Tuple[str, str]]:
+        """Wechsel innerhalb der Ueberlebenden (bestanden <-> bestanden mit Marken): aendert nur den Rang."""
+        return {t: c for t, c in self.changed.items() if c[0] in SURVIVOR_STATUSES and c[1] in SURVIVOR_STATUSES}
+
+    @property
+    def selection_changes(self) -> int:
+        return len(self.selection_in) + len(self.selection_out)
+
 
 @dataclass
 class SensitivityResult:
@@ -106,6 +126,10 @@ def load_stage1_rows(connection, run_timestamp: str) -> List[Stage1Row]:
         (run_timestamp,),
     ):
         rows.append(Stage1Row(ticker, status, roic, nde, cc, margin, False))
+    tickers = [r.ticker for r in rows]
+    duplicates = sorted({x for x in tickers if tickers.count(x) > 1})
+    if duplicates:
+        raise SensitivityError(f"Ticker mehrfach im Lauf {run_timestamp} (run_results und eliminated_results): {duplicates[:10]}")
     return rows
 
 

@@ -126,7 +126,9 @@ def main(argv=None):
         if len(result.baseline_mismatches) > MAX_LISTED:
             print(f"  (und {len(result.baseline_mismatches) - MAX_LISTED} weitere)")
 
-    print("\nWirkung je Variante (eine Schwelle wird um den Prozentsatz verändert, die anderen bleiben):")
+    print("\nWirkung je Variante (eine Schwelle wird um den Prozentsatz verändert, die anderen bleiben).")
+    print("„Auswahl“ heißt: Die Firma kommt zu den Überlebenden von Stufe 1 hinzu oder fällt heraus. „Nur Rang“: bestanden und")
+    print("bestanden mit Marken wechseln, die Menge der Überlebenden bleibt gleich.")
     for cell in result.cells:
         label = f"{cell.parameter} {_fmt(cell.step_percent)}"
         if cell.skipped:
@@ -135,21 +137,35 @@ def main(argv=None):
         names = sorted(cell.changed)
         listed = ", ".join(f"{t} ({_status(cell.changed[t][0])} → {_status(cell.changed[t][1])})" for t in names[:MAX_LISTED])
         more = f" (und {len(names) - MAX_LISTED} weitere)" if len(names) > MAX_LISTED else ""
-        print(f"  {label}: {len(names)} von {result.companies} wechseln" + (f": {listed}{more}" if names else ""))
+        print(
+            f"  {label}: Auswahl +{len(cell.selection_in)} / -{len(cell.selection_out)}, nur Rang {len(cell.rank_only)}, "
+            f"andere Wechsel {len(cell.changed) - cell.selection_changes - len(cell.rank_only)} (von {result.companies})"
+            + (f": {listed}{more}" if names else "")
+        )
 
-    ranking = {}
-    for cell in result.cells:
-        if cell.skipped:
-            continue
-        ranking[cell.parameter] = max(ranking.get(cell.parameter, 0), len(cell.changed))
-    print("\nWelche Schwellen steuern die Auswahl am stärksten? (größte Zahl wechselnder Firmen innerhalb der Schritte)")
-    for parameter, count in sorted(ranking.items(), key=lambda item: (-item[1], item[0])):
+    def ranking(include_both):
+        best = {}
+        for cell in result.cells:
+            if cell.skipped or cell.parameter.endswith(".beide") != include_both:
+                continue
+            best[cell.parameter] = max(best.get(cell.parameter, 0), cell.selection_changes)
+        return sorted(best.items(), key=lambda item: (-item[1], item[0]))
+
+    print("\nWelche einzelne Schwelle ändert die Auswahl am stärksten? (größte Zahl der Firmen, die hinein- oder herausfallen)")
+    print("Achtung beim Vergleichen: Alle Schwellen sind hier um denselben Prozentsatz verschoben; 20 % von 0,02 (Marge) und")
+    print("20 % von 2,5 (Verschuldung) sind unterschiedlich große Schritte. Die Zahl zeigt auch, wie dicht Firmen zufällig an der Grenze liegen.")
+    for parameter, count in ranking(False):
+        print(f"  {parameter}: bis zu {count} von {result.companies}")
+    print("Beide Schwellen einer Kennzahl gemeinsam verschoben (nicht mit den Einzelwerten vergleichbar):")
+    for parameter, count in ranking(True):
         print(f"  {parameter}: bis zu {count} von {result.companies}")
 
     print(
         "\nGrenzen: Verändert werden nur die Gate-Schwellen, nicht die Rechenparameter der Kennzahlen (Steuersatz, Obergrenze "
         "des ROIC). Für Überlebende ist die Nettomarge nicht gespeichert, strengere Marge-Varianten fehlen deshalb. Der Test "
-        "zeigt, welche Zahlen die Auswahl steuern, nicht, welche richtig sind."
+        "zeigt, welche Zahlen die Auswahl steuern, nicht, welche richtig sind. Stabil heißt hier nur: gleiche Menge an Überlebenden "
+        "aus Stufe 1. Ob die Firmen in Stufe 2 bestehen und wie sich der Rang ändert (Zahl der Marken), ist nicht getestet; ebenso "
+        "nicht die Schwellen des Vorfilters (Größe, Handelsvolumen)."
     )
     return exit_code
 
