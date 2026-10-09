@@ -23,9 +23,9 @@ RULE_FILES = (
     "config/trend_guard.yaml",
     "config/sector_profiles.yaml",
 )
-# Files in config/ that are deliberately not screening rules (guard of the agent, pilot list). A test fails
+# Files in config/ that are deliberately not screening rules (guard of the agent, pilot list, benchmark price sources). A test fails
 # when a new file in config/ is in neither tuple, so a new rule file cannot be forgotten silently.
-NON_RULE_CONFIG_FILES = ("config/bash_guard.yaml", "config/universe.txt")
+NON_RULE_CONFIG_FILES = ("config/bash_guard.yaml", "config/universe.txt", "config/benchmarks.yaml")
 
 STEPS = ("prefilter", "stage1", "stage2", "trend")
 MAX_DIRTY_PATHS = 50

@@ -1,0 +1,26 @@
+# Messlatte: Kursreihen der Vergleichs-ETFs (docs/decisions.md, "Messlatte - Kursreihen speichern und
+# regelmaessig abrufen", Beschluss von Konstantin am 09.10.2026). Keine Screening-Regel (steht in
+# NON_RULE_CONFIG_FILES in src/store_layer/rule_state.py). Alle Zahlen sind vorlaeufige Platzhalter ohne
+# Messgrundlage und gelten, bis es Messdaten gibt.
+source: alphavantage
+
+# Kostenlos hoechstens 5 Abrufe pro Minute und 1 pro Sekunde; vorsichtige Pause zwischen zwei Symbolen.
+pause_between_symbols_seconds: 13
+
+# Warnung, wenn der letzte gespeicherte Kurs aelter ist als so viele Kalendertage.
+stale_warn_days: 14
+
+# Luecke: Abstand zweier Kursdaten in Kalendertagen, der noch normal ist (Ostern, Neujahr mit Wochenende
+# ergeben bis zu 5 Tage; ohne Boersenkalender ist 6 die Grenze, mehr gilt als Luecke).
+gap_calendar_days: 6
+
+# Beim Lesen: so viele Kalendertage darf der letzte Kurs vor dem Signaltag hoechstens zurueckliegen.
+lookback_max_calendar_days: 5
+
+# Tagessprung in Prozent, ab dem ein Kurs gespeichert, aber markiert und gemeldet wird.
+jump_threshold_pct: 10
+
+# Die Waehrung kommt von hier, nicht aus der Schnittstelle (Alpha Vantage nennt sie nicht).
+symbols:
+  - {symbol: CSPX.LON, role: sp500, currency: USD}       # iShares Core S&P 500 (Acc), Londoner Boerse
+  - {symbol: XDWD.DEX, role: msci_world, currency: EUR}  # Xtrackers MSCI World 1C, Xetra
