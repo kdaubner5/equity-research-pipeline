@@ -114,3 +114,56 @@ def test_classify_leverage_refuses_nan():
     thresholds = NetDebtEbitdaThresholds(clean_pass_below=2.3, fail_at_or_above=2.5)
     with pytest.raises(ValueError):
         g.classify_leverage(float("nan"), thresholds)
+
+
+# ---- Einstiegsgrenze (regelbasiert, keine Prognose) -------------------------------------------------------------
+
+def test_price_limit_from_fcf_yield_is_fcf_over_target_yield_per_share():
+    # FCF 120, Zielrendite 6 % -> Marktkapitalisierung 2000 -> bei 100 Aktien 20 je Aktie
+    assert g.price_limit_fcf_yield(120.0, 100.0, 0.06).value == pytest.approx(20.0)
+
+
+@pytest.mark.parametrize("fcf, shares, target", [(0.0, 100.0, 0.06), (-5.0, 100.0, 0.06), (120.0, 0.0, 0.06), (120.0, 100.0, 0.0),
+                                                  (None, 100.0, 0.06), (120.0, None, 0.06), (120.0, 100.0, None), (True, 100.0, 0.06)])
+def test_fcf_price_limit_refuses_non_positive_or_missing_inputs(fcf, shares, target):
+    result = g.price_limit_fcf_yield(fcf, shares, target)
+    assert result.value is None and result.invalid_reason is not None
+
+
+def test_price_limit_from_ev_ebitda_is_target_multiple_times_ebitda_minus_net_debt_per_share():
+    # Ziel 8 x EBITDA 150 = EV 1200; minus Nettoschulden 200 = Eigenkapital 1000; bei 100 Aktien 10 je Aktie
+    assert g.price_limit_ev_ebitda(150.0, 200.0, 100.0, 8.0).value == pytest.approx(10.0)
+
+
+def test_net_cash_raises_the_ev_ebitda_price_limit():
+    assert g.price_limit_ev_ebitda(150.0, -200.0, 100.0, 8.0).value == pytest.approx(14.0)
+
+
+def test_ev_ebitda_price_limit_refuses_non_positive_equity_and_bad_inputs():
+    result = g.price_limit_ev_ebitda(100.0, 900.0, 100.0, 8.0)  # EV 800 < Schulden 900 -> kein positiver Preis
+    assert result.value is None and result.invalid_reason == g.LIMIT_NON_POSITIVE
+    assert g.price_limit_ev_ebitda(0.0, 0.0, 100.0, 8.0).invalid_reason == g.EBITDA_NON_POSITIVE
+    assert g.price_limit_ev_ebitda(100.0, 0.0, 0.0, 8.0).invalid_reason is not None
+    assert g.price_limit_ev_ebitda(100.0, None, 100.0, 8.0).invalid_reason == g.INSUFFICIENT_EVIDENCE
+
+
+def test_entry_limit_is_the_lower_of_the_available_limits_and_names_the_binding_one():
+    limit = g.entry_limit([("FCF-Rendite", g.MetricResult(value=20.0)), ("EV/EBITDA", g.MetricResult(value=10.0))])
+    assert limit.price == pytest.approx(10.0) and limit.binding == "EV/EBITDA"
+
+
+def test_entry_limit_ignores_missing_limits_but_says_so():
+    limit = g.entry_limit([("FCF-Rendite", g.MetricResult(value=20.0)), ("EV/EBITDA", g.MetricResult(value=None, invalid_reason="insufficient_evidence"))])
+    assert limit.price == pytest.approx(20.0) and limit.binding == "FCF-Rendite" and limit.missing == ["EV/EBITDA"]
+
+
+def test_entry_limit_without_any_limit_has_no_price():
+    limit = g.entry_limit([("FCF-Rendite", g.MetricResult(value=None, invalid_reason="insufficient_evidence"))])
+    assert limit.price is None and limit.binding is None
+
+
+def test_distance_to_the_limit_is_the_price_relative_to_the_limit():
+    assert g.distance_to_limit(10.0, 8.0) == pytest.approx(-0.2)  # Kurs 20 % unter der Grenze: Spielraum
+    assert g.distance_to_limit(8.0, 10.0) == pytest.approx(0.25)  # Kurs 25 % ueber der Grenze: zu teuer
+    assert g.distance_to_limit(10.0, 0.0) is None and g.distance_to_limit(None, 8.0) is None
+    assert g.distance_to_limit(0.0, 8.0) is None

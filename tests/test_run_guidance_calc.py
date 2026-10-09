@@ -96,3 +96,37 @@ def test_the_runner_reads_only_config_and_does_no_network_or_database_access():
     source = open(run.__file__, encoding="utf-8").read()
     for forbidden in ("urllib", "requests", "sqlite3", "simfin", "socket"):
         assert forbidden not in source.lower().replace("kein simfin", "")
+
+
+def test_entry_limit_block_is_printed_with_both_limits_the_binding_one_and_the_distance(capsys):
+    code = run.main(["--market-cap", "1000", "--fcf-guidance", "120", "--net-debt", "200", "--ebitda-guidance", "150",
+                     "--shares", "100", "--price", "12", "--peer-multiple", "8",
+                     "--net-debt-quarter", "300", "--ebitda-ttm", "200"])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "Einstiegsgrenze" in out and "kein Kursziel" in out
+    assert "20,00" in out and "10,00" in out  # FCF-Rendite 6 %: 20 je Aktie; EV/EBITDA 8: 10 je Aktie
+    assert "bindend: EV/EBITDA" in out
+    assert "Kurs 12,00 liegt 20,0 % über der Grenze" in out
+
+
+def test_entry_limit_uses_the_stage2_clean_pass_yield_and_says_so(capsys):
+    run.main(["--fcf-guidance", "120", "--shares", "100"])
+    out = capsys.readouterr().out
+    assert "6,0 %" in out and "stage2.yaml" in out
+
+
+def test_entry_limit_with_missing_inputs_says_insufficient_evidence_and_gives_no_price(capsys):
+    code = run.main(["--shares", "100"])
+    out = capsys.readouterr().out
+    assert code == 1 and "Einstiegsgrenze" in out and "unzureichende Evidenz" in out
+
+
+def test_without_shares_no_entry_limit_block_is_printed(capsys):
+    run.main(["--market-cap", "1000", "--fcf-guidance", "120"])
+    assert "Einstiegsgrenze" not in capsys.readouterr().out
+
+
+def test_price_below_the_limit_is_described_as_room(capsys):
+    run.main(["--fcf-guidance", "120", "--shares", "100", "--price", "16"])
+    assert "unter der Grenze" in capsys.readouterr().out
