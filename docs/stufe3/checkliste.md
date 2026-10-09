@@ -24,6 +24,10 @@ Fachbegriffe (Guidance, EV/EBITDA, FCF-Rendite, Net Debt/EBITDA, Peer-Gruppe, Pe
 | 6 | **Hauptrisiko in einem Satz, Kill-Kriterium mit Zahl.** Das Kill-Kriterium ist eine messbare Schwelle (erfundenes Beispiel, kein Wert aus dem Repo: „Net Debt/EBITDA über X im nächsten 10-Q“, wobei X zur Stufe-1-Schwelle in `config/thresholds.yaml` passen muss), bei deren Verletzung die Position verworfen wird. | Ergebnis aus 1–5, Bear-Prüfung | ein Satz; Kriterium mit Zahl und Prüfdatum |
 | 7 | **Modul-Kennzahlen:** Für Modul 1 (Nichtfinanzwerte) sind keine eigenen Stufe-3-Kennzahlen festgelegt. Bei Holdings und Konglomeraten bleibt die Bewertung der Teile (Sum-of-the-Parts) Handarbeit. Finanznahe Grenzfälle (Marke „borderline“) besonders prüfen (Ergänzung). | Masterplan Abschnitt 5 | keine festgelegt / SOTP nötig / Grenzfall |
 
+## Einstiegsszenario (Ergänzung auf Wunsch von Konstantin, 09.10.2026)
+
+Zu jedem One-Pager gehört ein Einstiegsszenario: Zeithorizont (mittelfristig oder langfristig), die regelbasierte Einstiegsgrenze und die Einstiegsbedingung (jetzt, abwarten bis Ereignis, abwarten bis Kurs unter der Grenze, nicht einsteigen). Die Grenze rechnet `run_guidance_calc.py` (Option `--shares`, `--price`, `--peer-multiple`) aus Zahlen mit Quelle und Datum. **Es ist kein Kursziel und keine Prognose** (Masterplan: Agenten sagen nichts voraus; Ausstieg ist das Kill-Kriterium, nicht der Kurs). Zeithorizont und Bedingung sind ein Vorschlag des Agenten; Konstantin entscheidet. Die Grenzen von „mittelfristig“ und „langfristig“ (Vorschlag: 1 bis 3 und 3 bis 5 Jahre oder länger) stehen nicht im Masterplan.
+
 ## Zusätzliche Beobachtungen, die im One-Pager stehen müssen (falls vorhanden)
 
 - **Trend-Guard-Marken** (Ergänzung): T1 Umsatz im letzten Jahr deutlich unter dem Dreijahresmittel, T2 EBITDA-Marge deutlich darunter, T3 ROIC des letzten Jahres allein unter der Stufe-1-Grenze, T4 EBITDA-Marge deutlich darüber (Gewinngipfel). Marken zählen im Rang nicht, geben aber einen Anlass zum Nachsehen (Entscheidung vom 07.10.2026). T4 erfasst nur den Sprung gegenüber dem Dreijahresmittel, nicht ein dauerhaft hohes Niveau. Messung: 25 von 126 geprüften Firmen tragen eine Marke, 8 von 41 Finalisten.
@@ -36,6 +40,6 @@ Rang, Lauf und Regelstand kommen aus dem Archiv (Roadmap A.3); ohne archivierten
 
 ## Abschluss je Finalist
 
-1. One-Pager nach `docs/stufe3/one_pager_vorlage.md` ausfüllen.
+1. One-Pager nach `docs/stufe3/one_pager_vorlage.md` ausfüllen, einschließlich des Einstiegsszenarios (Abschnitt 7).
 2. Verdikt: weiterverfolgen / zurückstellen / verwerfen / unzureichende Evidenz. Das Verdikt trifft Konstantin (Roadmap D.5); der Agent schlägt vor und begründet.
 3. Eintrag ins Verdikt-Log (Roadmap D.3, sobald gebaut).

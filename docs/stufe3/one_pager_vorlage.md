@@ -36,13 +36,34 @@ Ein One-Pager je Finalist, Ziel etwa eine Seite (Wunsch, kein Zwang; bei mehr St
 **Hauptrisiko (ein Satz):** <...>
 **Kill-Kriterium (mit Zahl):** <Kennzahl, Schwelle, Prüfdatum>
 
-## 7. Marken und Beobachtungen
+## 7. Einstiegsszenario (Vorschlag des Agenten, Entscheidung durch Konstantin; kein Kursziel, keine Prognose)
+
+**Zeithorizont:** ☐ mittelfristig (etwa 1 bis 3 Jahre)  ☐ langfristig (etwa 3 bis 5 Jahre oder länger). Begründung in einem Satz aus den Quellen (zum Beispiel: ein Ereignis mit Datum innerhalb von drei Jahren spricht für mittelfristig; eine langsam wirkende Entwicklung für langfristig). Die Jahresgrenzen sind ein Vorschlag des Agenten, Konstantin legt sie fest.
+
+**Einstiegsgrenze (Rechnung mit `run_guidance_calc.py`, Roadmap D.2):** der Preis je Aktie, bis zu dem die Firma die eigenen Bewertungsgrenzen mit den *heutigen* Zahlen noch erfüllt.
+
+| Grenze nach | Preis je Aktie | Grundlage (Zahl, Quelle, Datum) |
+|---|---|---|
+| FCF-Rendite (Zielrendite aus `config/stage2.yaml`) | | |
+| EV/EBITDA (Zielvielfaches = Peer-Grenze des Laufs) | | |
+| **Bindend (die niedrigere)** | | |
+| Aktueller Kurs (Datum) | | Abstand zur Grenze in %: |
+
+**Einstiegsbedingung (eine Zeile ankreuzen, mit Begründung):**
+☐ jetzt: Kurs unter der Grenze und kein offenes Ereignis aus Punkt 2 der Checkliste
+☐ abwarten bis zu einem Ereignis laut Quelle, mit Datum (zum Beispiel nächster 10-Q): <Ereignis, Datum>
+☐ abwarten, bis der Kurs unter die Grenze fällt
+☐ nicht einsteigen
+
+**Was dieser Abschnitt nicht sagt:** wohin der Kurs geht. Die Grenze beschreibt nur den Abstand des heutigen Kurses zu den eigenen Bewertungsregeln; mit anderen Zahlen (neues Quartal, neue Guidance) ergibt sich eine andere Grenze. Der Ausstieg bleibt das Kill-Kriterium (Abschnitt 6), nicht ein Kurs. Die Größe legt Stufe 4 fest (Konstantin); sie wird beim Kauf einmal festgelegt (`docs/masterplan.md`, Stufe 4), ein Aufstocken in Stufen gehört deshalb nicht in das Szenario.
+
+## 8. Marken und Beobachtungen
 - Trend-Guard-Marken: <T1 Umsatz fällt, T2 Marge fällt, T3 ROIC unter Grenze, T4 Margengipfel, oder keine>
 - Datenqualitäts-Flags und veraltete Daten: <...>
 - Unternehmensereignisse (Punkt 2): <...>
 - Sonstiges (zum Beispiel Dividendenmuster, Grenzfall „borderline“): <...>
 
-## 8. Verdikt (Vorschlag des Agenten, Entscheidung durch Konstantin)
+## 9. Verdikt (Vorschlag des Agenten, Entscheidung durch Konstantin)
 Ausgang: ☐ weiterverfolgen  ☐ zurückstellen  ☐ verwerfen  ☐ unzureichende Evidenz
 Begründung in einem Satz: <...>
 
