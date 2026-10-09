@@ -1814,6 +1814,522 @@ Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein 
 - Die Hypothesen sind erfüllt, über die inhaltliche Richtigkeit der Marken sagt das nichts.
 - Die Messung nennt keine Zahlen für Rangwirkung; die Folgeentscheidung über eine Rangwirkung steht weiter aus (hier nur: vorerst nicht).
 
+## 2026-10-07: Zweck und Zahlenbasis (07.10.2026) (Agent-Entscheidung, Klasse C; Entwurf, nur Text)
+
+**Status: Entwurf, nicht freigegeben.** Der Text gilt erst, wenn Konstantin ihn per Merge auf `master` gebracht hat. Branch `agent/zweck-zahlenbasis` (von `master`), nur Dokumentation. Klasse C: Der Abschnitt legt Verfahren fest (welche Zahlenbasis die Stufen verwenden, welche Quelle nicht Grundlage ist). Auftrag und Fassung der Abschnitte 2 bis 6 stammen von Konstantin (2026-10-07); Abschnitt 1 wurde am 2026-10-08 auf seine Anweisung an den Masterplan v2.0 angeglichen (Vermerk dort). Keine echte Datenbank, kein `data/`, kein Code, keine Konfiguration; die Zahlen im Anhang stammen aus den Messungen vom 2026-10-07 (nur lesend auf den Kopien unter `C:\Users\<Benutzer>\baselines\`) und einem freigegebenen Abrufblock mit 23 SimFin-Calls.
+
+### 1. Zweck
+
+Das System ist ein systematischer Gesundheitsfilter über börsennotierte US-Unternehmen. Es reduziert das Universum auf wenige Titel mit solider Bilanz und Ertragsqualität; die Größe der Firma ist nachrangig. Es sucht keine Preisfehler und verspricht keinen Vorsprung. Stufe 2 hat echte Gates (EV/EBITDA und FCF-Rendite; wer durchfällt, scheidet aus) und ordnet die Bestandenen. Banken, Versicherer und REITs sind vorerst ausgenommen und kommen später mit eigenen Modulen. Für Zweck und Leitprinzip gilt im Übrigen der Masterplan v2.0 (Abschnitt 1).
+
+*Änderung am 08.10.2026 auf Anweisung von Konstantin („wir machen weiter wie im Masterplan v2.0"): Abschnitt 1 wurde an den Masterplan v2.0 angeglichen (Roadmap 0.1, Masterplan Abschnitt 12, Abweichung 7). Vorher stand dort „US-Nichtfinanzwerte", „Finanztitel bewusst ausgenommen" und „Stufe 2 dient der Rangfolge". Die Abschnitte 2 bis 6 und der Anhang sind unverändert.*
+
+### 2. Zahlenbasis
+
+Stufe 1 und 2 rechnen weiter auf Geschäftsjahreszahlen (FY). Die Baseline 126/41/40 ist ein FY2025-Stand auf Daten vom 23./24.09. und wird im Archiv so beschriftet.
+
+### 3. Aktualität
+
+Für Finalisten werden letzte Bilanz (Cash, Schulden, Aktienzahl) und die letzten berichteten Quartale in Stufe 3 aus den aktuellen 10-Q/10-K bzw. von EDGAR geprüft und neben die FY-Werte gestellt.
+
+### 4. Quelle SimFin Free
+
+Quartalsdaten sind statement- und firmenweise verzögert oder lückenhaft (Beispiele PATK, JBI; 44 von 97 Dezember-Firmen ohne Q2 am 24.09. und am 07.10.). Sie werden nicht als Grundlage für TTM im Screen verwendet.
+
+### 5. Bewusst nicht entschieden
+
+TTM-Umbau des Screens, Wechsel auf EDGAR im Ganzen, SimFin START. Auslöser für eine neue Entscheidung: Antwort des SimFin-Supports, Ergebnis der Abdeckungsmessung nach Größenklasse, Ergebnis des Forward-Logs.
+
+### 6. Offene Messungen
+
+Abdeckung nach Größenklasse; Ausschlussgründe je Stufe und Branche; Vergleich mit einem Standard-Screen.
+
+### Anhang: Messbefunde vom 2026-10-07
+
+Alle Messungen: nur lesend auf Kopien unter `C:\Users\<Benutzer>\baselines\` (Cache `stage2\cache\fundamentals\2026-09-24`, 1.821 Firmen; Firmenliste der 126 aus `stage2\csv\systematik_B_126.csv`); die Belege liegen außerhalb des Repos. Messskripte liefen zum Teil als Python über die Standardeingabe und sind nicht als Dateien archiviert; nur `probe_fetch.py` und `probe_analyse.py` liegen in `baselines\probe_2026-10-07\`. „Belegt“ heißt: aus Python gezählt. Ursachen sind, wo nicht anders gesagt, nicht untersucht.
+
+**A. Periodentypen im Cache vom 24.09. (Zeilen, alle 1.821 Firmen)**
+
+```
+Statement  FY      Q1      Q2      Q3      Q4      H1      H2      9M      TTM-Zeilen
+PL         11.726  10.839  10.382  10.761  10.610  10.464  10.539  10.780  keine
+CF         11.797  10.784  10.296  10.684  10.587  10.428  10.537  10.806  keine
+BS         19      10.462  10.102  10.462  11.718  –       –       –       keine
+```
+
+Die Spalte „TTM“ ist nur ein Kennzeichen (bei der geprüften Firma 100810 überall 0; nicht für alle Firmen ausgewertet); fertige TTM-Zeilen habe ich nicht gefunden. Cashflow-Quartale sind Einzelquartale (stichprobenartig: Q1+Q2=H1).
+
+**B. Vier lückenlose Quartale für die 126 Stufe-1-Firmen** (Umsatz, operatives Ergebnis, Abschreibungen, operativer Cashflow, Capex; vier Quartale bis zum jüngsten Quartal irgendeines Statements)
+
+```
+lückenlos:  113 von 126
+Lücken:      13 von 126  (ALSN, ALV, AXTA, BCC, CBT, DOX, GSL, JBI, LYTS, NRP, PRG, TREX, TTI)
+  nur Jahreszeilen, keine Quartalszeilen: DOX; GSL: Jahreszeilen und einzelne fast leere Q4-Zeilen
+  Gewinn- und Verlustrechnung älter als Bilanz/Cashflow (Stichtag): ALV, CBT, LYTS, BCC, TREX, JBI (DOX zusätzlich ohne PL-Quartale)
+  einzelne Quartale fehlen: ALSN, TTI, AXTA, NRP, PRG
+```
+
+Gemessen ab dem jüngsten Umsatz-Quartal der PL statt ab dem jüngsten Quartal irgendeines Statements wären es 119 von 126, aber mit veraltetem Stand bei den 6 Stichtagsfirmen.
+
+**C. Quartalssumme gegen FY-Wert** (alle 1.821 Firmen; Toleranz als Parameter 1 % der Abweichung vom FY-Wert, in `config/` gibt es keine Vorgabe)
+
+```
+Firmen mit mind. einem vollständigen Fiskaljahr (Q1–Q4 und FY befüllt): 1.633 von 1.821
+Fiskaljahr-Werte gesamt: 42.032; innerhalb 1 %: 40.479 (96,3 %)
+Empfindlichkeit: 0,1 % → 95,5 %; 1 % → 96,3 %; 5 % → 97,2 %  (nur FY ab 2024, 1 %: 96,1 %)
+Kennzahl                    Werte   innerhalb 1 %
+Capex                       8.068   99,6 %
+Abschreibungen              8.456   99,6 %
+Operativer Cashflow         9.017   99,4 %
+Umsatz                      7.362   94,9 %
+Operatives Ergebnis         9.129   88,4 %
+Firmen mit mind. einem Ausreißer (> 1 %): 622 von 1.633
+```
+
+Die größten relativen Abweichungen betreffen meist winzige FY-Werte (z. B. TRIN 2022 EBIT: FY = 0, Quartalssumme 2,9 Mio.; CCAP 2021: FY = 3) oder offenkundige Datenfehler (JBI 2020 Umsatz: Quartalssumme 260 Mrd. gegen FY 549 Mio.). AXTA, ALSN, NRP: in allen geprüften Fiskaljahren Abweichung höchstens im Rundungsbereich (0,0 % auf vier Stellen). Die Ursache der Abweichungen bei Umsatz und operativem Ergebnis ist nicht untersucht.
+
+**D. Aktualität des jüngsten PL-Quartals der 126 am 24.09.** (erwartet nach Berichtsfrist: 45 Tage für 10-Q, 90 Tage für 10-K, 10 Tage Toleranz; Annahmen des Audits vom 23.09., nicht von SimFin)
+
+```
+GJ-Ende    Firmen  erwartet  aktuell  zurück
+Dezember     97    2026-06    53       44 (jüngstes Periodenende: 2026-03 ×29, 2025-12 ×11, 2025-09 ×2, 2025-06 ×1, 2024-12 ×1)
+September     8    2026-06     3        5
+Juni          3    2026-03     2        1
+März          6    2026-06     4        2
+andere       12    2026-05/07  6        6
+```
+
+Bei 43 der 44 zurückliegenden Dezember-Firmen existiert in keinem Statement eine Zeile für FY2026 Q2; die Ausnahme ist JBI (Bilanz und Cashflow haben Q2 mit Period End 2026-06-30 und Publish 2026-08-11, die PL endet mit FY2025 Q4). PATK: PL, Bilanz und Cashflow enden mit FY2026 Q1.
+
+**E. Probe am 2026-10-07** (freigegeben von Konstantin am 2026-10-07 20:11, gültig bis 2026-10-08 20:00; ein Abrufblock, 2 IDs je Call, `statements=PL,BS,CF`, ohne Periodenfilter)
+
+```
+Umfang:    45 Firmen (die 44 Dezember-Firmen ohne Q2 am 24.09. plus VC); 23 Calls, Obergrenze 25
+Status:    23 × HTTP 200, 0 × 429, nicht abgebrochen
+Juni-2026-Quartal vorhanden (von 45), vorher und jetzt gleich:  PL 1, BS 2, CF 2; in allen drei Statements 1 (VC)
+Bestehende Zeilen: 5.583 verglichen, 0 mit geändertem Wert (Umsatz, EBIT, Abschreibungen, CFO, Capex, Cash, Bilanzsumme, Eigenkapital, kurz- und langfristige Schulden); 0 neue Zeilen
+Entfallen:  203 Zeilen (nur Q3 und 9M des Fiskaljahrs 2019, bei 41 von 45 Firmen): das Historienfenster rückt offenbar um ein Quartal; Ursache nicht geprüft
+Datumsfelder: kein Abrufdatum in der Antwort; Publish Date je Zeile 2020-01-30 bis 2026-08-11
+Rate-Limit:  Header X-Rate-Limit-Remaining = 0 in 23 von 23 Antworten (wie am 24.09.); kein Credit-Feld
+Stand des Ordners baselines\stage2\: Hash vorher = nachher (SHA-256 über die Liste aller 2.688 Dateihashes) e9cb4b49f50dfb1eac6e121a2924b7aec984f3d017ed29fd1d17639cd969f0ad
+```
+
+**F. Weitere Befunde**
+
+- **Mapper liest keine Quartale für Gewinn und Cashflow:** `src/data_layer/simfin_client.py` Zeile 198 (PL, `FY`), Zeile 209 (CF, `FY`), Zeile 210 (BS, `Q4` als Bilanzstichtag zum Geschäftsjahresende); Capex in `src/data_layer/simfin_valuation.py` Zeilen 32 und 62 (CF, `FY`).
+- **Abrufe:** Ein Call holt bis zu 2 IDs mit allen Periodentypen in derselben Antwort (`simfin_client.py` Zeile 421, `MAX_BATCH_SIZE = 2`); Quartale kosten keinen zusätzlichen Call. Hochrechnung: 126 Firmen = 63 Calls, 1.821 = 911, 6.654 = 3.327 (zuzüglich rund 1 % Wiederholungen nach HTTP 429; am 24.09. waren es 911 erfolgreiche Calls und 8 Wiederholungen). Ein Credit-Wert steht weder im Code noch im Log.
+- **Short Term Debt:** Fehlt im jüngsten Bilanzquartal bei 47 von 126 Firmen. Der FY-Pfad rechnet ein fehlendes Short Term Debt als 0 und markiert es mit `debt_component_missing_defaulted_zero` (`simfin_client.py` Zeilen 254 bis 257); `net_debt` ist nur leer („nicht bewertbar“), wenn Short Term Debt, Long Term Debt und Schulden-Cashflow alle fehlen (Zeilen 265 bis 269). Von den 47 fehlt der Wert auch im letzten Ankerjahr (Bilanz Q4) bei 44, in mindestens einem der 3 Ankerjahre bei 46, in allen 3 bei 38; Long Term Debt fehlt im letzten Ankerjahr zusätzlich bei 7 von 47. Ob die fehlenden Werte echte Nullen sind, ist nicht belegt.
+- **Aktienzahl:** Der Fundamentaldaten-Cache (PL, BS, CF) enthält keine Aktienzahl-Spalte; sie kommt aus einer anderen Quelle.
+
+**Nicht belegt:** ob SimFin die Quartale später nachliefert und wann; wie die Abdeckung nach Größenklasse aussieht; ob die Quartalswerte inhaltlich stimmen (Auffälligkeiten bei AXTA Cashflow Q3/Q4 2025 sowie ALSN und NRP Abschreibungen Q1 2026 sind nicht untersucht); ob TTM aus Jahreswert plus laufendem Jahr minus Vorjahreszeitraum mehr Firmen abdecken würde.
+
+## 2026-10-08: Regelstand und Kurs je Lauf im Archiv (Roadmap A.1; Issues #28, #36, #48) (Agent-Entscheidung, Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin; **bis dahin wird kein Code geschrieben.** Branch `agent/regelstand-kurs-entwurf` (von `master`), nur Dokumentation. Klasse C: Der Text ändert das Archiv-Schema und legt fest, was als Beleg eines Laufs gilt. Keine echte Datenbank, keine SimFin-Calls; Tests würden nur auf Kopien oder Testdaten laufen.
+
+**In einfachen Worten**
+- Das Archiv soll jeden Lauf so festhalten, dass man später sieht, **mit welchen Regeln** und **zu welchem Kurs** er gerechnet hat. Heute steht nur ein Hash (eine Art Fingerabdruck) der Schwellen-Datei im Archiv. Aus einem Hash lässt sich der Inhalt nicht zurückrechnen, und er sagt nichts darüber, welcher Code lief oder ob jemand die Dateien gerade geändert hatte.
+- Vorschlag: Je Lauf speichern wir (1) die Kennnummer des Code-Stands (Commit), (2) den **Inhalt** der Regel-Dateien, (3) eine **Marke**, wenn beim Lauf nicht committete Änderungen vorlagen, und (4) den **letzten Schlusskurs im Datensatz** je Firma des Vorfilters mit dem Kursdatum.
+- **Schlimmster Fall:** Ohne diese Spur ändert sich eine Regel, ohne dass das Archiv es zeigt, und die Erfolgsbilanz vergleicht Läufe mit verschiedenen Regeln, als wären sie gleich (genau das, was der Hash heute nicht verhindert, siehe Befund unten). Mit der Änderung selbst ist das Risiko klein: Es kommen nur neue Tabellen und Spalten dazu, bestehende Werte bleiben unverändert. Zurückdrehen lässt sich der Code; ein Archiv, das schon mit den neuen Tabellen geschrieben wurde, behält sie.
+
+**Befund (belegt aus Repo und Issues, Stand `master` vom 08.10.2026):**
+- In `docs/decisions.md` steht **kein freigegebener Text** zu Regelstand mit Inhalt, Commit oder Marke und keiner zu „Kurs am Lauftag". Der Eintrag „Masterplan v1.1 übernommen" (Entscheidung 4) und der Eintrag zum Store-Layer (Entscheidung 5) haben den Kurs ausdrücklich **vertagt**, bis ein Preis-Client existiert (Issue #28). Deshalb gibt es hier nur diesen Entwurf.
+- `runs.config_hash` ist der Hash der Datei `config/thresholds.yaml` (nach Normalisierung der Zeilenenden). `stage2_runs.config_hash` und `trend_runs.config_hash` hashen je ihre eigene Datei (`stage2.yaml`, `trend_guard.yaml`). `universe_prefilter.config_hash` gehört zum Vorfilter-Lauf. `config/sector_profiles.yaml` ist in keinem Hash.
+- Es wird **kein Code-Commit** gespeichert, **keine Marke** für nicht committete Änderungen und **kein Dateiinhalt**. Das Sammel-Issue #48 beschreibt: Läufe vor und nach einer Regeländerung tragen denselben Hash (Beispiel: Status-Vorrang aus PR #47); Issue #36: ein Hash lässt sich nicht zurückrechnen, eine nicht committete Änderung hinterlässt einen Hash ohne Git-Stand.
+- Von den Kursen ist im Archiv heute nur `universe_prefilter.market_cap_usd` und `price_date` (je Firma des Vorfilters) gespeichert, **nicht der Schlusskurs selbst** und nicht die Aktienzahl. Beide stehen im Datensatz der Preise (`PriceRow.close`, `PriceRow.shares` in `src/data_layer/simfin_universe.py`); die Marktkapitalisierung wird daraus berechnet. Ein Preis-Client wie in Issue #28 beschrieben (stooq/yfinance) ist nicht nötig, weil SimFin Free die Kurse liefert (Masterplan v2.0 Abschnitt 3 und Roadmap 0.5).
+
+**Entscheidung (Entwurf):**
+
+1. **Was je Lauf gespeichert wird.** Für jeden Lauf eines Schritts (Vorfilter, Stufe 1, Stufe 2, Trend-Guard) mit seinem `run_timestamp`:
+   - `git_commit`: die 40 Zeichen von `git rev-parse HEAD` zum Zeitpunkt des Laufs;
+   - `code_state`: `clean`, `dirty` oder `unknown` (siehe Punkt 3);
+   - `dirty_paths`: bei `dirty` die Liste der betroffenen Pfade (höchstens 50, danach ein Hinweis „und N weitere");
+   - die **Regel-Dateien mit Inhalt** (Punkt 2).
+   Altläufe behalten `NULL` („nicht erfasst"). **Kein Rückfüllen**: Eine nachträglich eingesetzte Regel wäre eine Behauptung ohne Beleg.
+
+2. **Regel-Dateien.** Gespeichert wird der **Inhalt** (UTF-8, Zeilenenden auf `\n` normalisiert, derselbe Weg wie bei den bestehenden Hashes), dazu sein SHA-256. Die Liste der Regel-Dateien ist eine Konstante im Code mit Test: `config/thresholds.yaml`, `config/stage2.yaml`, `config/trend_guard.yaml`, `config/sector_profiles.yaml`. **Nicht dazu gehören** `config/bash_guard.yaml` (Schutz des Agenten, keine Screening-Regel) und `config/universe.txt` (Pilotliste). Ein Test schlägt an, wenn eine neue Datei in `config/` weder in der Liste noch in der Ausnahmeliste steht, damit eine neue Regel-Datei nicht stillschweigend fehlt. Der bestehende `config_hash` bleibt unverändert (Kompatibilität, keine Hash-Änderung in `runs`).
+
+3. **Marke „nicht committete Änderungen".** `code_state` wird aus `git status --porcelain` (nur Lesen) bestimmt:
+   - `dirty`, wenn eine **versionierte** Datei geändert, hinzugefügt oder gelöscht (auch in der Staging-Area) ist, oder eine **nicht versionierte** Datei in `config/`, `src/` oder eine Datei `run_*.py` im Wurzelverzeichnis liegt. Sonstige nicht versionierte Dateien (z. B. persönliche Skripte im Wurzelverzeichnis wie `check_tickers.py`) zählen **nicht**, sonst wäre jeder Lauf auf Konstantins PC „dirty".
+   - `clean`, wenn nichts davon zutrifft.
+   - `unknown` (gespeichert als Text, nicht als Wahrheitswert), wenn `git` nicht aufrufbar ist oder das Verzeichnis kein Repository ist (z. B. eine Kopie ohne `.git`). Dann steht `git_commit` als `NULL`. Der Bericht des Laufs nennt das ausdrücklich, statt still „clean" zu behaupten.
+   Warum nur eine Marke und kein vollständiger Diff? Für die **Regeln** ist der Inhalt gespeichert (Punkt 2). Für den **Code** genügt Commit plus Marke plus Pfadliste, um zu wissen, dass der Lauf nicht genau diesem Commit entspricht; ein vollständiger Diff würde große Texte ins Archiv bringen. Bei Bedarf ist das eine spätere Entscheidung.
+
+4. **Kurs am Lauftag.** Gespeichert wird je Firma der Vorfilter-Zeile `universe_prefilter` der **letzte Schlusskurs im Datensatz** und die **Aktienzahl** derselben Zeile, in Dollar, zusammen mit dem schon vorhandenen `price_date`. „Kurs am Lauftag" heißt also: der letzte Schlusskurs im Datensatz des **Vorfilter-Laufs**, nicht ein Kurs zu einer Uhrzeit des Lauftags. Bei Firmen, die der Vorfilter bestanden hat, ist er höchstens so alt wie der Schwellenwert `max_price_age_days` in `config/thresholds.yaml` erlaubt; bei im Vorfilter ausgeschlossenen Firmen (z. B. `price_stale`) kann er viel älter sein, `price_date` zeigt es. Neue, **nullbare** Spalten `close_price_usd REAL` und `shares_outstanding REAL` in `universe_prefilter`; `NULL` bei Altläufen und wo `close` bzw. `shares` im Datensatz fehlen. Beide Spalten sind **unabhängig** befüllbar: Ist die Aktienzahl leer oder nicht positiv, ist `market_cap_usd` `NULL` (Ausschluss `no_shares`), `close_price_usd` kann trotzdem einen Wert haben. Kein Wechselkurs hier (der gehört zur Messlatte, Roadmap 0.3).
+   - **Zuordnung zu den Läufen der Stufen (Lücke, Entscheidung nötig):** `runs` (Stufe 1) hat keine Spalte, die auf den Vorfilter-Lauf verweist; Stufe 2 und Trend-Guard haben `prefilter_run_timestamp`. Ohne Verweis ist der Kurs einem Stufe-1-Lauf nicht zuordenbar. Der Entwurf schlägt vor, in `runs` eine nullbare Spalte `prefilter_run_timestamp TEXT` zu ergänzen (Altläufe `NULL`); ob das sein soll, ist Frage 5 unten.
+   - **Abweichung von früherem Text:** Der Store-Layer-Eintrag (Entscheidung 5) dachte `price_at_run` in `run_results` und `eliminated_results`. Dieser Entwurf **ersetzt** das durch die Vorfilter-Spalten, weil der Kurs dort für alle Firmen des Vorfilters (auch die ausgeschiedenen) schon eine Zeile hat und Stufe 1 den Kurs nicht neu abruft. Er greift auf Masterplan v2.0 Abschnitt 8 („Regelstand je Lauf", „Kurs am Lauftag") zurück.
+   - **Alternative:** eine eigene Tabelle `run_prices`. Verworfen für den Entwurf: Die Zeilen (eine je Firma und Lauf) liegen schon in `universe_prefilter`; zwei Tabellen mit demselben Schlüssel bringen nur Pflegeaufwand.
+   - Nur für Firmen, die im Vorfilter ein Ergebnis haben; Firmen ohne Preisdaten bekommen `NULL` (nicht 0).
+
+5. **Wo es gespeichert wird (Schema).** Nur **neue** Tabellen mit `CREATE TABLE IF NOT EXISTS` (wie bei Stufe 2 und Trend-Guard) plus zwei nullbare Spalten per `ALTER TABLE ... ADD COLUMN` in `universe_prefilter` nach dem bestehenden Muster der `_ensure_*`-Funktionen:
+   - `run_rule_state(step TEXT, run_timestamp TEXT, git_commit TEXT, code_state TEXT, dirty_paths TEXT, PRIMARY KEY (step, run_timestamp))` mit `step` in `prefilter`, `stage1`, `stage2`, `trend`;
+   - `run_rule_files(step TEXT, run_timestamp TEXT, path TEXT, sha256 TEXT NOT NULL, PRIMARY KEY (step, run_timestamp, path))`;
+   - `rule_file_contents(sha256 TEXT PRIMARY KEY, content TEXT NOT NULL)`, dedupliziert: gleiche Dateien in vielen Läufen werden einmal gespeichert; Test: `sha256(content)` stimmt mit dem Schlüssel überein.
+   Die Vorfilter-Spalten sind die **einzige** Änderung an einer bestehenden Tabelle; Werte der bestehenden Spalten bleiben unverändert (Golden Master: 0 Diffs).
+
+6. **Wann und wie geschrieben.** In derselben Transaktion wie die Ergebnisse des Laufs („alles oder nichts": bricht das Schreiben ab, bleibt vom Lauf nichts stehen). Bei `save_stage2_results` und `save_trend_results` ist das schon so; `save_run_results` und `save_universe_prefilter` schließen heute mit einem eigenen `commit` ab, der Regelstand wird dort in **dieselbe** Verbindung und denselben `commit` geschrieben. Die vier Speicherfunktionen bekommen den Regelstand als **Pflichtparameter ohne Default**; wer keinen hat (z. B. Tests), übergibt ihn ausdrücklich (`None`), konsistent mit „keine stillen Defaults" (Entscheidung 2 zu `config_hash`). **Das ändert alle bestehenden Aufrufe, auch in Tests**; diese werden mechanisch angepasst (Übergabe von `None`), und „unverändert" im Testplan meint: Anzahl und Namen der Tests bleiben gleich (gemessen an den Test-IDs), keine Erwartung wird geändert. Das Auslesen von Git und der Dateien liegt in einem eigenen kleinen Modul. **Zeitpunkt:** Der Regelstand wird **einmal beim Start des Laufs** erfasst (die Dateien werden dabei einmal gelesen, und dieselben Bytes dienen dem Hash, dem Laden der Regeln und dem Archiv) und mit den Ergebnissen geschrieben; ein Stufe-1-Volllauf kann Stunden dauern, ein späteres Lesen könnte einen anderen Stand erwischen. **Fehlerfälle:** Fehlt eine Regel-Datei oder ist sie nicht lesbar, **bricht der Lauf ab** und schreibt nichts (kein stilles Weglassen, `CLAUDE.md`). Alle vier Regel-Dateien werden bei jedem Schritt gespeichert, weil die Stufen sie gemeinsam nutzen. Ob der Pilot-Runner `run_stage1.py` (23 Firmen, schreibt ebenfalls `runs`) den Regelstand schreibt, ist Frage 6 unten; ohne Antwort gilt: er schreibt ihn, damit kein Lauf ohne Spur im Archiv steht.
+
+7. **Zusammenhang mit den Issues.**
+   - **#36** (Konfigurationsinhalt statt nur Hash): geht in Punkt 2 auf. **#48** (Regelversion): Commit plus `code_state` machen sichtbar, dass die Code-Logik nicht dem Hash entspricht; die Vergleichbarkeit von Läufen mit gleichem Hash aber anderem Code wird damit prüfbar, nicht automatisch hergestellt. Der Teil „Profil-YAML in den Hash" in #48 wird durch den Inhalt von `sector_profiles.yaml` (Punkt 2) abgedeckt; die übrigen Punkte des Sammel-Issues bleiben offen.
+   - **#28** (Preis-Client stooq/yfinance): wird mit Punkt 4 überholt, weil SimFin die Kurse liefert (Roadmap 0.5; Schließen entscheidet Konstantin).
+
+8. **Testplan (pytest, nur Kopien oder Testdaten; vor dem Code).**
+   - Regelstand auslesen in einem **temporären Git-Repository** (`tmp_path`, `git init`): `clean` nach Commit; `dirty` nach Änderung einer versionierten Datei, nach Staging, nach Löschung; `dirty` bei neuer nicht versionierter Datei in `config/` oder `src/` oder als `run_*.py`; **nicht** `dirty` bei nicht versionierter Datei sonst im Wurzelverzeichnis; `unknown` ohne Repository und bei nicht aufrufbarem `git` (Aufruf wird in einem Test ersetzt); Pfadliste bei mehr als 50 Treffern gekürzt mit Hinweis.
+   - Regel-Dateien: Inhalt wird gespeichert, Zeilenenden `\r\n` und `\n` ergeben denselben SHA-256; `sha256(content)` stimmt; gleiche Datei in zwei Läufen ergibt eine Zeile in `rule_file_contents`; Test auf die Liste der Regel-Dateien gegen den Inhalt von `config/` (neue Datei ohne Eintrag lässt den Test fehlschlagen).
+   - Kurs: `close_price_usd` und `shares_outstanding` werden für Firmen mit Preisdaten gespeichert, `NULL` ohne; Rundtest: `close_price_usd × shares_outstanding` entspricht der gespeicherten Marktkapitalisierung (Rechenweg im Vorfilter prüfen, bevor die Spalte geschrieben wird).
+   - Migration: ein Archiv ohne die neuen Tabellen und Spalten wird beim Öffnen ergänzt, Altzeilen behalten `NULL`, nichts geht verloren; zweimaliges `init` ändert nichts.
+   - Atomarität: bricht das Schreiben ab, bleibt vom Lauf nichts stehen (Muster von `trend_store`).
+   - Fehlerfälle und Runner: fehlende oder nicht lesbare Regel-Datei bricht den Lauf ab (Test je Datei); `git rev-parse HEAD` gelingt, aber `git status` scheitert: `git_commit` bleibt gespeichert, `code_state` ist `unknown`; Test, dass jeder der Runner (`run_universe.py`, `run_stage1.py`, `run_stage1_full.py`, `run_stage2.py`, `run_trend_guard.py`) den Regelstand an die Speicherfunktion übergibt (geprüft an den übergebenen Argumenten); `close_price_usd` mit leerer Aktienzahl: `close` gespeichert, `market_cap_usd` `NULL`; Verweis `runs.prefilter_run_timestamp`, falls beschlossen; die gespeicherten Bytes einer Regel-Datei sind dieselben, die `compute_config_hash` hasht.
+   - Atomarität und Wiederholung: Schreibversuch zweimal mit derselben Datei in zwei Läufen ergibt keinen Fehler (`INSERT OR IGNORE` bei `rule_file_contents`), und je Speicherfunktion bricht ein erzwungener Fehler mitten im Schreiben den ganzen Lauf ab (nicht nur beim Trend-Guard).
+   - Regression: bestehende Testsuite grün (Anzahl und Namen der Tests gleich, nur die Aufrufe mechanisch angepasst); Golden Master der bestehenden Tabellen (`run_results`, `eliminated_results`, `universe_prefilter` ohne die neuen Spalten): 0 Diffs gegen die Kopie eines Referenzarchivs. Die echte `data/run_archive.db` wird nicht geöffnet.
+
+9. **Wirkung auf Ergebnisse.** Keine: Weder Schwellen noch Status, Flags oder Rang ändern sich. Hypothese vor der Umsetzung: Auf einer Archiv-Kopie bleiben alle Zeilen der bestehenden Tabellen (außer den zwei neuen Vorfilter-Spalten) bitgleich, und `close_price_usd` ist für jede Vorfilter-Zeile mit `price_date` ungleich `NULL` gefüllt (auf der Kopie des Laufs vom 24.09.: Zahl der Zeilen mit Kurs von 6.654 geprüften Firmen, 1.821 davon bestanden; gemessen, nicht geschätzt).
+
+**Bekannte Lücken und Ungeprüftes:**
+- Ob `close` im Preis-Cache bereinigt (Splits, Dividenden) oder roh ist, ist nicht geprüft; für die Messlatte (Roadmap 0.3) ist das relevant, für diese Spalte nicht (es geht um den Kurs am Tag).
+- Belegt im Code: Die Marktkapitalisierung ist `last.close × last.shares` mit derselben letzten Preiszeile (`src/gates_layer/universe_prefilter.py`); der Rundtest prüft nur Zeilen mit beiden Werten.
+- `universe_prefilter.config_hash` ist der Hash von `config/thresholds.yaml` (die Gruppe `prefilter` liegt dort), kein eigener Vorfilter-Hash.
+- Die Liste der Regel-Dateien und die Obergrenze von 50 Pfaden stehen bewusst als Konstanten im Code mit Test, nicht in `config/`: Sie sichern die Spur des Archivs und sollen nicht per Konfiguration verändert werden können; ob die 50 ein Parameter in `config/` sein soll, ist Konstantins Entscheidung (Frage 4).
+- Eine neue, nicht versionierte Datei in `tests/` oder `docs/` bleibt `clean`; Regel-Dateien und Code (`config/`, `src/`, `run_*.py`) sind der Maßstab (Frage 4).
+- Der Zeitpunkt der Erfassung (einmal beim Start) schützt vor Änderungen während des Laufs, nicht davor, dass ein Lauf mit einem Stand beginnt, der später zurückgenommen wird.
+- Auf Konstantins PC kann der Repo-Ordner eine Kopie ohne `.git` sein; dann steht `unknown`.
+- Die Regel „versionierte Änderungen = dirty" markiert auch reine Dokuänderungen als dirty. Das ist gewollt vorsichtig und kann später verfeinert werden.
+- Wie der Replay-Stand der früheren Baselines (außerhalb des Repos) hineinpasst, ist nicht Teil dieses Entwurfs; sie bleiben `NULL`.
+
+**Entscheidung von Konstantin (08.10.2026):** „#78 bitte auch so umsetzen." Das gilt als **Annahme des Entwurfs mit meinen Vorschlägen zu allen offenen Fragen**, mit dem Merge dieses Texts:
+1. Der Entwurf (Punkte 1 bis 9) gilt.
+2. Liste der Regel-Dateien: `thresholds.yaml`, `stage2.yaml`, `trend_guard.yaml`, `sector_profiles.yaml`; `bash_guard.yaml` und `universe.txt` gehören nicht dazu.
+3. „Kurs am Lauftag" = letzter Schlusskurs im Datensatz des Vorfilter-Laufs mit Kursdatum.
+4. Die Marke `dirty` gilt bei Änderungen an versionierten Dateien und bei neuen, nicht versionierten Dateien in `config/`, `src/` und `run_*.py`; die Obergrenze von 50 Pfaden bleibt eine Konstante im Code.
+5. `runs` bekommt die nullbare Spalte `prefilter_run_timestamp`.
+6. Der Pilot-Runner `run_stage1.py` schreibt den Regelstand ebenfalls.
+
+**Umsetzung:** Code und Tests entstehen **erst nach dem Merge dieses Texts** durch Konstantin, in einem eigenen Branch und PR (Klasse C, ein Kritiker-Lauf, höchstens zwei Runden), wie in Punkt 8 festgelegt: Tests zuerst, nur auf Kopien oder Testdaten, nicht auf der echten Datenbank, ohne SimFin.
+
+**Alternativen:** (a) Spalte `config_snapshot` je Lauf (Issue #36, Variante a): einfacher, aber redundant und deckt nur eine Datei; verworfen zugunsten der deduplizierten Tabelle. (b) Voller Git-Diff im Archiv: genauer, aber groß; vertagt. (c) Nur Commit ohne Dateiinhalt: zu schwach, weil eine nicht committete Änderung nicht rekonstruierbar ist.
+
+**Offene Fragen für Konstantin (getrennt zu beantworten):**
+1. Soll der Entwurf so gelten (Punkte 1 bis 9)? Ja oder nein.
+2. Ist die Liste der Regel-Dateien (Punkt 2) richtig, insbesondere `sector_profiles.yaml` dabei und `bash_guard.yaml`/`universe.txt` nicht?
+3. Reicht „Kurs = letzter Schlusskurs im Datensatz mit Kursdatum" (Punkt 4), oder soll es ein Kurs zu einem festen Zeitpunkt sein? (Letzteres bräuchte eine andere Quelle und würde Roadmap 0.3 berühren.)
+4. Soll die Marke bei jeder versionierten Änderung gesetzt werden (Punkt 3) oder nur bei Änderungen in `config/`, `src/` und `run_*.py`? Und soll die Obergrenze von 50 gespeicherten Pfaden eine feste Konstante bleiben oder in `config/` stehen?
+5. Soll `runs` (Stufe 1) eine nullbare Spalte `prefilter_run_timestamp` bekommen, damit der Kurs einem Stufe-1-Lauf zuordenbar ist (Punkt 4)? Ohne sie ist der Kurs nur über den Vorfilter-Lauf selbst auffindbar.
+6. Soll der Pilot-Runner `run_stage1.py` (23 Firmen) den Regelstand ebenfalls schreiben (Punkt 6)? Vorschlag: ja.
+
+**How to apply (nach Freigabe):** Neues Modul für das Auslesen des Regelstands (Git mit `git -C <Repo-Wurzel> status --porcelain -z`, nur Lesen, mit Zeitlimit, und die Dateien), neue Funktionen im Store-Layer für die Tabellen, Änderungen im Gates-Layer (`PrefilterResult` und `evaluate_prefilter` in `src/gates_layer/universe_prefilter.py` bekommen `close` und `shares`; für im Runner ausgeschlossene Firmen `NULL`; das ist Klasse C, weil dort die Kern-Logik des Vorfilters liegt, die Werte des Ergebnisses ändern sich aber nicht), zwei nullbare Spalten in `universe_prefilter` mit Migration (`_prefilter_rows` und der `INSERT` in `src/store_layer/db.py`), Anpassung der Speicherfunktionen und der Runner (`run_universe.py`, `run_stage1.py`, `run_stage1_full.py`, `run_stage2.py`, `run_trend_guard.py`), Tests wie in Punkt 8 zuerst. Ein Kritiker-Lauf und ein Klasse-C-Bericht am PR; Merge nur durch Konstantin.
+
+**Erklärung für Laien:** *Hash* = Fingerabdruck einer Datei (ändert sich bei jeder Änderung, lässt sich aber nicht zurücklesen). *Commit* = ein gespeicherter Stand des Codes mit Kennnummer. *dirty* = es gibt Änderungen, die noch nicht gespeichert sind. *Transaktion* = alles oder nichts: Entweder wird der ganze Lauf ins Archiv geschrieben oder gar nichts.
+
+## 2026-10-08: Messlatte für das Forward-Log (Masterplan Abschnitt 8, Roadmap 0.3) (Agent-Entscheidung, Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin. Branch `agent/messlatte-entwurf` (von `master`), nur Dokumentation. Klasse C: Der Text legt fest, woran der Erfolg des Systems gemessen wird und wann abgebrochen wird. Keine Daten abgerufen, kein Code, keine Konfiguration; Roadmap 0.3 verlangt den Eintrag **vor dem ersten archivierten Lauf (A.3)**.
+
+**In einfachen Worten**
+- Das Forward-Log hält fest, was das System wann gesagt hat. Ob das **gut** war, sagt erst ein Vergleich mit einem Maßstab, der **vorher** feststeht. Sonst lässt sich jedes Ergebnis im Nachhinein schönreden.
+- Dieser Entwurf legt fünf Dinge fest: **Womit** wird verglichen (Maßstab), **in welcher Währung**, **wie werden die Käufe gewichtet**, **über welchen Zeitraum** und **wann wird abgebrochen**. Es gibt drei Optionen und eine Empfehlung.
+- **Währung (das Depot ist in Euro):** Kauft der Anleger US-Aktien und vergleicht sie mit einem ebenfalls ungesicherten US-Maßstab, treffen Euro-Dollar-Schwankungen beide Seiten gleich. Der **Vorsprung oder Rückstand gegenüber dem Maßstab ist dann in Euro und in Dollar praktisch derselbe** (siehe Punkt 2). Der Wechselkurs verändert aber die **absolute** Euro-Rendite des Depots und kann ein kleines Plus oder Minus leicht überdecken. Deshalb zeigt die Messlatte beides getrennt: den Vergleich mit dem Maßstab und die Euro-Rendite mit einer eigenen Zeile „Währungseffekt".
+- **Wichtigste Grenze:** Bei 10–15 Positionen zeigt das Log in 12–24 Monaten nur **grobes Versagen und Prozessfehler**, keinen kleinen Vorsprung (Masterplan Abschnitt 8). Die Messlatte beweist nichts über Können; sie verhindert nur, dass ein schlechtes Ergebnis unbemerkt bleibt.
+- **Schlimmster Fall:** Ohne diese Festlegung wird nach dem ersten Lauf ein bequemer Maßstab gewählt (z. B. ein schwacher Index im guten Jahr) oder die Währung so, dass das Ergebnis besser aussieht. Das ist kein Datenfehler, sondern ein Fehler der Ehrlichkeit. Mit einem falsch gewählten, aber schriftlich festgelegten Maßstab ist der Schaden kleiner: Er ist sichtbar und kann mit einer neuen Entscheidung geändert werden (nicht rückwirkend).
+
+**Grundlage.** Masterplan Abschnitt 8 („Messlatte vor dem ersten archivierten Lauf festlegen": Vergleichsmaßstab, Währung und Gewichtung, Zeitraum 18 bis 24 Monate, Abbruchkriterium) und Roadmap 0.3. Die Entscheidung über das konkrete Instrument legt laut Masterplan Konstantin fest. Schon festgehalten (Masterplan Abschnitt 8): Das Forward-Log speichert den ganzen Trichter; der Kurs am Lauftag je Firma kommt mit Roadmap A.1.
+
+### 1. Was gemessen wird (drei Fragen, getrennt)
+
+| Frage | Wozu | Wie |
+|---|---|---|
+| **F1: Trägt die Auswahl?** | Ist die Auswahl des Systems besser als ein passender Maßstab? | Käufe (bzw. Finalisten) gegen den Vergleichsmaßstab |
+| **F2: Trägt Konstantins Urteil?** | Fügt Stufe 3 und 4 etwas zum mechanischen Screen hinzu? | gekaufte gegen nicht gekaufte Namen derselben Stufe (Masterplan Abschnitt 8) |
+| **F3: Lohnt es sich für das Depot?** | Euro-Rendite nach Währung | Käufe in Euro, mit Währungseffekt als eigener Zeile |
+
+Das Abbruchkriterium (Punkt 6) hängt nur an F1 und an Prozesskennzahlen, **nicht** an F3: Eine Euro-Dollar-Bewegung soll das System weder retten noch beenden.
+
+### 2. Währung: warum sie hier weniger ausmacht, als es scheint (und wo doch)
+
+Sind Käufe und Maßstab **beide in Dollar notierte, nicht abgesicherte** Anlagen und werden über **denselben Zeitraum** gemessen, gilt (1 + Rendite der Käufe in Euro) ÷ (1 + Rendite des Maßstabs in Euro) = (1 + Rendite der Käufe in Dollar) ÷ (1 + Rendite des Maßstabs in Dollar). Der Wechselkurs kürzt sich heraus. Das ist Rechnung, keine Messung. **Aber nur für dieses Verhältnis, nicht für den Abstand in Prozentpunkten:** Käufe +10 % und Maßstab +5 % in Dollar sind ein Vorsprung von 5 Prozentpunkten; bei einem Dollar, der 15 % an Wert gegenüber dem Euro verliert (Faktor 0,85), sind es in Euro −6,5 % gegen −10,75 %, also nur noch 4,25 Prozentpunkte Abstand. Das Verhältnis (1,10 ÷ 1,05) ist in beiden Währungen gleich, der Abstand nicht. Deshalb wird **jede Prozentpunkt-Schwelle in Dollar festgelegt** (Punkt 6), und die Kennzahl der Messlatte ist die **Relativrendite** (Verhältnis minus 1). Die Kürzung gilt außerdem nur bei Einmalkauf ohne Zwischenflüsse: Dividenden, die zu einem anderen Wechselkurs als dem Kaufkurs umgerechnet werden, brechen sie leicht (Näherung).
+
+Der Wechselkurs spielt trotzdem eine Rolle:
+1. **Absolute Euro-Rendite (F3):** Ein Plus von 8 % in Dollar kann in Euro bei fallendem Dollar ein Minus sein. Wer „im Depot" misst, sieht beides vermischt.
+2. **Maßstab in anderer Währung oder abgesichert** (z. B. ein weltweiter Euro-ETF, ein währungsgesicherter ETF): Dann kürzt sich der Wechselkurs **nicht** heraus, und der Vergleich misst auch die Währungswette. Das ist für F1 zu vermeiden.
+3. **Kaufzeitpunkte:** Käufe an verschiedenen Tagen haben verschiedene Wechselkurse. Das Herauskürzen gilt nur, wenn der Maßstab zum selben Zeitpunkt „gekauft" wird (Punkt 3).
+4. **Nicht geprüft:** Welche Wechselkursquelle benutzt wird (kostenlos, nachvollziehbar, z. B. ein Referenzkurs der Zentralbank); Kosten und Steuern beim Währungswechsel sind nicht Teil der Messlatte. Ob ein Euro-Handelsplatz-ETF und ein Dollar-Fonds dieselbe Rendite liefern, ist nicht geprüft.
+
+### 3. Optionen
+
+**Option A: Einfacher Index-Vergleich in Euro (Depotsicht).**
+- *Maßstab:* ein breiter US-Index (z. B. ein Gesamtmarkt- oder S&P-500-ETF, ungesichert, in Euro gehandelt und ausschüttend wiederangelegt).
+- *Währung:* Euro. *Gewichtung:* gleich gewichtet. *Zeitraum:* 24 Monate ab erstem Kauf. *Abbruch:* nach 24 Monaten liegen die Käufe hinter dem Maßstab.
+- *Vorteile:* sehr einfach, entspricht der Sicht eines Euro-Depots; schwer zu manipulieren.
+- *Nachteile:* Der Index ist nach Marktwert gewichtet (Großkonzerne dominieren); die Auswahl des Systems (gesund, vorerst bis 10 Mrd. $, Qualität/Value) wird gegen den falschen Maßstab gemessen; ein Rückstand kann „nur" ein Größen- oder Stilrückstand sein.
+
+**Option B: Faktorgerechter Maßstab, Vergleich in Dollar, Euro-Rendite getrennt (Empfehlung).**
+- *Maßstab:* zwei Maßstäbe nebeneinander, beide ungesichert in Dollar: ein breiter Index (wie A) **und** ein Faktor-Maßstab für Qualität/Value in der Größenklasse des Systems (z. B. ein US-Mid-/Small-Cap-Value- oder Quality-Fonds). Das konkrete Instrument legt Konstantin fest; ob ein passender, kostenloser und lang genug verfügbarer Kursverlauf existiert, ist **nicht geprüft**.
+- *Währung:* Vergleich mit dem Maßstab in Dollar (oder Euro; ist nach Punkt 2 gleich), zusätzlich die Euro-Rendite der Käufe mit Zeile „Währungseffekt".
+- *Gewichtung:* **gleich gewichtet** für F1 und F2 (misst die Auswahl, nicht die Positionsgröße); zusätzlich **nach tatsächlicher Positionsgröße** für F3 (Depot).
+- *Zeitraum:* mindestens 24 Monate ab dem jeweiligen „Gekauft-Datum"; Zwischenbericht nach 12 Monaten ohne Entscheidungswirkung.
+- *Abbruch:* siehe Punkt 6 (Rückstand gegen **beide** Maßstäbe nach 24 Monaten plus Prozesskennzahlen).
+- *Vorteile:* trennt Auswahl, Urteil und Währung; der Faktor-Maßstab verhindert, dass ein bloßer Stilrückstand als Versagen gilt; der breite Index zeigt, was Konstantin mit einem ETF gehabt hätte.
+- *Nachteile:* mehr Aufwand (zwei Kursreihen und ein Wechselkurs); die Wahl des Faktor-Maßstabs ist selbst subjektiv; ein Faktor-ETF kann Kosten und Steuerfolgen haben, die hier nicht gerechnet werden (nicht geprüft).
+
+**Option C: Eigener Kontrollkorb (mechanischer Screen als Maßstab).**
+- *Maßstab:* ein gleich gewichteter Korb der obersten N Firmen des Stufe-2-Rangs desselben Laufs, ohne Stufe 3 und 4.
+- *Währung:* egal (beide Seiten Dollar-Aktien, Wechselkurs kürzt sich heraus); Euro nur für F3.
+- *Zeitraum:* wie B. *Abbruch:* nur für F2 (Urteil).
+- *Vorteile:* misst genau die Frage, die der Masterplan als Mehrwert nennt (Konstantins Urteil gegen den mechanischen Screen); kein externer Maßstab nötig.
+- *Nachteile:* sagt nichts darüber, ob der Screen selbst etwas taugt (F1); der Korb hängt von N und vom Rang ab; die Stichprobe ist klein; das Ergebnis ist ohne einen externen Maßstab nicht einzuordnen.
+
+### 4. Empfehlung (Entwurf)
+
+**Option B**, und Option C als Zusatz für F2, wenn Stufe 3 läuft. Begründung: Die Frage „Taugt die Auswahl?" lässt sich nur gegen einen Maßstab mit ähnlichem Stil und ähnlicher Größe sauber beantworten; gegen einen Marktindex allein würde ein Stilrückstand wie Versagen aussehen oder ein Stilvorsprung wie Können. Die Währung wird nicht „weggewählt", sondern **getrennt ausgewiesen**: Der Vergleich mit dem Maßstab ist währungsneutral (Punkt 2), und die Euro-Sicht des Depots steht daneben. **Das ist eine Abweichung vom Masterplan Abschnitt 8 („in Euro gerechnet, wie das Depot"):** F1 und das Abbruchkriterium werden in Dollar gerechnet (als Relativrendite ist das Ergebnis in Euro gleich, als Prozentpunkt-Abstand nicht, siehe Punkt 2); F3 (Depotsicht) bleibt in Euro. Der Masterplan sagt auch, der Wechselkurs könne einen Vorsprung „leicht überdecken"; das gilt für F3, nicht für F1. Die Abweichung wird mit dem Merge dieses Textes wirksam und ändert den Masterplan-Text nicht; Konstantin kann sie ablehnen (dann gilt Euro für alles, mit dem Nachteil aus Punkt 2). Ebenso ist die Forderung nach **zwei** Maßstäben in Option B eine Verschärfung gegenüber „ein Index oder ein ETF" im Masterplan.
+
+### 5. Festlegungen für Option B (Entwurf; Zahlen sind Startwerte ohne Messgrundlage)
+
+1. **„Gekauft"-Zeitpunkt:** Für F2 und das Abbruchkriterium zählt ein Name ab dem **Signaltag** (Datum des Laufs, Kurs am Lauftag nach Roadmap A.1, also der letzte Schlusskurs im Datensatz mit Datum), unabhängig davon, ob und wann gekauft wird. Für F3 zählt der **tatsächliche Kaufkurs und das tatsächliche Kaufdatum**. So wird ein Rückstand durch langsames Kaufen nicht dem System angelastet, und ein Nichtkaufen wird sichtbar.
+2. **Gleiche Zeitpunkte für den Maßstab:** Der Maßstab wird am selben Tag mit demselben Betrag „gekauft" und am selben Tag bewertet wie der Name (nachgebildete Käufe). Neue Käufe später bekommen ihren eigenen Startpunkt.
+3. **Dividenden:** Gesamtrendite (Ausschüttungen wiederangelegt) auf beiden Seiten. Ob die verwendeten Kurse bereinigt sind und ob SimFin Free bereinigte Kurse liefert, ist **nicht geprüft**; ohne bereinigte Kurse wäre die Seite der Aktien benachteiligt.
+4. **Kosten und Steuern:** Nicht in der Messlatte (weder Spesen noch Abgeltungsteuer noch Quellensteuer). Sie werden im Bericht getrennt als Hinweis genannt. Ob das den Vergleich mit einem thesaurierenden ETF verzerrt, ist **nicht geprüft**.
+5. **Wechselkurs:** Eine feste, kostenlose, nachvollziehbare Quelle für den Euro-Dollar-Kurs je Stichtag; die Auswahl legt Konstantin fest, bevor der erste Lauf archiviert wird. Nicht geprüft, welche Quelle in Frage kommt und ob sie für den Zeitraum lückenlos ist.
+6. **Zeitraum:** mindestens 24 Monate (Masterplan: 18 bis 24); erst dann gilt das Abbruchkriterium. Ein Zwischenbericht nach 12 Monaten ändert nichts.
+
+### 6. Abbruchkriterium (Entwurf, Startwerte als Platzhalter, ohne Messgrundlage)
+
+Schriftlich vorab. Das System wird **nicht fortgeführt, bis Konstantin neu entschieden hat**, wenn eine der folgenden Bedingungen eintritt. **Nur Kriterium 1 ist an die Mindestdauer gebunden; die Kriterien 2 und 3 sind Frühwarnungen und gelten laufend** (Prüfung nach jedem Lauf, sobald die Mindestzahl erreicht ist).
+1. **Rückstand (erst nach mindestens 24 Monaten ab dem Signaltag der jeweiligen Position; Positionen unter 24 Monaten zählen noch nicht):** Die Relativrendite in **Dollar** der gleich gewichteten Käufe liegt gegenüber dem **stärkeren der beiden Maßstäbe** um mehr als **X Prozentpunkte pro Jahr** im Minus (Startwert-Platzhalter X = 3; kein Beleg, Konstantin setzt ihn). **Warnung:** Bei 10–15 Positionen streut der Abstand zu einem Index von Jahr zu Jahr vermutlich stark (ungeprüfte Schätzung des Kritikers, keine Messung: grob mittlerer einstelliger bis niedriger zweistelliger Prozentbereich); ein Rückstand von 3 Prozentpunkten wäre dann auch ohne Fehler des Systems keine Seltenheit, X = 3 kann also einen **Fehlalarm** auslösen und fängt kein „grobes" Versagen. Das Kriterium ist deshalb ein Anlass zum Nachdenken und zur Neuentscheidung durch Konstantin, kein Urteil.
+2. **Kill-Kriterien greifen auffällig oft (laufend):** Von den Finalisten, die in Stufe 3 geprüft wurden (alle Läufe zusammen, **mindestens 10 geprüfte Finalisten**, sonst keine Auswertung), scheiden mehr als **Y Prozent durch Kill-Kriterium** aus (Platzhalter Y = 50; kein Beleg). Datenfehler zählen hier **nicht** mit (sie stehen in Kriterium 3).
+3. **Datenqualität (laufend):** Die Handprüfung findet bei mehr als **Z Prozent** der geprüften Finalisten (mindestens 10 geprüft) einen Datenfehler, der die Aufnahme geändert hätte (Platzhalter Z = 20; kein Beleg; gleichwertig mit „mehr als 2 von 10"). Das fängt einen Prozessfehler, den die Rendite noch nicht zeigt. **Hinweis zum Beispiel:** Die Handprüfung vom 07.10.2026 fand einen Datenfehler bei XPER (Rang 4 der 41 in Stufe 2, nicht in Stufe 3; Angabe von Konstantin, ungeprüft von mir); es wäre ein Beispiel für diese Art von Fehler, nicht für eine ausgelöste Bedingung.
+
+Die Platzhalter ändern nur durch eine eigene Entscheidung (analog zu den Trend-Guard-Platzhaltern). Eine Währungsbewegung allein löst kein Kriterium aus, denn Kriterium 1 misst die Relativrendite in Dollar gegen ungesicherte Maßstäbe.
+
+### 7. Was die Messlatte nicht leistet
+
+- Sie **beweist keinen Vorsprung**. Bei 10–15 Positionen braucht es grob gerechnet Jahrzehnte, um 2–3 % pro Jahr vom Zufall zu trennen (Masterplan Abschnitt 8); sie erkennt grobes Versagen und Prozessfehler.
+- Sie ersetzt keine Prüfung der Daten: Die Zahlen des Forward-Logs sind nur so gut wie die Handprüfung der Finalisten (feste Stufe-3-Prüfung).
+- Sie legt kein Instrument fest: ETF-Namen, Kennnummern und Verfügbarkeit klärt Konstantin.
+
+### 8. Offene Fragen für Konstantin (getrennt zu beantworten)
+
+1. **Option:** A, B (empfohlen), C allein, oder B plus C?
+2. **Instrumente:** Welcher breite Index-Maßstab und welcher Faktor-Maßstab (Option B)? Das Instrument legt laut Masterplan er fest.
+3. **Wechselkursquelle** für die Euro-Rendite (Punkt 5, Nr. 5).
+4. **Startwerte** X, Y, Z (Punkt 6), die Mindestzahl von 10 geprüften Finalisten und die Mindestdauer 24 Monate; bei Option C zusätzlich die Größe **N** des Kontrollkorbs.
+5. **Kosten und Steuern:** nur als Hinweis (Entwurf) oder in die Messlatte?
+6. **„Gekauft"-Zeitpunkt** (Punkt 5, Nr. 1): Signaltag für F1/F2 und tatsächlicher Kauf für F3 so in Ordnung?
+
+### 9. Bekannte Lücken und Ungeprüftes
+
+- Es wurden **keine Daten** abgerufen und keine Instrumente geprüft; Verfügbarkeit, Kosten und Kursverlauf eines Faktor-Maßstabs sind offen.
+- Ob SimFin Free bereinigte Kurse (Dividenden, Splits) liefert, ist nicht geprüft; die Kurse im Cache sind laut bisherigen Einträgen für den Vorfilter und die Marktkapitalisierung genutzt worden, nicht für Renditen.
+- Der Wechselkurs-Kürzungssatz (Punkt 2) gilt nur bei gleichem Zeitraum und gleicher Währung beider Seiten; bei Käufen zu verschiedenen Zeitpunkten ist er eine Näherung, solange Maßstab und Kauf nicht zeitgleich nachgebildet werden.
+- Die Platzhalter X = 3, Y = 50, Z = 20 haben keine Messgrundlage und sind ausdrücklich nur Startwerte zur Entscheidung.
+- Steuern, Spesen und Quellensteuer sind nicht gerechnet (Punkt 5, Nr. 4).
+
+### 10. Entscheidung von Konstantin (08.10.2026)
+
+Konstantin hat die **Empfehlung (Option B)** angenommen: „Ja, deine Empfehlung für #77 passt." Als Beschluss gilt damit, mit dem Merge dieses Texts:
+- **Option B** für F1 und das Abbruchkriterium (zwei ungesicherte Dollar-Maßstäbe, ein breiter Index und ein Faktor-Maßstab für Qualität/Value; Vergleich als Relativrendite in Dollar; Euro-Rendite der Käufe mit eigener Zeile „Währungseffekt"). **Option C** kommt als Zusatz für F2 (Urteil), wenn Stufe 3 läuft.
+- Die Festlegungen aus Punkt 5 (Signaltag für F1 und F2, tatsächlicher Kauf für F3, nachgebildete Maßstabskäufe am selben Tag, Gesamtrendite, Kosten und Steuern nur als Hinweis, Mindestdauer 24 Monate für Kriterium 1) und das Abbruchkriterium aus Punkt 6 **mit den Platzhaltern X = 3, Y = 50, Z = 20 und der Mindestzahl von 10 geprüften Finalisten** gelten als Startwerte. Sie ändern sich nur durch eine eigene Entscheidung.
+- Die Abweichung vom Masterplan §8 (Vergleich in Dollar statt Euro, zwei Maßstäbe statt einem) gilt damit als angenommen.
+
+**Noch offen (nicht entschieden, weil Konstantin sie nicht genannt hat):** Die **konkreten Instrumente** beider Maßstäbe (Frage 2), die **Wechselkursquelle** (Frage 3) und die Größe N für Option C (Frage 4). Vor dem ersten archivierten Lauf (Roadmap A.3) müssen sie feststehen; bis dahin ist die Messlatte nicht vollständig. Ob der Faktor-Maßstab zur Größenklasse passt, ist neu zu entscheiden, sobald die Obergrenze der Marktkapitalisierung entfällt (Roadmap C.8).
+
+**Alternativen zur ganzen Messlatte:** (a) gar keine feste Messlatte, nur Bericht: verworfen, weil jedes Ergebnis dann nachträglich zurechtgelegt werden kann. (b) Messlatte erst nach dem ersten Zwischenbericht festlegen: verworfen; Roadmap 0.3 und Masterplan Abschnitt 8 verlangen sie vor dem ersten archivierten Lauf.
+
+**How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag. Danach: Roadmap A.1 (Kurs am Lauftag), A.3 (erster archivierter Lauf) und ein späterer Messbericht (Spur P) nach den hier festgelegten Regeln.
+
+## 2026-10-08: Messlatte – Nachtrag: Maßstab für die Depotsicht (F3) und Kandidaten für F1 (Agent-Entscheidung, Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin. Branch `agent/messlatte-nachtrag` (von `master`), nur Dokumentation. Ergänzt den gemergten Eintrag „Messlatte für das Forward-Log" (Abschnitt 10, Entscheidung von Konstantin); ändert dessen Entscheidungen nicht, es legt nur einen offenen Punkt fest. Keine Daten abgerufen, keine Instrumente geprüft.
+
+**In einfachen Worten:** Für die Frage „Lohnt es sich für ein Euro-Depot?" (F3) vergleichen wir die Käufe mit einem **MSCI World in Euro**, weil ein MSCI World als Vergleich gewollt ist (Deutung des Agenten, nicht belegt). Für die Frage „Trägt die Auswahl?" (F1) bleiben es US-Maßstäbe in Dollar, damit der Wechselkurs und die Länderverteilung das Ergebnis nicht verfälschen. Das Abbruchkriterium hängt weiter an F1 und den Prozesskennzahlen, nicht an F3.
+
+**Entscheidung von Konstantin (08.10.2026):** „Als Vergleich einen MSCI World" und, nach dem Vorschlag mit der Aufteilung, „Ja passt so". Als Beschluss gilt damit, mit dem Merge dieses Texts:
+1. **F3 (Depotsicht):** Maßstab ist ein **MSCI World, gerechnet in Euro**. Das ist die Opportunität des Depots, nicht der Maßstab der Auswahl.
+2. **F1 (Auswahl) und das Abbruchkriterium:** unverändert **US-Maßstäbe in Dollar** (ein breiter US-Index und ein US-Maßstab für Qualität/Value, Option B). MSCI World ist dort **nicht** Maßstab, weil er neben den USA auch andere Länder und Währungen enthält: Der Wechselkurs kürzt sich dann nicht heraus (Eintrag „Messlatte", Punkt 2), und ein Rückstand könnte an der Länderverteilung liegen statt an der Auswahl.
+3. **F2 (Urteil):** unverändert Option C als Zusatz, wenn Stufe 3 läuft.
+
+**Folgen für den gemergten Text (zur Klarheit, keine neue Regel):**
+- Die Euro-Sicht F3 stellt die **Euro-Rendite der Käufe** (Dollar-Kurs über den Wechselkurs in Euro) neben die **Euro-Rendite des MSCI World**. Die Wechselkursquelle brauchen die Euro-Sicht und die Zeile „Währungseffekt“ des gemergten Eintrags (nicht F1-Rendite in Dollar). Ist der MSCI World als Dollar-Reihe geführt, braucht er sie ebenfalls. **Offene Frage an Konstantin (kein Beschluss):** Darf die Wechselkursquelle bis zum ersten Kauf warten? Der gemergte Eintrag (Punkt 10) verlangt sie wie die anderen offenen Punkte vor A.3; dieser Nachtrag ändert das nicht. Konstantins Bemerkung, Wechselkurse seien vorerst nicht so wichtig, ist der Anlass der Frage, keine Antwort darauf.
+- **Grenze von F3:** Der Abstand zum MSCI World sagt nur, ob sich die Käufe gegenüber dieser Alternative gelohnt haben, nicht, ob die Auswahl gut war. Die Käufe sind reine US-Aktien; ein Abstand kann an der Länderverteilung oder am Dollar liegen. Das Urteil über die Auswahl kommt aus F1.
+- F3 geht **nicht** in das Abbruchkriterium ein (unverändert, Eintrag „Messlatte", Punkt 1 und 6).
+- Für F3 gelten dieselben Regeln wie für die übrigen Sichten (Eintrag „Messlatte“): Start des Vergleichs ist der tatsächliche Kauftag, nicht der Signaltag (Signaltag nur bei F1); gerechnet wird die Gesamtrendite, bei den Käufen mit Dividenden, beim MSCI World als thesaurierende Reihe oder mit wiedereingerechneten Ausschüttungen. So steht es im gemergten Eintrag, Punkt 5 (Nr. 1 und 3); offen bleibt dort, ob SimFin Free bereinigte Kurse liefert.
+- Die Platzhalter X, Y, Z ändern sich nicht.
+
+**Kandidaten für die beiden US-Maßstäbe in F1 (nur Kategorien; ungeprüft: Verfügbarkeit als ETF, Kosten, Länge des Kursverlaufs, Steuerbehandlung; die Wahl trifft Konstantin):**
+
+| Rolle | Kandidat (Index) | Vorteil | Nachteil |
+|---|---|---|---|
+| Breiter US-Index | S&P 500 | sehr verbreitet, einfach zu erklären | nur Großkonzerne, passt nicht zur Größenklasse des Systems |
+| Breiter US-Index | breiter US-Gesamtmarkt (z. B. mit Mid und Small Caps) | enthält auch kleinere Firmen, näher am Universum | weniger verbreitet; die Auswahl des konkreten Index/ETF muss geklärt werden |
+| Qualität/Value | US-Qualitätsindex (Qualitätsfaktor) | misst den Stil der Qualitätsbedingungen | meist große Firmen, passt nicht zur Größenklasse; Value fehlt |
+| Qualität/Value | US-Mid-/Small-Cap-Value-Index | passt zu Größenklasse und Value-Teil | Qualität fehlt; Small Caps schwanken stark |
+
+Die Größenklasse des Systems ist heute begrenzt (Marktkapitalisierung 300 Mio. bis 10 Mrd. $); entfällt die Obergrenze (Roadmap C.8), ist der Qualität/Value-Maßstab neu zu entscheiden.
+
+**Noch offen (nicht entschieden):**
+1. Das **konkrete Instrument** für den breiten US-Index und für Qualität/Value (je ein Index oder ein ETF; ausschüttend oder thesaurierend; in Euro oder Dollar gehandelt).
+2. Das **konkrete Instrument für MSCI World** (Index oder ein bestimmter ETF) und ob er in der Auswertung als Euro-Reihe oder als Dollar-Reihe mit Wechselkurs geführt wird.
+3. Die **Größe N** des Kontrollkorbs (Option C) und die **Wechselkursquelle**.
+Alle drei Punkte müssen wie im gemergten Eintrag (Punkt 10) vor dem ersten archivierten Lauf (Roadmap A.3) feststehen, solange Konstantin die Frage zur Wechselkursquelle (oben) nicht anders beantwortet.
+
+**Begriffe:** Ein ETF ist ein börsengehandelter Fonds, der einen Index nachbildet. Thesaurierend heißt: Ausschüttungen werden im Fonds wieder angelegt; ausschüttend heißt: sie werden ausgezahlt. Für einen fairen Vergleich zählt die Gesamtrendite (Kurs plus Ausschüttungen).
+
+**Ungeprüft:** Die Zusammensetzung des MSCI World (Länder, Währungen, Gewichte) wurde nicht nachgesehen; die Aussage, dass er neben den USA andere Länder und Währungen enthält, ist allgemein bekannt, nicht aus dem Repo belegt. Kosten, Steuern (z. B. thesaurierend gegen ausschüttend) und die Verfügbarkeit einer kostenlosen Kursreihe sind nicht geprüft.
+
+**Alternativen:** (a) MSCI World als alleiniger Maßstab für alles (F1, F3, Abbruch): einfacher, aber der Wechselkurs kürzt sich nicht heraus und die Länderverteilung vermischt sich mit der Auswahl; verworfen. (b) MSCI World nur als F3-Vergleich (gewählt). (c) Gar kein Weltindex: verworfen, weil Konstantin ihn als reale Alternative sehen will.
+
+**How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag. Die Instrumente, N und die Wechselkursquelle werden in einem Folgeeintrag festgehalten; danach Roadmap A.3.
+
+## 2026-10-08: Messlatte – Instrumente, Größe N und Wechselkursquelle (Agent-Entscheidung, Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin. Branch `agent/messlatte-instrumente`, nur Dokumentation. Baut auf dem Eintrag „Messlatte – Nachtrag“ (PR #81) auf; Merge von #81 vor diesem Eintrag. Ändert am gemergten Eintrag „Messlatte für das Forward-Log“ Folgendes, jeweils mit Herkunft: (a) Option B hat keinen zweiten US-Maßstab mehr (**Konstantin**, Punkt 2); (b) die Wechselkursquelle muss nicht vor dem ersten archivierten Lauf feststehen, sondern darf warten (**Konstantin**, Punkt 4; betrifft Punkt 5 Nr. 5 und Punkt 10 des gemergten Eintrags); (c) Rolle von Option C und Abbruchkriterium 1 (**nur Agent-Vorschlag**, siehe „Folgen“). Dadurch überholt sind außerdem im Nachtrag (PR #81) der Beschluss 2 („ein breiter US-Index und ein US-Maßstab für Qualität/Value“) und die Qualität/Value-Zeilen der Kandidatentabelle, im gemergten Eintrag „gegen beide Maßstäbe“ (Option B) und „stärkerer der beiden Maßstäbe“ (Abbruchkriterium 1); die Abweichung vom Masterplan §8 (zwei Maßstäbe) entfällt zur Hälfte. Keine Daten abgerufen, keine Instrumente geprüft.
+
+**In einfachen Worten:** Konstantin hat einen Teil der offenen Punkte der Messlatte beantwortet: S&P 500 und MSCI World als gewöhnliche thesaurierende ETFs (Ausschüttungen bleiben im Fonds), kein zweiter US-Maßstab für Qualität/Value, Option C (ein Korb aus den 10 bestplatzierten Firmen des mechanischen Rangs von Stufe 2), und die Wechselkursquelle darf warten. Noch offen sind die konkreten Fonds und ob Option C im Abbruchkriterium mitzählt. Wie die Maßstäbe im Einzelnen eingesetzt werden (Dollar oder Euro), sind Vorschläge des Agenten.
+
+**Entscheidung von Konstantin (08.10.2026), in seinen Worten:** „Die Wechselkursquelle kann warten.“ – „Nimm den S&P 500 und MSCI World.“ – „Wir brauchen keinen US Qualität Ersatz. Ok ja dann nehmen wir Option C.“ (auf meinen Vorschlag N = 10) – „Ganz normale ETFs thesaurierend bitte.“ Als Beschluss gilt mit dem Merge ausschließlich:
+1. **Instrumente:** ein **S&P-500-ETF** und ein **MSCI-World-ETF**, jeweils **thesaurierend** (Ausschüttungen werden im Fonds wieder angelegt, damit die Reihe die Gesamtrendite zeigt). Welcher konkrete ETF (Anbieter, Kennnummer ISIN, Handelswährung) gewählt wird, ist **nicht** entschieden; das legt der Agent mit Belegen vor, Konstantin bestätigt.
+2. **Kein zweiter US-Maßstab für Qualität/Value.** Das ändert Option B im Eintrag „Messlatte“ (dort: zwei Dollar-Maßstäbe): Für F1 gibt es nur den S&P 500. Konstantin hat außerdem „Option C“ gewählt; welche Rolle sie über den gemergten Zusatz für F2 hinaus hat, ist ein Vorschlag des Agenten (siehe „Folgen“).
+3. **Größe N = 10** für Option C: gleich gewichteter Korb der obersten 10 Firmen im Stufe-2-Rang desselben Laufs (ohne Stufe 3 und 4). Bezugsgröße: im Replay vom 07.10.2026 bestanden 41 von 126 Firmen Stufe 2; der Korb wäre also 10 dieser 41.
+4. **Wechselkursquelle:** darf warten. Wie lange (Vorschlag des Agenten: bis zum ersten Kauf), ist nicht entschieden. Sie wird für die Euro-Sicht F3 und die Zeile „Währungseffekt“ gebraucht. Die Instrumente sollen vor A.3 feststehen (Eintrag „Messlatte“, Punkt 10; unverändert); N ist mit Punkt 3 beschlossen.
+
+**Folgen und Fragen (Vorschläge des Agenten, von Konstantin nicht bestätigt; Konstantin entscheidet):**
+- **Option C:** Konstantins Satz lässt zwei Lesarten zu: Option C als Zusatz für F2 (wie gemergt) oder als Ersatz für den entfallenen zweiten Maßstab in F1 und im Abbruchkriterium. **Frage an Konstantin, welche gemeint ist.** Vorschlag, den Korb als Stilvergleich neben dem S&P 500 zu zeigen. Der gemergte Eintrag legt Option C nur als Zusatz für F2 fest; ein Korb aus demselben mechanischen Rang ist kein unabhängiger Maßstab für die Frage, ob der Screen selbst etwas taugt (F1). Ändert sich N (zum Beispiel bei deutlich anderer Zahl der Finalisten), wäre N neu zu entscheiden.
+- **Abbruchkriterium 1** verglich mit dem stärkeren von zwei Maßstäben; mit einem Maßstab entfällt das „stärkere von zwei“. Vorschlag: Vergleich nur mit dem S&P 500, Option C nur zur Einordnung. Risiko: Der S&P 500 besteht nur aus Großkonzernen und passt nicht zur Größenklasse des Systems (Nachtrag, Tabelle); das war der Grund für den Faktor-Maßstab. Ob Option C ins Abbruchkriterium eingeht, ist **offen**. Der Platzhalter X (3 Prozentpunkte pro Jahr) hat keine Messgrundlage und ändert sich nicht.
+- **Währung:** Vorschlag: Der S&P-500-ETF sollte für F1 als **Dollar-Reihe** vorliegen (Dollar-Handelslinie oder Dollar-Fondspreis), weil ein Euro-Handelsplatz den Wechselkurs in den Maßstab mischt. Der MSCI-World-ETF für F3 sollte als **Euro-Reihe** vorliegen. Ob es passende thesaurierende ETFs gibt, ist ungeprüft.
+- **Kosten:** Gebühren und Steuern im Fonds senken die Rendite des ETF; gegen einen ETF ist die Messlatte damit etwas leichter zu schlagen als gegen den Index. Ob die Historie der gewählten ETFs für alle Signaltage reicht, ist ungeprüft (siehe unten).
+- Option C braucht pro Lauf den gespeicherten Stufe-2-Rang. Ob er heute im Archiv vollständig vorliegt, wurde **nicht geprüft**.
+
+**Ungeprüft:** Verfügbarkeit, Kosten, Steuern, Länge des Kursverlaufs und Quelle der ETF-Kurse (kostenlos, Dollar und Euro), Zusammensetzung des MSCI World, ob der Stufe-2-Rang im Archiv für Option C reicht.
+
+**Alternativen:** (a) Zweiten US-Maßstab für Qualität/Value behalten: verworfen, Konstantin braucht ihn nicht. (b) N = alle Firmen, die den Filter bestehen (41 von 126 bestanden Stufe 2 im Replay vom 07.10.2026): misst den Durchschnitt der Gruppe, nicht die Auswahl; verworfen. (c) Reine Indizes statt ETFs: verworfen, Konstantin will gewöhnliche ETFs.
+
+**How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag. Nächste Schritte: konkrete ETFs mit Belegen vorlegen (Konstantin bestätigt), Entscheidung zu Option C im Abbruchkriterium, dann Roadmap A.3.
+
+## 2026-10-08: Masterplan v2.0 übernommen (Agent-Entscheidung, Klasse C; Entwurf, nur Text)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin. Branch `agent/plan-v2-uebernommen` (von `master`), nur Dokumentation. Klasse C, weil der Eintrag festhält, welche freigegebenen Entscheidungen durch den Masterplan v2.0 abgelöst werden oder weiter gelten (`CLAUDE.md`: Einträge, die Regeln oder Verfahren ändern). Kein Code, keine Konfiguration, keine Schwellenänderung, keine Daten.
+
+**In einfachen Worten:** Der neue Masterplan v2.0 (Zweck, Stufen, Messschicht) und die Roadmap stehen seit PR #74 auf `master`. Anders als bei der Version 1.1 (Eintrag „Masterplan v1.1 übernommen" vom 20.09.2026) gibt es dazu noch keinen Eintrag in diesem Dokument. Dieser Eintrag holt das nach: Er nennt, was der Masterplan v2.0 gegenüber freigegebenen Entscheidungen ändert, was davon schon wirkt und was erst mit einem späteren Schritt wirken soll. Wer nur eine Zeile lesen will: **geändert ist nichts an Code, Schwellen oder Daten.**
+
+**Kontext.** PR #74 („Masterplan v2.0 und Roadmap", ersetzt PR #73) hat `docs/masterplan.md` (v2.0 ersetzt v1.1) und `docs/roadmap.md` (neu) auf `master` gebracht. Der Masterplan führt in seinem Änderungsprotokoll (Abschnitt 12) acht Abweichungen von freigegebenen Entscheidungen auf und sagt dazu: bis zum jeweils genannten Schritt gilt die freigegebene Entscheidung. Bei der Version 1.1 wurde das mit einem eigenen Eintrag festgehalten; hier soll es genauso sein, damit ein Leser dieses Dokuments nicht nur im Masterplan nachsehen muss.
+
+**Entscheidung (Entwurf).** Für jede Abweichung steht, ob sie schon mit dem Merge von PR #74 wirkt:
+
+| Nr. | Abweichung (Quelle: Masterplan Abschnitt 12) | Wirkt | Bis dahin / danach |
+|---|---|---|---|
+| 1 | **Rang-Tiebreaker** („Masterplan v1.1 übernommen", Entscheidung 2: Durchschnitt der Perzentil-Ränge innerhalb gleicher Flag-Zahl; nie gebaut) wird abgelöst durch die gebaute Regel aus Stufe 2 (Q7) | **seit dem Merge von PR #74** | Maßgeblich ist die gebaute Regel (Gruppen nach Flag-Zahl, darin Peer-Perzentil, dann Ticker). Code und Tests sind unverändert, weil der Tiebreaker nie gebaut wurde. |
+| 2 | **SEC EDGAR „geparkt, kein weiterer Ausbau"** (SimFin-Client, Entscheidung 9) wird aufgehoben | mit Roadmap C.3 | Bis dahin wird nichts gebaut; C.3 entscheidet auch, ob `src/data_layer/edgar_client.py` wiederverwendet wird. |
+| 3 | **P4 „keine zweite Quelle für die Aktienzahl"** (Stufe 2, Entscheidungen P1–P4) | mit Roadmap C.6 | Bis dahin gilt P4. Die Prüfung der Aktienzahl gegen Yahoo bzw. 10-K bleibt fester Schritt in Stufe 3 (Eintrag vom 07.10.2026). |
+| 4 | **Schuldenregel „Status quo"** (Phase 2.0a, Entscheidung 4) | bleibt bis Roadmap C.3 | unverändert |
+| 5 | **„Keine Größenachse"** in Stufe 2 | bleibt; Frage wird mit Roadmap C.8 neu gestellt | unverändert |
+| 6 | **Keine Daten und kein SimFin-Schlüssel auf dem Server** („Autonomer Betrieb", Nr. 5) | bleibt | Roadmap B.8 und E.3 bräuchten eine eigene Klasse-C-Änderung |
+| 7 | **PR #72 „Zweck und Zahlenbasis“, Abschnitt 1** (Entwurf) | **erledigt: PR #72 wurde nach Angleichung von Abschnitt 1 gemergt** | Konstantin hat entschieden: weiter wie im Masterplan v2.0 (08.10.2026). Abschnitt 1 spricht jetzt von börsennotierten US-Unternehmen, Finanzwerte vorerst ausgenommen, Stufe 2 mit echten Gates. Die Abweichung besteht nicht mehr; sie bleibt als Protokoll stehen. |
+| 8 | **Altman Z''** (Masterplan v1.1, Stufe 1.2; nie gebaut) wird gestrichen | **seit dem Merge von PR #74** | Insolvenzrisiko decken Net Debt/EBITDA, Stock-Flow-Abgleich und Stufe 3 ab. Wiederaufnahme nur, wenn Stufe 3 Fälle übersieht, die Z'' gefunden hätte. |
+
+**Was der Masterplan v2.0 sonst festhält (zur Einordnung, ohne neue Regel in diesem Eintrag):** Zweck als systematischer Gesundheitsfilter über börsennotierte US-Unternehmen (Größe nachrangig; Banken, Versicherer und REITs vorerst ausgenommen); Rechenbasis Geschäftsjahreszahlen; Obergrenze der Marktkapitalisierung soll entfallen, aber erst mit einem eigenen Klasse-C-PR samt Messung (Roadmap C.8); Messlatte vor dem ersten archivierten Lauf (Roadmap 0.3); Betrieb mit Claude Code (Abschnitt 9) ohne neue Rechte. Schwellen und Kennzahlen von Stufe 1 und 2, Portfolioregeln von Stufe 4, Kostenziel 0 €, „kein LLM-Rechnen" und US-only sind unverändert.
+
+**Erledigt: Verhältnis zu PR #72 (Abweichung 7, Roadmap 0.1).** Der Entwurf von PR #72 wich in drei Punkten vom Masterplan v2.0 ab („US-Nichtfinanzwerte“ gegen „börsennotierte US-Unternehmen“; „Finanztitel bewusst ausgenommen“ gegen „vorerst ausgenommen“; „Stufe 2 dient der Rangfolge“ gegen „EV/EBITDA und FCF-Rendite sind echte Gates“). Auf Konstantins Entscheidung („Ja wir machen weiter wie im Masterplan v2.0“, 08.10.2026) wurde Abschnitt 1 vor dem Merge angeglichen und PR #72 gemergt (Eintrag „Zweck und Zahlenbasis“). Die Abschnitte 2 bis 6 und der Anhang standen schon im Einklang mit dem Masterplan.
+
+**Bekannte Lücken (Ungeprüftes):**
+- Mehrere Aussagen im Masterplan stützen sich auf Quellen außerhalb des Repos und sind dort nicht gekennzeichnet: die Beobachtung vom 08.10.2026 in der Cloud-Sitzung (Roadmap B.11), „PATK als Fusionsfall" (A.4), der Stufe-3-Pilot, die Backlog-Prüfung vom 06.10. (0.5), die Token-Laufzeit von 30 Tagen (B.7) und die Preise von EODHD und FMP (Abschnitt 7).
+- Die Zahl „44 von 97" im Masterplan Abschnitt 4 hat ihre Quelle seit dem Merge von PR #72 in `docs/decisions.md` (Eintrag „Zweck und Zahlenbasis", Anhang D, Abschnitt 4).
+- Die Klassen der Roadmap-Zeilen sind Einstufungen des Agenten, nicht gemessen.
+
+**Alternativen:** (a) keinen Eintrag schreiben und den Masterplan allein gelten lassen: einfacher, aber die Abweichungen 1 und 8 wirken dann ohne Spur in diesem Dokument, und die Entscheidungshistorie bricht. (b) Jede Abweichung als eigenen Eintrag: genauer, aber acht Einträge ohne neuen Inhalt. Gewählt ist ein Sammeleintrag wie bei Version 1.1.
+
+**How to apply (nach Freigabe):** Keine Umsetzung nötig. Der Eintrag ist Dokumentation; die spätere Wirkung der Abweichungen 2 bis 6 hängt an den genannten Roadmap-Punkten.
+
+## 2026-10-08: Messlatte – ETF-Kandidaten für S&P 500 und MSCI World (Agent-Vorschlag, Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin und seiner Auswahl. Branch `agent/messlatte-etfs`, nur Dokumentation. Setzt Punkt 1 des Eintrags „Messlatte – Instrumente, Größe N und Wechselkursquelle“ (PR #82) um: gewöhnliche, thesaurierende ETFs für den S&P 500 und den MSCI World. **Die Auswahl trifft Konstantin; hier steht nur eine Vorauswahl mit Belegen.**
+
+**In einfachen Worten:** Es gibt mehrere gleichartige Fonds auf denselben Index. Sie unterscheiden sich vor allem in Kosten pro Jahr (TER), Alter und Anbieter. Ich schlage je Index zwei Kandidaten vor und empfehle einen. Alle vier sind laut den Vergleichsseiten in Irland aufgelegte, thesaurierende Fonds nach europäischem Fondsrecht (UCITS) und bilden den Index mit echten Aktien nach (nicht über Tauschgeschäfte). Eine Euro-Handelslinie an der Xetra ist für den iShares S&P 500 und den Xtrackers MSCI World auf Vergleichsseiten genannt, bei den anderen beiden nicht geprüft; ob sie für die Messlatte nutzbar ist, ist offen (siehe unten).
+
+**Belegt (Websuche und Abgleich am 08.10.2026 auf Vergleichsseiten wie justETF und Fondsdatenbanken; die Anbieterseiten und Fondsunterlagen selbst wurden nicht geprüft; die Zahlen sind Momentaufnahmen):**
+
+| Index | Fonds (ISIN) | Kosten pro Jahr (TER) | Start | Fondswährung |
+|---|---|---|---|---|
+| S&P 500 | iShares Core S&P 500 UCITS ETF USD (Acc) (IE00B5BMR087) | 0,07 % | 19.05.2010 | USD (laut Namen) |
+| S&P 500 | Vanguard S&P 500 UCITS ETF USD Accumulating (IE00BFMXXD54) | 0,07 % | 14.05.2019 | USD (laut Namen) |
+| MSCI World | Xtrackers MSCI World UCITS ETF 1C (IE00BJ0KDQ92) | 0,12 % | 22.07.2014 | USD |
+| MSCI World | iShares Core MSCI World UCITS ETF USD (Acc) (IE00B4L5Y983) | 0,20 % | Sept. 2009 | USD (laut Namen) |
+
+Fondsgröße (justETF, Momentaufnahme): iShares S&P 500 rund 140 Mrd. €, iShares MSCI World rund 133 Mrd. €, Vanguard S&P 500 rund 33 Mrd. €, Xtrackers MSCI World rund 22 Mrd. €. Alle vier sind groß genug, dass eine Schließung nicht zu erwarten ist; das ist eine Einschätzung des Agenten, nicht belegt.
+
+**Vorschlag (Agent, von Konstantin nicht bestätigt):**
+- **S&P 500: iShares Core S&P 500 (IE00B5BMR087).** Gleiche Kosten wie der Vanguard, aber seit 2010 am Markt: Die Reihe deckt jeden Signaltag der Forward-Log-Zeit ab, auch einen Rückblick auf frühere Läufe (die Läufe vom 24.09. und 30.09. liegen vor der Baseline).
+- **MSCI World: Xtrackers MSCI World 1C (IE00BJ0KDQ92).** Mit 0,12 % deutlich günstiger als der iShares (0,20 %), seit 2014 am Markt, an der Xetra handelbar. Der Kostenunterschied von 0,08 Prozentpunkten pro Jahr ist klein.
+- Zur Währung (Vorschlag aus dem Eintrag zu #82): F1 braucht den S&P 500 als **Dollar-Reihe** (Fondspreis oder Börsenkurs in USD; der iShares S&P 500 hat laut justETF eine USD-Linie an der Londoner Börse), F3 den MSCI World als **Euro-Reihe** (Börsenkurs der Xetra-Linie in EUR). Fondspreis und Börsenkurs sind nicht dasselbe, weichen aber meist nur wenig ab. Beide Fonds haben laut Quellen USD als Fondswährung; ob es die jeweils gewünschte Handelslinie gibt, ist **nicht geprüft**.
+
+**Ungeprüft und wichtig:**
+- Begriffe: TER = jährliche Kosten des Fonds in Prozent; UCITS = europäisches Fondsrecht; Handelslinie = die Börse und Währung, in der der Fonds gehandelt wird; Tracking-Differenz = Abstand zwischen Fonds und Index.
+- **Woher kommt die Kursreihe?** SimFin Free liefert nach bisherigem Wissen Aktienkurse; ob dort ETFs enthalten sind, ist nicht geprüft. Eine kostenlose Quelle für ETF-Kurse in USD und EUR muss noch gefunden und mit 0 € Fixkosten abgeglichen werden. Das ist die eigentliche offene Frage vor A.3.
+- Börsenkürzel, genaue Handelslinien, Steuern (Vorabpauschale bei thesaurierenden Fonds in Deutschland), Tracking-Differenz zum Index, Quellenzuverlässigkeit der Zahlen oben (Aggregatorseiten, Stand der TER).
+- Ob der Start 2009/2010 gegenüber 2014/2019 für die Auswertung in der Praxis eine Rolle spielt: für die Forward-Log-Zeit ab 2026 nein, nur für Rückblicke.
+
+**Alternativen:** Vanguard S&P 500 (gleich günstig, aber erst seit 2019); iShares MSCI World (länger am Markt, teurer); ein einziger „All-World“-Fonds statt MSCI World (anderer Index, verworfen, weil Konstantin MSCI World genannt hat).
+
+**Was Konstantin entscheiden muss:** Auswahl je Index (oder meine Empfehlung); ob eine Kursquelle für ETFs gesucht werden soll (nächster Schritt: Quellenprüfung ohne Kosten, nur öffentliche Quellen, keine SimFin-Calls).
+
+**How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag. Danach: Kursquelle prüfen, Eintrag nachziehen, dann Roadmap A.3.
+
+## 2026-10-08: Messlatte – Auswahl der ETFs (Beschluss) und Kursquelle (Vorschlag) (Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin. Ergänzt den Eintrag „Messlatte – ETF-Kandidaten“ (gleicher PR); die Auswahl dort („Was Konstantin entscheiden muss“) ist mit diesem Eintrag überholt. Nur Dokumentation, keine Daten für das System abgerufen; die Abrufe unten waren einzelne lesende Proben von öffentlichen Seiten.
+
+**Entscheidung von Konstantin (08.10.2026):** „Ja deine beiden Etf vorschläge sind gut“ (und, später am 08.10.2026: „Ja alpha vantage passt.“ „Zusatz für F2 passt“). Als Beschluss gilt damit mit dem Merge:
+1. **S&P 500:** iShares Core S&P 500 UCITS ETF USD (Acc), ISIN IE00B5BMR087.
+2. **MSCI World:** Xtrackers MSCI World UCITS ETF 1C, ISIN IE00BJ0KDQ92.
+3. **Kursquelle:** **Alpha Vantage** mit kostenlosem Schlüssel ist die Hauptquelle (Konstantin: „Ja alpha vantage passt.“). Den Schlüssel besorgt Konstantin; er kommt nicht ins Repo und nicht auf den Server. Ob die Symbole der beiden ETFs im kostenlosen Tarif Daten liefern, ist noch zu prüfen (Vorschlag Punkt 1 unten).
+4. **Option C** (Korb der 10 bestplatzierten Firmen aus Stufe 2) bleibt **Zusatz für F2**, wie im gemergten Eintrag „Messlatte“ (Konstantin: „Zusatz für F2 passt“). Sie ersetzt den gestrichenen zweiten US-Maßstab nicht und zählt nicht im Abbruchkriterium. Folge: Das Abbruchkriterium 1 vergleicht mit dem S&P 500 allein; das Risiko der Größenklasse steht im Eintrag „Messlatte – Instrumente, Größe N und Wechselkursquelle“, Abschnitt „Folgen“.
+
+Zur Kursquelle sagte er: „da wir ja tatsächlich die Kurse immer aktualisieren müssen. Da musst du recherchieren, welche Api am zuverlässigsten und kostenlos ist.“ Sein Kriterium ist also **zuverlässig und kostenlos**. Die Quelle hat er danach mit „Ja alpha vantage passt.“ bestätigt (Punkt 3); der Rest dieses Eintrags ist Recherche und Vorschlag des Agenten.
+
+**In einfachen Worten:** Für die Messlatte brauchen wir täglich oder wöchentlich nur zwei Kursreihen: den S&P-500-ETF in Dollar und den MSCI-World-ETF in Euro. Der Wechselkurs Euro/Dollar kommt für die Zeile „Währungseffekt“ dazu; seine Quelle darf laut Eintrag zu PR #82 warten, dieser Eintrag legt sie nicht fest. Das sind wenige Abrufe pro Tag, daher reichen die Grenzen der kostenlosen Angebote locker. Kritisch ist nicht die Menge, sondern die Verlässlichkeit: Von den kostenlosen Angeboten, die ich gesehen habe, nennt keines eine Verfügbarkeitszusage (nicht systematisch geprüft). Deshalb schlage ich vor, die Kurse selbst zu speichern und zwei Quellen gegeneinander zu prüfen.
+
+**Probe des Agenten am 08.10.2026 (lesend, je ein Abruf von diesem Server; Befehle und Ausschnitte der Antworten stehen im PR-Kommentar zu #84; der Bash-Guard lehnte eine Schleife mit nicht aufgelöster Variable ab, die einzelnen Abrufe wurden danach ohne Umgehung der Regel gemacht):**
+- **Yahoo Finance (inoffizielle Schnittstelle, wie sie auch das Python-Paket yfinance nutzt):** liefert für `CSPX.L` (iShares S&P 500, Londoner Börse, **Währung USD**), `XDWD.DE` (Xtrackers MSCI World, Xetra, **Währung EUR**) und `EURUSD=X` (Wechselkurs) Kurse zurück. Erster Handelstag laut Antwort: 15.09.2010 (CSPX.L) und 15.08.2014 (XDWD.DE). Das deckt die Wunschwährungen aus dem Eintrag zu PR #82 ab: Dollar-Reihe für F1, Euro-Reihe für F3; der Wechselkurs wäre bei Yahoo ebenfalls abrufbar, ist aber zurückgestellt. Der erste Handelstag bei Yahoo (15.09.2010) liegt nach dem Fondsstart (19.05.2010); ob die Reihe damit für jeden Signaltag reicht, hängt vom ersten Signaltag ab (2026) und ist unkritisch.
+- **Stooq (kostenlose CSV-Dateien):** lieferte beim Abruf keine Daten, sondern eine Seite, die einen Browser mit JavaScript verlangt (Bot-Prüfung). Ich habe sie nicht umgangen. Für ein automatisches Skript ist Stooq damit nach diesem Befund nicht geeignet.
+
+**Belegt (Websuche, Vergleichs- und Herstellerseiten, nicht selbst geprüft):** Alpha Vantage kostenlos: 25 Abrufe pro Tag, 5 pro Minute. Twelve Data kostenlos: 800 pro Tag, 8 pro Minute, über 30 Jahre Tageskurse. Financial Modeling Prep kostenlos: 250 Abrufe pro Tag, Tagesendkurse. Marketstack kostenlos: 100 Abrufe pro Monat, ein Jahr Verlauf. Alpaca und Finnhub: laut einer Vergleichsseite Schwerpunkt US-Aktien, nicht selbst geprüft. Marketstack scheidet wegen einem Jahr Verlauf für die Reihen ab 2010 bzw. 2014 aus. Bei Twelve Data sind die 800 „Credits“, nicht zwingend Abrufe; „über 30 Jahre Tageskurse“ ist ungeprüft. Alle Zahlen sind Momentaufnahmen. Für Yahoo: Eine offizielle öffentliche Kurs-Schnittstelle gibt es laut Suchtreffern nicht; das Paket yfinance nennt sich selbst inoffiziell und für Forschung und Lehre, und die Yahoo-Bedingungen verbieten nach Sekundärquellen automatisierten Zugriff ohne bereitgestellte Schnittstelle (Originaltext nicht gelesen). Die Prüfung der Originalbedingungen am 08.10.2026 bestätigt das für automatische Abrufe (siehe Vorschlag Punkt 1). **Meine eigene Probe oben war selbst ein automatischer Abruf** und hätte nach diesen Bedingungen nicht ohne Erlaubnis erfolgen sollen; weitere Yahoo-Abrufe unterbleiben.
+
+**Ungeprüft:** Ob Alpha Vantage, Twelve Data und FMP im kostenlosen Tarif die Londoner und Xetra-Linien der beiden ETFs liefern; ob die Yahoo-Zahlen lückenlos und mit den Fondsunterlagen vereinbar sind; Nutzungsbedingungen von Yahoo im Original und für den vorgesehenen Zweck (ein persönliches Forschungsprojekt mit wenigen Abrufen ist ein anderes Risiko als Dauerbetrieb auf einem Server); ob Yahoo „bereinigte Kurse“ (adjusted close) liefert und wie berechnet; wie lange die Probe so weiterfunktioniert.
+
+**Vorschlag (Agent, von Konstantin nicht bestätigt):**
+1. **Hauptquelle Alpha Vantage (von Konstantin bestätigt); Begründung der Prüfung am 08.10.2026:** Ein Anbieter mit Schlüssel und Nutzungsrecht (kostenloser Schlüssel). Die Dokumentation nennt dort die Börsenendungen `.LON` (London) und `.DEX` (Xetra) für Tageskurse; im kostenlosen Tarif sind 25 Abrufe pro Tag erlaubt, aber nur die letzten 100 Handelstage je Abruf (`compact`). Das genügt für die Forward-Messung, wenn jeder Kurs bei jedem Abruf gespeichert wird (Punkt 2) und mindestens alle paar Wochen abgerufen wird; ein Rückblick auf frühere Jahre ist mit dem kostenlosen Schlüssel nicht möglich. **Twelve Data scheidet im kostenlosen Tarif aus** (nur US-Märkte laut Preisseite, die Euro- und Londoner Linien der beiden ETFs fehlen). **Yahoo scheidet für automatische Abrufe aus:** Die Bedingungen von Yahoo verbieten im Original (Abschnitt 2.4 (i)) den Zugriff mit automatischen Mitteln ohne ausdrückliche vorherige Erlaubnis. FMP war nicht prüfbar (Seite nicht abrufbar). Ob Alpha Vantage die konkreten Symbole der beiden ETFs im kostenlosen Tarif tatsächlich liefert, ist **ungeprüft** und braucht einen kostenlosen Schlüssel von Konstantin; für den Wechselkurs (zurückgestellt) kommt zusätzlich die Europäische Zentralbank als amtliche, kostenlose Quelle in Frage (ungeprüft).
+2. **Eigene Speicherung:** Jeder abgerufene Schlusskurs wird mit Abrufdatum in einer **neuen, getrennten Kurs-Datenbank** abgelegt (nicht in `data/run_archive.db`; für diese gilt die Regel der echten Datenbank), nicht nur bei Bedarf geholt. Dann ist die Messlatte unabhängig davon, ob eine Quelle später ausfällt oder Werte ändert.
+3. **Abgleich:** Einmal pro Woche vergleichen sich beide Quellen; weichen die Schlusskurse um mehr als einen Schwellenwert ab, wird die Reihe als „ungeprüft“ markiert und gemeldet. Die Schwelle ist ein Platzhalter ohne Messgrundlage und gehört in eine YAML-Datei (Regel des Projekts: keine Zahlen im Code).
+4. **Schlüssel:** Falls die Zweitquelle einen Schlüssel braucht, liegt er nicht auf dem Server (Eintrag „Autonomer Betrieb“, Nr. 5); die Abrufe laufen dann auf Konstantins Rechner.
+5. **Umsetzung** erst nach Merge und eigener Entscheidung; sie ist Code mit Tests (Klasse C wegen neuer Daten und Regeln) und Teil von Roadmap A.3 oder davor.
+
+**Risiken:** Yahoo kann Abrufe ohne Vorwarnung blockieren oder ändern; Schlusskurse einer Börsenlinie sind nicht der Fondspreis (Abweichung meist klein, nicht gemessen); ein ETF kann die Linie wechseln oder schließen.
+
+**Alternativen:** (a) Nur ein bezahlter Anbieter: zuverlässiger, aber das Projekt hat 0 € Fixkosten als Ziel; verworfen. (b) Nur Zweitquelle ohne Yahoo: Abdeckung der Linien ungeprüft. (c) Kurse von Hand eintragen: bei drei Reihen machbar, aber fehleranfällig und für Dauerbetrieb nicht tragfähig.
+
+**Was Konstantin entscheiden muss:** (1) Konstantin besorgt den kostenlosen Alpha-Vantage-Schlüssel (nicht ins Repo, nicht auf den Server). (2) Danach prüft der Agent die Symbole der beiden ETFs; erst dann ist die Messlatte komplett.
+
+**How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag.
+
+## 2026-10-09: Messlatte – Prüfung der Kursquelle (Befund, Klasse A; Messdokumentation, kein Code)
+
+**Reine Befunddokumentation.** Keine neue Regel, keine Entscheidung. Folgt auf den Eintrag „Messlatte – Auswahl der ETFs (Beschluss) und Kursquelle (Vorschlag)“ (PR #84), in dem Konstantin Alpha Vantage als Hauptquelle bestätigt hat.
+
+**In einfachen Worten:** Das Prüfskript (`probe_alphavantage.py`, PR #85 und #86) lief am 09.10.2026 auf Konstantins Rechner mit seinem kostenlosen Schlüssel. Beide ETFs der Messlatte liefern Tageskurse. Damit sind Entscheidung und Symbolprüfung der Messlatte (Roadmap 0.3) abgeschlossen. Offen bleiben die Quelle des Wechselkurses (darf warten) und das Speichern und regelmäßige Abrufen der Kurse (noch nicht gebaut, siehe unten).
+
+**Belegt (laut Bericht von Konstantins lokaler Claude-Sitzung, die er hier eingefügt hat; die Rohausgabe liegt nicht im Repo, Konstantin kann sie als PR-Kommentar ergänzen):**
+- `CSPX.LON` (iShares Core S&P 500, Londoner Börse, Dollar): 100 Handelstage, 22.05.2026 bis 08.10.2026, letzter Schlusskurs 838,64.
+- `XDWD.DEX` (Xtrackers MSCI World 1C, Xetra, Euro): 100 Handelstage, 22.05.2026 bis 08.10.2026, letzter Schlusskurs 143,31.
+- Die beiden Schlusskurse stimmen mit den Werten überein, die der Agent am 08.10.2026 bei einer lesenden Einzelprobe von Yahoo gesehen hat (838,64 und 143,31). Das ist eine Übereinstimmung zweier Quellen an einem Tag, kein Dauerbeleg.
+- Der erste Lauf gab für `XDWD.DEX` eine Meldung zum Abruflimit aus, weil die damalige Fassung zwei Abrufe ohne Pause machte; die Meldung nannte laut Bericht ein Tempo-Limit von 1 Abruf pro Sekunde (die 13 Sekunden Pause in PR #86 sind vorsichtiger, da eine Quelle 5 Abrufe pro Minute nennt). Der Einzelabruf für `XDWD.DEX` klappte danach. Laut Bericht waren 3 von 25 Tagesabrufen verbraucht.
+
+**Ungeprüft:**
+- Die 100 Handelstage je Symbol wurden nicht auf Lücken geprüft (Prüfung der Anzahl, nicht der Vollständigkeit; die Spanne 22.05. bis 08.10.2026 passt zu 100 Handelstagen, ohne dass das hier nachgezählt wurde).
+- Der Tarif liefert kostenlos nur die letzten 100 Handelstage je Abruf. Die eigene Speicherung jedes Kurses (Eintrag zu PR #84, Punkt 2) und ein Abruf mindestens alle paar Wochen sind Voraussetzung; das ist noch nicht gebaut.
+- Ob die Reihe über Monate lückenlos bleibt und wie Alpha Vantage Feiertage, Splits oder einen Wechsel der Börsenlinie (der ETF wird dann unter anderem Kürzel gehandelt) behandelt.
+- Die Quelle des Wechselkurses (Konstantin: „kann warten“).
+- Ob Alpha Vantage mit dem kostenlosen Schlüssel dauerhaft bei den heutigen Bedingungen bleibt.
+- Nicht Gegenstand dieses Befunds, aber weiter offen aus den älteren Einträgen: das Risiko des Abbruchkriteriums 1 gegen den S&P 500 allein (Größenklasse, Eintrag „Messlatte – Instrumente“, Abschnitt „Folgen“), die Platzhalter X = 3, Y = 50 und Z = 20 ohne Messgrundlage und die Mindestdauer von 24 Monaten.
+
+**Folge:** Roadmap 0.3 gilt als erledigt für Entscheidung und Symbolprüfung; das Speichern und Abrufen der Kurse ist als eigener Schritt vor oder mit A.3 nötig. Nächste Schritte der Roadmap: A.2 (Archiv für Stufe 2 und Trend-Guard bereit, Replay auf einer Kopie) und A.3 (erster archivierter Lauf; echte Datenbank, nur mit ausdrücklicher Anweisung von Konstantin mit Umfang und Befristung).
+
 ## 2026-10-08: Merge-Delegation nach Klassen (Agent-Entscheidung, Klasse C; Entwurf, kein Code)
 
 **Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin (`docs/arbeitsweise.md`, Abschnitt C/D). Klasse C, weil der Text Rechte erteilt und die Regeln der Autonomie berührt. **Der Text schaltet für sich allein nichts frei.** Die Regel „Claude Code mergt nie selbständig" (`CLAUDE.md`; `docs/arbeitsweise.md`, Abschnitt C; „Autonomer Betrieb", Nr. 2) bleibt unverändert in Kraft, bis der jeweilige Aktivierungs-PR (Roadmap B.14, B.15) von Konstantin gemergt ist.
@@ -1861,10 +2377,15 @@ Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein 
    | `docs/arbeitsweise.md` | E: „Berührung von Klasse C ohne Freigabe" | Stopp | bei M3 für die im Block genannten Dateien anders (Punkt 8) |
    | `docs/arbeitsweise.md` | G: „Branch-Schutz nicht verfügbar", „kein CI" | offen | je nach V2 und V3 |
    | `.claude/settings.json`, `src/hooks/`, `config/bash_guard.yaml` | Deny `gh pr merge` | gesperrt | das Deny selbst wird geändert (keine zusätzliche Allow-Zeile, denn Deny schlägt Allow); die Einschränkung auf genau eine Form setzt der Hook um (Punkt 9, V4) |
+   | `CLAUDE.md` | „Arbeitsweise“: „Reine Befund- und Messdokumentation in `docs/decisions.md` bleibt Klasse A“; „Arbeitsmodus“: „den Rest als Restbefund im Bericht auflisten“ | `decisions.md`-Befunde Klasse A; Restbefunde stehen im Bericht | `decisions.md` ist Kernpfad (Punkt 3); bei delegierten Merges verhindert ein Restbefund den Merge, solange Konstantin ihn nicht akzeptiert hat (Punkt 5 c) |
+   | `docs/decisions.md` | „Autonomer Betrieb“, Nr. 7 (Einstufung von Befunden) und Nr. 3 (Bericht als Kommentar) | Klasse A bleibt; Bericht nur als Kommentar | Nr. 7 wie bei `CLAUDE.md`; Nr. 3: `docs/berichte/` wäre ein zweiter Berichtsort im Repo (nur nach Aktivierung von M1) |
+   | `docs/arbeitsweise.md` | F: Schichtbericht | ohne Tabelle der Merges | neue Pflicht: Tabelle aller delegierten Merges (Punkt 6) |
+   | `docs/arbeitsweise.md` | G: „Gemeinsames Konto und gemeinsamer Token“, „Ausweg: zweites Konto … Entscheidung offen“ | offen | durch V3 überholt, je nach Weg |
+   | `docs/arbeitsweise.md` | C: „Ausdrückliche Freigabe“ (je PR, in einer Nachricht für genau einen PR) | je PR | Sammelfreigabe als Klarstellung (siehe Alternativen, Frage 6): mehrere Paare in einer Nachricht, jedes Paar einzeln gültig |
 
    Die ausdrückliche Freigabe je PR (`merge #<PR> <Kurz-SHA>`) gilt für alles Nicht-Delegierte unverändert.
 
-2. **Positivliste für M1 (Beschluss von Konstantin, 08.10.2026: M1 delegiert keine neuen Tests, nur Dokumentation außerhalb der Kernpfade).** Delegierbar sind nur **benannte** Dokumentdateien oder -ordner, nicht „alles unter `docs/`". Geprüft im Repo (`git ls-files docs` auf `master`): Dort liegen nur `docs/arbeitsweise.md`, `docs/bash-guard.md`, `docs/decisions.md` und `docs/masterplan.md`, dazu mit PR #74 `docs/roadmap.md`. **Alle sind Kernpfade (Punkt 3); heute gibt es keine bestehende Datei, die M1 delegieren könnte.** Eine Wurzel-README gibt es nicht. Vorschlag (muss der Aktivierungs-PR neu anlegen und Konstantin freigeben): ein neuer Ordner `docs/berichte/` mit Textdateien `*.md` als Platz für Berichte und Messprotokolle ohne Regelwirkung. Für diese Positivliste gilt: nur Endung `.md`, nur Dateimodus 100644 (kein Symlink, nichts Ausführbares), nur Status „hinzugefügt" (Änderungen und Löschungen bestehender Dateien bleiben bei Konstantin). Eine Datei `CODEOWNERS` (Wurzel, `docs/`, `.github/`) ist Kernpfad. Alles andere ist nicht delegierbar, auch wenn es Klasse A wäre, insbesondere alle Tests, Skripte, Konfigurationen und Code. Neue Texte in `docs/berichte/` können Anweisungen an spätere Agent-Sitzungen enthalten; das ist ein Restrisiko (V5). Delegierte Tests oder Code gäbe es erst in M2 und M3 und würden dort lokal bei Konstantin ausgeführt (Restrisiken).
+2. **Positivliste für M1 (Beschluss von Konstantin, 08.10.2026: M1 delegiert keine neuen Tests, nur Dokumentation außerhalb der Kernpfade).** Delegierbar sind nur **benannte** Dokumentdateien oder -ordner, nicht „alles unter `docs/`". Geprüft im Repo (`git ls-files docs` auf `master`): Dort liegen nur `docs/arbeitsweise.md`, `docs/bash-guard.md`, `docs/decisions.md` und `docs/masterplan.md`, dazu mit PR #74 `docs/roadmap.md`. **Alle sind Kernpfade (Punkt 3); heute gibt es keine bestehende Datei, die M1 delegieren könnte.** Eine Wurzel-README gibt es nicht. Vorschlag (muss der Aktivierungs-PR neu anlegen und Konstantin freigeben): ein neuer Ordner `docs/berichte/` mit Textdateien `*.md` als Platz für Berichte und Messprotokolle ohne Regelwirkung. Für diese Positivliste gilt: nur Endung `.md`, nur Dateimodus 100644 (kein Symlink, nichts Ausführbares), nur Status „hinzugefügt" (Änderungen und Löschungen bestehender Dateien bleiben bei Konstantin). Eine Datei `CODEOWNERS` (Wurzel, `docs/`, `.github/`) ist Kernpfad. Alles andere ist nicht delegierbar, auch wenn es Klasse A wäre, insbesondere alle Tests, Skripte, Konfigurationen und Code. **Ausgeschlossen auf jeder Ebene, ohne Beachtung der Groß-/Kleinschreibung:** Dateinamen mit Regelwirkung (`CLAUDE.md`, `AGENTS.md`, `SKILL.md`), Unterordner (nur flach `docs/berichte/*.md`) und Pfade mit `.claude/` oder `.github/`; Claude Code lädt eine `CLAUDE.md` im Unterordner, sobald dort gearbeitet wird, so ließen sich sonst Anweisungen für spätere Sitzungen einbringen (V6 prüft das mit einem Negativtest). `CODEOWNERS` darf `docs/berichte/` nicht pauschal an Konstantin binden, sonst wäre M1 technisch wirkungslos; der Aktivierungs-PR setzt die Muster einzeln. Ein leerer Ordner ist in git nicht nachverfolgbar; „Ordner anlegen“ heißt, eine erste Datei anzulegen, die nur Konstantin freigeben kann. Auch Berichte der Roadmap (C.1, C.2, C.5, E.4) entstehen als Kommentar oder Issue-Tabelle, nicht als Datei: Selbst die A-Punkte der Roadmap passen kaum in die Positivliste. Neue Texte in `docs/berichte/` können Anweisungen an spätere Agent-Sitzungen enthalten; das ist ein Restrisiko (V5). Delegierte Tests oder Code gäbe es erst in M2 und M3 und würden dort lokal bei Konstantin ausgeführt (Restrisiken).
 
 3. **Kernpfade: in keiner Stufe delegiert, unabhängig vom Inhalt.**
    - Regeltexte: `CLAUDE.md`, `docs/arbeitsweise.md`, `docs/decisions.md`, `docs/masterplan.md`, `docs/roadmap.md`, `docs/bash-guard.md`.
@@ -1938,11 +2459,15 @@ Das Muster trifft **4 von 126** (XPER, PPC, BCPC, EPAC); PPC ist vermutlich ein 
 - Neue Dokumente in einem delegierten Ordner können Anweisungen für spätere Agent-Sitzungen enthalten (V5).
 
 **Alternativen:**
-- **Sammelfreigabe (sofort nutzbar, keine neue Berechtigung):** Konstantin nennt mehrere Paare in einer Nachricht (`merge #73 abc1234`, `merge #74 def5678`, jeweils ein Paar je Zeile), der Agent legt jedem PR eine Zusammenfassung in einfacher Sprache bei. Das klärt nur Abschnitt C, „Ausdrückliche Freigabe" (je Paar, nicht je Nachricht). Es spart Zeit je Merge, nicht die Entscheidung.
+- **Sammelfreigabe (Klarstellung von `docs/arbeitsweise.md`, Abschnitt C; Klasse C, gilt erst mit dem Merge dieses Texts; keine neue Berechtigung):** Konstantin nennt mehrere Paare in einer Nachricht (`merge #73 abc1234`, `merge #74 def5678`, jeweils ein Paar je Zeile), der Agent legt jedem PR eine Zusammenfassung in einfacher Sprache bei. Das klärt nur Abschnitt C, „Ausdrückliche Freigabe" (je Paar, nicht je Nachricht). Es spart Zeit je Merge, nicht die Entscheidung.
 - Weiter wie heute: am sichersten, aber 36 von 50 Roadmap-Punkten enden in einem Merge von Konstantin. Das ist der Engpass, den er benannt hat.
 - Auto-Merge von GitHub bei grünen Prüfungen ohne Kritiker: verworfen, weil der Kritiker-Lauf als Tor fehlt.
 - Delegation nach Pfadlisten ohne Klassen: einfacher, ersetzt aber die Golden-Master-Prüfung nicht.
 - Volle Delegation einschließlich der Kernpfade: verworfen. Der Agent könnte seine eigenen Regeln, Schwellen und Daten ändern und sich freigeben (Abschnitt C, Begründung).
+
+**Richtlinie von Konstantin (09.10.2026, in seinen Worten):** „Also wir setzen das so um, dass du nicht viel zerstören könntest mit einem möglichen merge. Aber bei den normalen aktuellen merges warte ich sowieso auf den kritiker und wenn der kritiker nichts mehr auszusetzen hat merge ich meistens. Ich habe bisher noch nie eingreifen müssen. Solange du alle entscheidungen schön protokollierst und wir nachverfolgen und ggfs ändern können passt alles. Wichtig sind grundsatzentscheidungen die würde ich gerne selber treffen.“
+
+Was daraus folgt (Auslegung des Agenten, von Konstantin nicht einzeln bestätigt): (1) Der mögliche Schaden eines Merges bleibt begrenzt; das deckt sich mit Prinzip, Kernpfaden und der Rückholbarkeit in Punkt 6. (2) *Grundsatzentscheidungen* bleiben bei Konstantin; als solche gelten die Kernpfade (Punkt 3), freigegebene Entscheidungstexte, Regeln, Schwellen, Rechte, Daten und die Autonomie selbst. (3) Jede delegierte Entscheidung wird protokolliert und lässt sich nachverfolgen und ändern (Punkt 6, Rückgängigmachen). (4) Welche Stufe wann aktiviert wird, hat Konstantin damit **nicht** entschieden; die Fragen 2 bis 4 bleiben offen. **Hinweis des Agenten zu seiner Beobachtung:** In dieser Sitzung wurden PR #82 und #85 gemergt, bevor die letzten Korrekturen des Kritikers im PR waren; bei #85 lief dadurch zunächst die alte Skriptfassung. Das spricht für die Regel, nur am geprüften Stand (Head-SHA) zu mergen, und zeigt, dass „Kritiker ohne Befund“ erst am letzten Stand gilt.
 
 **Offene Fragen für Konstantin** (getrennt zu beantworten):
 *Entschieden am 08.10.2026 von Konstantin (gilt als Beschluss erst mit dem Merge dieses Texts):* Stufe M1 delegiert keine neuen Tests, nur Dokumentation außerhalb der Kernpfade.
@@ -1953,5 +2478,5 @@ Die Fragen sind unabhängig voneinander; ein „Ja“ bei einer Frage entscheide
 3. **Stufe M2** (Klasse B, auch Code mit identischem Ergebnis): jetzt mit entscheiden oder erst nach Erfahrung mit M1? Hier liegt das Risiko lokal ausgeführter Tests und Codes (Restrisiken).
 4. **Stufe M3** (Umsetzung gemergter Entscheidungen): jetzt mit entscheiden oder später? Ohne M2 und M3 bleibt die Entlastung klein (siehe Wirkungsabschätzung).
 5. **Weg für V3:** zweites Konto, Tarif, öffentliches Repo?
-6. **Sammelfreigabe:** Soll sie schon vor allem anderen gelten?
+6. **Sammelfreigabe:** Soll die Klarstellung (mehrere Paare in einer Nachricht, jedes Paar einzeln gültig) mit dem Merge dieses Texts gelten? Sie ist Klasse C, braucht keine der Stufen und ändert keine Berechtigung. Ja oder nein.
 7. **Erfolgsmaß:** Start- und Zielwert (Punkt 11).

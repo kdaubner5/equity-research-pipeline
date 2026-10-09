@@ -51,7 +51,7 @@ def save(db_path, results, ranked, **kwargs):
         db_path=db_path,
     )
     defaults.update(kwargs)
-    save_stage2_results(RUN_TS, results=results, ranked=ranked, **defaults)
+    save_stage2_results(RUN_TS, results=results, ranked=ranked, **defaults, rule_state=None)
 
 
 def rows(db_path, sql):
@@ -73,7 +73,7 @@ def test_init_creates_the_tables_and_is_idempotent(tmp_path):
 def test_init_leaves_existing_stage1_tables_and_rows_untouched(tmp_path):
     db = tmp_path / "a.db"
     init_db(db)
-    save_run_results("2026-09-30T17:38:53", {}, config_hash="x", db_path=db)
+    save_run_results("2026-09-30T17:38:53", {}, config_hash="x", db_path=db, rule_state=None)
     before = rows(db, "SELECT * FROM runs")
     schema_before = rows(db, "SELECT name, sql FROM sqlite_master WHERE name IN ('runs','run_results','eliminated_results','universe_prefilter')")
     init_stage2_tables(db)
@@ -165,7 +165,7 @@ def test_run_timestamp_must_be_a_string(tmp_path):
     with pytest.raises(TypeError):
         save_stage2_results(
             object(), results={}, ranked=[], stage1_run_timestamp="x", prefilter_run_timestamp="y",
-            as_of="2026-09-24", config_hash="c", peer_base_size=0, simfin_ids={}, db_path=tmp_path / "a.db",
+            as_of="2026-09-24", config_hash="c", peer_base_size=0, simfin_ids={}, db_path=tmp_path / "a.db", rule_state=None,
         )
 
 
@@ -201,7 +201,7 @@ def test_csv_never_overwrites_an_earlier_file(tmp_path):
 def test_saving_does_not_change_stage1_rows(tmp_path):
     db = tmp_path / "a.db"
     init_db(db)
-    save_run_results("2026-09-30T17:38:53", {}, config_hash="x", db_path=db)
+    save_run_results("2026-09-30T17:38:53", {}, config_hash="x", db_path=db, rule_state=None)
     before = rows(db, "SELECT * FROM runs") + rows(db, "SELECT * FROM run_results")
     save(db, {"AAA": result()}, [])
     assert rows(db, "SELECT * FROM runs") + rows(db, "SELECT * FROM run_results") == before

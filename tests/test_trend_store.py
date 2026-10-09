@@ -44,7 +44,7 @@ def save(db_path, results, **kwargs):
         config_hash="abc123", simfin_ids={t: i for i, t in enumerate(sorted(results), start=1)}, db_path=db_path,
     )
     defaults.update(kwargs)
-    save_trend_results(RUN_TS, results=results, **defaults)
+    save_trend_results(RUN_TS, results=results, **defaults, rule_state=None)
 
 
 def rows(db_path, sql):
@@ -67,7 +67,7 @@ def test_init_leaves_existing_stage1_and_stage2_tables_untouched(tmp_path):
     db = tmp_path / "a.db"
     init_db(db)
     init_stage2_tables(db)
-    save_run_results("2026-09-30T18:53:07", {}, config_hash="x", db_path=db)
+    save_run_results("2026-09-30T18:53:07", {}, config_hash="x", db_path=db, rule_state=None)
     watched = "('runs','run_results','eliminated_results','universe_prefilter','stage2_runs','stage2_results')"
     before = rows(db, "SELECT * FROM runs"), rows(db, f"SELECT name, sql FROM sqlite_master WHERE name IN {watched}")
     init_trend_tables(db)
@@ -140,14 +140,14 @@ def test_run_timestamp_must_be_a_string(tmp_path):
     with pytest.raises(TypeError):
         save_trend_results(
             object(), results={}, stage1_run_timestamp="x", prefilter_run_timestamp="y", as_of="2026-09-24",
-            config_hash="c", simfin_ids={}, db_path=tmp_path / "a.db",
+            config_hash="c", simfin_ids={}, db_path=tmp_path / "a.db", rule_state=None,
         )
 
 
 def test_saving_does_not_change_stage1_rows(tmp_path):
     db = tmp_path / "a.db"
     init_db(db)
-    save_run_results("2026-09-30T18:53:07", {}, config_hash="x", db_path=db)
+    save_run_results("2026-09-30T18:53:07", {}, config_hash="x", db_path=db, rule_state=None)
     before = rows(db, "SELECT * FROM runs") + rows(db, "SELECT * FROM run_results")
     save(db, {"AAA": clear()})
     assert rows(db, "SELECT * FROM runs") + rows(db, "SELECT * FROM run_results") == before

@@ -12,6 +12,8 @@ import csv
 import sqlite3
 from pathlib import Path
 
+from store_layer.rule_state import write_rule_state
+
 TREND_CSV_FIELDNAMES = [
     "ticker",
     "status",
@@ -86,10 +88,12 @@ def _result_rows(run_timestamp, results, simfin_ids):
 
 
 def save_trend_results(
-    run_timestamp, *, results, stage1_run_timestamp, prefilter_run_timestamp, as_of, config_hash, simfin_ids, db_path
+    run_timestamp, *, results, stage1_run_timestamp, prefilter_run_timestamp, as_of, config_hash, simfin_ids, rule_state,
+    db_path
 ):
     """Persist one Trend-Guard run in a single transaction: the trend_runs row and one trend_results row per
-    company in results (ticker -> TrendResult). simfin_ids maps tickers to SimFin ids (a ticker without one
+    company in results (ticker -> TrendResult). rule_state (store_layer.rule_state.RuleState; required, None = none
+    to report) is written as step 'trend' in the same transaction. simfin_ids maps tickers to SimFin ids (a ticker without one
     is stored with NULL, never a made-up id). A repeated run_timestamp raises sqlite3.IntegrityError and
     writes nothing. Rows are validated before the database is opened."""
     _require_str("run_timestamp", run_timestamp)
@@ -106,6 +110,8 @@ def save_trend_results(
                 ),
             )
             connection.executemany("INSERT INTO trend_results VALUES (" + ",".join("?" * 12) + ")", rows)
+            if rule_state is not None:
+                write_rule_state(connection, "trend", run_timestamp, rule_state)
     finally:
         connection.close()
 
