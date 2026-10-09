@@ -34,18 +34,21 @@ GOOD = {
 
 
 def test_summarize_reports_range_count_and_last_close():
-    line = probe.summarize("CSPX.LON", GOOD)
+    ok, line = probe.summarize("CSPX.LON", GOOD)
+    assert ok
     assert line == "CSPX.LON: 3 Handelstage, 2026-10-06 bis 2026-10-08, letzter Schlusskurs 838.64"
 
 
 @pytest.mark.parametrize("field", ["Error Message", "Information", "Note"])
 def test_summarize_shows_provider_message_when_no_series(field):
-    line = probe.summarize("X.LON", {field: "Tageslimit erreicht"})
+    ok, line = probe.summarize("X.LON", {field: "Tageslimit erreicht"})
+    assert not ok
     assert line == "X.LON: KEINE DATEN - Tageslimit erreicht"
 
 
 def test_summarize_unknown_response_is_not_silently_ok():
-    assert "KEINE DATEN" in probe.summarize("X.LON", {"foo": 1})
+    ok, line = probe.summarize("X.LON", {"foo": 1})
+    assert not ok and "KEINE DATEN" in line
 
 
 def test_resolve_api_key_reads_env_file_and_does_not_override(tmp_path, monkeypatch):
@@ -78,7 +81,7 @@ def test_main_one_request_per_symbol_and_key_never_printed(monkeypatch, capsys):
     monkeypatch.setenv(probe.KEY_NAME, "SUPERGEHEIM")
     monkeypatch.setattr(probe, "load_dotenv_if_present", lambda *a, **k: None)
     seen = []
-    code = probe.main([], opener=_opener_returning(GOOD, seen))
+    code = probe.main([], opener=_opener_returning(GOOD, seen), sleep=lambda s: None)
     out = capsys.readouterr().out
     assert code == 0
     assert len(seen) == 2  # genau ein Abruf je Standard-Symbol
@@ -106,3 +109,83 @@ def test_main_returns_1_when_provider_sends_no_data(monkeypatch, capsys):
     code = probe.main(["CSPX.LON"], opener=_opener_returning({"Information": "premium"}))
     assert code == 1
     assert "KEINE DATEN" in capsys.readouterr().out
+
+
+def test_missing_or_nonpositive_close_is_not_ok():
+    ok, line = probe.summarize("X", {"Time Series (Daily)": {"2026-10-08": {}}})
+    assert not ok and "fehlt" in line
+    ok, line = probe.summarize("X", {"Time Series (Daily)": {"2026-10-08": {"4. close": "abc"}}})
+    assert not ok
+    ok, line = probe.summarize("X", {"Time Series (Daily)": {"2026-10-08": {"4. close": "0"}}})
+    assert not ok and "nicht positiv" in line
+
+
+def test_non_dict_json_does_not_crash():
+    ok, line = probe.summarize("X", ["a"])
+    assert not ok and "unerwartete Antwort" in line
+
+
+def test_provider_message_containing_key_is_redacted():
+    ok, line = probe.summarize("X", {"Information": "ungueltig: SUPERGEHEIM"}, api_key="SUPERGEHEIM")
+    assert not ok and "SUPERGEHEIM" not in line and "***" in line
+
+
+def test_http_error_prints_status_code_only(monkeypatch, capsys):
+    monkeypatch.setenv(probe.KEY_NAME, "SUPERGEHEIM")
+    monkeypatch.setattr(probe, "load_dotenv_if_present", lambda *a, **k: None)
+
+    def failing(url, timeout=None):
+        raise urllib.error.HTTPError(url, 429, "zu viele", {}, None)
+
+    code = probe.main(["CSPX.LON"], opener=failing)
+    out = capsys.readouterr().out
+    assert code == 1 and "HTTPError 429" in out and "SUPERGEHEIM" not in out
+
+
+def test_connection_reset_and_bad_json_are_caught(monkeypatch, capsys):
+    monkeypatch.setenv(probe.KEY_NAME, "k")
+    monkeypatch.setattr(probe, "load_dotenv_if_present", lambda *a, **k: None)
+
+    def reset(url, timeout=None):
+        raise ConnectionResetError("x")
+
+    assert probe.main(["A.LON"], opener=reset) == 1
+
+    def bad_json(url, timeout=None):
+        return _Response(b"<html>")
+
+    assert probe.main(["B.LON"], opener=bad_json) == 1
+    assert capsys.readouterr().out.count("ABRUF FEHLGESCHLAGEN") == 2
+
+
+def test_missing_key_prints_one_line_and_returns_2(monkeypatch, capsys):
+    monkeypatch.delenv(probe.KEY_NAME, raising=False)
+    monkeypatch.setattr(probe, "load_dotenv_if_present", lambda *a, **k: None)
+    assert probe.main([]) == 2
+    assert "ABBRUCH" in capsys.readouterr().out
+
+
+def test_mixed_result_returns_1_pause_between_symbols_and_custom_symbols(monkeypatch, capsys):
+    monkeypatch.setenv(probe.KEY_NAME, "k")
+    monkeypatch.setattr(probe, "load_dotenv_if_present", lambda *a, **k: None)
+    answers = iter([GOOD, {"Note": "Limit"}])
+    pauses = []
+
+    def opener(url, timeout=None):
+        return _Response(json.dumps(next(answers)).encode("utf-8"))
+
+    code = probe.main(["A.LON", "B.DEX"], opener=opener, sleep=pauses.append)
+    out = capsys.readouterr().out
+    assert code == 1 and pauses == [probe.PAUSE_BETWEEN_SYMBOLS_SECONDS]
+    assert "A.LON: 3 Handelstage" in out and "B.DEX: KEINE DATEN - Limit" in out
+
+
+def test_env_file_with_bom_and_export(tmp_path, monkeypatch):
+    for name in (probe.KEY_NAME, "ANDERE"):
+        monkeypatch.setenv(name, "x")
+        monkeypatch.delenv(name)
+    env = tmp_path / ".env"
+    env.write_bytes("\ufeffALPHAVANTAGE_API_KEY=abc\nexport ANDERE=1\n".encode("utf-8"))
+    probe.load_dotenv_if_present(env)
+    assert probe.os.environ[probe.KEY_NAME] == "abc"
+    assert probe.os.environ["ANDERE"] == "1"
