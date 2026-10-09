@@ -2312,18 +2312,20 @@ Zur Kursquelle sagte er: „da wir ja tatsächlich die Kurse immer aktualisieren
 
 **Reine Befunddokumentation.** Keine neue Regel, keine Entscheidung. Folgt auf den Eintrag „Messlatte – Auswahl der ETFs (Beschluss) und Kursquelle (Vorschlag)“ (PR #84), in dem Konstantin Alpha Vantage als Hauptquelle bestätigt hat.
 
-**In einfachen Worten:** Das Prüfskript (`probe_alphavantage.py`, PR #85 und #86) lief am 09.10.2026 auf Konstantins Rechner mit seinem kostenlosen Schlüssel. Beide ETFs der Messlatte liefern Tageskurse. Damit ist die Messlatte (Roadmap 0.3) vollständig; nur die Quelle des Wechselkurses darf noch warten.
+**In einfachen Worten:** Das Prüfskript (`probe_alphavantage.py`, PR #85 und #86) lief am 09.10.2026 auf Konstantins Rechner mit seinem kostenlosen Schlüssel. Beide ETFs der Messlatte liefern Tageskurse. Damit sind Entscheidung und Symbolprüfung der Messlatte (Roadmap 0.3) abgeschlossen. Offen bleiben die Quelle des Wechselkurses (darf warten) und das Speichern und regelmäßige Abrufen der Kurse (noch nicht gebaut, siehe unten).
 
-**Belegt (Ausgabe des Skripts, von Konstantin eingefügt):**
+**Belegt (laut Bericht von Konstantins lokaler Claude-Sitzung, die er hier eingefügt hat; die Rohausgabe liegt nicht im Repo, Konstantin kann sie als PR-Kommentar ergänzen):**
 - `CSPX.LON` (iShares Core S&P 500, Londoner Börse, Dollar): 100 Handelstage, 22.05.2026 bis 08.10.2026, letzter Schlusskurs 838,64.
 - `XDWD.DEX` (Xtrackers MSCI World 1C, Xetra, Euro): 100 Handelstage, 22.05.2026 bis 08.10.2026, letzter Schlusskurs 143,31.
 - Die beiden Schlusskurse stimmen mit den Werten überein, die der Agent am 08.10.2026 bei einer lesenden Einzelprobe von Yahoo gesehen hat (838,64 und 143,31). Das ist eine Übereinstimmung zweier Quellen an einem Tag, kein Dauerbeleg.
-- Der erste Lauf gab für `XDWD.DEX` „Abruflimit“ aus, weil die damalige Fassung zwei Abrufe ohne Pause machte (kostenlos höchstens 1 Abruf pro Sekunde). Mit der Fassung aus PR #86 (13 Sekunden Pause) und einem Einzelabruf klappte es. Verbraucht waren am 09.10.2026 3 von 25 Abrufen.
+- Der erste Lauf gab für `XDWD.DEX` eine Meldung zum Abruflimit aus, weil die damalige Fassung zwei Abrufe ohne Pause machte; die Meldung nannte laut Bericht ein Tempo-Limit von 1 Abruf pro Sekunde (die 13 Sekunden Pause in PR #86 sind vorsichtiger, da eine Quelle 5 Abrufe pro Minute nennt). Der Einzelabruf für `XDWD.DEX` klappte danach. Laut Bericht waren 3 von 25 Tagesabrufen verbraucht.
 
 **Ungeprüft:**
+- Die 100 Handelstage je Symbol wurden nicht auf Lücken geprüft (Prüfung der Anzahl, nicht der Vollständigkeit; die Spanne 22.05. bis 08.10.2026 passt zu 100 Handelstagen, ohne dass das hier nachgezählt wurde).
 - Der Tarif liefert kostenlos nur die letzten 100 Handelstage je Abruf. Die eigene Speicherung jedes Kurses (Eintrag zu PR #84, Punkt 2) und ein Abruf mindestens alle paar Wochen sind Voraussetzung; das ist noch nicht gebaut.
-- Ob die Reihe über Monate lückenlos bleibt und wie Alpha Vantage Feiertage, Splits oder Linienwechsel behandelt.
+- Ob die Reihe über Monate lückenlos bleibt und wie Alpha Vantage Feiertage, Splits oder einen Wechsel der Börsenlinie (der ETF wird dann unter anderem Kürzel gehandelt) behandelt.
 - Die Quelle des Wechselkurses (Konstantin: „kann warten“).
 - Ob Alpha Vantage mit dem kostenlosen Schlüssel dauerhaft bei den heutigen Bedingungen bleibt.
+- Nicht Gegenstand dieses Befunds, aber weiter offen aus den älteren Einträgen: das Risiko des Abbruchkriteriums 1 gegen den S&P 500 allein (Größenklasse, Eintrag „Messlatte – Instrumente“, Abschnitt „Folgen“), die Platzhalter X = 3, Y = 50 und Z = 20 ohne Messgrundlage und die Mindestdauer von 24 Monaten.
 
-**Folge:** Roadmap 0.3 ist erledigt, bis auf die Quelle des Wechselkurses. Nächste Schritte der Roadmap: A.2 (Archiv für Stufe 2 und Trend-Guard bereit, Replay auf einer Kopie) und A.3 (erster archivierter Lauf; echte Datenbank, nur mit ausdrücklicher Anweisung von Konstantin mit Umfang und Befristung).
+**Folge:** Roadmap 0.3 gilt als erledigt für Entscheidung und Symbolprüfung; das Speichern und Abrufen der Kurse ist als eigener Schritt vor oder mit A.3 nötig. Nächste Schritte der Roadmap: A.2 (Archiv für Stufe 2 und Trend-Guard bereit, Replay auf einer Kopie) und A.3 (erster archivierter Lauf; echte Datenbank, nur mit ausdrücklicher Anweisung von Konstantin mit Umfang und Befristung).
