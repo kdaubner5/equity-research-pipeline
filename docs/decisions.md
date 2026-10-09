@@ -2357,6 +2357,16 @@ Zur Kursquelle sagte er: „da wir ja tatsächlich die Kurse immer aktualisieren
 
 **Alternativen:** (a) Kurse in `data/run_archive.db`: verworfen, weil die echte Datenbank dafür migriert werden müsste (ständige Grenze) und die Kurse unabhängig von Läufen laufen. (b) CSV-Dateien statt SQLite: einfacher, aber ohne Eindeutigkeit und Transaktion, ein abgebrochener Abruf kann halbe Dateien hinterlassen; verworfen. (c) Nur bei Bedarf abrufen (kein Speichern): wegen der 100 Handelstage nicht tragfähig. (d) Bezahlter Tarif mit voller Historie: widerspricht dem Ziel 0 € Fixkosten; verworfen. (e) Kurse vom Server abrufen: verworfen, weil dort kein Schlüssel liegen soll.
 
+**Antworten von Konstantin (09.10.2026):** Auf die Empfehlungen des Agenten zu den sechs Fragen: „#88 empfehlungen bitte übernehmen“. Der Inhalt der Punkte ist die Empfehlung des Agenten vom 09.10.2026, zu der Konstantin Ja gesagt hat. Als Beschluss gilt damit, mit dem Merge dieses Texts:
+1. **Eigene Datei** `data/benchmark_prices.db`, nicht das Run-Archiv.
+2. **Abruf von Hand** auf Konstantins Rechner, wöchentlich, mindestens alle vier Wochen. Der Agent legt keine geplante Aufgabe an; richtet Konstantin eine Windows-Aufgabe ein, ist das seine Entscheidung.
+3. **Sicherung** der Datei regelmäßig, mit Prüfsumme (SHA-256) vor Änderungen am Aufbau; Konstantin legt Ort und Rhythmus fest.
+4. **Platzhalter** 14 Tage (Warnschwelle), 6 Kalendertage (Lücke), 5 Kalendertage (Rückschau), 10 % (Sprung) gelten vorläufig, bis es Messdaten gibt.
+5. **Auswertung** auf Konstantins Rechner, wo die Datei liegt, nicht auf dem Server.
+6. **Konflikte** (abweichender Kurs für ein endgültiges Datum) entscheidet Konstantin von Hand.
+
+Die Fragen unten sind damit beantwortet; sie bleiben zur Nachvollziehbarkeit stehen. Umsetzung (Code mit Tests, `config/benchmarks.yaml`) erst nach dem Merge dieses Texts und mit eigenem Auftrag.
+
 **Was Konstantin entscheiden muss:**
 1. Eigene Datei `data/benchmark_prices.db` statt Run-Archiv: ja oder nein?
 2. Wer ruft ab und wie oft: von Hand auf seinem Rechner (Empfehlung wöchentlich) oder mit einer von ihm eingerichteten Windows-Aufgabe?
