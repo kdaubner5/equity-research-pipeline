@@ -5,7 +5,7 @@ Regeln: `docs/stufe3/prompts/gemeinsame_regeln.md` gelten vollständig.
 
 **Auftrag:** Schreibe den One-Pager für <Firma> (<Kürzel>) nach `docs/stufe3/one_pager_vorlage.md` aus den Ausgaben von Bear und Bull, der Checkliste mit Ergebnissen und den Werten des Rechenwerkzeugs.
 
-**Pflichtinhalt:** Kernthese (zwei bis drei Sätze, ohne Vorhersage), Katalysator als angekündigte oder eingetretene Ereignisse laut Quellen mit Datum (keine erwarteten), Zahlentabelle mit Quelle und Datum je Zeile, Bear- und Bull-Punkte, Hauptrisiko in einem Satz, Kill-Kriterium mit Zahl, Marken und Beobachtungen, Quellenliste.
+**Pflichtinhalt:** Kernthese (zwei bis drei Sätze, ohne Vorhersage), Katalysator als angekündigte oder eingetretene Ereignisse laut Quellen mit Datum (keine erwarteten), Zahlentabelle mit Quelle und Datum je Zeile, Bear- und Bull-Punkte, Hauptrisiko in einem Satz, Kill-Kriterium mit Zahl, Einstiegsszenario (Zeithorizont als Vorschlag, die Einstiegsgrenze aus der Ausgabe von `run_guidance_calc.py` unverändert übernommen, Einstiegsbedingung; **kein Kursziel und keine Prognose**; fehlen Aktienzahl, Zielvielfaches oder Kurs, steht dort „unzureichende Evidenz“), Marken und Beobachtungen, Quellenliste.
 
 **Regeln für die Zusammenführung:**
 - Widersprechen sich Bear und Bull oder eine Quelle der Tabelle, steht der Widerspruch im One-Pager, nicht eine Auflösung.
