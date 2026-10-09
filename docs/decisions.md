@@ -2469,6 +2469,16 @@ Zur Kursquelle sagte er: „da wir ja tatsächlich die Kurse immer aktualisieren
 
 Was daraus folgt (Auslegung des Agenten, von Konstantin nicht einzeln bestätigt): (1) Der mögliche Schaden eines Merges bleibt begrenzt; das deckt sich mit Prinzip, Kernpfaden und der Rückholbarkeit in Punkt 6. (2) *Grundsatzentscheidungen* bleiben bei Konstantin; als solche gelten die Kernpfade (Punkt 3), freigegebene Entscheidungstexte, Regeln, Schwellen, Rechte, Daten und die Autonomie selbst. (3) Jede delegierte Entscheidung wird protokolliert und lässt sich nachverfolgen und ändern (Punkt 6, Rückgängigmachen). (4) Welche Stufe wann aktiviert wird, hat Konstantin damit **nicht** entschieden; die Fragen 2 bis 4 bleiben offen. **Hinweis des Agenten zu seiner Beobachtung:** In dieser Sitzung wurden PR #82 und #85 gemergt, bevor die letzten Korrekturen des Kritikers im PR waren; bei #85 lief dadurch zunächst die alte Skriptfassung. Das spricht für die Regel, nur am geprüften Stand (Head-SHA) zu mergen, und zeigt, dass „Kritiker ohne Befund“ erst am letzten Stand gilt.
 
+**Antworten von Konstantin (09.10.2026):** Auf die Empfehlungen des Agenten zu den sieben Fragen: „Ja setzen wir deine Empfehlungen um“. Als Beschluss gilt damit, mit dem Merge dieses Texts:
+1. **Frage 1:** Prinzip, Kernpfade, Tore und V1–V6 gelten als Regelwerk, ohne dass damit eine Stufe aktiviert wird.
+2. **Frage 2:** M1 wird **nicht einzeln** aktiviert; sie wird erst zusammen mit der Entscheidung über M2 behandelt (Grund: M1 delegiert heute keine bestehende Datei, der Aufwand lohnt für M1 allein nicht).
+3. **Frage 3 und 4:** M2 und M3 werden **später** entschieden, M2 erst nach Erfahrung; es wird heute keine Stufe aktiviert.
+4. **Frage 5:** Der Agent prüft Optionen und Kosten für das zweite Konto, den Tarif und ein öffentliches Repo (0-€-Ziel) und legt sie vor; entschieden ist der Weg damit nicht.
+5. **Frage 6:** Die Sammelfreigabe (Klarstellung von Abschnitt C, Klasse C) gilt mit dem Merge dieses Texts.
+6. **Frage 7:** offen; Konstantin nennt Start- und Zielwert (Anzahl der PRs je Woche, die er selbst mergen muss).
+
+Die Fragen unten sind damit bis auf Frage 5 (Prüfauftrag) und Frage 7 beantwortet; sie bleiben zur Nachvollziehbarkeit stehen.
+
 **Offene Fragen für Konstantin** (getrennt zu beantworten):
 *Entschieden am 08.10.2026 von Konstantin (gilt als Beschluss erst mit dem Merge dieses Texts):* Stufe M1 delegiert keine neuen Tests, nur Dokumentation außerhalb der Kernpfade.
 
