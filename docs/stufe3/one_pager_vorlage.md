@@ -38,24 +38,26 @@ Ein One-Pager je Finalist, Ziel etwa eine Seite (Wunsch, kein Zwang; bei mehr St
 
 ## 7. Einstiegsszenario (Vorschlag des Agenten, Entscheidung durch Konstantin; kein Kursziel, keine Prognose)
 
-**Zeithorizont:** ☐ mittelfristig (etwa 1 bis 3 Jahre)  ☐ langfristig (etwa 3 bis 5 Jahre oder länger). Begründung in einem Satz aus den Quellen (zum Beispiel: ein Ereignis mit Datum innerhalb von drei Jahren spricht für mittelfristig; eine langsam wirkende Entwicklung für langfristig). Die Jahresgrenzen sind ein Vorschlag des Agenten, Konstantin legt sie fest.
+**Zeithorizont:** ☐ mittelfristig (etwa 1 bis 3 Jahre)  ☐ langfristig (etwa 3 bis 5 Jahre oder länger). Begründung in einem Satz aus den Quellen und der Kernthese (die Quelle nennt Ereignisse oder Zeiträume; der Agent leitet daraus keinen Kurs und keine Vorhersage ab). Die Jahresgrenzen sind ein Vorschlag des Agenten, Konstantin legt sie fest.
 
-**Einstiegsgrenze (Rechnung mit `run_guidance_calc.py`, Roadmap D.2):** der Preis je Aktie, bis zu dem die Firma die eigenen Bewertungsgrenzen mit den *heutigen* Zahlen noch erfüllt.
+**Einstiegsgrenze (Rechnung mit `run_guidance_calc.py`, Roadmap D.2):** der Preis je Aktie an der Kante der eigenen Bewertungsregeln, gerechnet mit den eingetragenen Zahlen. **Basis der Zahlen angeben:** Stammen FCF und EBITDA aus der Guidance, ist die Grenze eine Rechnung auf Basis einer Managementprognose (nicht geprüft); stammen sie aus dem letzten Abschluss, steht das dort. „Kante“ heißt: Die FCF-Regel verlangt strikt mehr als 6 %, der Preis muss also etwas unter der Kante liegen.
 
 | Grenze nach | Preis je Aktie | Grundlage (Zahl, Quelle, Datum) |
 |---|---|---|
 | FCF-Rendite (Zielrendite aus `config/stage2.yaml`) | | |
-| EV/EBITDA (Zielvielfaches = Peer-Grenze des Laufs) | | |
-| **Bindend (die niedrigere)** | | |
+| EV/EBITDA (Zielvielfaches = Drittelgrenze der Peer-Gruppe der Firma; bei Firmen ohne Peer-Gruppe 8,0 aus `config/stage2.yaml`, Platzhalter) | | Zielvielfaches und Herkunft: |
+| **Bindend (die strengere, also die niedrigere)** | | |
 | Aktueller Kurs (Datum) | | Abstand zur Grenze in %: |
 
-**Einstiegsbedingung (eine Zeile ankreuzen, mit Begründung):**
-☐ jetzt: Kurs unter der Grenze und kein offenes Ereignis aus Punkt 2 der Checkliste
+**Einstiegsbedingung (eine Zeile ankreuzen, mit Begründung; das ist kein Kauf, den Kauf entscheidet Konstantin in Stufe 4):**
+☐ Bedingung erfüllt: Kurs unter der Grenze und kein offenes Ereignis aus Punkt 2 der Checkliste
 ☐ abwarten bis zu einem Ereignis laut Quelle, mit Datum (zum Beispiel nächster 10-Q): <Ereignis, Datum>
 ☐ abwarten, bis der Kurs unter die Grenze fällt
 ☐ nicht einsteigen
 
-**Was dieser Abschnitt nicht sagt:** wohin der Kurs geht. Die Grenze beschreibt nur den Abstand des heutigen Kurses zu den eigenen Bewertungsregeln; mit anderen Zahlen (neues Quartal, neue Guidance) ergibt sich eine andere Grenze. Der Ausstieg bleibt das Kill-Kriterium (Abschnitt 6), nicht ein Kurs. Die Größe legt Stufe 4 fest (Konstantin); sie wird beim Kauf einmal festgelegt (`docs/masterplan.md`, Stufe 4), ein Aufstocken in Stufen gehört deshalb nicht in das Szenario.
+**Hinweise zur Rechnung:** Das Zielvielfache der Peer-Gruppe beruht auf dem Ist-EBITDA der Peers; das eingetragene EBITDA kann ein anderer Zeitbezug sein. Der Wert der Drittelgrenze steht nicht fertig im Archiv (es stehen nur Rang, Gruppe und Perzentil) und wird aus den Peer-Werten der Gruppe bestimmt. Der Enterprise Value enthält keine Minderheitsanteile und Vorzugsaktien; die Aktienzahl soll verwässert und über alle Aktiengattungen gerechnet sein.
+
+**Was dieser Abschnitt nicht sagt:** wohin der Kurs geht. Die Grenze beschreibt nur den Abstand des heutigen Kurses zu den eigenen Bewertungsregeln; mit anderen Zahlen (neues Quartal, neue Guidance) ergibt sich eine andere Grenze; sie wird nicht gespeichert, ist keine Kauforder und wird bei neuen Zahlen neu gerechnet. Der Ausstieg bleibt das Kill-Kriterium (Abschnitt 6), nicht ein Kurs. Die Größe legt Stufe 4 fest (Konstantin); sie wird beim Kauf einmal festgelegt (`docs/masterplan.md`, Stufe 4), ein Aufstocken in Stufen gehört deshalb nicht in das Szenario.
 
 ## 8. Marken und Beobachtungen
 - Trend-Guard-Marken: <T1 Umsatz fällt, T2 Marge fällt, T3 ROIC unter Grenze, T4 Margengipfel, oder keine>
