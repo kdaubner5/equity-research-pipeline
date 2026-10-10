@@ -2574,21 +2574,21 @@ Die Fragen unten sind damit beantwortet; sie bleiben zur Nachvollziehbarkeit ste
 
 **Reine Befunddokumentation.** Keine neue Regel, keine Schwellenänderung. **Alle Zahlen stammen aus dem Bericht von Konstantins lokaler Claude-Sitzung vom 10.10.2026; die Rohausgaben liegen nicht im Repo.** Grundlage waren die Freigabe von Konstantin für `data/run_archive.db` (gültig bis 2026-10-10 18:00, Schritte zwischen 12:27:30 und 12:27:57), der Entwurf „Baseline – alte Läufe vor dem Regelstand“ und die Roadmap A.2 und A.3.
 
-**In einfachen Worten:** Der erste Lauf mit dem heutigen Regelstand ist im echten Archiv. Alle erwarteten Zahlen stimmten, es gab keinen Fehler und keinen SimFin-Zugriff. Damit beginnt die Erfolgsbilanz (Forward-Log). Die alten Zeilen wurden nicht verändert.
+**In einfachen Worten:** Laut Bericht der lokalen Sitzung ist der erste Lauf mit dem heutigen Regelstand im echten Archiv. Die erwarteten Zahlen aus dem Replay (126 Überlebende, 41 im Ranking, Trend-Guard 95 / 25 / 6) stimmten, es gab keinen Fehler und keinen SimFin-Zugriff, und die alten Zeilen wurden nicht verändert. Damit ist der Startpunkt für das Forward-Log gesetzt (das Protokoll, das festhält, was das System wann gesagt hat); die Auswertung gegen die Messlatte folgt später.
 
-**Belegt (laut Bericht der lokalen Sitzung):**
+**Berichtet (laut Bericht der lokalen Sitzung, im Repo nicht belegt):**
 - **Sicherung:** SHA-256 von `data\run_archive.db` vor dem Lauf `95C50A15…604AC1`, identisch mit der Sicherung `data\run_archive_vor_A3.db`. Nach dem Lauf `12DFB38F…C99C54`, identisch mit der Kopie `data\kopie_nach_A3.db`.
 - **Zeitstempel:** Vorfilter `2026-10-10T12:27:30`, Stufe 1 `2026-10-10T12:27:35`, Stufe 2 `2026-10-10T12:27:44`, Trend-Guard `2026-10-10T12:27:50`.
 - **Vorfilter aus dem Cache (0 Abrufe, `calls=0`, `network=0`, alle 627 Pakete aus dem Cache):** 1.821 von 6.654 US-Firmen bestanden, 4.833 ausgeschieden.
 - **Stufe 1:** 126 Überlebende von 1.821 (93 bestanden, 33 mit Marken); 458 durchgefallen, 706 nicht beurteilbar, 531 mit ausgeschlossenem Geschäftsmodell.
 - **Stufe 2:** 126 bewertet, 41 im Ranking (35 bestanden, 6 mit Marken); 77 durchgefallen, 8 nicht beurteilbar.
-- **Trend-Guard:** von 126 sind 95 unmarkiert, 25 markiert, 6 nicht beurteilbar (alle 6 wegen veralteter Fundamentaldaten). Von den 41 Bestandenen sind 8 markiert: AMPH, BCC, JBI, MGM, MTDR, SLVM, TNC, UFPI.
+- **Trend-Guard:** von 126 sind 95 unmarkiert, 25 markiert, 6 nicht beurteilbar (laut Bericht alle 6 wegen veralteter Fundamentaldaten). Von den 41 Bestandenen sind 8 markiert: AMPH, BCC, JBI, MGM, MTDR, SLVM, TNC, UFPI.
 - **Zeilenzahlen vorher und nachher:** `runs` 1 auf 2; `run_results` 128 auf 254 (128 alt + 126 neu); `eliminated_results` 1.693 auf 3.388 (1.693 alt + 1.695 neu); `universe_prefilter` 6.654 auf 13.308; neu: `stage2_runs` 1, `stage2_results` 126, `trend_runs` 1, `trend_results` 126, `run_rule_state` 4, `run_rule_files` 16, `rule_file_contents` 4. Es sind jetzt alle 11 Tabellen vorhanden.
 - **Regelstand:** alle vier Läufe mit `code_state = clean`, ohne nicht committete Pfade, alle auf dem Commit `33ed39b` (Stand von `master` nach dem Merge von PR #95).
-- **Kurs am Lauftag:** im neuen Vorfilter-Lauf bei allen 1.821 von 1.821 bestandenen Firmen gefüllt (4.611 von 6.654 insgesamt; Rest ausgeschieden, vor allem ohne Preisdaten). Im alten Vorfilter-Lauf `2026-09-24T18:13:48` ist die Spalte leer.
+- **Kurs am Lauftag:** im neuen Vorfilter-Lauf bei allen 1.821 von 1.821 bestandenen Firmen gefüllt; insgesamt haben 4.611 von 6.654 Firmen einen Kurs (darunter auch Firmen, die aus anderen Gründen ausschieden). Ohne Kurs sind 2.043 von 6.654: 1.654 ohne Preisdaten, 347 ohne Klassifikation und 42 mit Delisting-Marker (Zahlen aus dem Auftrag und dem Bericht). Im alten Vorfilter-Lauf `2026-09-24T18:13:48` ist die Spalte leer.
 - **Alte Läufe unverändert:** Vorfilter `2026-09-24T18:13:48` mit 6.654 Zeilen, Stufe 1 `2026-09-30T17:38:53` mit 128 und 1.693 Zeilen.
 - **Schemaprüfung auf der Kopie nach dem Lauf:** 11 von 11 Tabellen, Namen stimmen.
 
-**Ungeprüft:** Die Zahlen sind aus dem Bericht übernommen und im Repo nicht belegt. Hinweis aus dem Bericht: „simfin_mapping_error=44“ in Stufe 2 ist ein Statustext aus den Cache-Dateien (44 Firmen ohne nutzbare Fundamentaldaten), kein Abruf. Der Bericht wurde nicht als PR-Kommentar abgelegt.
+**Ungeprüft:** Die Zahlen sind aus dem Bericht übernommen und im Repo nicht belegt. Hinweis aus dem Bericht (Deutung der lokalen Sitzung): „simfin_mapping_error=44“ in Stufe 2 ist ein Statustext aus den Cache-Dateien (44 Firmen ohne nutzbare Fundamentaldaten), kein Abruf. Der Bericht wurde nicht als PR-Kommentar abgelegt.
 
-**Folge:** Roadmap A.3 ist erledigt. Nächster Schritt ist A.4 (Kandidatenliste Runde 1); die Auswahlregel entscheidet Konstantin.
+**Folge:** Roadmap A.3 ist laut Bericht erledigt; der Verweis auf die Messlatte und ein Bericht im Repo (zum Beispiel als PR-Kommentar) stehen noch aus, die Bedingung „Fertig, wenn“ ist damit nur teilweise erfüllt. Der Entwurf „Baseline – alte Läufe vor dem Regelstand“ ist durch diesen Lauf faktisch vollzogen; seine Freigabe durch Konstantin steht aus. Nächster Schritt ist A.4 (Kandidatenliste Runde 1); die Auswahlregel entscheidet Konstantin.
