@@ -2541,3 +2541,30 @@ Die Fragen unten sind damit beantwortet; sie bleiben zur Nachvollziehbarkeit ste
 6. Wenn ein Kurs später abweicht (Konflikt): Entscheidest du von Hand, welcher gilt? (Vorschlag: ja.)
 
 **How to apply (nach Freigabe):** Tests zuerst, dann `run_benchmark_prices.py` und `config/benchmarks.yaml`, Eintrag in `NON_RULE_CONFIG_FILES`. Beachten: Der Name `run_*.py`, die Dateien unter `config/` und neue Module unter `src/` zählen als „relevant“ für die Marke „dirty“ im Regelstand (`rule_state.py`); sie ändern die Hashes der Regeldateien nicht, aber ein Lauf im nicht committeten Zustand würde als „dirty“ markiert. Erst committen und mergen, dann Läufe starten. Erster Abruf erst auf Konstantins Rechner mit seiner Anweisung. Klasse C, ein Kritiker-Lauf.
+
+
+## 2026-10-10: Baseline – alte Läufe vor dem Regelstand und Replay-Ergebnis (Agent-Entscheidung, Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin. Klasse C, weil der Eintrag den Satz zu den alten Zeilen in Roadmap A.3 ersetzt. Keine Schwellenänderung, kein Code, keine Daten abgerufen.
+
+**In einfachen Worten:** Im echten Archiv liegen zwei ältere Läufe (Vorfilter vom 24.09., Stufe 1 vom 30.09.). Die Roadmap wollte sie vor dem ersten Baseline-Lauf eigens „kennzeichnen“. Das ist nicht nötig und würde eine Änderung der echten Datenbank bedeuten: Sie sind schon erkennbar, weil für sie kein Regelstand gespeichert wurde und die Spalten für Kurs und Aktienzahl leer sind. Sie bleiben unverändert.
+
+**Entscheidung (Vorschlag):**
+1. Die vorhandenen Zeilen werden im ersten archivierten Lauf (A.3) **nicht verändert**. Eine Kennzeichnungsspalte oder ein Nachtrag entfällt.
+2. Als **„vor der Baseline“** gelten alle Läufe im Archiv, die **keine Zeile in `run_rule_state`** haben (Regelstand wird nur für neue Läufe gespeichert, Eintrag „Regelstand und Kurs je Lauf im Archiv“, ausdrücklich ohne Nachtrag). Bei den Vorfilter-Zeilen vom 24.09. sind zusätzlich `close_price_usd` und `shares_outstanding` leer.
+3. Die Auswertung (Roadmap E.4) darf keinen Lauf ohne Regelstand als Baseline verwenden. Im Archiv stehen heute zwei solche Läufe: Vorfilter `2026-09-24T18:13:48` und Stufe 1 `2026-09-30T17:38:53`.
+4. Roadmap A.3 wird entsprechend geändert (siehe PR).
+
+**Beobachtungen vom 10.10.2026** (laut Ausgaben von Konstantins lokalen Läufen auf Kopien; im Repo nicht belegt):
+- Archiv: 4 Tabellen (`run_results` 128 Zeilen, `eliminated_results` 1.693, `runs` 1, `universe_prefilter` 6.654); 7 weitere Tabellen entstehen beim ersten Lauf, alle fehlenden Spalten rüstet `init_db` selbst nach, eine eigene Migration ist nicht nötig (Schemaprüfung, PR #91).
+- Replay auf einer Kopie mit dem heutigen Regelstand, Vorfilter `2026-09-24T18:13:48`: Stufe 1: 126 Überlebende (93 bestanden, 33 mit Marken; 458 durchgefallen, 706 nicht beurteilbar, 531 mit ausgeschlossenem Geschäftsmodell, zusammen 1.821). Stufe 2: 126 ausgewertet, **41 bestehen** (35 bestanden, 6 mit Marken; 77 durchgefallen, 8 nicht beurteilbar); verdächtige Aktienzahl bei AOS und CRI. Trend-Guard: laut Konstantin die erwartete Verteilung (95 unmarkiert, 25 markiert, 6 nicht beurteilbar von 126); die Ausgabe selbst liegt dem Agenten nicht vor.
+- Der alte Stufe-1-Lauf vom 30.09. hatte 128 Überlebende statt 126, weil die Geschäftsmodell-Profile damals noch nicht galten.
+- Empfindlichkeitstest Stufe 1 auf dem Lauf vom 30.09.: Ausgangslage wird reproduziert (95 + 33 = 128); von 1.821 Firmen überleben 128, 538 fallen durch, 1.155 sind nicht beurteilbar (Datenlücken); die ROIC-Untergrenze wirkt am stärksten (10 Prozent auf 9 Prozent: +12 Firmen, auf 8 Prozent: +22), die übrigen Schwellen weniger.
+
+**Offen und ungeprüft:**
+- Ob der Vorfilter vom 24.09. mit `--max-calls 0` aus dem Cache neu gerechnet werden kann und dann Kurs und Aktienzahl für die Baseline liefert. Wird auf einer Kopie getestet; gelingt es nicht, hat die Baseline für die Firmen des 24.09. keinen Kurs am Lauftag im Archiv (er läge nur im Preis-Cache).
+- Die Zahlen oben sind Konstantins lokale Ausgaben, nicht aus dem Repo belegt.
+
+**Alternativen:** (a) eine Spalte `baseline` ergänzen und die alten Zeilen beschreiben: verworfen, weil die echte Datenbank dafür geändert würde und das Merkmal schon vorhanden ist. (b) alte Läufe löschen: verworfen (keine Nutzerdaten löschen).
+
+**How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag; A.3 läuft ohne Kennzeichnungsschritt.
