@@ -1,0 +1,122 @@
+# Datenquelle für die PDF-Fassung des One-Pagers DFIN (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: "Donnelley Financial Solutions, Inc."
+  ticker: DFIN
+  list_nr: 8
+  stage2_rank: 9
+  stage2_rank_of: 41
+  peer_group: "Financial Services (grobe Gruppe, SimFin-Branche 104, 16 Firmen)"
+  profile: non_financial
+dates:
+  documents_until: "30.07.2026 (10-Q Q2 2026 und Pressemitteilung)"
+  one_pager: "12.10.2026"
+  archive_run: "10.10.2026, Regelstand 33ed39b"
+  price: "48,61 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden"
+verdict:
+  label: "WEITERVERFOLGEN"
+  tone: ok
+  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Wachsende Software-Erlöse, steigende Marge, geringe Schulden und kräftige Aktienrückkäufe; Risiko: das Geschäft hängt an Kapitalmarkt-Aktivität."
+  legend: "Was bedeutet WEITERVERFOLGEN? Die Firma besteht den Filter und die Prüfung der Unterlagen zeigt kein Ausschlussmerkmal. Sie kommt in die engere Beobachtung; ein Kauf folgt nur nach den Stufe-4-Regeln und deiner Entscheidung. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
+thesis: >-
+  DFIN liefert Software und Dienstleistungen für Berichte von Börsenfirmen und Fonds (zum Beispiel ActiveDisclosure) sowie Druck
+  und Versand. Im 2. Quartal 2026 stieg der Umsatz um 2,8 % auf 224,2 Mio. $, die Software-Erlöse um 7,8 % auf einen Rekord von
+  99,4 Mio. $, das bereinigte EBITDA um 7,9 % auf 82,3 Mio. $ (Marge 36,7 %). Die Schulden sind gering (Nettoverschuldung
+  178,7 Mio. $, 0,7 Mal bereinigtes EBITDA), der freie Cashflow der letzten zwölf Monate liegt bei rund 152 Mio. $ (12,7 % des
+  Börsenwerts nach Agent-Rechnung), und die Firma kauft Aktien zurück (verwässerte Aktienzahl -10,3 % zum Vorjahr). Der Gewinn 2025
+  war wegen einer nicht zahlungswirksamen Pensionsabwicklung von 82,8 Mio. $ niedrig. Schwäche: Das Geschäft hängt an Börsengängen,
+  Übernahmen und Berichtsvolumen; der Druckbereich schrumpft (-15 %).
+kpis:
+  - label: "Marktwert"
+    main: "1,20 Mrd. $"
+    sub: "48,61 $ x 24,6 Mio. Aktien (Kurs 23.09.)"
+    status: neutral
+  - label: "FCF-Rendite"
+    main: "12,7 %"
+    sub: "letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 8,0 %"
+    status: ok
+  - label: "EV/EBIT"
+    main: "9,3"
+    sub: "letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 6,4"
+    status: neutral
+  - label: "Net Debt/EBITDA"
+    main: "0,7"
+    sub: "bereinigt, 30.06.2026 (Firma) | Stufe 1: 0,70 | Durchfall ab 2,5"
+    status: ok
+  - label: "Betriebsmarge"
+    main: "24,3 %"
+    sub: "1. Halbjahr 2026 | 1. Hj. 2025: 23,5 % | 2025: 18,4 %"
+    status: ok
+halfyear:
+  labels: ["1. Halbjahr 2025", "1. Halbjahr 2026"]
+  tone: ok
+  rows:
+    - { name: "Umsatz", values: [419.2, 429.7] }
+    - { name: "Betriebsergebnis", values: [98.6, 104.5] }
+    - { name: "Freier Cashflow", values: [0.7, 45.2] }
+  unit: "Mio. $"
+events:
+  - { date: "2. Quartal 2026", text: "763.451 Aktien für rund 34,7 Mio. $ zurückgekauft (Durchschnitt 45,48 $); noch 125,4 Mio. $ Rahmen von 150 Mio. $" }
+  - { date: "2. Quartal 2026", text: "Ken Napolitano zum Vertriebschef (Chief Revenue Officer) ernannt" }
+  - { date: "30.07.2026", text: "Quartalszahlen Q2: Umsatz +2,8 %, Software +7,8 % (Rekord), bereinigtes EBITDA +7,9 %; Ausblick Q3: Umsatz 175 bis 185 Mio. $, bereinigte EBITDA-Marge 26 bis 28 %" }
+  - { date: "30.07.2026", text: "10-Q Q2 2026 eingereicht" }
+bear:
+  - "Das Geschäft hängt an Kapitalmarkt-Aktivität (Börsengänge, Übernahmen, Berichte); das 2. Quartal profitierte laut Firma von einer Erholung dieser Aktivität."
+  - "Druck und Versand schrumpfen: Umsatz im 2. Quartal -15,0 % auf 34,6 Mio. $; auch klassische Pflichtberichte (Fonds, Kapitalmarkt) sinken."
+  - "Der Ausblick für das 3. Quartal (Umsatz 175 bis 185 Mio. $, Marge 26 bis 28 %) liegt unter dem Niveau des 2. Quartals (224 Mio. $, 36,7 %); ob das ein Saisonmuster ist, wurde nicht untersucht."
+  - "Der Gewinn 2025 war mit 32,4 Mio. $ niedrig (2024: 92,4), wegen einer nicht zahlungswirksamen Pensionsabwicklung von 82,8 Mio. $."
+  - "Die Branche Finanzdienstleistungen ist im Archiv als Grenzfall markiert (Kapitalmarkt-Dienstleister); die Vergleichsgruppe passt nur begrenzt."
+bull:
+  - "Rekord-Softwareerlöse von 99,4 Mio. $ (44,3 % vom Umsatz, Vorjahr 42,3 %); ActiveDisclosure wächst laut Firma rund 29 %."
+  - "Bereinigte EBITDA-Marge 36,7 % (+170 Basispunkte); drittes Quartal in Folge mit Umsatzwachstum."
+  - "Nettoverschuldung 178,7 Mio. $ (0,7 Mal EBITDA); Kreditlinie über 300 Mio. $."
+  - "Freier Cashflow 1. Halbjahr 45,2 Mio. $ nach 0,7 Mio. $; letzte zwölf Monate rund 152 Mio. $ (Agent-Rechnung)."
+  - "Rückkäufe: verwässerte Aktienzahl 25,3 Mio. nach 28,2 Mio. ein Jahr zuvor (-10,3 %)."
+entry:
+  zone_title: "Einstiegsszenario (Vorschlag, kein Kursziel)"
+  horizon: "mittelfristig (1 bis 3 Jahre)"
+  limit: 103.2
+  limit_label: "Grenze nach FCF-Rendite 6 %"
+  price_vs_limit: "53 % darunter"
+  limit_note: "Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (152,3 Mio. $) und 24,6 Mio. Aktien angewendet. Der Kurs liegt weit darunter, die Grenze allein ist deshalb keine Kaufschwelle. Das 3-Jahres-Mittel liegt bei rund 92 Mio. $ (7,7 % Rendite); die letzten zwölf Monate sind besser als der Schnitt, weil der Cashflow im Vorjahr noch schwach war. Die zweite Grenze (EV/EBITDA) fehlt."
+  price: 48.61
+  price_date: "23.09.2026"
+  condition: "Aktuellen Kurs prüfen; Quartalsbericht Q3 (Termin noch nicht bekannt) abwarten: Hält der Ausblick (Marge 26 bis 28 %) und wächst Software weiter?"
+kill: "Vorschlag des Agenten: verwerfen, wenn Net Debt/EBITDA mindestens 2,5 beträgt (Schwelle aus config/thresholds.yaml), die FCF-Rendite der letzten zwölf Monate unter 5 % fällt (Stufe-2-Durchfallgrenze aus config/stage2.yaml) oder die Software-Erlöse im Jahresvergleich schrumpfen (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q."
+sources_detail:
+  - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 17.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 30.07.2026 und Q1 2026 vom 05.05.2026, Q1 nur auf Vorhandensein geprüft) und 1 aktuelle Meldung (8-K vom 30.07.2026 mit der Pressemitteilung zu den Quartalszahlen). Zahlen aus den XBRL-Daten der SEC gegengelesen."
+  - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
+  - "NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
+sources: "SEC: 10-K 2025 (0001193125-26-054586), 10-Q Q2 2026 (-26-326099), 10-Q Q1 2026 (-26-206350), 8-K vom 30.07.2026 (-26-324858). Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
+not_checked: "Die Peer-Gruppe Financial Services (grobe Gruppe, 16 Firmen) besteht aus Vermögensverwaltern, Kreditgebern und Börsendienstleistern; sie passt nur begrenzt zu einem Berichts-Software-Anbieter. Das Archiv trägt die Marken Grenzfall-Branche, grobe Vergleichsgruppe, Aktienzahl ungeprüft und für Stufe 1 die Datenmarke `debt_component_missing_defaulted_zero`; die Verschuldung 0,70 des Archivs stimmt mit der Angabe der Firma (0,7) überein. 11 Firmen der Gruppe fehlen wegen Datenfehlern (BFH, HIVE, NAVI, NNI, OMF, OPY, OTF, PRAA, RA, URG, VOYA). Das bereinigte EBITDA und die Nettoverschuldung sind Größen der Firma. Offen sind der heutige Kurs, die Abhängigkeit vom Börsengang- und Übernahmegeschäft und die Pensionslage nach der Abwicklung. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); 11 Firmen fehlen wegen Datenfehlern (BFH, HIVE, NAVI, NNI, OMF, OPY, OTF, PRAA, RA, URG, VOYA). Die Gruppe ist grob (Branchenebene) und mischt Vermögensverwalter, Kreditgeber und Börsendienstleister."
+peer_summary: "Gegen die 16 Firmen der Peer-Gruppe: EV/EBITDA 6,4 gegen Median 11,0 (Platz 2 von 16), FCF-Rendite 8,0 % gegen Median 9,3 % (Platz 10 von 14). Archivwerte der Geschäftsjahre; 11 Firmen fehlen wegen Datenfehlern, die Gruppe ist grob. Einordnung nur mit Vorsicht."
+funnel_title: "So kam DFIN auf die Liste (Trichter vom 10.10.2026)"
+funnel:
+  - { label: "US-Börsenfirmen (SimFin)", count: 6654 }
+  - { label: "Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen", count: 1821 }
+  - { label: "Stufe 1: Qualität und Bilanz", count: 126 }
+  - { label: "Stufe 2: günstig im Branchenvergleich", count: 41 }
+  - { label: "Kandidatenliste Runde 1", count: 40 }
+funnel_note: "Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026)."
+gates_title: "Die Prüfungen im Detail"
+gates:
+  - { stage: "Stufe 1", name: "ROIC (Kapitalrendite), 3-Jahres-Mittel", value: "20,3 %", rule: "sauber über 12 %, Durchfall unter 10 %", status: ok }
+  - { stage: "Stufe 1", name: "Net Debt/EBITDA (Verschuldung)", value: "0,70", rule: "sauber unter 2,3, Durchfall ab 2,5", status: ok }
+  - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "2,82", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
+  - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "6,4 (Platz 2 von 16)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
+  - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "8,0 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %", status: ok }
+gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Die Zahlen des ersten Halbjahres 2026 sind darin nicht enthalten. Cash Conversion 2,82 ist hoch, wohl auch weil der Gewinn 2025 durch die Pensionsabwicklung gedrückt war (Ursache nicht gerechnet)."
+financials_title: "Kennzahlen im Überblick (Mio. $)"
+financials:
+  columns: ["2023", "2024", "2025", "1. Hj. 2025", "1. Hj. 2026"]
+  rows:
+    - { name: "Umsatz", values: ["797,2", "781,9", "767,0", "419,2", "429,7"] }
+    - { name: "Betriebsergebnis", values: ["110,0", "136,6", "141,1", "98,6", "104,5"] }
+    - { name: "Betriebsmarge", values: ["13,8 %", "17,5 %", "18,4 %", "23,5 %", "24,3 %"] }
+    - { name: "Nettogewinn", values: ["82,2", "92,4", "32,4", "67,1", "69,9"] }
+    - { name: "Operativer Cashflow", values: ["124,0", "171,1", "164,9", "30,7", "69,1"] }
+    - { name: "Investitionen (Sachanlagen)", values: ["61,8", "65,9", "57,1", "30,0", "23,9"] }
+    - { name: "Freier Cashflow", values: ["62,2", "105,2", "107,8", "0,7", "45,2"] }
+  note: "Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen). Hinweis: Die Investitionen sind der XBRL-Posten für Sachanlagen; ob aktivierte Software darin enthalten ist, wurde nicht geprüft."
+method: "Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen."

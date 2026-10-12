@@ -22,7 +22,7 @@ thesis: >-
   und Indien. Auf den Zahlen der Geschäftsjahre ist die Firma billig (EV/EBITDA 3,9, Platz 1 von 14) und erzeugt freien Cashflow von
   rund 12 % des Börsenwerts. Wichtig: Stufe 1 sah nur 2025 (Nettoschulden fast null, 0,15 Mal EBITDA). Im März 2026 nahm TaskUs einen
   Kredit über 500 Mio. $ auf und zahlte davon und aus der Kasse eine Sonderdividende von 3,65 $ je Aktie (332,8 Mio. $). Danach liegen die
-  Nettoschulden bei rund 288 Mio. $ (nach Agent-Rechnung rund 1,2 Mal bereinigtes EBITDA). Das Wachstum bremst: Ausblick für das
+  Nettoschulden bei rund 312 Mio. $ (nach Agent-Rechnung rund 1,3 Mal bereinigtes EBITDA). Das Wachstum bremst: Ausblick für das
   3. Quartal nur +0,8 %, bereinigte EBITDA-Marge rund 19 % nach 21 % in 2025.
 kpis:
   - label: "Marktwert"
@@ -34,11 +34,11 @@ kpis:
     sub: "letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 12,4 %"
     status: ok
   - label: "EV/EBITDA"
-    main: "4,4"
+    main: "4,5"
     sub: "bereinigt, letzte 12 Monate (Agent) | Stufe 2: 3,9"
     status: ok
   - label: "Net Debt/EBITDA"
-    main: "1,2"
+    main: "1,3"
     sub: "bereinigt, 30.06.2026 (Agent) | Stufe 1 (nur 2025): 0,15 | Durchfall ab 2,5"
     status: warn
   - label: "Bereinigte EBITDA-Marge"
@@ -64,7 +64,7 @@ events:
 bear:
   - "Seit März 2026 neue Schulden: Kredit 500 Mio. $; langfristige Schulden 468,7 Mio. $ (Ende 2025: 219,8), Kasse 180,3 Mio. $ (211,7)."
   - "Wachstum bremst: Q2 +5,0 %, Ausblick Q3 nur +0,8 %, Jahr +3,9 %; bereinigtes EBITDA im Q2 -11,2 %, im 1. Halbjahr -6,4 %."
-  - "Kundenkonzentration: Kunde A 20 % des Umsatzes (Vorjahr 26 %), Kunde B 11 %; die zehn größten Kunden 64 % (58 %)."
+  - "Kundenkonzentration: Kunde A (laut 10-K Meta) 20 % des Umsatzes (Vorjahr 26 %), Kunde B 11 %; die zehn größten Kunden 64 % (58 %)."
   - "Die bereinigten Zahlen (Gewinn je Aktie 0,33 $ nach 0,43 $) sinken, während der Gewinn nach Steuern steigt; Unterschied in der Berechnung nicht untersucht."
   - "Das Geschäft hängt an den Philippinen und Indien; Auswirkungen von KI auf Dienstleistungen mit Menschen sind ein branchenweites Risiko (nicht quantifiziert)."
 bull:
@@ -72,26 +72,26 @@ bull:
   - "Freier Cashflow im 1. Halbjahr 2026: 68,7 Mio. $ nach 21,8 Mio. $; Ausblick für den bereinigten freien Cashflow 2026: 110 bis 120 Mio. $."
   - "KI-Dienstleistungen wachsen laut Firma rund 26 %; Kunden außer dem größten wachsen im mittleren Zehnerbereich."
   - "Umsatz und bereinigtes EBITDA lagen im Q2 über der Spitze der eigenen Prognose; Umsatzprognose angehoben."
-  - "Verschuldung nach der Dividende mit rund 1,2 Mal EBITDA noch deutlich unter der Stufe-1-Grenze von 2,5."
+  - "Verschuldung nach der Dividende mit rund 1,3 Mal EBITDA noch deutlich unter der Stufe-1-Grenze von 2,5."
 entry:
   zone_title: "Einstiegsszenario (Vorschlag, kein Kursziel)"
   horizon: "mittelfristig (1 bis 3 Jahre)"
   limit: 21.95
   limit_label: "Grenze nach FCF-Rendite 6 %"
   price_vs_limit: "62 % darunter"
-  limit_note: "Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (120,6 Mio. $) und 91,6 Mio. Aktien angewendet. Der Kurs liegt weit darunter, die Grenze allein ist deshalb keine Kaufschwelle: Der Markt preist ein Wachstums- und KI-Risiko ein. Die zweite Grenze (EV/EBITDA) fehlt. Der Kurs vom 23.09. ist nach der Sonderdividende (März) gebildet."
+  limit_note: "Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (120,6 Mio. $) und 91,6 Mio. Aktien angewendet. Der Kurs liegt weit darunter, die Grenze allein ist deshalb keine Kaufschwelle; warum der Kurs so niedrig ist, ist nicht belegt (mögliche Gründe: Wachstum, KI, Kundenkonzentration). Die zweite Grenze (EV/EBITDA) fehlt. Der Kurs vom 23.09. ist nach der Sonderdividende (März) gebildet."
   price: 8.41
   price_date: "23.09.2026"
-  condition: "Aktuellen Kurs prüfen; Quartalsbericht Q3 (voraussichtlich Anfang November) abwarten: Wachstum und Marge müssen den Ausblick (Umsatz +0,8 %, Marge ca. 18,7 %) halten"
+  condition: "Aktuellen Kurs prüfen; Quartalsbericht Q3 (Termin noch nicht bekannt) abwarten: Wachstum und Marge müssen den Ausblick (Umsatz +0,8 %, Marge ca. 18,7 %) halten"
 kill: "Vorschlag des Agenten: verwerfen, wenn Net Debt/EBITDA (bereinigt) mindestens 2,5 beträgt (Schwelle aus config/thresholds.yaml), die FCF-Rendite der letzten zwölf Monate unter 5 % fällt (Stufe-2-Grenze aus config/stage2.yaml) oder der Umsatz im Jahresvergleich schrumpft (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q."
 sources_detail:
   - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 05.03.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 06.08.2026 und Q1 2026 vom 07.05.2026, Q1 nur auf Vorhandensein geprüft) und 1 aktuelle Meldung (8-K vom 05.08.2026 mit der Pressemitteilung zu den Quartalszahlen). Zahlen aus den XBRL-Daten der SEC gegengelesen."
   - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
   - "NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
 sources: "SEC: 10-K 2025 (0001829864-26-000012), 10-Q Q2 2026 (-26-000149), 10-Q Q1 2026 (-26-000113), 8-K vom 05.08.2026. Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
-not_checked: "Die Peer-Gruppe ist grob (Branchenebene statt Unterbranche, 14 Firmen) und mischt Telekom, Beratung, Personal und Außenwerbung; die Passung zu einem Auslagerungs-Dienstleister ist begrenzt. Das Archiv trägt die Marke Aktienzahl ungeprüft. Die Nettoschulden sind aus den langfristigen Schulden nach Emissionskosten (468,7 Mio. $) minus Kasse gerechnet; ein kurzfristiger Teil der Schulden ist nicht enthalten, die Verschuldung liegt damit eher etwas höher. Das bereinigte EBITDA stammt von der Firma (Definition nicht geprüft). Offen sind der heutige Kurs, Kunde A (namentlich nicht genannt) und die Einordnung von KI-Risiken. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+not_checked: "Die Peer-Gruppe ist grob (Branchenebene statt Unterbranche, 14 Firmen) und mischt Telekom, Beratung, Personal und Außenwerbung; die Passung zu einem Auslagerungs-Dienstleister ist begrenzt. Das Archiv trägt die Marke Aktienzahl ungeprüft. Die Nettoschulden (311,7 Mio. $) sind aus den Gesamtschulden nach Emissionskosten (492,0 Mio. $ laut 10-Q) minus Kasse (180,3) gerechnet. Das bereinigte EBITDA stammt von der Firma (Definition nicht geprüft). Offen sind der heutige Kurs und die Einordnung von KI-Risiken. Kunde A ist laut 10-K Meta (26 % des Umsatzes 2025). Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
 peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026). Die Gruppe ist grob (Branchenebene); die Mehrheit der Firmen ist keine Auslagerungs-Firma."
-peer_summary: "Gegen die 14 Firmen der Peer-Gruppe: EV/EBITDA 3,9 gegen Median 10,5 (Platz 1 von 14, die günstigste), FCF-Rendite 12,4 % gegen Median 5,6 % (Platz 4 von 14). Das sind Archivwerte der Geschäftsjahre vor der Sonderdividende; mit den neuen Schulden liegt das EV/EBITDA bei etwa 4,4."
+peer_summary: "Gegen die 14 Firmen der Peer-Gruppe: EV/EBITDA 3,9 gegen Median 10,5 (Platz 1 von 14, die günstigste), FCF-Rendite 12,4 % gegen Median 5,6 % (Platz 4 von 14). Das sind Archivwerte der Geschäftsjahre vor der Sonderdividende; mit den neuen Schulden liegt das EV/EBITDA bei etwa 4,5."
 funnel_title: "So kam TASK auf die Liste (Trichter vom 10.10.2026)"
 funnel:
   - { label: "US-Börsenfirmen (SimFin)", count: 6654 }
@@ -107,7 +107,7 @@ gates:
   - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "2,50", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
   - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "3,9 (Platz 1 von 14)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
   - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "12,4 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
-  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke bei Umsatz- oder Margenverhältnis unter 0,90 oder Marge über 1,25", status: ok }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %", status: ok }
 gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Die Verschuldung (0,15) bildet nur 2025 ab, also vor dem Kredit vom März 2026; die aktuelle Verschuldung ist höher (siehe Karten). Die Zahlen des ersten Halbjahres 2026 sind darin nicht enthalten."
 financials_title: "Kennzahlen im Überblick (Mio. $)"
 financials:

@@ -87,7 +87,7 @@ entry:
   offer_label: "Tauschwert JBS-Vorschlag"
   offer_value: 28.49
   offer_date: "18.08.2026"
-  condition: "Abwarten: 10-Q für das 3. Quartal (voraussichtlich Ende Oktober) oder Entscheidung des Sonderausschusses"
+  condition: "Abwarten: 10-Q für das 3. Quartal (Termin noch nicht bekannt) oder Entscheidung des Sonderausschusses"
 kill: "Vorschlag des Agenten: Net Debt/EBITDA (12 Monate) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder freier Cashflow (12 Monate) negativ (Wert 0, keine Schwelle aus dem Repo); geprüft im nächsten 10-Q. Kommt eine Vereinbarung mit JBS zustande, wird der One-Pager neu geschrieben."
 sources_detail:
   - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025), 2 Quartalsberichte (10-Q Q2 2026 und Q2 2025) und 9 aktuelle Meldungen (8-K vom 30.07. bis 09.10.2026: zwei zu den Quartalszahlen, Walkers, JBS-Vorschlag, Aktionärsklage, Anleihe in drei Meldungen, Sonderausschuss). Von den 8-K wurden nur die Anlagen (Pressemitteilungen, Schreiben, Vertrag), nicht die Haupttexte gelesen; vom Anleihevertrag nur der Titel."
@@ -112,7 +112,7 @@ gates:
   - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "1,74", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
   - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "4,3 (Platz 2 von 17)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
   - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "11,9 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
-  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke bei Umsatz- oder Margenverhältnis unter 0,90 oder Marge über 1,25", status: ok }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %", status: ok }
 gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Die Zahlen des ersten Halbjahres 2026 sind darin noch nicht enthalten."
 financials_title: "Kennzahlen im Überblick (Mio. $)"
 financials:

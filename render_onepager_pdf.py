@@ -324,7 +324,7 @@ def _fin_table(fin):
                     else Paragraph(str(c), _style("fv", 9, 12, colors.white if i == 0 else INK, bold=(i == 0), alignment=TA_RIGHT))
                     for j, c in enumerate(row)] for i, row in enumerate(data)], colWidths=widths)
     style = [("BACKGROUND", (0, 0), (-1, 0), NAVY), ("LINEBELOW", (0, 1), (-1, -1), 0.4, LINE), ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
-             ("TOPPADDING", (0, 0), (-1, -1), 5), ("BOTTOMPADDING", (0, 0), (-1, -1), 5), ("LEFTPADDING", (0, 0), (-1, -1), 6),
+             ("TOPPADDING", (0, 0), (-1, -1), 4), ("BOTTOMPADDING", (0, 0), (-1, -1), 4), ("LEFTPADDING", (0, 0), (-1, -1), 6),
              ("RIGHTPADDING", (0, 0), (-1, -1), 6), ("LINEAFTER", (3, 0), (3, -1), 1, LINE),
              ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, BG])]
     table.setStyle(TableStyle(style))
@@ -343,7 +343,7 @@ def _gates_table(gates):
     table = Table(rows, colWidths=[28 * mm, 52 * mm, 28 * mm, 66 * mm])
     table.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("BACKGROUND", (0, 0), (-1, 0), NAVY),
                                ("LINEBELOW", (0, 1), (-1, -1), 0.4, LINE), ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, BG]),
-                               ("TOPPADDING", (0, 0), (-1, -1), 4.5), ("BOTTOMPADDING", (0, 0), (-1, -1), 4.5),
+                               ("TOPPADDING", (0, 0), (-1, -1), 3.5), ("BOTTOMPADDING", (0, 0), (-1, -1), 3.5),
                                ("LEFTPADDING", (0, 0), (-1, -1), 6), ("RIGHTPADDING", (0, 0), (-1, -1), 6)]))
     return table
 

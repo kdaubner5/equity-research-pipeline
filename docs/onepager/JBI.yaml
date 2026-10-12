@@ -15,14 +15,14 @@ dates:
 verdict:
   label: "ZURÜCKSTELLEN"
   tone: warn
-  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Auf Geschäftsjahren sauber und billig, aber das Betriebsergebnis halbierte sich im 1. Halbjahr 2026 und die Verschuldung liegt aktuell über der Stufe-1-Grenze."
-  legend: "Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3, voraussichtlich Anfang bis Mitte November) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
+  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Auf Geschäftsjahren sauber und billig, aber das Betriebsergebnis fiel im 1. Halbjahr 2026 um 45 % und die bereinigte Verschuldung der Firma (2,7) liegt über der Stufe-1-Grenze von 2,5 (dort anders gerechnet)."
+  legend: "Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3, Termin noch nicht bekannt) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
 thesis: >-
   Janus baut Türen, Gebäude und Zutrittstechnik für Selbstlager (Self-Storage). Auf den Zahlen der Geschäftsjahre ist die Firma
   billig (EV/EBITDA 5,9, Platz 1 von 16) und erzeugt viel Cash (freier Cashflow im Dreijahresmittel rund 148 Mio. $ bei 581 Mio. $
   Börsenwert). Doch der Trend zeigt nach unten: Umsatz von 1.066 auf 884 Mio. $ (2023 bis 2025), Betriebsergebnis von 246 auf
   112 Mio. $. Im 1. Halbjahr 2026 fiel es auf 33,7 Mio. $ (Vorjahr 61,3). Die bereinigte Verschuldung stieg laut Firma von
-  2,1 auf 2,7 Mal EBITDA; die Stufe-1-Grenze liegt bei 2,5. Dazu läuft ein Umbauprogramm (Restrukturierung).
+  2,1 auf 2,7 Mal EBITDA; die Stufe-1-Grenze von 2,5 gilt für eine andere Rechnung (Geschäftsjahr, nicht bereinigt). Dazu läuft ein Umbauprogramm (Restrukturierung).
 kpis:
   - label: "Marktwert"
     main: "581 Mio. $"
@@ -34,7 +34,7 @@ kpis:
     status: ok
   - label: "EV/EBITDA"
     main: "6,5"
-    sub: "bereinigt, letzte 12 Monate (Firma) | Stufe 2: 5,9"
+    sub: "bereinigt, letzte 12 Monate (Agent, mit EBITDA der Firma) | Stufe 2: 5,9"
     status: neutral
   - label: "Net Debt/EBITDA"
     main: "2,7"
@@ -54,10 +54,10 @@ halfyear:
   unit: "Mio. $"
 events:
   - { date: "08.01.2026", text: "Kiwi II Construction (Selbstlager-Bauer, Kalifornien) als Vermögenswerte übernommen; Kaufpreis im 10-Q noch vorläufig" }
-  - { date: "02.02.2026", text: "Zinsaufschlag des Kredits (First-Lien-Term-Loan) um 0,50 Punkte auf 1,00 % gesenkt" }
+  - { date: "02.02.2026", text: "Zinsaufschläge des Kredits (First-Lien-Term-Loan) um 0,50 Punkte gesenkt (auf 2,00 % über SOFR); Zinssatz am 04.07.2026: 5,62 %" }
   - { date: "02.2026", text: "US-Supreme-Court erklärt die IEEPA-Zölle für ungültig; Janus beantragt Rückerstattung (laut 10-Q wahrscheinlich, bisher rund 1,3 Mio. $ geschätzt)" }
   - { date: "11.08.2026", text: "Quartalszahlen Q2: Umsatz +2,4 % (233,5 Mio. $), bereinigtes EBITDA -18 %; Jahresausblick aktualisiert (bereinigtes EBITDA 150 bis 170 Mio. $)" }
-  - { date: "23.09.2026", text: "Sonderaktien-Zuteilung (je 750.000 $ Wert) an drei Führungskräfte als Halteprämie" }
+  - { date: "23.09.2026", text: "Sonderzuteilung von Aktienrechten (RSU, über drei Jahre unverfallbar, je 750.000 $ Wert) an drei Führungskräfte als Halteprämie" }
   - { date: "25.09.2026", text: "Umbau offengelegt: drei Maßnahmen, Einsparung rund 10,8 Mio. $ im Jahr, Kosten rund 5,6 Mio. $" }
   - { date: "03.10.2026", text: "Ende des 3. Quartals (Quartalsbericht danach, Datum nicht bekannt)", future: true }
 bear:
@@ -65,7 +65,7 @@ bear:
   - "Bereinigte Net-Debt/EBITDA-Quote 2,7 (Januar: 2,1); Nettoschulden 422,6 nach 356,6 Mio. $, Kasse 127,0 nach 194,4 Mio. $."
   - "Ohne Kiwi II (19,2 Mio. $ Umsatz im Quartal) ging der Umsatz im 2. Quartal nach Agent-Rechnung um rund 6 % zurück; Geschäft mit gewerblichen Kunden -21,2 %."
   - "Operativer Cashflow im 1. Halbjahr -39,2 % (60,6 nach 99,7 Mio. $); Trend-Guard markiert fallende Marge und ROIC unter der Untergrenze."
-  - "Das Management nennt die Quartalszahlen ‚leicht unter den Erwartungen‘; der Kurs von 4,26 $ zeigt Misstrauen des Marktes."
+  - "Das Management nennt die Quartalszahlen ‚leicht unter den Erwartungen‘ und das Umfeld ‚herausfordernd‘ (Pressemitteilung)."
 bull:
   - "Selbstlager-Neubau +20,3 % und Nachrüstung (R3) +6,6 % im 2. Quartal; Nokē-Zutrittssystem mit 501.000 installierten Einheiten (+22,5 %)."
   - "Freier Cashflow der letzten zwölf Monate nach Firmenangabe 129 % des bereinigten Gewinns; 1. Halbjahr 55,0 Mio. $."
@@ -78,10 +78,10 @@ entry:
   limit: 10.08
   limit_label: "Grenze nach FCF-Rendite 6 %"
   price_vs_limit: "58 % darunter"
-  limit_note: "Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (82,5 Mio. $) und 136,4 Mio. Aktien angewendet. Der Kurs liegt weit darunter, die Grenze allein ist deshalb keine Kaufschwelle: Das Misstrauen des Marktes (Verschuldung, fallende Gewinne) ist der Grund für den niedrigen Preis. Die zweite Grenze (EV/EBITDA) fehlt."
+  limit_note: "Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (82,5 Mio. $) und 136,4 Mio. Aktien angewendet. Der Kurs liegt weit darunter, die Grenze allein ist deshalb keine Kaufschwelle: Warum der Kurs so niedrig ist, ist nicht belegt (mögliche Gründe: Verschuldung, fallende Gewinne). Die zweite Grenze (EV/EBITDA) fehlt."
   price: 4.26
   price_date: "23.09.2026"
-  condition: "Abwarten: Quartalsbericht Q3 (voraussichtlich Anfang bis Mitte November); aktuellen Kurs prüfen"
+  condition: "Abwarten: Quartalsbericht Q3 (Termin noch nicht bekannt); aktuellen Kurs prüfen"
 kill: "Vorschlag des Agenten: verwerfen, wenn mit dem Q3-Bericht Net Debt/EBITDA weiterhin mindestens 2,5 beträgt (Schwelle aus config/thresholds.yaml) oder die FCF-Rendite der letzten zwölf Monate unter 5 % fällt (Stufe-2-Grenze aus config/stage2.yaml); sonst auf WEITERVERFOLGEN prüfen."
 sources_detail:
   - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 04.03.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 11.08.2026 und Q1 2026 vom 12.05.2026, Q1 nur auf Vorhandensein geprüft) und 2 aktuelle Meldungen (8-K vom 11.08.2026 mit der Pressemitteilung zu den Quartalszahlen und vom 25.09.2026 zu Umbau und Halteprämien). Zahlen aus den XBRL-Daten der SEC gegengelesen."
@@ -106,7 +106,7 @@ gates:
   - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "1,30", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
   - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "5,9 (Platz 1 von 16)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
   - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "26,0 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
-  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "2 Marken", rule: "Marke bei Umsatz- oder Margenverhältnis unter 0,90 oder Marge über 1,25", status: bad }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "2 Marken", rule: "Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %", status: bad }
 gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Trend-Guard: Marge fallend (Marge-Verhältnis 0,82) und ROIC des Vorjahres 9,1 % unter der Untergrenze; Umsatzverhältnis 0,91. Die Verschuldung lag zum Geschäftsjahr bei 2,22, knapp unter der sauberen Grenze von 2,3. Die Zahlen des ersten Halbjahres 2026 sind darin noch nicht enthalten."
 financials_title: "Kennzahlen im Überblick (Mio. $)"
 financials:

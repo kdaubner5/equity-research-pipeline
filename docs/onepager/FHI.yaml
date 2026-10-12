@@ -57,13 +57,13 @@ events:
   - { date: "01.05.2026", text: "Neuer Kreditvertrag: 350 Mio. $ Kreditlinie, bis 225 Mio. $ Aufstockung möglich (keine Ziehung)" }
   - { date: "30.07.2026", text: "Quartalszahlen Q2: Rekordvermögen 911,6 Mrd. $, Gewinn je Aktie 1,38 $; Dividende 0,38 $ beschlossen" }
   - { date: "31.07.2026", text: "10-Q Q2 2026 eingereicht; Telefonkonferenz am selben Tag" }
-  - { date: "14.08.2026", text: "Dividende 0,38 $ je Aktie gezahlt (Stichtag 07.08.)" }
+  - { date: "14.08.2026", text: "Dividende 0,38 $ je Aktie zur Zahlung fällig (Beschluss 30.07., Stichtag 07.08.)" }
 bear:
   - "Rund 50 % des Umsatzes (Q2: 50 %, 1. Halbjahr: 52 %) kommen aus Geldmarktfonds; Zinssenkungen und Gebühren-Verzichte treffen das direkt."
   - "Betriebsmarge im 1. Halbjahr 2026: 26,4 % nach 29,3 % im Vorjahreszeitraum (2024: 22,1 %); 12,7 Mio. $ Übernahmekosten im 1. Halbjahr (Gesamtkosten der FCP-Übernahme 16,0 Mio. $)."
   - "Kasse von 582,5 auf 301,7 Mio. $ gefallen (FCP 215 Mio. $, Rückkäufe 128,7 Mio. $); Firmenwert +229 Mio. $ aus der FCP-Übernahme."
   - "Für Vermögensverwalter sind EV/EBITDA und Net Debt/EBITDA nur eingeschränkt aussagekräftig (Archiv markiert die Branche als Grenzfall)."
-  - "Operativer Cashflow schwankt mit dem Kauf von Wertpapieren (1. Halbjahr 2025: 33,1 Mio. $, 2026: 109,7 Mio. $)."
+  - "Operativer Cashflow schwankt stark (1. Halbjahr 2025: 33,1 Mio. $, 2026: 109,7 Mio. $); die Firma nennt als Gründe unter anderem Nettokäufe von Wertpapieren."
 bull:
   - "Rekord: 911,6 Mrd. $ verwaltetes Vermögen (+8 %), Aktienfonds 109,6 Mrd. $ (+23 %); MDT-Strategien mit dem 14. Quartal in Folge Nettozuflüssen."
   - "Q2 2026: Umsatz +18 %, Nettogewinn 104,3 Mio. $ (Vorjahr 91,0 Mio. $), Gewinn je Aktie 1,38 $."
@@ -87,7 +87,7 @@ sources_detail:
   - "NICHT verwendet: Earnings-Call-Transkripte (Konferenz am 31.07.2026 stattgefunden), Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
 sources: "SEC: 10-K 2025 (0001056288-26-000007), 10-Q Q2 2026 (-26-000026), 10-Q Q1 2026 (-26-000018), 8-K vom 30.07.2026 (-26-000024). Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
 not_checked: "Die Peer-Gruppe (8 Firmen) passt nur eingeschränkt: Sie enthält neben Vermögensverwaltern einen Investmentbank-Berater (Moelis), eine Beteiligungsholding (Icahn Enterprises) und einen Kreditfonds (Hercules); deren FCF-Renditen von 47 bis 49 % sind nicht vergleichbar. In der Archivgruppe fehlen 4 Firmen wegen Datenfehlern (OTF, RA, URG, VOYA). Das Archiv trägt für Stufe 1 die Datenmarke `debt_component_missing_defaulted_zero` (ein Teil der Schulden fehlte und wurde auf 0 gesetzt); grob nachgerechnet passt der Wert -0,43 zu Anleihe 348,4 minus Kasse 582,5 zum 31.12.2025, ein Fehler ist nicht erkennbar. Die FCF-Rendite des Archivs (8,9 %) weicht von der Agent-Rechnung aus SEC-Zahlen (Dreijahresmittel 2023 bis 2025: 7,2 %) ab; die Ursache ist nicht untersucht. Der heutige Kurs, die Peer-Drittelgrenze, die Aufteilung der Geldmarkt-Erträge nach Zinssatz und die Details der Gebühren-Verzichte sind offen. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
-peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); 4 Firmen fehlen wegen Datenfehlern (OTF, RA, URG, VOYA). Die FCF-Renditen der Kreditfonds und Holdings (47 bis 49 %) verzerren den Median."
+peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); 4 Firmen fehlen wegen Datenfehlern (OTF, RA, URG, VOYA; laut Hinweis des Exportlaufs vom 12.10.2026). Die FCF-Renditen der Kreditfonds und Holdings (47 bis 49 %) verzerren den Median."
 peer_summary: "Gegen die 8 Firmen der Peer-Gruppe: EV/EBITDA 7,5 gegen Median 13,1 (Platz 1 von 8, die günstigste), FCF-Rendite 8,9 % gegen Median 9,3 % (Platz 5 von 8, knapp darunter). Vorsicht: Die Gruppe ist klein und gemischt; Vermögensverwalter werden besser an Gewinn und Vermögen gemessen als an EV/EBITDA."
 funnel_title: "So kam FHI auf die Liste (Trichter vom 10.10.2026)"
 funnel:
@@ -104,7 +104,7 @@ gates:
   - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "1,23", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
   - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "7,5 (Platz 1 von 8)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
   - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "8,9 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
-  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke bei Umsatz- oder Margenverhältnis unter 0,90 oder Marge über 1,25", status: ok }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %", status: ok }
 gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Das Archiv markiert die Branche als Grenzfall (Vermögensverwalter, `borderline_sector`); der Status ändert sich dadurch nicht. Die Zahlen des ersten Halbjahres 2026 sind darin noch nicht enthalten."
 financials_title: "Kennzahlen im Überblick (Mio. $)"
 financials:

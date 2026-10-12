@@ -63,7 +63,7 @@ events:
   - { date: "Q4 2026", text: "Der Aufbau von Betriebskapital (rund 170 Mio. $ im 1. Halbjahr) soll laut Firma bis Beginn des 4. Quartals zu Cash werden", future: true }
 bear:
   - "Betriebsergebnis 1. Halbjahr 2026: 167,5 Mio. $ nach 215,3 Mio. $ (-22 %); Q2: Gewinn je Aktie 1,48 $ nach 1,70 $."
-  - "Höhere Frachtkosten (Transport +1,6 Prozentpunkte vom Umsatz) und ein schwacher Wohnungsbau drücken die Marge; bereinigte EBITDA-Marge 8,2 % nach 9,5 %."
+  - "Höhere Frachtkosten (Transport +1,6 Prozentpunkte vom Umsatz) drücken das Ergebnis; ein schwacher Wohnungsbau wurde im 2. Quartal laut Firma durch andere Bereiche ausgeglichen. Bereinigte EBITDA-Marge 8,2 % nach 9,5 %."
   - "Freier Cashflow nach Agent-Rechnung: 2023 780, 2024 410, 2025 276 Mio. $; 1. Halbjahr 2026 -26,0 Mio. $ (operativer Cashflow 60,6 Mio. $, Investitionen 86,6 Mio. $)."
   - "Die Nettokasse ist von 685 Mio. $ (Ende 2025) auf 363 Mio. $ gesunken (Rückkäufe 142 Mio. $, Zukäufe, Betriebskapital)."
   - "Trend-Guard markiert die fallende Marge; die Firma nennt Geopolitik, schwachen Wohnungsmarkt, steigende Einkaufspreise und hohe Frachtkosten."
@@ -82,8 +82,8 @@ entry:
   limit_note: "Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (267,0 Mio. $) und 56,5 Mio. Aktien angewendet. Die Regel verlangt strikt mehr als 6 %, der Preis muss also unter der Grenze liegen; der Kurs vom 23.09. liegt knapp darüber. Die zweite Grenze (EV/EBITDA) fehlt. Die Firma selbst rechnet den freien Cashflow anders (ohne Betriebskapital-Aufbau, nur Instandhaltungs-Investitionen: 198 Mio. $ im 1. Halbjahr); das ist nicht dieselbe Größe."
   price: 81.78
   price_date: "23.09.2026"
-  condition: "Abwarten: Quartalsbericht Q3 (voraussichtlich Anfang November); der freie Cashflow der letzten zwölf Monate muss mit dem Rückfluss des Betriebskapitals wieder deutlich über der 6-%-Marke liegen; aktuellen Kurs prüfen"
-kill: "Vorschlag des Agenten: verwerfen, wenn der freie Cashflow der letzten zwölf Monate mit dem Q4-Bericht (Februar 2027) unter 5 % des Börsenwerts liegt (Stufe-2-Durchfallgrenze aus config/stage2.yaml) oder die Betriebsmarge der letzten zwölf Monate weiter unter 5 % fällt (keine Schwelle aus dem Repo); sonst auf WEITERVERFOLGEN prüfen."
+  condition: "Abwarten: Quartalsbericht Q3 (Termin noch nicht bekannt); der freie Cashflow der letzten zwölf Monate muss mit dem Rückfluss des Betriebskapitals wieder deutlich über der 6-%-Marke liegen; aktuellen Kurs prüfen"
+kill: "Vorschlag des Agenten: verwerfen, wenn der freie Cashflow der letzten zwölf Monate mit dem Q4-Bericht (Februar 2027) unter 5 % des Börsenwerts liegt (Stufe-2-Durchfallgrenze aus config/stage2.yaml) oder die Betriebsmarge der letzten zwölf Monate (heute 5,07 %) unter 5 % fällt (keine Schwelle aus dem Repo); sonst auf WEITERVERFOLGEN prüfen."
 sources_detail:
   - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 25.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 05.08.2026 und Q1 2026 vom 06.05.2026, Q1 nur auf Vorhandensein geprüft) und 3 aktuelle Meldungen (8-K vom 22.07., 29.07. mit der Pressemitteilung und 30.07.2026 mit der Investorenpräsentation). Zahlen aus den XBRL-Daten der SEC gegengelesen. Die Investorenpräsentation wurde nicht ausgewertet."
   - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
@@ -107,8 +107,8 @@ gates:
   - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "1,75", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
   - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "7,4 (Platz 3 von 33)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
   - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "10,9 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
-  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "1 Marke", rule: "Marke bei Umsatz- oder Margenverhältnis unter 0,90 oder Marge über 1,25", status: warn }
-gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Trend-Guard: Marge fallend (Marge-Verhältnis 0,87), Umsatzverhältnis 0,94. Die Zahlen des ersten Halbjahres 2026 sind darin nicht enthalten."
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "1 Marke", rule: "Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %", status: warn }
+gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Trend-Guard: Marge fallend (Marge-Verhältnis 0,87), Umsatzverhältnis 0,94. Die Zahlen des ersten Halbjahres 2026 sind darin nicht enthalten. Das Archiv rechnet 10,9 % FCF-Rendite; mit den hier gezeigten FCF-Zahlen (Dreijahresmittel 488,7 Mio. $) ergibt sich 10,6 %, die Ursache der Abweichung ist nicht untersucht."
 financials_title: "Kennzahlen im Überblick (Mio. $)"
 financials:
   columns: ["2023", "2024", "2025", "1. Hj. 2025", "1. Hj. 2026"]

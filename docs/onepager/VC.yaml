@@ -56,7 +56,7 @@ halfyear:
 events:
   - { date: "1. Halbjahr 2026", text: "Umbaukosten (Restrukturierung) von 17 Mio. $ nach 1 Mio. $ im Vorjahreszeitraum" }
   - { date: "23.07.2026", text: "Quartalszahlen Q2: Umsatz 960 Mio. $ (Vorjahr 969), bereinigtes EBITDA 116 Mio. $ (134), neue Aufträge 2,0 Mrd. $" }
-  - { date: "23.07.2026", text: "Beschleunigter Aktienrückkauf über 200 Mio. $ mit Bank of America vereinbart (Teil der 800-Mio.-$-Ermächtigung), Abschluss spätestens früh im 4. Quartal" }
+  - { date: "23.07.2026", text: "Beschleunigter Aktienrückkauf über 200 Mio. $ mit Bank of America vereinbart (Teil der 800-Mio.-$-Ermächtigung), Abschluss laut Firma früh im 4. Quartal erwartet" }
   - { date: "23.07.2026", text: "10-Q Q2 2026 eingereicht" }
   - { date: "Q4 2026", text: "Rückkauf soll abgeschlossen sein; Jahresziel laut Firma: bereinigtes EBITDA rund 475 Mio. $, freier Cashflow 150 Mio. $", future: true }
 bear:
@@ -80,7 +80,7 @@ entry:
   limit_note: "Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (160 Mio. $) und 26,7 Mio. Aktien angewendet. Der Kurs vom 23.09. liegt knapp darunter; Die Firma erwartet für 2026 aber nur 150 Mio. $, womit die Grenze bei rund 93,6 $ läge, also etwa beim Kurs. Der Rückkauf senkt die Aktienzahl (bei 93 $ rund 2 Mio. Aktien) und hebt die FCF-Rendite je Aktie. Die zweite Grenze (EV/EBITDA) fehlt."
   price: 93.03
   price_date: "23.09.2026"
-  condition: "Aktuellen Kurs prüfen; Quartalsbericht Q3 (voraussichtlich Ende Oktober) abwarten: Hält die Firma die Prognose von 475 Mio. $ EBITDA und 150 Mio. $ freiem Cashflow?"
+  condition: "Aktuellen Kurs prüfen; Quartalsbericht Q3 (Termin noch nicht bekannt) abwarten: Hält die Firma die Prognose von 475 Mio. $ EBITDA und 150 Mio. $ freiem Cashflow?"
 kill: "Vorschlag des Agenten: verwerfen, wenn die FCF-Rendite der letzten zwölf Monate unter 5 % fällt (Stufe-2-Durchfallgrenze aus config/stage2.yaml; bei 93 $ Kurs entspricht das einem freien Cashflow von rund 124 Mio. $) oder die Firma die Jahresprognose für den freien Cashflow unter 100 Mio. $ senkt (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q."
 sources_detail:
   - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 19.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 23.07.2026 und Q1 2026 vom 23.04.2026, Q1 nur auf Vorhandensein geprüft) und 1 aktuelle Meldung (8-K vom 23.07.2026 mit Pressemitteilung und Rückkaufvertrag). Zahlen aus den XBRL-Daten der SEC und der Pressemitteilung gegengelesen."
@@ -88,7 +88,7 @@ sources_detail:
   - "NICHT verwendet: Earnings-Call-Transkripte (Konferenz am 23.07.2026 stattgefunden), Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
 sources: "SEC: 10-K 2025 (0001111335-26-000006), 10-Q Q2 2026 (-26-000046), 10-Q Q1 2026 (-26-000016), 8-K vom 23.07.2026 (-26-000045). Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
 not_checked: "Die Peer-Gruppe Engineering & Construction (17 Firmen) passt kaum: Sie enthält Bau- und Ingenieurfirmen sowie Maschinenbauer wie Kennametal und Terex; Visteon ist ein Autozulieferer (SimFin ordnet ihn dort ein). Das bereinigte EBITDA ist die Größe der Firma und addiert unter anderem aktienbasierte Vergütung zurück (50 Mio. $ im Jahr). Das Betriebsergebnis nach GAAP ist in den gelesenen Texten nicht ausgewiesen; die Marge ist deshalb als bereinigte EBITDA-Marge gezeigt. Gewinn 2023 (568 Mio. $) enthält nach Angabe der Unternehmensdaten einen Steuereffekt, nicht im Detail geprüft. Offen sind der heutige Kurs, die Wirkung der Zölle, die Lage in China und die genaue Verteilung der Aufträge. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
-peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); in der Gruppe fehlen keine Firmen wegen fehlender Fundamentaldaten. Die Gruppe passt schlecht zu einem Autozulieferer."
+peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); in der Gruppe fehlen keine Firmen wegen Datenfehlern; KBR hat keinen FCF-Wert (zu wenige Jahre). Die Gruppe passt schlecht zu einem Autozulieferer."
 peer_summary: "Gegen die 17 Firmen der Peer-Gruppe: EV/EBITDA 4,6 gegen Median 13,4 (Platz 2 von 17), FCF-Rendite 9,5 % gegen Median 4,3 % (Platz 4 von 16). Archivwerte der Geschäftsjahre. Die Gruppe passt schlecht (Bau, Ingenieure, Maschinenbau); der Vergleich mit anderen Autozulieferern fehlt."
 funnel_title: "So kam VC auf die Liste (Trichter vom 10.10.2026)"
 funnel:
@@ -105,7 +105,7 @@ gates:
   - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "1,32", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
   - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "4,6 (Platz 2 von 17)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
   - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "9,5 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
-  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke bei Umsatz- oder Margenverhältnis unter 0,90 oder Marge über 1,25", status: ok }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %", status: ok }
 gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Die Zahlen des ersten Halbjahres 2026 sind darin nicht enthalten."
 financials_title: "Kennzahlen im Überblick (Mio. $)"
 financials:
