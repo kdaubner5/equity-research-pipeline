@@ -24,6 +24,7 @@ Ausgang: 0 = geschrieben; 2 = Abbruch (echtes Archiv, Datei fehlt, Lauf nicht ge
 
 import argparse
 import csv
+import json
 import sqlite3
 import sys
 from datetime import date
@@ -39,6 +40,7 @@ from config_layer.sector_profiles import SectorProfilesConfigError, load_sector_
 from config_layer.stage2 import Stage2ConfigError, compute_stage2_config_hash, load_stage2_config  # noqa: E402
 from config_layer.thresholds import ThresholdsConfigError, load_thresholds  # noqa: E402
 from data_layer.simfin_price_cache import PriceCacheError, load_price_cache_index  # noqa: E402
+from data_layer.simfin_universe import UniverseDataError, parse_general_bulk  # noqa: E402
 from gates_layer.peer_groups import LEVEL_ABSOLUTE, LEVEL_COARSE, assign_peers, peer_position  # noqa: E402
 from gates_layer.stage2_gates import _peer_base_multiples  # noqa: E402
 from metrics_layer.valuation import fcf_yield_average  # noqa: E402
@@ -49,7 +51,19 @@ class PeerExportError(Exception):
     pass
 
 
-def peer_rows(inputs, config, as_of_year, candidates, statuses, problems=None):
+def load_company_info(universe_cache_dir, as_of):
+    """{ticker: (Name, Sektor, Branche)} aus general_bulk.json des Vorfilter-Laufs (nur lesen). Fehlt die Datei, bleibt es leer
+    (die Namen sind nur Beschriftung, der Export laeuft trotzdem; die Meldung steht in der Ausgabe)."""
+    path = Path(universe_cache_dir) / as_of.isoformat() / "general_bulk.json"
+    try:
+        envelope = json.loads(path.read_text(encoding="utf-8"))
+        entries, _ = parse_general_bulk(envelope["response"])
+    except (OSError, ValueError, KeyError, TypeError, UniverseDataError):
+        return {}
+    return {e.ticker: (e.name, e.sector_name, e.industry_name) for e in entries if e.ticker}
+
+
+def peer_rows(inputs, config, as_of_year, candidates, statuses, problems=None, info=None):
     """(Zeilen, Hinweise): je Kandidat alle Firmen seiner Peer-Gruppe (gleiche Ebene und Gruppe wie bei Stufe 2).
 
     inputs: {ticker: ValuationInput} wie in run_stage2; statuses: {ticker: Stufe-2-Status} der gespeicherten Zeilen.
@@ -59,6 +73,7 @@ def peer_rows(inputs, config, as_of_year, candidates, statuses, problems=None):
     """
     base, ev_results = _peer_base_multiples(inputs, config, as_of_year)
     problems = problems or {}
+    info = info or {}
     divisor = config.peer_groups.coarse_level_divisor
     rows, notes = [], []
     for candidate in candidates:
@@ -98,6 +113,8 @@ def peer_rows(inputs, config, as_of_year, candidates, statuses, problems=None):
                 "status": statuses.get(ticker, "nicht_in_stufe_2"), "ev_ebitda": base[ticker][1],
                 "ev_ebitda_percentile": float(position.percentile), "fcf_yield": fcf.value,
                 "peer_rank": position.rank, "peer_n": position.n, "invalid_reasons": fcf.invalid_reason or "",
+                "name": (info.get(ticker) or ("", "", ""))[0], "sector_name": (info.get(ticker) or ("", "", ""))[1],
+                "industry_name": (info.get(ticker) or ("", "", ""))[2],
             })
     return rows, notes
 
@@ -193,7 +210,14 @@ def main(argv=None):
             )
         if compute_stage2_config_hash(run_stage2.DEFAULT_STAGE2_PATH) != run["config_hash"]:
             print("Warnung: config/stage2.yaml hat sich seit dem Stufe-2-Lauf geaendert (anderer config_hash).", file=sys.stderr)
-        rows, notes = peer_rows(inputs, config, as_of.year, candidates, statuses, problems)
+        info = load_company_info(args.universe_cache_dir, as_of)
+        if not info:
+            notes_extra = "Firmennamen nicht gefunden (general_bulk.json fehlt oder ist nicht lesbar); die Spalten name, sector_name und industry_name bleiben leer."
+        else:
+            notes_extra = None
+        rows, notes = peer_rows(inputs, config, as_of.year, candidates, statuses, problems, info)
+        if notes_extra:
+            notes.append(notes_extra)
         with open(args.out, "x", encoding="utf-8", newline="") as handle:
             handle.write(render_csv(rows, PEER_FIELDNAMES))
     except (PeerExportError, run_stage2.Stage2RunError, Stage2ConfigError, ThresholdsConfigError, SectorProfilesConfigError,

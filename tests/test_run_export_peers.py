@@ -111,3 +111,24 @@ def test_build_inputs_aborts_on_duplicate_tickers_and_uncovered_sector_codes(mon
     monkeypatch.setattr(rep.run_stage2, "load_prefilter_rows", lambda db, ts: ("t", [(1, "AAA", 1, 1e9)]))
     with pytest.raises(rep.PeerExportError, match="Branchenprofile unvollstaendig"):
         rep.build_inputs(tmp_path / "x.db", "t", __import__("datetime").date(2026, 9, 24), tmp_path, tmp_path)
+
+
+def test_company_names_are_added_when_known_and_blank_when_not():
+    inputs = inputs_with_group([4.0 + i for i in range(8)])
+    info = {"P0": ("Firma Null", "Sektor A", "Branche B")}
+    rows, _ = rep.peer_rows(inputs, CONFIG, 2026, ["P0"], {}, None, info)
+    by = {r["ticker"]: r for r in rows}
+    assert by["P0"]["name"] == "Firma Null" and by["P0"]["sector_name"] == "Sektor A" and by["P0"]["industry_name"] == "Branche B"
+    assert by["P1"]["name"] == ""
+
+
+def test_load_company_info_reads_the_cached_listing_and_survives_a_missing_file(tmp_path):
+    import json
+    from datetime import date
+    folder = tmp_path / "2026-09-24"
+    folder.mkdir()
+    response = {"columns": ["id", "ticker", "name", "market", "industryName", "sectorName", "sectorCode"],
+                "data": [[1, "AAA", "Alpha Inc", "us", "Ind", "Sec", 110001]]}
+    (folder / "general_bulk.json").write_text(json.dumps({"kind": "general_bulk", "response": response}), encoding="utf-8")
+    assert rep.load_company_info(tmp_path, date(2026, 9, 24)) == {"AAA": ("Alpha Inc", "Sec", "Ind")}
+    assert rep.load_company_info(tmp_path / "fehlt", date(2026, 9, 24)) == {}

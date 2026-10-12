@@ -188,7 +188,7 @@ def export_rows(connection, stage2_timestamp, candidates):
 
 PEER_FIELDNAMES = [
     "candidate", "peer_group", "peer_level", "ticker", "status", "ev_ebitda", "ev_ebitda_percentile", "fcf_yield",
-    "peer_rank", "peer_n", "invalid_reasons",
+    "peer_rank", "peer_n", "invalid_reasons", "name", "sector_name", "industry_name",
 ]
 
 
