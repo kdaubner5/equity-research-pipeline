@@ -8,10 +8,15 @@ Die Liste der Namen kommt aus docs/kandidaten/runde1.md (Spalten Nr., Rang, Tick
 Stufe-2-Lauf abgeleitet (stage2_runs: Stufe-1-Lauf und Vorfilter-Lauf; trend_runs: der Trend-Guard-Lauf mit demselben
 Stufe-1-Lauf). Fehlende Zeilen werden nicht verschwiegen, sondern in der Spalte "luecken" genannt.
 
-Aufruf (auf einer Kopie, die Konstantin zuvor mit Pruefsumme gesichert hat):
-    python run_export_candidates.py KOPIE.db STUFE2_ZEITSTEMPEL [--tranche A] [--out DATEI.csv]
+Aufruf (auf einer Kopie, die Konstantin zuvor mit Pruefsumme gesichert hat), Beispiel fuer PowerShell:
+    C:\\Users\\<Benutzer>\\anaconda3\\python.exe run_export_candidates.py data\\kopie_nach_A3.db 2026-10-10T12:27:44 --tranche A --out data\\export_A.csv
 
-Exit-Code: 0 = ausgegeben; 2 = Abbruch (echtes Archiv, Datei fehlt, Lauf nicht gefunden, Zieldatei existiert schon).
+Der Zeitstempel ist der des Stufe-2-Laufs (Spalte run_timestamp in der Tabelle stage2_runs). Die CSV-Datei hat Komma als
+Trenner und Punkt als Dezimalzeichen (nicht fuer das deutsche Excel gedacht, sondern zum Einfuegen in den Chat).
+Ohne --out kommt die CSV auf den Bildschirm; in PowerShell 5 ist Umleiten mit ">" unbrauchbar, bitte --out nehmen.
+
+Exit-Code: 0 = ausgegeben; 2 = Abbruch (echtes Archiv, Datei fehlt, Lauf nicht gefunden, Zieldatei existiert schon,
+mehrere Trend-Guard-Laeufe, doppelter Ticker in der Liste). Alle ABBRUCH-Meldungen gehen nach stderr.
 """
 
 import argparse
@@ -39,6 +44,8 @@ FIELDNAMES = [
     "ev_ebitda", "ev_ebitda_percentile", "peer_level", "peer_group", "peer_rank", "peer_n",
     "fcf_yield", "ev_ebitda_normalized", "share_count_ratio", "fcf_yield_incl_other_investing",
     "trend_status", "trend_marks", "revenue_ratio", "ebitda_margin_ratio", "roic_last_year",
+    "stage2_invalid_reasons", "trend_invalid_reasons",
+    "stage2_run", "stage1_run", "prefilter_run", "trend_run",
     "luecken",
 ]
 
@@ -58,6 +65,9 @@ def read_candidates(path=CANDIDATE_LIST, tranche=None):
             rows.append((int(match.group(1)), match.group(3), match.group(4)))
     if not rows:
         raise ExportError(f"Keine Kandidatenzeilen in {path} gefunden.")
+    tickers = [r[1] for r in rows]
+    if len(set(tickers)) != len(tickers):
+        raise ExportError(f"Doppelter Ticker in {path}.")
     if tranche:
         rows = [r for r in rows if r[2] == tranche]
         if not rows:
@@ -77,12 +87,17 @@ def export_rows(connection, stage2_timestamp, candidates):
         raise ExportError(f"Stufe-2-Lauf {stage2_timestamp!r} nicht in stage2_runs.")
     stage1_ts = stage2_run["stage1_run_timestamp"]
     prefilter_ts = stage2_run["prefilter_run_timestamp"]
-    trend_run = _one(
-        connection,
-        "SELECT * FROM trend_runs WHERE stage1_run_timestamp = ? AND prefilter_run_timestamp = ? ORDER BY run_timestamp DESC",
+    trend_runs = connection.execute(
+        "SELECT run_timestamp FROM trend_runs WHERE stage1_run_timestamp = ? AND prefilter_run_timestamp = ? ORDER BY run_timestamp",
         (stage1_ts, prefilter_ts),
-    )
-    trend_ts = trend_run["run_timestamp"] if trend_run else None
+    ).fetchall()
+    if len(trend_runs) > 1:
+        raise ExportError(
+            "Mehrere Trend-Guard-Läufe gehören zu diesem Stufe-1- und Vorfilter-Lauf: "
+            + ", ".join(r["run_timestamp"] for r in trend_runs)
+            + ". Welcher gilt, muss Konstantin sagen."
+        )
+    trend_ts = trend_runs[0]["run_timestamp"] if trend_runs else None
 
     rows = []
     for nr, ticker, tranche in candidates:
@@ -106,10 +121,27 @@ def export_rows(connection, stage2_timestamp, candidates):
             gaps.append("run_results fehlt")
         if s2 is not None and pre is None:
             gaps.append("universe_prefilter fehlt")
-        if pre is not None and pre["close_price_usd"] is None:
-            gaps.append("close_price_usd leer")
-        if pre is not None and pre["shares_outstanding"] is None:
-            gaps.append("shares_outstanding leer")
+        if pre is not None and pre["ticker"] != ticker:
+            gaps.append(f"Ticker im Vorfilter weicht ab: {pre['ticker']}")
+        if pre is not None and pre["status"] != "passed":
+            gaps.append(f"Vorfilter-Status {pre['status']}")
+        if pre is not None:
+            for column in ("close_price_usd", "shares_outstanding", "market_cap_usd", "price_date"):
+                value = pre[column]
+                if value is None or value == "":
+                    gaps.append(f"{column} leer")
+                elif column != "price_date" and value <= 0:
+                    gaps.append(f"{column} nicht positiv")
+        if s2 is not None:
+            for column in ("rank_position", "ev_ebitda", "fcf_yield"):
+                if s2[column] is None:
+                    gaps.append(f"stage2 {column} leer" + (f" ({s2['invalid_reasons']})" if s2["invalid_reasons"] else ""))
+        if tr is not None and s2 is not None and tr["simfin_id"] != s2["simfin_id"]:
+            gaps.append("simfin_id in Trend-Guard weicht ab")
+        if tr is not None:
+            for column in ("revenue_ratio", "ebitda_margin_ratio", "roic_last_year"):
+                if tr[column] is None:
+                    gaps.append(f"trend {column} leer")
         if trend_ts is None:
             gaps.append("trend_runs fehlt")
         elif tr is None:
@@ -137,6 +169,12 @@ def export_rows(connection, stage2_timestamp, candidates):
             "fcf_yield_incl_other_investing": g(s2, "fcf_yield_incl_other_investing"),
             "trend_status": g(tr, "status"), "trend_marks": g(tr, "marks"), "revenue_ratio": g(tr, "revenue_ratio"),
             "ebitda_margin_ratio": g(tr, "ebitda_margin_ratio"), "roic_last_year": g(tr, "roic_last_year"),
+            "stage2_invalid_reasons": g(s2, "invalid_reasons"),
+            "trend_invalid_reasons": "; ".join(
+                f"{k}: {tr[k]}" for k in ("revenue_invalid_reason", "margin_invalid_reason", "roic_invalid_reason")
+                if tr is not None and tr[k]
+            ),
+            "stage2_run": stage2_timestamp, "stage1_run": stage1_ts, "prefilter_run": prefilter_ts, "trend_run": trend_ts,
             "luecken": "; ".join(gaps),
         })
     header = {
@@ -154,7 +192,14 @@ def render_csv(rows):
     return buffer.getvalue()
 
 
+def _err(message):
+    print(message, file=sys.stderr)
+
+
 def main(argv=None):
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("copy_path")
     parser.add_argument("stage2_timestamp")
@@ -165,17 +210,17 @@ def main(argv=None):
 
     path = Path(args.copy_path)
     if _is_real_archive(path):
-        print("ABBRUCH: Das ist das echte Run-Archiv; es wird nicht geöffnet. Bitte eine gesicherte Kopie angeben.")
+        _err("ABBRUCH: Das ist das echte Run-Archiv; es wird nicht geöffnet. Bitte eine gesicherte Kopie angeben.")
         return 2
     if not path.is_file():
-        print(f"ABBRUCH: Datei nicht gefunden: {path}")
+        _err(f"ABBRUCH: Datei nicht gefunden: {path}")
         return 2
     for suffix in ("-wal", "-journal"):
         if Path(str(path) + suffix).exists():
-            print(f"ABBRUCH: Neben der Kopie liegt eine Datei mit der Endung {suffix}; die Kopie ist unvollständig.")
+            _err(f"ABBRUCH: Neben der Kopie liegt eine Datei mit der Endung {suffix}; die Kopie ist unvollständig.")
             return 2
     if args.out and Path(args.out).exists():
-        print(f"ABBRUCH: Zieldatei existiert schon (wird nicht überschrieben): {args.out}")
+        _err(f"ABBRUCH: Zieldatei existiert schon (wird nicht überschrieben): {args.out}")
         return 2
     try:
         candidates = read_candidates(args.list_path, args.tranche)
@@ -184,13 +229,21 @@ def main(argv=None):
             header, rows = export_rows(connection, args.stage2_timestamp, candidates)
         finally:
             connection.close()
+    except sqlite3.OperationalError as exc:
+        _err(f"ABBRUCH: Tabelle oder Spalte fehlt, die Kopie ist vermutlich veraltet oder unvollständig: {exc}")
+        return 2
     except (ExportError, sqlite3.Error) as exc:
-        print(f"ABBRUCH: {exc}")
+        _err(f"ABBRUCH: {exc}")
         return 2
 
     text = render_csv(rows)
     if args.out:
-        Path(args.out).write_text(text, encoding="utf-8")
+        try:
+            with open(args.out, "x", encoding="utf-8", newline="") as handle:
+                handle.write(text)
+        except OSError as exc:
+            _err(f"ABBRUCH: Zieldatei nicht schreibbar oder schon vorhanden: {exc}")
+            return 2
         print(f"{len(rows)} Zeilen nach {args.out} geschrieben (Kopie nur gelesen).")
     else:
         print(text, end="")

@@ -45,8 +45,8 @@ def build(path, with_price=True, with_trend=True):
         if with_trend:
             c.execute("INSERT INTO trend_runs VALUES (?, ?, ?, '2026-10-10', 'h', 1, 1)", (TR, S1, PRE))
             c.execute(
-                "INSERT INTO trend_results (run_timestamp, ticker, simfin_id, status, marks, mark_count, revenue_ratio) "
-                "VALUES (?, 'AAA', 11, 'marked', 'T1', 1, 0.85)",
+                "INSERT INTO trend_results (run_timestamp, ticker, simfin_id, status, marks, mark_count, revenue_ratio, ebitda_margin_ratio, roic_last_year) "
+                "VALUES (?, 'AAA', 11, 'marked', 'T1', 1, 0.85, 0.95, 0.12)",
                 (TR,),
             )
         c.commit()
@@ -126,7 +126,7 @@ def test_main_reads_only_and_writes_the_csv(tmp_path, capsys):
 
 def test_main_refuses_the_real_archive_and_an_existing_output(tmp_path, capsys):
     assert rec.main([str(archive_db.DEFAULT_DB_PATH), S2]) == 2
-    assert "echte Run-Archiv" in capsys.readouterr().out
+    assert "echte Run-Archiv" in capsys.readouterr().err
     db = tmp_path / "kopie.db"
     build(db)
     out = tmp_path / "aus.csv"
@@ -140,3 +140,72 @@ def test_main_refuses_a_copy_with_a_wal_file(tmp_path):
     build(db)
     Path(str(db) + "-wal").write_bytes(b"")
     assert rec.main([str(db), S2]) == 2
+
+
+def test_several_trend_runs_for_the_same_inputs_abort(tmp_path):
+    db = tmp_path / "kopie.db"
+    build(db)
+    connection = sqlite3.connect(db)
+    connection.execute("INSERT INTO trend_runs VALUES ('2026-10-11T00:00:00', ?, ?, '2026-10-11', 'h', 1, 1)", (S1, PRE))
+    connection.commit()
+    with pytest.raises(rec.ExportError, match="Mehrere Trend-Guard-Läufe"):
+        rec.export_rows(connection, S2, [(1, "AAA", "A")])
+    connection.close()
+
+
+def test_duplicate_ticker_in_the_list_aborts(tmp_path):
+    lst = tmp_path / "liste.md"
+    lst.write_text("| 1 | 3 | AAA | A | x |\n| 2 | 4 | AAA | B | x |\n", encoding="utf-8")
+    with pytest.raises(rec.ExportError, match="Doppelter Ticker"):
+        rec.read_candidates(lst)
+
+
+def test_non_positive_price_status_and_mismatches_are_named(tmp_path):
+    db = tmp_path / "kopie.db"
+    build(db)
+    connection = sqlite3.connect(db)
+    connection.execute("UPDATE universe_prefilter SET close_price_usd = 0, status = 'excluded', ticker = 'ZZZ'")
+    connection.execute("UPDATE stage2_results SET ev_ebitda = NULL, invalid_reasons = 'ebitda_negative'")
+    connection.execute("UPDATE trend_results SET simfin_id = 99, roic_last_year = NULL, roic_invalid_reason = 'roic_missing'")
+    connection.commit()
+    _, rows = rec.export_rows(connection, S2, [(1, "AAA", "A")])
+    connection.close()
+    gaps = rows[0]["luecken"]
+    for text in ("close_price_usd nicht positiv", "Vorfilter-Status excluded", "Ticker im Vorfilter weicht ab: ZZZ",
+                 "stage2 ev_ebitda leer (ebitda_negative)", "simfin_id in Trend-Guard weicht ab", "trend roic_last_year leer"):
+        assert text in gaps, text
+    assert rows[0]["stage2_invalid_reasons"] == "ebitda_negative"
+    assert rows[0]["trend_invalid_reasons"] == "roic_invalid_reason: roic_missing"
+    assert rows[0]["stage2_run"] == S2 and rows[0]["trend_run"] == TR
+
+
+def test_old_archive_without_tables_gives_a_clear_abort(tmp_path, capsys):
+    db = tmp_path / "alt.db"
+    connection = sqlite3.connect(db)
+    connection.execute("CREATE TABLE runs (run_timestamp TEXT)")
+    connection.commit()
+    connection.close()
+    assert rec.main([str(db), S2]) == 2
+    assert "veraltet oder unvollständig" in capsys.readouterr().err
+
+
+def test_not_a_database_and_missing_output_folder_abort(tmp_path, capsys):
+    junk = tmp_path / "x.db"
+    junk.write_text("kein sqlite", encoding="utf-8")
+    assert rec.main([str(junk), S2]) == 2
+    db = tmp_path / "kopie.db"
+    build(db)
+    lst = tmp_path / "liste.md"
+    write_list(lst)
+    assert rec.main([str(db), S2, "--list", str(lst), "--out", str(tmp_path / "fehlt" / "aus.csv")]) == 2
+    assert "nicht schreibbar" in capsys.readouterr().err
+
+
+def test_a_link_to_the_real_archive_is_refused(tmp_path):
+    real = archive_db.DEFAULT_DB_PATH
+    link = tmp_path / "link.db"
+    try:
+        link.symlink_to(real)
+    except OSError:
+        pytest.skip("Symlinks nicht möglich")
+    assert rec.main([str(link), S2]) == 2
