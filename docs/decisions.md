@@ -2541,3 +2541,54 @@ Die Fragen unten sind damit beantwortet; sie bleiben zur Nachvollziehbarkeit ste
 6. Wenn ein Kurs später abweicht (Konflikt): Entscheidest du von Hand, welcher gilt? (Vorschlag: ja.)
 
 **How to apply (nach Freigabe):** Tests zuerst, dann `run_benchmark_prices.py` und `config/benchmarks.yaml`, Eintrag in `NON_RULE_CONFIG_FILES`. Beachten: Der Name `run_*.py`, die Dateien unter `config/` und neue Module unter `src/` zählen als „relevant“ für die Marke „dirty“ im Regelstand (`rule_state.py`); sie ändern die Hashes der Regeldateien nicht, aber ein Lauf im nicht committeten Zustand würde als „dirty“ markiert. Erst committen und mergen, dann Läufe starten. Erster Abruf erst auf Konstantins Rechner mit seiner Anweisung. Klasse C, ein Kritiker-Lauf.
+
+
+## 2026-10-10: Baseline – alte Läufe vor dem Regelstand und Replay-Ergebnis (Agent-Entscheidung, Klasse C; Entwurf, kein Code)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin. Klasse C, weil der Eintrag den Satz zu den alten Zeilen in Roadmap A.3 ersetzt. Keine Schwellenänderung, kein Code, keine Daten abgerufen.
+
+**In einfachen Worten:** Im echten Archiv liegen zwei ältere Läufe (Vorfilter vom 24.09., Stufe 1 vom 30.09.). Die Roadmap wollte sie vor dem ersten Baseline-Lauf eigens „kennzeichnen“. Das ist nicht nötig und würde eine Änderung der echten Datenbank bedeuten: Sie sind schon erkennbar, weil für sie kein Regelstand gespeichert wurde und die Spalten für Kurs und Aktienzahl leer sind. Sie bleiben unverändert.
+
+**Entscheidung (Vorschlag):**
+1. Die vorhandenen Zeilen werden im ersten archivierten Lauf (A.3) **nicht verändert**. Eine Kennzeichnungsspalte oder ein Nachtrag entfällt.
+2. Als **„vor der Baseline“** gelten alle Läufe im Archiv, die **keine Zeile in `run_rule_state`** haben (Regelstand wird nur für neue Läufe gespeichert, Eintrag „Regelstand und Kurs je Lauf im Archiv“, ausdrücklich ohne Nachtrag). Zusätzliche, unabhängige Merkmale: Beim Stufe-1-Lauf vom 30.09. ist `runs.prefilter_run_timestamp` leer (er ist damit keinem Vorfilter-Lauf zugeordnet), bei den Vorfilter-Zeilen vom 24.09. sind `close_price_usd` und `shares_outstanding` leer. Wichtig: In der echten Datenbank **fehlen** die Tabelle `run_rule_state` und diese Spalten bis zum ersten Lauf mit dem heutigen Code (`init_db` legt sie an, danach sind die Werte leer); eine Abfrage auf `run_rule_state` ist vorher nicht möglich, und die Auswertung (E.4) muss mit einem Verknüpfen ohne Treffer (LEFT JOIN) arbeiten. Die Regel gilt für Läufe über die Runner, die den Regelstand immer erfassen; ein Testaufruf mit `rule_state=None` schreibt keine Zeile.
+3. Die Auswertung (Roadmap E.4) darf keinen Lauf ohne Regelstand als Baseline verwenden. Im Archiv stehen heute zwei solche Läufe: Vorfilter `2026-09-24T18:13:48` und Stufe 1 `2026-09-30T17:38:53`.
+4. Roadmap A.3 wird entsprechend geändert (siehe PR).
+
+**Beobachtungen vom 10.10.2026** (laut Ausgaben von Konstantins lokalen Läufen auf Kopien; im Repo nicht belegt):
+- Archiv: 4 Tabellen (`run_results` 128 Zeilen, `eliminated_results` 1.693, `runs` 1, `universe_prefilter` 6.654); 7 weitere Tabellen entstehen beim ersten Lauf, alle fehlenden Spalten rüstet `init_db` selbst nach, eine eigene Migration ist nicht nötig (Schemaprüfung, PR #91).
+- Replay auf einer Kopie mit dem heutigen Regelstand, Vorfilter `2026-09-24T18:13:48`: Stufe 1: 126 Überlebende (93 bestanden, 33 mit Marken; 458 durchgefallen, 706 nicht beurteilbar, 531 mit ausgeschlossenem Geschäftsmodell, zusammen 1.821). Stufe 2: 126 ausgewertet, **41 bestehen** (35 bestanden, 6 mit Marken; 77 durchgefallen, 8 nicht beurteilbar); verdächtige Aktienzahl bei AOS und CRI. Trend-Guard: laut Konstantin die erwartete Verteilung (95 unmarkiert, 25 markiert, 6 nicht beurteilbar von 126); die Ausgabe selbst liegt dem Agenten nicht vor.
+- Der alte Stufe-1-Lauf vom 30.09. hatte 128 Überlebende statt 126, vermutlich weil die Geschäftsmodell-Profile damals noch nicht galten (Ursache nicht geprüft).
+- Empfindlichkeitstest Stufe 1 auf dem Lauf vom 30.09.: Ausgangslage wird reproduziert (95 + 33 = 128); von 1.821 Firmen überleben 128, 538 fallen durch, 1.155 sind nicht beurteilbar (Datenlücken); die ROIC-Untergrenze wirkt am stärksten (10 Prozent auf 9 Prozent: +12 Firmen, auf 8 Prozent: +22), die übrigen Schwellen weniger.
+
+**Offen und ungeprüft:**
+- Der Vorfilter vom 24.09. lässt sich laut Konstantins Test auf einer Kopie (10.10.2026) mit `--max-calls 0` aus dem Cache neu rechnen: 0 Abrufe, vollständig, 1.821 bestanden. A.3 schreibt deshalb **zuerst einen neuen Vorfilter-Lauf aus dem Cache** (mit Kurs, Aktienzahl und Regelstand) und nimmt ihn als Quelle für Stufe 1; die alten Läufe bleiben unverändert. Ob der neue Vorfilter-Lauf im echten Archiv dasselbe ergibt, zeigt erst A.3.
+- Die Zahlen oben sind Konstantins lokale Ausgaben, nicht aus dem Repo belegt.
+
+**Alternativen:** (a) eine Spalte `baseline` ergänzen und die alten Zeilen beschreiben: verworfen, weil die echte Datenbank dafür geändert würde und das Merkmal schon vorhanden ist. (b) alte Läufe löschen: verworfen (keine Nutzerdaten löschen).
+
+**How to apply (nach Freigabe):** Keine Umsetzung in diesem Eintrag; A.3 läuft ohne Kennzeichnungsschritt.
+
+
+## 2026-10-10: Erster archivierter Lauf (Roadmap A.3), Befund (Klasse A; Messdokumentation, kein Code)
+
+**Reine Befunddokumentation.** Keine neue Regel, keine Schwellenänderung. **Alle Zahlen stammen aus dem Bericht von Konstantins lokaler Claude-Sitzung vom 10.10.2026; die Rohausgaben liegen nicht im Repo.** Grundlage waren die Freigabe von Konstantin für `data/run_archive.db` (gültig bis 2026-10-10 18:00, Schritte zwischen 12:27:30 und 12:27:57), der Entwurf „Baseline – alte Läufe vor dem Regelstand“ und die Roadmap A.2 und A.3.
+
+**In einfachen Worten:** Laut Bericht der lokalen Sitzung ist der erste Lauf mit dem heutigen Regelstand im echten Archiv. Die erwarteten Zahlen aus dem Replay (126 Überlebende, 41 im Ranking, Trend-Guard 95 / 25 / 6) stimmten, es gab keinen Fehler und keinen SimFin-Zugriff, und die alten Zeilen wurden nicht verändert. Damit ist der Startpunkt für das Forward-Log gesetzt (das Protokoll, das festhält, was das System wann gesagt hat); die Auswertung gegen die Messlatte folgt später.
+
+**Berichtet (laut Bericht der lokalen Sitzung, im Repo nicht belegt):**
+- **Sicherung:** SHA-256 von `data\run_archive.db` vor dem Lauf `95C50A15…604AC1`, identisch mit der Sicherung `data\run_archive_vor_A3.db`. Nach dem Lauf `12DFB38F…C99C54`, identisch mit der Kopie `data\kopie_nach_A3.db`.
+- **Zeitstempel:** Vorfilter `2026-10-10T12:27:30`, Stufe 1 `2026-10-10T12:27:35`, Stufe 2 `2026-10-10T12:27:44`, Trend-Guard `2026-10-10T12:27:50`.
+- **Vorfilter aus dem Cache (0 Abrufe, `calls=0`, `network=0`, alle 627 Pakete aus dem Cache):** 1.821 von 6.654 US-Firmen bestanden, 4.833 ausgeschieden.
+- **Stufe 1:** 126 Überlebende von 1.821 (93 bestanden, 33 mit Marken); 458 durchgefallen, 706 nicht beurteilbar, 531 mit ausgeschlossenem Geschäftsmodell.
+- **Stufe 2:** 126 bewertet, 41 im Ranking (35 bestanden, 6 mit Marken); 77 durchgefallen, 8 nicht beurteilbar.
+- **Trend-Guard:** von 126 sind 95 unmarkiert, 25 markiert, 6 nicht beurteilbar (laut Bericht alle 6 wegen veralteter Fundamentaldaten). Von den 41 Bestandenen sind 8 markiert: AMPH, BCC, JBI, MGM, MTDR, SLVM, TNC, UFPI.
+- **Zeilenzahlen vorher und nachher:** `runs` 1 auf 2; `run_results` 128 auf 254 (128 alt + 126 neu); `eliminated_results` 1.693 auf 3.388 (1.693 alt + 1.695 neu); `universe_prefilter` 6.654 auf 13.308; neu: `stage2_runs` 1, `stage2_results` 126, `trend_runs` 1, `trend_results` 126, `run_rule_state` 4, `run_rule_files` 16, `rule_file_contents` 4. Es sind jetzt alle 11 Tabellen vorhanden.
+- **Regelstand:** alle vier Läufe mit `code_state = clean`, ohne nicht committete Pfade, alle auf dem Commit `33ed39b` (Stand von `master` nach dem Merge von PR #95).
+- **Kurs am Lauftag:** im neuen Vorfilter-Lauf bei allen 1.821 von 1.821 bestandenen Firmen gefüllt; insgesamt haben 4.611 von 6.654 Firmen einen Kurs (darunter auch Firmen, die aus anderen Gründen ausschieden). Ohne Kurs sind 2.043 von 6.654: 1.654 ohne Preisdaten, 347 ohne Klassifikation und 42 mit Delisting-Marker (Zahlen aus dem Auftrag und dem Bericht). Im alten Vorfilter-Lauf `2026-09-24T18:13:48` ist die Spalte leer.
+- **Alte Läufe unverändert:** Vorfilter `2026-09-24T18:13:48` mit 6.654 Zeilen, Stufe 1 `2026-09-30T17:38:53` mit 128 und 1.693 Zeilen.
+- **Schemaprüfung auf der Kopie nach dem Lauf:** 11 von 11 Tabellen, Namen stimmen.
+
+**Ungeprüft:** Die Zahlen sind aus dem Bericht übernommen und im Repo nicht belegt. Hinweis aus dem Bericht (Deutung der lokalen Sitzung): „simfin_mapping_error=44“ in Stufe 2 ist ein Statustext aus den Cache-Dateien (44 Firmen ohne nutzbare Fundamentaldaten), kein Abruf. Der Bericht wurde nicht als PR-Kommentar abgelegt.
+
+**Folge:** Roadmap A.3 ist laut Bericht erledigt; der Verweis auf die Messlatte und ein Bericht im Repo (zum Beispiel als PR-Kommentar) stehen noch aus, die Bedingung „Fertig, wenn“ ist damit nur teilweise erfüllt. Der Entwurf „Baseline – alte Läufe vor dem Regelstand“ ist durch diesen Lauf faktisch vollzogen; seine Freigabe durch Konstantin steht aus. Nächster Schritt ist A.4 (Kandidatenliste Runde 1); die Auswahlregel entscheidet Konstantin.
