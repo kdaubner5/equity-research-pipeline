@@ -1,0 +1,121 @@
+# Datenquelle für die PDF-Fassung des One-Pagers MGM (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: "MGM Resorts International"
+  ticker: MGM
+  list_nr: 14
+  stage2_rank: 15
+  stage2_rank_of: 41
+  peer_group: "Travel & Leisure (SimFin-Branche 103015, 24 Firmen)"
+  profile: non_financial
+dates:
+  documents_until: "29.07.2026 (10-Q Q2 2026 und Pressemitteilung)"
+  one_pager: "12.10.2026"
+  archive_run: "10.10.2026, Regelstand 33ed39b"
+  price: "37,85 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden"
+verdict:
+  label: "ZURÜCKSTELLEN"
+  tone: warn
+  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Hoher Cashflow, aber der bereinigte Gewinn sinkt, der Gewinn 2026 enthält einen Verkaufsgewinn, und 23,8 Mrd. $ Mietverpflichtungen sieht der Filter nicht."
+  legend: "Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Entscheidung über die Behandlung von Mietverpflichtungen im Filter und der Quartalsbericht Q3) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
+thesis: >-
+  MGM betreibt Kasinos und Hotels in Las Vegas und den USA, in Macau (MGM China) und ein Online-Geschäft. Im 2. Quartal 2026 stieg der Umsatz
+  um 1 % auf 4,5 Mrd. $; der Nettogewinn sprang auf 292 Mio. $ (Vorjahr 49), vor allem wegen eines Verkaufsgewinns von rund 287 Mio. $
+  (Northfield Park). Der bereinigte Gewinn je Aktie fiel auf 0,59 $ nach 0,79 $. Der freie Cashflow der letzten zwölf Monate liegt bei rund
+  1,49 Mrd. $ (15,4 % des Börsenwerts), enthält aber die Minderheitsanteile an MGM China. Schulden 6,07 Mrd. $, Kasse 2,55 Mrd. $; dazu
+  kommen Mietverpflichtungen von 23,8 Mrd. $ (Barmiete an VICI 722 Mio. $ im Jahr), die Net Debt/EBITDA und EV des Filters nicht enthalten.
+kpis:
+  - label: "Marktwert"
+    main: "9,68 Mrd. $"
+    sub: "37,85 $ x 255,9 Mio. Aktien (Kurs 23.09.)"
+    status: neutral
+  - label: "FCF-Rendite"
+    main: "15,4 %"
+    sub: "letzte 12 Monate (Agent, inkl. Minderheiten) | Stufe 2 (3-Jahres-Mittel): 16,9 %"
+    status: ok
+  - label: "EV/EBIT"
+    main: "13,8"
+    sub: "ohne Mieten, mit Minderheiten (Agent) | Stufe 2 EV/EBITDA: 6,2"
+    status: neutral
+  - label: "Nettoschulden"
+    main: "3,52 Mrd. $"
+    sub: "30.06.2026 ohne Mieten (Mieten 23,8 Mrd. $) | Stufe 1: 1,87"
+    status: warn
+  - label: "Bereinigter Gewinn je Aktie"
+    main: "0,59 $"
+    sub: "2. Quartal 2026 | Vorjahr 0,79 $ (-25 %)"
+    status: bad
+halfyear:
+  labels: ["1. Halbjahr 2025", "1. Halbjahr 2026"]
+  tone: warn
+  rows:
+    - { name: "Betriebsergebnis", values: [789.6, 804.9] }
+    - { name: "Nettogewinn (MGM)", values: [197.5, 417.6] }
+    - { name: "Freier Cashflow", values: [696.4, 730.6] }
+  unit: "Mio. $"
+events:
+  - { date: "04.2026", text: "Northfield Park verkauft (546 Mio. $ bar); VICI-Mietvertrag angepasst, Barmiete -53 Mio. $ auf 722 Mio. $ im Jahr" }
+  - { date: "2. Quartal 2026", text: "4 Mio. Aktien für 164 Mio. $ zurückgekauft; noch rund 1,4 Mrd. $ Rahmen" }
+  - { date: "29.07.2026", text: "Quartalszahlen Q2: Umsatz 4,5 Mrd. $ (+1 %), bereinigtes EBITDA 610 Mio. $ (648), bereinigter Gewinn je Aktie 0,59 $ (0,79)" }
+  - { date: "29.07.2026", text: "10-Q Q2 2026 eingereicht" }
+  - { date: "2030", text: "Eröffnung von MGM Osaka geplant (laut Firma im Plan)", future: true }
+bear:
+  - "Bereinigter Gewinn je Aktie 0,59 $ nach 0,79 $; bereinigtes EBITDA 610 nach 648 Mio. $; Regionalgeschäft (Erträge vor Mieten) -9 % (gleiche Häuser: unverändert), MGM China -15 %, Online-Geschäft mit Verlust (-31 Mio. $ im Quartal)."
+  - "Der Nettogewinn des 1. Halbjahres (417,6 Mio. $) enthält einen Verkaufsgewinn von rund 287 Mio. $ im 2. Quartal; ohne ihn läge er deutlich unter dem Vorjahr."
+  - "Mietverpflichtungen 23,8 Mrd. $ (Bilanz) bei Schulden von 6,07 Mrd. $; die Barmiete an VICI beträgt 722 Mio. $ im Jahr. Net Debt/EBITDA und EV des Filters erfassen sie nicht."
+  - "Der freie Cashflow enthält MGM China, an der Minderheiten beteiligt sind; Ausschüttungen an Minderheiten 83,0 Mio. $ im 1. Halbjahr."
+  - "Betriebsmarge: 2023 11,7 %, 2025 5,7 %; der Trend-Guard markiert die fallende Marge. MGM Osaka ist ein sehr großes Projekt (Eröffnung 2030) mit Kapitalbedarf."
+bull:
+  - "Rekord-Umsatz im 2. Quartal; Las Vegas Strip: Erträge vor Mieten +3 % (735 Mio. $); zweites Quartal in Folge mit Umsatzwachstum."
+  - "Cashflow stark: operativer Cashflow 2023 bis 2025 jeweils rund 2,4 bis 2,7 Mrd. $; freier Cashflow letzte zwölf Monate rund 1,49 Mrd. $ (Agent-Rechnung)."
+  - "Kasse 2,55 Mrd. $; langfristige Schulden von 6,23 auf 6,07 Mrd. $ gesenkt; Rückkaufrahmen noch rund 1,4 Mrd. $."
+  - "MGM Digital wächst +20 % (Umsatz 196 Mio. $); MGM China gewinnt laut Firma Marktanteile."
+  - "Northfield Park-Verkauf brachte 546 Mio. $ und senkte die Barmiete um 53 Mio. $ im Jahr."
+entry:
+  zone_title: "Einstiegsszenario (Vorschlag, kein Kursziel)"
+  horizon: "mittelfristig (1 bis 3 Jahre)"
+  limit: 0
+  limit_label: "Grenze nach FCF-Rendite 6 %"
+  price_vs_limit: "nicht aussagekräftig"
+  limit_note: "Rechnerisch ergäbe die 6-%-Regel auf dem freien Cashflow der letzten zwölf Monate (1.495 Mio. $) eine Grenze von rund 97 $. Sie wird nicht verwendet: Der Cashflow enthält MGM China samt Minderheiten, und die Mietverpflichtungen (23,8 Mrd. $) fehlen in der Rechnung. Eine belastbare Grenze braucht erst die Entscheidung, wie Mieten im Filter zu behandeln sind."
+  price: 37.85
+  price_date: "23.09.2026"
+  condition: "Entscheidung des Projektinhabers, ob Mietverpflichtungen (VICI) in Stufe 1 und 2 einbezogen werden; Quartalsbericht Q3 (Termin noch nicht bekannt) und Kurs prüfen"
+kill: "Vorschlag des Agenten: verwerfen, wenn der bereinigte Gewinn je Aktie auch im 3. Quartal unter dem Vorjahr liegt und zusätzlich die FCF-Rendite der letzten zwölf Monate unter 5 % fällt (Stufe-2-Durchfallgrenze aus config/stage2.yaml; die erste Bedingung ist keine Schwelle aus dem Repo); sonst auf WEITERVERFOLGEN prüfen, sobald die Mieten-Frage entschieden ist."
+sources_detail:
+  - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 11.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 29.07.2026 und Q1 2026 vom 29.04.2026, Q1 nur auf Vorhandensein geprüft) und 1 aktuelle Meldung (8-K vom 29.07.2026 mit der Pressemitteilung zu den Quartalszahlen). Zahlen aus den XBRL-Daten der SEC gegengelesen."
+  - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
+  - "NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
+sources: "SEC: 10-K 2025 (eingereicht 11.02.2026), 10-Q Q2 2026 und Q1 2026, 8-K vom 29.07.2026. Aktenzeichen im Abrufprotokoll. Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
+not_checked: "Die Peer-Gruppe Travel & Leisure (24 Firmen) passt kaum (Spielzeug, Boote, Fitness, Haustierbedarf); nur wenige Kasinobetreiber sind echte Vergleichsfirmen. Das Archiv trägt die Marken Aktienzahl ungeprüft und für Stufe 1 die Datenmarke `debt_component_missing_defaulted_zero`; die Verschuldung 1,87 des Archivs ist nicht nachgerechnet. Der Verkaufsgewinn (rund 287 Mio. $) ist aus der Posten-Zeile Grundstücks- und Vermögensgeschäfte (property transactions, net) abgeleitet und nicht im Detail geprüft; der EV (Börsenwert + Schulden - Kasse + Minderheiten zum Buchwert 853,9 Mio. $) ist grob. Das gesamte bereinigte EBITDA der letzten zwölf Monate wurde nicht gerechnet. Offen sind der Anteil der Minderheiten am Cashflow, die Mietdeckung (VICI), der Kapitalbedarf für Osaka und der heutige Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); 1 Firma fehlt wegen Datenfehlers (MMYT). Große Gruppe: gezeigt ist ein Ausschnitt um MGM. Die Gruppe passt schlecht."
+peer_summary: "Gegen die 24 Firmen der Peer-Gruppe: EV/EBITDA 6,2 gegen Median 10,5 (Platz 4 von 24), FCF-Rendite 16,9 % gegen Median 7,4 % (Platz 1 von 21). Archivwerte der Geschäftsjahre; die Gruppe passt schlecht, und Mieten, Minderheiten und Gewinn je Aktie sind darin nicht berücksichtigt."
+funnel_title: "So kam MGM auf die Liste (Trichter vom 10.10.2026)"
+funnel:
+  - { label: "US-Börsenfirmen (SimFin)", count: 6654 }
+  - { label: "Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen", count: 1821 }
+  - { label: "Stufe 1: Qualität und Bilanz", count: 126 }
+  - { label: "Stufe 2: günstig im Branchenvergleich", count: 41 }
+  - { label: "Kandidatenliste Runde 1", count: 40 }
+funnel_note: "Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026)."
+gates_title: "Die Prüfungen im Detail"
+gates:
+  - { stage: "Stufe 1", name: "ROIC (Kapitalrendite), 3-Jahres-Mittel", value: "15,5 %", rule: "sauber über 12 %, Durchfall unter 10 %", status: ok }
+  - { stage: "Stufe 1", name: "Net Debt/EBITDA (Verschuldung)", value: "1,87", rule: "sauber unter 2,3, Durchfall ab 2,5", status: ok }
+  - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "5,94", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
+  - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "6,2 (Platz 4 von 24)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
+  - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "16,9 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "1 Marke", rule: "Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %", status: warn }
+gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Trend-Guard: Marge fallend (Marge-Verhältnis 0,87). Cash Conversion 5,94 ist sehr hoch (Cashflow viel größer als der Gewinn), wohl wegen hoher Abschreibungen und niedrigem Gewinn. Die Zahlen des ersten Halbjahres 2026 sind darin nicht enthalten."
+financials_title: "Kennzahlen im Überblick (Mio. $)"
+financials:
+  columns: ["2023", "2024", "2025", "1. Hj. 2025", "1. Hj. 2026"]
+  rows:
+    - { name: "Umsatz", values: ["16.164,2", "17.240,5", "17.537,7", "8.682,0", "8.905,7"] }
+    - { name: "Betriebsergebnis", values: ["1.891,5", "1.490,5", "1.001,8", "789,6", "804,9"] }
+    - { name: "Betriebsmarge", values: ["11,7 %", "8,6 %", "5,7 %", "9,1 %", "9,0 %"] }
+    - { name: "Nettogewinn (MGM)", values: ["1.142,2", "746,6", "205,9", "197,5", "417,6"] }
+    - { name: "Operativer Cashflow", values: ["2.690,8", "2.362,5", "2.529,4", "1.192,9", "1.126,6"] }
+    - { name: "Investitionen (Sachanlagen)", values: ["931,8", "1.150,6", "1.068,9", "496,5", "396,0"] }
+    - { name: "Freier Cashflow", values: ["1.759,0", "1.211,9", "1.460,5", "696,4", "730,6"] }
+  note: "Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen). Der Nettogewinn 1. Halbjahr 2026 enthält einen Verkaufsgewinn."
+method: "Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen."

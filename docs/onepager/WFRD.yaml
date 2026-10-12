@@ -1,0 +1,124 @@
+# Datenquelle für die PDF-Fassung des One-Pagers WFRD (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: "Weatherford International plc"
+  ticker: WFRD
+  list_nr: 15
+  stage2_rank: 16
+  stage2_rank_of: 41
+  peer_group: "Oil & Gas - Services (SimFin-Branche 107004, 15 Firmen)"
+  profile: non_financial
+dates:
+  documents_until: "04.09.2026 (jüngste 8-K)"
+  one_pager: "12.10.2026"
+  archive_run: "10.10.2026, Regelstand 33ed39b"
+  price: "84,66 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden"
+verdict:
+  label: "WEITERVERFOLGEN"
+  tone: ok
+  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Geringe Verschuldung und hoher Cashflow; Gegengewicht: Der Konflikt im Nahen Osten drückt die Ergebnisse, die Firma wechselt ihren Rechtssitz und kauft zu."
+  legend: "Was bedeutet WEITERVERFOLGEN? Die Firma besteht den Filter und die Prüfung der Unterlagen zeigt kein Ausschlussmerkmal. Sie kommt in die engere Beobachtung; ein Kauf folgt nur nach den Stufe-4-Regeln und deiner Entscheidung. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
+thesis: >-
+  Weatherford liefert Ausrüstung und Dienstleistungen für Öl- und Gasbohrungen (Bohren, Komplettierung, Förderung), vor allem außerhalb
+  der USA. Das 2. Quartal 2026 war schwächer: Umsatz 1.105 Mio. $ (-8 % zum Vorjahr), Betriebsergebnis 107 Mio. $ (-55 %), Nettogewinn 39 Mio. $
+  (-71 %). Die Firma nennt Störungen durch den Konflikt im Nahen Osten (Iran) und erwartet eine schrittweise Erholung. Die Bilanz ist solide:
+  Nettoschulden 343 Mio. $, 0,34 Mal bereinigtes EBITDA (Vorjahr 0,49); der freie Cashflow der letzten zwölf Monate liegt bei rund 526 Mio. $
+  (8,7 % des Börsenwerts nach Agent-Rechnung). Strukturell ändert sich viel: Zukauf von NCS Multistage (Aktien und Bar), Umzug des Rechtssitzes
+  von Irland nach Delaware (Aktionäre stimmten am 03.09.2026 zu) und ein Wechsel des Chefbuchhalters.
+kpis:
+  - label: "Marktwert"
+    main: "6,07 Mrd. $"
+    sub: "84,66 $ x 71,7 Mio. Aktien (Kurs 23.09.)"
+    status: neutral
+  - label: "FCF-Rendite"
+    main: "8,7 %"
+    sub: "letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 9,0 %"
+    status: ok
+  - label: "EV/EBITDA"
+    main: "6,3"
+    sub: "bereinigt, letzte 12 Monate (Agent, EBITDA der Firma) | Stufe 2: 6,5"
+    status: ok
+  - label: "Net Debt/EBITDA"
+    main: "0,34"
+    sub: "bereinigt, 30.06.2026 (Firma) | Stufe 1: 0,49 | Durchfall ab 2,5"
+    status: ok
+  - label: "Betriebsmarge"
+    main: "10,2 %"
+    sub: "1. Halbjahr 2026 | 1. Hj. 2025: 15,8 % | 2025: 15,4 %"
+    status: warn
+halfyear:
+  labels: ["1. Halbjahr 2025", "1. Halbjahr 2026"]
+  tone: warn
+  rows:
+    - { name: "Betriebsergebnis", values: [379.0, 230.0] }
+    - { name: "Nettogewinn", values: [212.0, 147.0] }
+    - { name: "Freier Cashflow", values: [139.0, 215.0] }
+  unit: "Mio. $"
+events:
+  - { date: "06.2026", text: "Plan zum Umzug nach Texas verfehlt die nötigen 75 % der Stimmen (über 60 % Zustimmung); neuer Plan für Delaware vorgelegt" }
+  - { date: "16.07.2026", text: "Dividende 0,275 $ je Aktie beschlossen, zahlbar am 03.09.2026" }
+  - { date: "21.07.2026", text: "Quartalszahlen Q2: Umsatz 1.105 Mio. $, Betriebsergebnis 107 Mio. $; im Quartal Zukauf von NCS Multistage angekündigt; Jahresprognose laut Firma leicht gesenkt" }
+  - { date: "22.07.2026", text: "10-Q Q2 2026 eingereicht" }
+  - { date: "01.09.2026", text: "Prospekt für den Weiterverkauf von 357.159 Aktien durch einen Verkäufer eingereicht, die als Kaufpreis für NCS Multistage ausgegeben wurden (NCS-Übernahme damit abgeschlossen)" }
+  - { date: "03.09.2026", text: "Aktionäre stimmen dem Umzug nach Delaware zu (Scheme: 64,03 Mio. Ja gegen 0,30 Mio. Nein)" }
+  - { date: "04.09.2026", text: "Chefbuchhalter Desmond Mills kündigt zum 16.10.2026; Nachfolger Maximiliano Kricorian (bisher Schatzmeister)" }
+bear:
+  - "Betriebsergebnis 1. Halbjahr 2026: 230 Mio. $ nach 379 Mio. $ (-39 %); Q2 -55 % zum Vorjahr; Nettogewinn Q2 39 Mio. $ (-71 % zum Vorjahr)."
+  - "Bereinigtes EBITDA der letzten zwölf Monate 1.016 Mio. $ nach 1.188 Mio. $ ein Jahr zuvor; Q2 20,2 % Marge (-12 % im Betrag)."
+  - "Störungen im Nahen Osten (Iran-Konflikt) bremsen die Aktivität; die Erholung soll nach Firmenangabe schrittweise kommen und von weiterer Stabilität abhängen."
+  - "Rückkäufe klein (16 Mio. $ im Quartal); Jahresprognose laut Firma leicht gesenkt; zweites Halbjahr soll deutlich besser werden (Erwartung, kein Beleg)."
+  - "Mehrere Umbauten gleichzeitig: Zukauf NCS, Rechtssitz Irland nach Delaware, neuer Chefbuchhalter; die Peer-Gruppe enthält zudem Datenfehler (NOV)."
+bull:
+  - "Nettoschulden 343 Mio. $ (30.06.2026) nach 588 Mio. $ ein Jahr zuvor; Kasse 1.100 Mio. $, Gesamtschulden 1.480 Mio. $."
+  - "Freier Cashflow (Agent): 2023 bis 2025 von 623, 493 und 450 Mio. $; 1. Halbjahr 2026 215 Mio. $ nach 139 Mio. $; Q2 bereinigter freier Cashflow +76 % zum Vorjahr (139 Mio. $)."
+  - "Neue Aufträge: Bohrdruck-Technik (MPD) bei Noble, Constellation, Ventura und Valaris; Aufträge von Esso Nigeria und Kuwait Oil."
+  - "NCS Multistage soll mindestens 15 Mio. $ jährliche Kosteneinsparung bringen; der Umzug nach Delaware soll jährlich Kosten sparen (Firmenangabe)."
+  - "Günstig im Branchenvergleich: EV/EBITDA 6,5 gegen Median 9,4; ROIC (Dreijahresmittel) 32 %."
+entry:
+  zone_title: "Einstiegsszenario (Vorschlag, kein Kursziel)"
+  horizon: "mittelfristig (1 bis 3 Jahre)"
+  limit: 122.2
+  limit_label: "Grenze nach FCF-Rendite 6 %"
+  price_vs_limit: "31 % darunter"
+  limit_note: "Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (526 Mio. $) und 71,7 Mio. Aktien angewendet; der Kurs vom 23.09. liegt weit darunter, die Grenze allein ist deshalb keine Kaufschwelle. Der Cashflow lag zuletzt über dem Ergebnis, die Gewinne sind aber stark gefallen. Die zweite Grenze (EV/EBITDA) fehlt."
+  price: 84.66
+  price_date: "23.09.2026"
+  condition: "Aktuellen Kurs prüfen; Quartalsbericht Q3 (Termin noch nicht bekannt) abwarten: Erholung im Nahen Osten und Marge im zweiten Halbjahr; Umzug nach Delaware und NCS-Einbindung beobachten"
+kill: "Vorschlag des Agenten: verwerfen, wenn Net Debt/EBITDA mindestens 2,5 beträgt (Schwelle aus config/thresholds.yaml), die FCF-Rendite der letzten zwölf Monate unter 5 % fällt (Stufe-2-Durchfallgrenze aus config/stage2.yaml) oder das Betriebsergebnis im 3. Quartal erneut mehr als 30 % unter dem Vorjahr liegt (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q."
+sources_detail:
+  - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 04.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 22.07.2026 und Q1 2026 vom 22.04.2026, Q1 nur auf Vorhandensein geprüft) und 4 aktuelle Meldungen (8-K vom 21.07. mit der Pressemitteilung zu den Quartalszahlen, 01.09. zum Aktienverkauf, 03.09. zum Aktionärsbeschluss und 04.09.2026 zum Chefbuchhalter). Zahlen aus den XBRL-Daten der SEC gegengelesen."
+  - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
+  - "NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
+sources: "SEC: 10-K 2025 (eingereicht 04.02.2026), 10-Q Q2 2026 und Q1 2026, 8-K vom 21.07., 01.09., 03.09. und 04.09.2026. Aktenzeichen im Abrufprotokoll. Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
+not_checked: "Der Kaufpreis von NCS Multistage, der Abschlusstag und die Zahlen von NCS wurden nicht gelesen. Ob der Umzug nach Delaware steuerliche oder rechtliche Folgen hat und wann er wirksam wird, ist nicht ausgewertet (nach der Aktionärsabstimmung folgt laut Verfahren noch ein Gerichtsschritt, nicht geprüft). Die Peer-Gruppe enthält Datenfehler: National Oilwell Varco (NOV) zeigt ein EV/EBITDA von 0,38, was offensichtlich nicht stimmt. Bereinigtes EBITDA und Net Debt/EBITDA (0,34) sind Größen der Firma; die Stufe-1-Rechnung nutzt das Geschäftsjahr. Der Nahost-Einfluss ist nur nach Firmenangabe beschrieben. Offen sind der heutige Kurs, die Jahresprognose im Detail und Ölpreise. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); in der Gruppe fehlen keine Firmen wegen Datenfehlern. NOV zeigt ein EV/EBITDA von 0,38 (offensichtlicher Datenfehler im Archiv); er verzerrt die Gruppe nach unten."
+peer_summary: "Gegen die 15 Firmen der Peer-Gruppe: EV/EBITDA 6,5 gegen Median 9,4 (Platz 3 von 15), FCF-Rendite 9,0 % gegen Median 4,1 % (Platz 4 von 15). Archivwerte der Geschäftsjahre bis 2025; die Gruppe enthält einen Datenfehler (NOV) und mischt Dienstleister mit Kompressorvermietern."
+funnel_title: "So kam WFRD auf die Liste (Trichter vom 10.10.2026)"
+funnel:
+  - { label: "US-Börsenfirmen (SimFin)", count: 6654 }
+  - { label: "Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen", count: 1821 }
+  - { label: "Stufe 1: Qualität und Bilanz", count: 126 }
+  - { label: "Stufe 2: günstig im Branchenvergleich", count: 41 }
+  - { label: "Kandidatenliste Runde 1", count: 40 }
+funnel_note: "Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026)."
+gates_title: "Die Prüfungen im Detail"
+gates:
+  - { stage: "Stufe 1", name: "ROIC (Kapitalrendite), 3-Jahres-Mittel", value: "32,0 %", rule: "sauber über 12 %, Durchfall unter 10 %", status: ok }
+  - { stage: "Stufe 1", name: "Net Debt/EBITDA (Verschuldung)", value: "0,49", rule: "sauber unter 2,3, Durchfall ab 2,5", status: ok }
+  - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "1,71", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
+  - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "6,5 (Platz 3 von 15)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
+  - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "9,0 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %", status: ok }
+gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Das Archiv markiert die Branche als zyklisch. Die Zahlen des ersten Halbjahres 2026 sind darin nicht enthalten (Umsatz- und Margenverhältnis 0,95 und 0,92, knapp über der Markengrenze)."
+financials_title: "Kennzahlen im Überblick (Mio. $)"
+financials:
+  columns: ["2023", "2024", "2025", "1. Hj. 2025", "1. Hj. 2026"]
+  rows:
+    - { name: "Umsatz", values: ["5.135", "5.513", "4.918", "2.397", "2.257"] }
+    - { name: "Betriebsergebnis", values: ["820", "938", "756", "379", "230"] }
+    - { name: "Betriebsmarge", values: ["16,0 %", "17,0 %", "15,4 %", "15,8 %", "10,2 %"] }
+    - { name: "Nettogewinn", values: ["417", "506", "431", "212", "147"] }
+    - { name: "Operativer Cashflow", values: ["832", "792", "676", "270", "311"] }
+    - { name: "Investitionen (Sachanlagen)", values: ["209", "299", "226", "131", "96"] }
+    - { name: "Freier Cashflow", values: ["623", "493", "450", "139", "215"] }
+  note: "Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten; Weatherford meldet in ganzen Mio. $). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen)."
+method: "Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen."
