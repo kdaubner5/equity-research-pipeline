@@ -1,6 +1,6 @@
 # One-Pager PPC (Pilot, Stufe 3 Runde 1, Nr. 5 der Kandidatenliste)
 
-**Status: Pilot, Entwurf des Agenten.** Geschrieben nach `docs/stufe3/one_pager_vorlage.md` und `docs/stufe3/checkliste.md`, **direkt vom Agenten und nicht über die Prompts Bear/Bull/Synthese** (diese sind weiter unerprobt). Nur öffentliche Unterlagen der SEC (Originaltext, nicht über ein Zusammenfassungswerkzeug gelesen). Keine Prognose, kein Kursziel. Das Verdikt ist ein Vorschlag, die Entscheidung trifft Konstantin.
+**Status: Pilot, Entwurf des Agenten.** Geschrieben nach `docs/stufe3/one_pager_vorlage.md` und `docs/stufe3/checkliste.md`, **direkt vom Agenten und nicht über die Prompts Bear/Bull/Synthese** (diese sind weiter unerprobt). Nur öffentliche Unterlagen der SEC (Originaltext, nicht über ein Zusammenfassungswerkzeug gelesen). Keine Prognose, kein Kursziel. **Begriffe:** EBITDA = Gewinn vor Zinsen, Steuern und Abschreibungen; EV/EBITDA = Unternehmenswert geteilt durch EBITDA (niedriger = günstiger); FCF = freier Cashflow (operativer Cashflow minus Investitionen in Anlagen); Gates = die Prüfschwellen der Stufen; Trend-Guard = Prüfung auf fallenden Umsatz, fallende Marge oder fallenden ROIC; Peer-Gruppe = Vergleichsfirmen derselben Branche; Durchfall-Schwelle = Grenze, ab der eine Firma ausscheidet. **Zeitbezüge:** Geschäftsjahr = das abgeschlossene Jahr bis 28.12.2025; Dreijahresmittel = Durchschnitt der letzten drei Geschäftsjahre; letzte zwölf Monate = Geschäftsjahr 2025 plus erstes Halbjahr 2026 minus erstes Halbjahr 2025. Das Verdikt ist ein Vorschlag, die Entscheidung trifft Konstantin.
 
 ---
 
@@ -9,7 +9,7 @@
 **Rang in Stufe 2:** 6 von 41 (Nr. 5 der Kandidatenliste; Platz 2 von 17 in der Peer-Gruppe) · **Profil:** non_financial · **Peer-Gruppe:** 102002 (fein, 17 Firmen; passt: nicht geprüft)
 
 ## 1. Kernthese (zwei bis drei Sätze)
-PPC besteht die Gates auf den Zahlen des Geschäftsjahrs 2025: operative Marge 8,7 %, freier Cashflow rund 661 Mio. $, Verschuldung rund 1,8 Mal EBITDA. **Die Zahlen des ersten Halbjahres 2026 zeigen einen scharfen Einbruch:** operatives Ergebnis 228,5 Mio. $ nach 916,8 Mio. $ im Vorjahreszeitraum, bei fast gleichem Umsatz, und der freie Cashflow der letzten zwölf Monate liegt bei rund 304 Mio. $ (4,6 % des Marktwerts), unter der Stufe-2-Schwelle von 5 %. Das System sieht diesen Einbruch noch nicht, weil Stufe 2 und der Trend-Guard mit Geschäftsjahreszahlen rechnen.
+PPC besteht die Gates auf den Zahlen der Geschäftsjahre: operative Marge 2025 8,7 %, freier Cashflow 2025 rund 661 Mio. $, Verschuldung 1,17 Mal EBITDA (Archiv, Geschäftsjahr; auf den letzten zwölf Monaten 1,77). **Die Zahlen des ersten Halbjahres 2026 zeigen einen scharfen Einbruch:** operatives Ergebnis 228,5 Mio. $ nach 916,8 Mio. $ im Vorjahreszeitraum, bei fast gleichem Umsatz, und der freie Cashflow der letzten zwölf Monate liegt bei rund 304 Mio. $ (4,6 % des Marktwerts). Stufe 2 rechnet EV/EBITDA und Verschuldung mit Geschäftsjahren und die FCF-Rendite als Dreijahresmittel, der Trend-Guard ebenfalls mit Geschäftsjahren; ein Halbjahreseinbruch fließt dort nicht ein (Belege: `docs/decisions.md`, `config/stage2.yaml`, `src/metrics_layer/trend.py`).
 
 ## 2. Katalysator
 - **Nächster Bericht:** das 10-Q für das dritte Quartal 2026. Termin nicht bestätigt; die Berichte der Vorjahre kamen am 31.10.2024 und am 30.10.2025 (Quelle: SEC-Liste der Einreichungen), also voraussichtlich Ende Oktober 2026.
@@ -19,7 +19,7 @@ PPC besteht die Gates auf den Zahlen des Geschäftsjahrs 2025: operative Marge 8
 
 ## 3. Zahlen
 
-Alle Beträge in Mio. $, wenn nicht anders angegeben. „Tabellenwert“ = Wert aus dem Archiv (Stufe 1/2). „Prüfwert“ = eigene Rechnung des Agenten aus den SEC-Unterlagen; die FCF-Definition (Cashflow aus dem operativen Geschäft minus Auszahlungen für Sachanlagen) ist **nicht** gegen die Definition in Stufe 2 geprüft.
+Alle Beträge in Mio. $, wenn nicht anders angegeben. „Tabellenwert“ = Wert aus dem Archiv (Stufe 1/2). „Prüfwert“ = eigene Rechnung des Agenten aus den SEC-Unterlagen; **Die Tabelle und die Prüfwerte sind nicht dieselbe Größe:** Stufe 2 rechnet die FCF-Rendite als Mittel der drei letzten Geschäftsjahre (`config/stage2.yaml`, `fcf_yield.years = 3`; `docs/decisions.md`), mit der Investitionszeile „Change in Fixed Assets & Intangibles“; der Prüfwert hier ist Cashflow aus dem operativen Geschäft minus Auszahlungen für Sachanlagen für ein Jahr beziehungsweise die letzten zwölf Monate. Das Dreijahresmittel selbst ist hier nicht nachgerechnet.
 
 | Kennzahl | Tabellenwert (Stufe 1/2) | Prüfwert | Quelle und Datum | Abweichung |
 |---|---|---|---|---|
@@ -33,7 +33,7 @@ Alle Beträge in Mio. $, wenn nicht anders angegeben. „Tabellenwert“ = Wert 
 
 **Rechnung (offen):**
 - Letzte zwölf Monate = Geschäftsjahr 2025 + erstes Halbjahr 2026 − erstes Halbjahr 2025. Cashflow aus dem operativen Geschäft: 1.371,650 + 471,846 − 622,103 = 1.221,393. Sachanlagen-Auszahlungen: 711,066 + 465,189 − 259,283 = 916,972. EBITDA: 2.068,565 + 472,486 − 1.132,282 = 1.408,769 (EBITDA wie vom Unternehmen definiert, ohne Bereinigungen; bereinigt wäre es 2.268,370 + 668,127 − 1.220,147 = 1.716,350).
-- Nettoschulden: Langfristige Schulden einschließlich kurzfristigem Teil 2.885,9 minus Kasse 388,8 = 2.497,1 (ohne Leasingverbindlichkeiten, ohne gesperrte Kasse von 9,5, ohne Minderheitsanteile). EV = 6.578,9 + 2.497,1 = 9.076,0.
+- Nettoschulden: Langfristige Schulden einschließlich kurzfristigem Teil 2.885,9 minus Kasse 388,8 = 2.497,1 (Brutto-Nennwert der Schulden laut Anmerkung Schulden, einschließlich 1,1 Mio. $ Finanzierungsleasing, vor 23,7 Mio. $ aktivierten Finanzierungskosten; ohne Operating-Leasing, ohne gesperrte Kasse von 9,5, ohne Minderheitsanteile; Effekt auf Net Debt/EBITDA unter 0,02). EV = 6.578,9 + 2.497,1 = 9.076,0.
 - Der Marktwert nutzt den Kurs vom 23.09.2026; der heutige Kurs fehlt dem Agenten.
 - **Zeitbezug:** Das EBITDA der letzten zwölf Monate liegt vor dem Einbruch im zweiten Quartal 2026 nur teilweise; das Quartal allein ist schwächer (Betriebsergebnis zweites Quartal 2026: 66,0 Mio. $ nach 512,3 Mio. $).
 
@@ -53,7 +53,7 @@ Alle Beträge in Mio. $, wenn nicht anders angegeben. „Tabellenwert“ = Wert 
 
 ## 6. Hauptrisiko und Kill-Kriterium
 **Hauptrisiko (ein Satz):** Der Geflügelpreis bleibt unter dem Fünfjahresschnitt, während die Investitionen hoch bleiben, und der freie Cashflow bleibt dünn.
-**Kill-Kriterium (mit Zahl), Vorschlag des Agenten:** Im nächsten 10-Q (Q3 2026, voraussichtlich Ende Oktober): freier Cashflow der letzten zwölf Monate **unter 0** oder Net Debt/EBITDA der letzten zwölf Monate **mindestens 2,5** (Durchfall-Schwelle aus `config/thresholds.yaml`). Prüfdatum: Veröffentlichung des 10-Q.
+**Kill-Kriterium (mit Zahl), Vorschlag des Agenten:** Im nächsten 10-Q (Q3 2026, voraussichtlich Ende Oktober): Net Debt/EBITDA der letzten zwölf Monate **mindestens 2,5** (Durchfall-Schwelle aus `config/thresholds.yaml`) **oder** freier Cashflow der letzten zwölf Monate **negativ** (Wert 0, keine Schwelle aus dem Repo, Vorschlag des Agenten). Die Untergrenze von 5 % FCF-Rendite aus `config/stage2.yaml` (`fcf_yield.fail_below`) gilt für das Dreijahresmittel; auf die letzten zwölf Monate angewendet wird sie schon heute unterschritten (4,6 %) und taugt deshalb nicht als Auslöser. Prüfdatum: Veröffentlichung des 10-Q.
 
 ## 7. Einstiegsszenario (Vorschlag des Agenten, Entscheidung durch Konstantin; kein Kursziel, keine Prognose)
 
@@ -63,7 +63,7 @@ Alle Beträge in Mio. $, wenn nicht anders angegeben. „Tabellenwert“ = Wert 
 
 | Grenze nach | Preis je Aktie | Grundlage (Zahl, Quelle, Datum) |
 |---|---|---|
-| FCF-Rendite (Zielrendite 6 % aus `config/stage2.yaml`) | **21,31 $** | FCF 304,4 Mio. $, 238,1 Mio. Aktien (10-Q Q2 2026) |
+| FCF-Rendite (Zielrendite 6 % aus `config/stage2.yaml`) | **21,31 $** | FCF der letzten zwölf Monate 304,4 Mio. $, 238,1 Mio. Aktien (10-Q Q2 2026). Die 6 % sind eine Stufe-2-Regel auf Dreijahresbasis, hier auf einen Einjahreswert angewendet; die Regel verlangt strikt mehr als 6 %, der Preis muss also etwas unter 21,31 $ liegen |
 | EV/EBITDA (Drittelgrenze der Peer-Gruppe 102002) | **unzureichende Evidenz** | Der Wert der Drittelgrenze der Peer-Gruppe steht nicht im Archiv-Export und liegt dem Agenten nicht vor |
 | **Bindend (die strengere, also die niedrigere)** | **21,31 $ (vorläufig, die zweite Grenze fehlt, die Grenze kann zu hoch sein)** | |
 | Kurs 23.09.2026 | 27,63 $ | liegt 29,7 % über der Grenze; der heutige Kurs fehlt |
@@ -78,13 +78,13 @@ Alle Beträge in Mio. $, wenn nicht anders angegeben. „Tabellenwert“ = Wert 
 
 ## 8. Marken und Beobachtungen
 - **Trend-Guard:** keine Marken (`trend_clear`; Umsatzverhältnis 1,03, Margenverhältnis 1,20, ROIC letztes Jahr 20,1 %). **Der Trend-Guard rechnet mit Geschäftsjahreszahlen und erkennt den Einbruch des ersten Halbjahres 2026 deshalb noch nicht.**
-- **Datenqualität:** Infomarke `share_count_unchecked` (Aktienzahl in Stufe 2 nicht gegengeprüft); die Aktienzahl im Archiv stimmt mit dem Deckblatt des 10-Q überein (238.108.524). FCF-Rendite mit sonstigen Investitionen: 11,9 % (gleich).
+- **Datenqualität:** Infomarke `share_count_unchecked` (Aktienzahl in Stufe 2 nicht gegengeprüft; laut `docs/decisions.md` entsteht die Marke, wenn keine nutzbare Dividende für die Gegenprobe da ist, obwohl PPC 2025 Sonderdividenden zahlte); die Aktienzahl im Archiv stimmt mit dem Deckblatt des 10-Q überein (238.108.524). FCF-Rendite mit sonstigen Investitionen: 11,9 % (gleich).
 - **Unternehmensereignisse (Punkt 2 der Checkliste):** Anleihenrückkauf 14.04.2026, Vergleich in Großbritannien 22.05.2026, tentativer Vergleich der Aktionärsklage 10.04.2026, laufende Kartellverfahren (10-Q Q2 2026).
 - **Sonstiges:** Sonderdividenden von zusammen rund 2 Mrd. $ im Jahr 2025 (6,30 $ je Aktie am 17.04.2025 und 2,10 $ je Aktie am 03.09.2025; 10-K 2025). Das Unternehmen hat keine feste Dividendenpolitik.
 
 ## 9. Verdikt (Vorschlag des Agenten, Entscheidung durch Konstantin)
 Ausgang: ☐ weiterverfolgen  ☒ zurückstellen  ☐ verwerfen  ☐ unzureichende Evidenz
-Begründung in einem Satz: PPC besteht Stufe 2 auf Geschäftsjahreszahlen, die Zahlen der letzten zwölf Monate liegen aber unter der FCF-Schwelle von 5 %; bis zum 10-Q für das dritte Quartal bleibt der Name zurückgestellt.
+Begründung in einem Satz: PPC besteht Stufe 2 auf Geschäftsjahreszahlen, aber das Betriebsergebnis ist im ersten Halbjahr 2026 um drei Viertel eingebrochen und die FCF-Rendite der letzten zwölf Monate (4,6 %) läge unter 5 %, würde man die Stufe-2-Grenze auf diesen Zeitbezug anwenden (ein Vergleichsmaßstab, kein Durchfall); bis zum 10-Q für das dritte Quartal bleibt der Name zurückgestellt.
 
 **Kauf (nur Konstantin, Stufe 4):** ☐ nein  ☐ ja, Größe: _____ · Entscheidung am: _____
 *Der Agent füllt dieses Feld nicht aus.*
@@ -95,4 +95,4 @@ Begründung in einem Satz: PPC besteht Stufe 2 auf Geschäftsjahreszahlen, die Z
 - Form 10-Q für das Quartal bis 29.06.2025, eingereicht 31.07.2025, Aktennummer 0000802481-25-000110 (`ppc-20250629.htm`): Halbjahreszahlen 2025 (EBITDA, Cashflow-Vergleich).
 - Archiv-Export von Konstantins lokaler Sitzung vom 12.10.2026 (`export_A.csv`, im Repo nicht belegt) für alle Tabellenwerte.
 
-**Nicht geprüft:** Ob Peer-Gruppe 102002 passt; die Drittelgrenze der Peer-Gruppe; der heutige Kurs; ob die eigene FCF-Rechnung der Stufe-2-Definition entspricht (Abweichung von −7,3 Prozentpunkten zur Tabelle ist damit nicht endgültig erklärt); die Prompts Bear/Bull/Synthese (nicht verwendet); Zitate wörtlich aus den heruntergeladenen Originaldateien (in `scratchpad`, nicht im Repo) übernommen, Seitenzahlen nicht angegeben.
+**Nicht geprüft:** Ob Peer-Gruppe 102002 passt; die Drittelgrenze der Peer-Gruppe; der heutige Kurs; das Dreijahresmittel der FCF-Rendite (nicht nachgerechnet; die Abweichung von −7,3 Prozentpunkten zur Tabelle erklärt sich teilweise durch den anderen Zeitbezug); die Prompts Bear/Bull/Synthese (nicht verwendet); Zitate wörtlich aus den heruntergeladenen Originaldateien (in `scratchpad`, nicht im Repo) übernommen, Seitenzahlen nicht angegeben.
