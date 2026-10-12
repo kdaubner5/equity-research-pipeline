@@ -113,7 +113,8 @@ def load_yaml(path):
     return data
 
 
-PEER_COLUMNS = ["candidate", "peer_group", "peer_level", "ticker", "status", "ev_ebitda", "fcf_yield", "invalid_reasons"]
+PEER_COLUMNS = ["candidate", "peer_group", "peer_level", "ticker", "status", "ev_ebitda", "ev_ebitda_percentile", "fcf_yield",
+                "peer_rank", "peer_n", "invalid_reasons"]
 
 
 def read_peers(path, candidate):
@@ -128,7 +129,7 @@ def read_peers(path, candidate):
         for row in reader:
             if row["candidate"] != candidate:
                 continue
-            for key in ("ev_ebitda", "fcf_yield"):
+            for key in ("ev_ebitda", "fcf_yield", "ev_ebitda_percentile"):
                 row[key] = float(row[key]) if row.get(key) not in (None, "") else None
             rows.append(row)
     if not rows:
@@ -180,35 +181,50 @@ def halfyear_chart(data):
     return _png(fig)
 
 
+def _group_size(peers, ticker):
+    """Groesse der Peer-Gruppe laut Archiv (peer_n der eigenen Zeile des Kandidaten), sonst None."""
+    for p in peers:
+        if p["ticker"] == ticker and p.get("peer_n") not in (None, ""):
+            return int(float(p["peer_n"]))
+    return None
+
+
 def peer_chart(peers, ticker, key, title, fmt, lower_is_better):
-    """Balkendiagramm der Vergleichsfirmen. Firmen mit Ungueltigkeitsgrund oder ohne Wert werden nicht gezeichnet, aber
-    in der Unterzeile gezaehlt. Gibt (Bild oder None, Hinweistext) zurueck."""
-    total = len(peers)
+    """Balkendiagramm der im Archiv gespeicherten Vergleichsfirmen. Firmen mit Ungueltigkeitsgrund oder ohne Wert werden
+    nicht gezeichnet, aber in der Unterzeile gezaehlt. Das Archiv speichert nur die Firmen, die Stufe 1 bestanden haben;
+    ist die Gruppe nach peer_n groesser, gibt es KEINEN Median (er waere nicht der der Gruppe). Gibt (Bild oder None,
+    Hinweistext) zurueck."""
+    stored = len(peers)
+    group_n = _group_size(peers, ticker)
     rows = [p for p in peers if p[key] is not None and not p.get("invalid_reasons")]
-    hidden = total - len(rows)
+    hidden = stored - len(rows)
     if len(rows) < 2:
-        return None, f"{title}: nur {len(rows)} von {total} Firmen mit Wert, kein Diagramm."
+        return None, f"{title}: nur {len(rows)} von {stored} gespeicherten Firmen mit Wert, kein Diagramm."
     rows.sort(key=lambda p: p[key], reverse=not lower_is_better)
     values = [p[key] for p in rows]
-    med = statistics.median(values)
+    complete = group_n is None or stored >= group_n
     failed = sum(1 for p in rows if p.get("status") not in ("passed", "passed_with_flags"))
     fig, ax = plt.subplots(figsize=(3.4, max(1.6, 0.17 * len(rows) + 0.9)))
     colors_ = [HEX["warn"] if p["ticker"] == ticker else ("#e3c4c4" if p.get("status") not in ("passed", "passed_with_flags") else "#b8c4d0")
                for p in rows]
     ax.barh([p["ticker"] for p in rows], values, color=colors_)
-    ax.axvline(med, color="#1f2933", linewidth=0.8, linestyle="--")
-    ax.annotate("Median " + fmt(med), xy=(med, 1.0), xycoords=("data", "axes fraction"), xytext=(0, 2), textcoords="offset points",
-                fontsize=6.5, ha="center", va="bottom", color="#1f2933")
+    if complete:
+        med = statistics.median(values)
+        ax.axvline(med, color="#1f2933", linewidth=0.8, linestyle="--")
+        ax.annotate("Median " + fmt(med), xy=(med, 1.0), xycoords=("data", "axes fraction"), xytext=(0, 2), textcoords="offset points",
+                    fontsize=6.5, ha="center", va="bottom", color="#1f2933")
     ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda x, _pos: fmt(x)))
     ax.tick_params(axis="y", labelsize=6)
     ax.invert_yaxis()
     _style_axes(ax)
     ax.set_title(title + (" (niedriger = günstiger)" if lower_is_better else " (höher = günstiger)"), fontsize=7.5, loc="left", pad=14)
-    note = f"{len(rows)} von {total} Firmen gezeigt"
+    note = f"{len(rows)} von {group_n if group_n else stored} Firmen der Gruppe gezeigt"
+    if not complete:
+        note += " (nur diese sind im Archiv gespeichert, kein Gruppenmedian)"
     if hidden:
-        note += f" ({hidden} ohne Wert oder mit Ungültigkeitsgrund)"
+        note += f"; {hidden} ohne Wert oder mit Ungültigkeitsgrund"
     if failed:
-        note += f"; {failed} davon in Stufe 2 durchgefallen (rosa), im Median enthalten"
+        note += f"; {failed} in Stufe 2 durchgefallen (rosa)"
     return _png(fig), note + "."
 
 
@@ -341,9 +357,16 @@ def build(data, out_path, peers=None):
         story.append(Paragraph("Vergleich mit der Konkurrenz: Peer-Daten fehlen (Export mit run_export_candidates.py --peers-out). "
                                "Ohne sie steht hier kein Diagramm; die Einordnung gegen die Peer-Gruppe ist offen.", S_SMALL))
     else:
-        story.append(Paragraph(" ".join(peer_notes) + " Die Diagramme zeigen die Archivwerte der Stufe 2 (Geschäftsjahre bzw. "
-                               "3-Jahres-Mittel); die Karten oben zeigen teils die letzten zwölf Monate. Die Vergleichsfirmen "
-                               "und der Kandidat selbst sind im Median enthalten.", S_SMALL))
+        own = next((p for p in peers if p["ticker"] == ticker), None)
+        rank_line = ""
+        if own and own.get("peer_rank") and own.get("peer_n"):
+            rank_line = (f"Position in der Peer-Gruppe (EV/EBITDA, Stufe 2): Platz {int(float(own['peer_rank']))} von "
+                         f"{int(float(own['peer_n']))}")
+            if own.get("ev_ebitda_percentile") is not None:
+                rank_line += f", {_dec(own['ev_ebitda_percentile'] * 100, 0)} % der Gruppe sind günstiger"
+            rank_line += ". "
+        story.append(Paragraph(rank_line + " ".join(peer_notes) + " Die Diagramme zeigen die Archivwerte der Stufe 2 "
+                               "(Geschäftsjahre bzw. 3-Jahres-Mittel); die Karten oben zeigen teils die letzten zwölf Monate.", S_SMALL))
     story.append(Paragraph("Was ist passiert (Zeitleiste)", S_H))
     story.append(_timeline(data["events"]))
     story.append(Spacer(1, 6))

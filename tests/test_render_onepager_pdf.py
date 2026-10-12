@@ -78,7 +78,7 @@ def test_number_helpers_use_the_decimal_comma():
 
 def peer_rows(n=5, **extra):
     return [{"candidate": "PPC", "peer_group": 1, "peer_level": "fine", "ticker": "PPC" if i == 0 else f"P{i}", "status": "passed",
-             "ev_ebitda": 4.0 + i, "fcf_yield": 0.05 + 0.01 * i, "invalid_reasons": "", **extra} for i in range(n)]
+             "ev_ebitda": 4.0 + i, "fcf_yield": 0.05 + 0.01 * i, "invalid_reasons": "", "peer_n": n, **extra} for i in range(n)]
 
 
 def test_peer_chart_counts_hidden_and_failed_firms_and_names_the_median():
@@ -88,7 +88,7 @@ def test_peer_chart_counts_hidden_and_failed_firms_and_names_the_median():
     rows[4]["ev_ebitda"] = None
     png, note = r.peer_chart(rows, "PPC", "ev_ebitda", "t", r._num, True)
     assert png is not None
-    assert "4 von 6 Firmen gezeigt (2 ohne Wert oder mit Ungültigkeitsgrund)" in note and "1 davon in Stufe 2 durchgefallen" in note
+    assert "4 von 6 Firmen der Gruppe gezeigt" in note and "2 ohne Wert oder mit Ungültigkeitsgrund" in note and "1 in Stufe 2 durchgefallen" in note
 
 
 def test_read_peers_checks_columns_candidate_level_and_bom(tmp_path):
@@ -124,3 +124,10 @@ def test_nested_required_fields_and_main_never_leave_a_partial_pdf(tmp_path, cap
 def test_a_note_on_a_kpi_card_is_part_of_the_pdf_and_the_entry_box_has_no_hidden_calculation():
     import inspect
     assert "/ entry[" not in inspect.getsource(r._entry_box)
+
+
+def test_incomplete_peer_group_shows_no_group_median_and_says_so():
+    rows = peer_rows(2)
+    rows[0]["peer_n"] = 17
+    png, note = r.peer_chart(rows, "PPC", "ev_ebitda", "t", r._num, True)
+    assert png is not None and "2 von 17 Firmen der Gruppe gezeigt" in note and "kein Gruppenmedian" in note
