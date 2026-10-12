@@ -91,3 +91,33 @@ sources: "SEC: 10-K 2025 (0000802481-26-000011), 10-Q Q2 2026 (-26-000051) und Q
 not_checked: "Ob Peer-Gruppe 102002 fachlich passt, die Peer-Drittelgrenze und der heutige Kurs sind offen. Das 3-Jahres-Mittel der FCF-Rendite ist nicht nachgerechnet; die FCF-Rechnung des Agenten ist nicht dieselbe Größe wie in Stufe 2. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
 peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); in der Gruppe fehlen keine Firmen wegen fehlender Fundamentaldaten. Rosa Balken: in Stufe 2 durchgefallen."
 peer_summary: "Gegen die 17 Firmen der Peer-Gruppe: EV/EBITDA 4,3 gegen Median 8,8 (Platz 2 von 17, eine der günstigsten), FCF-Rendite 11,9 % gegen Median 12,2 % (Platz 10 von 17, ungefähr in der Mitte). Beides sind Archivwerte der Geschäftsjahre; auf den letzten zwölf Monaten sehen beide schwächer aus (siehe Karten)."
+funnel_title: "So kam PPC auf die Liste (Trichter vom 10.10.2026)"
+funnel:
+  - { label: "US-Börsenfirmen (SimFin)", count: 6654 }
+  - { label: "Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen", count: 1821 }
+  - { label: "Stufe 1: Qualität und Bilanz", count: 126 }
+  - { label: "Stufe 2: günstig im Branchenvergleich", count: 41 }
+  - { label: "Kandidatenliste Runde 1", count: 40 }
+funnel_note: "Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026)."
+gates_title: "Die Prüfungen im Detail"
+gates:
+  - { stage: "Stufe 1", name: "ROIC (Kapitalrendite), 3-Jahres-Mittel", value: "16,4 %", rule: "sauber über 12 %, Durchfall unter 10 %", status: ok }
+  - { stage: "Stufe 1", name: "Net Debt/EBITDA (Verschuldung)", value: "1,17", rule: "sauber unter 2,3, Durchfall ab 2,5", status: ok }
+  - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "1,74", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
+  - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "4,3 (Platz 2 von 17)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
+  - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "11,9 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke bei Umsatz- oder Margenverhältnis unter 0,90 oder Marge über 1,25", status: ok }
+gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Die Zahlen des ersten Halbjahres 2026 sind darin noch nicht enthalten."
+financials_title: "Kennzahlen im Überblick (Mio. $)"
+financials:
+  columns: ["2023", "2024", "2025", "1. Hj. 2025", "1. Hj. 2026"]
+  rows:
+    - { name: "Umsatz", values: ["17.362,2", "17.878,3", "18.497,6", "9.220,4", "9.158,9"] }
+    - { name: "Betriebsergebnis", values: ["522,3", "1.506,1", "1.613,5", "916,8", "228,5"] }
+    - { name: "Betriebsmarge", values: ["3,0 %", "8,4 %", "8,7 %", "9,9 %", "2,5 %"] }
+    - { name: "Nettogewinn", values: ["322,3", "1.087,2", "1.083,3", "652,4", "114,7"] }
+    - { name: "Operativer Cashflow", values: ["677,9", "1.990,1", "1.371,7", "622,1", "471,8"] }
+    - { name: "Investitionen (Sachanlagen)", values: ["543,8", "476,2", "711,1", "259,3", "465,2"] }
+    - { name: "Freier Cashflow", values: ["134,1", "1.514,0", "660,6", "362,8", "6,7"] }
+  note: "Quelle: 10-K 2025 und 10-Q Q2 2026 / Q2 2025 der SEC. Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen)."
+method: "Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch zwei getrennte Prüfläufe gegenlesen. Das Verdikt ist ein Vorschlag; die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen."

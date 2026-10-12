@@ -73,7 +73,7 @@ def _style(name, size=8.5, leading=11.5, color=INK, bold=False, **kw):
 
 S_TITLE = _style("title", 17, 21, bold=True)
 S_SUB = _style("sub", 8, 11, MUTED)
-S_H = _style("h", 10, 13, bold=True, spaceBefore=6, spaceAfter=3)
+S_H = _style("h", 10, 13, bold=True, spaceBefore=6, spaceAfter=3, keepWithNext=1)
 S_BODY = _style("body", 8.5, 11.5)
 S_SMALL = _style("small", 7, 9.5, MUTED)
 S_BUL = _style("bul", 8, 10.8, leftIndent=8, bulletIndent=0)
@@ -238,6 +238,79 @@ def peer_chart(peers, ticker, key, title, fmt, lower_is_better):
     return _png(fig), note + "."
 
 
+def funnel_chart(funnel):
+    """Trichter: Balken mit der Zahl der Firmen je Stufe (lineare Breite, Beschriftung umgebrochen)."""
+    import textwrap
+    labels = ["\n".join(textwrap.wrap(f["label"], 30)) for f in funnel]
+    counts = [f["count"] for f in funnel]
+    fig, ax = plt.subplots(figsize=(3.6, 2.6))
+    y = list(range(len(funnel)))
+    ax.barh(y, counts, color=["#b8c4d0"] * (len(funnel) - 1) + [HEX["warn"]], height=0.62)
+    top = max(counts)
+    for i, c in enumerate(counts):
+        ax.text(c + top * 0.02, i, f"{c:,}".replace(",", "."), va="center", fontsize=8, color="#1f2933", fontweight="bold")
+    ax.set_yticks(y)
+    ax.set_yticklabels(labels, fontsize=7)
+    ax.invert_yaxis()
+    ax.set_xlim(0, top * 1.22)
+    ax.set_xticks([])
+    for side in ("top", "right", "bottom"):
+        ax.spines[side].set_visible(False)
+    ax.spines["left"].set_color("#d5dbe1")
+    ax.tick_params(left=False)
+    return _png(fig)
+
+
+def valuation_map(peers, ticker, group_label=""):
+    """Streudiagramm EV/EBITDA gegen FCF-Rendite der Peer-Gruppe; Ausreisser ausserhalb des gezeigten Bereichs werden gezaehlt."""
+    pts = [p for p in peers if p["ev_ebitda"] is not None and p["fcf_yield"] is not None]
+    if len(pts) < 3:
+        return None, "Bewertungskarte: weniger als 3 Firmen mit beiden Werten."
+    shown = [p for p in pts if p["ev_ebitda"] <= 40 and -0.1 <= p["fcf_yield"] <= 0.35]
+    outside = len(pts) - len(shown)
+    fig, ax = plt.subplots(figsize=(3.4, 2.6))
+    for p in shown:
+        own = p["ticker"] == ticker
+        ax.scatter(p["ev_ebitda"], p["fcf_yield"] * 100, s=46 if own else 16, color=HEX["warn"] if own else "#8da2b8",
+                   edgecolors="white", linewidths=0.4, zorder=3 if own else 2)
+        if own:
+            ax.annotate(ticker, (p["ev_ebitda"], p["fcf_yield"] * 100), xytext=(4, 4), textcoords="offset points", fontsize=7, fontweight="bold")
+    ax.set_xlabel("EV/EBITDA (niedriger = günstiger)", fontsize=6.8, color="#6b7785")
+    ax.set_ylabel("FCF-Rendite in % (höher = günstiger)", fontsize=6.8, color="#6b7785")
+    _style_axes(ax)
+    ax.set_title("Bewertungskarte der Peer-Gruppe (links oben = günstig)", fontsize=7.5, loc="left")
+    note = f"Bewertungskarte: {len(shown)} von {len(pts)} Firmen im gezeigten Bereich" + (f" ({outside} Ausreißer außerhalb)" if outside else "") + "."
+    return _png(fig), note
+
+
+def _fin_table(fin):
+    cols = fin["columns"]
+    head = [""] + cols
+    data = [head] + [[r["name"]] + list(r["values"]) for r in fin["rows"]]
+    widths = [46 * mm] + [(174 - 46) / len(cols) * mm] * len(cols)
+    table = Table([[Paragraph(str(c), _style("fh", 7, 9, bold=True)) if i == 0 or j == 0 else Paragraph(str(c), _style("fv", 7.5, 9.5, bold=(i == 0)))
+                    for j, c in enumerate(row)] for i, row in enumerate(data)], colWidths=widths)
+    style = [("BACKGROUND", (0, 0), (-1, 0), BG), ("LINEBELOW", (0, 0), (-1, -1), 0.25, LINE), ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
+             ("TOPPADDING", (0, 0), (-1, -1), 2), ("BOTTOMPADDING", (0, 0), (-1, -1), 2), ("LINEAFTER", (3, 0), (3, -1), 0.8, LINE)]
+    table.setStyle(TableStyle(style))
+    return table
+
+
+def _gates_table(gates):
+    rows = []
+    for g in gates:
+        tone = HEX[g.get("status", "neutral")]
+        rows.append([Paragraph(f'<font color="{tone}">●</font> <b>{g["stage"]}</b>', _style("gs", 6.8, 8.6)),
+                     Paragraph(g["name"], _style("gn", 6.8, 8.6)),
+                     Paragraph(f'<b>{g["value"]}</b>', _style("gv", 6.8, 8.6)),
+                     Paragraph(g["rule"], _style("gr", 6.3, 8, MUTED))])
+    table = Table(rows, colWidths=[18 * mm, 27 * mm, 19 * mm, 22 * mm])
+    table.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"), ("LINEBELOW", (0, 0), (-1, -1), 0.25, LINE),
+                               ("TOPPADDING", (0, 0), (-1, -1), 1.5), ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5),
+                               ("LEFTPADDING", (0, 0), (-1, -1), 2), ("RIGHTPADDING", (0, 0), (-1, -1), 2)]))
+    return table
+
+
 def _dec(x, digits=1):
     return f"{x:.{digits}f}".replace(".", ",")
 
@@ -342,29 +415,44 @@ def build(data, out_path, peers=None):
     story.append(Paragraph("Kernaussage", S_H))
     story.append(Paragraph(data["thesis"], S_BODY))
 
-    charts = []
-    if data.get("halfyear"):
-        charts.append(Image(halfyear_chart(data), width=84 * mm, height=55 * mm, kind="proportional"))
+    if data.get("funnel"):
+        story.append(Paragraph(data.get("funnel_title", "Weg durch den Trichter"), S_H))
+        left = Image(funnel_chart(data["funnel"]), width=84 * mm, height=60 * mm, kind="proportional")
+        right = _gates_table(data["gates"]) if data.get("gates") else Spacer(1, 1)
+        ft = Table([[left, right]], colWidths=[87 * mm, 87 * mm])
+        ft.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
+        story.append(ft)
+        if data.get("funnel_note"):
+            story.append(Paragraph(data["funnel_note"], S_SMALL))
+        if data.get("gates_note"):
+            story.append(Paragraph(data["gates_note"], S_SMALL))
+    if data.get("financials"):
+        story.append(Paragraph(data.get("financials_title", "Kennzahlen"), S_H))
+        story.append(_fin_table(data["financials"]))
+        story.append(Paragraph(data["financials"].get("note", ""), S_SMALL))
+
     ticker = c["ticker"]
-    peer_charts, peer_notes = [], []
+    grid, peer_notes = [], []
+    if data.get("halfyear"):
+        grid.append(Image(halfyear_chart(data), width=84 * mm, height=55 * mm, kind="proportional"))
     if peers:
+        png, note = valuation_map(peers, ticker)
+        peer_notes.append(note)
+        if png:
+            grid.append(Image(png, width=84 * mm, height=64 * mm, kind="proportional"))
         for key, title, fmt, lower in (("ev_ebitda", "EV/EBITDA der Peer-Gruppe", _num, True),
                                        ("fcf_yield", "FCF-Rendite der Peer-Gruppe", _pct, False)):
             png, note = peer_chart(peers, ticker, key, title, fmt, lower)
             peer_notes.append(note)
             if png:
-                peer_charts.append(Image(png, width=84 * mm, height=60 * mm, kind="proportional"))
-    story.append(Paragraph("Einordnung", S_H))
-    row = charts[:]
-    if peer_charts:
-        row.append(peer_charts[0])
-    ctable = Table([row or [Paragraph("Keine Diagramme.", S_SMALL)]], colWidths=[87 * mm] * max(1, len(row)))
-    ctable.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
-    story.append(ctable)
-    if len(peer_charts) > 1:
-        story.append(Table([[peer_charts[1]]], colWidths=[87 * mm]))
+                grid.append(Image(png, width=84 * mm, height=64 * mm, kind="proportional"))
+    story.append(Paragraph("Einordnung gegen die Konkurrenz", S_H))
+    rows = [grid[i:i + 2] + [""] * (2 - len(grid[i:i + 2])) for i in range(0, len(grid), 2)] or [[Paragraph("Keine Diagramme.", S_SMALL)]]
+    gt = Table(rows, colWidths=[87 * mm, 87 * mm])
+    gt.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
+    story.append(gt)
     if not peers:
-        story.append(Paragraph("Vergleich mit der Konkurrenz: Peer-Daten fehlen (Export mit run_export_candidates.py --peers-out). "
+        story.append(Paragraph("Vergleich mit der Konkurrenz: Peer-Daten fehlen (Export mit run_export_peers.py). "
                                "Ohne sie steht hier kein Diagramm; die Einordnung gegen die Peer-Gruppe ist offen.", S_SMALL))
     else:
         own = next((p for p in peers if p["ticker"] == ticker), None)
@@ -375,11 +463,12 @@ def build(data, out_path, peers=None):
             if own.get("ev_ebitda_percentile") is not None:
                 rank_line += f", {_dec(own['ev_ebitda_percentile'] * 100, 0)} % der Gruppe sind günstiger"
             rank_line += ". "
-        extra = (data.get("peer_note", "") + " ") if data.get("peer_note") else ""
         if data.get("peer_summary"):
             story.append(Paragraph(data["peer_summary"], _style("ps", 8.5, 11.5, bold=True)))
-        story.append(Paragraph(rank_line + " ".join(dict.fromkeys(peer_notes)) + " " + extra + "Die Diagramme zeigen die Archivwerte der Stufe 2 "
-                               "(Geschäftsjahre bzw. 3-Jahres-Mittel); die Karten oben zeigen teils die letzten zwölf Monate.", S_SMALL))
+        extra = (data.get("peer_note", "") + " ") if data.get("peer_note") else ""
+        story.append(Paragraph(rank_line + " ".join(dict.fromkeys(peer_notes)) + " " + extra + "Die Diagramme zeigen die Archivwerte der "
+                               "Stufe 2 (Geschäftsjahre bzw. 3-Jahres-Mittel); die Karten oben zeigen teils die letzten zwölf Monate.", S_SMALL))
+
     story.append(Paragraph("Was ist passiert (Zeitleiste)", S_H))
     story.append(_timeline(data["events"]))
     story.append(Spacer(1, 6))
@@ -397,6 +486,9 @@ def build(data, out_path, peers=None):
     story.append(Paragraph(data["sources"], S_SMALL))
     story.append(Paragraph("Nicht geprüft", S_H))
     story.append(Paragraph(data["not_checked"], S_SMALL))
+    if data.get("method"):
+        story.append(Paragraph("Methode", S_H))
+        story.append(Paragraph(data["method"], S_SMALL))
 
     doc = SimpleDocTemplate(str(out_path), pagesize=A4, leftMargin=18 * mm, rightMargin=18 * mm, topMargin=14 * mm,
                             bottomMargin=16 * mm, title=f'One-Pager {c["ticker"]}', author="Equity-Research (Agent)")

@@ -147,3 +147,22 @@ def test_invalid_reasons_of_the_fcf_do_not_hide_a_valid_ev_ebitda():
     png_ev, note_ev = r.peer_chart(rows, "PPC", "ev_ebitda", "t", r._num, True)
     png_fcf, note_fcf = r.peer_chart(rows, "PPC", "fcf_yield", "t", r._pct, False)
     assert "4 von 4" in note_ev and "3 von 4" in note_fcf
+
+
+def test_funnel_gates_and_financials_are_drawn_and_a_broken_section_is_reported(tmp_path, capsys):
+    data = yaml.safe_load(REAL_YAML.read_text(encoding="utf-8"))
+    assert data["funnel"][0]["count"] > data["funnel"][-1]["count"] and len(data["gates"]) >= 5
+    assert all(len(row["values"]) == len(data["financials"]["columns"]) for row in data["financials"]["rows"])
+    del data["financials"]["columns"]
+    bad = tmp_path / "x.yaml"
+    bad.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+    assert r.main([str(bad), "--out", str(tmp_path / "o.pdf")]) == 2
+    assert "ABBRUCH" in capsys.readouterr().err and not (tmp_path / "o.pdf").exists()
+
+
+def test_valuation_map_needs_three_firms_with_both_values():
+    peers = peer_rows(2)
+    png, note = r.valuation_map(peers, "PPC")
+    assert png is None and "weniger als 3" in note
+    png, note = r.valuation_map(peer_rows(5), "PPC")
+    assert png is not None and "5 von 5 Firmen" in note
