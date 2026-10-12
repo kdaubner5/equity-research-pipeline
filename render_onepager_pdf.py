@@ -1,15 +1,18 @@
-"""Erzeugt die PDF-Fassung eines One-Pagers aus einer YAML-Datei (Roadmap D.4, Wunsch von Konstantin, 12.10.2026).
+"""Erzeugt die PDF-Fassung eines One-Pagers aus einer Textdatei (Roadmap D.4, Wunsch von Konstantin, 12.10.2026).
 
-Nur Darstellung: Das Skript rechnet keine Kennzahlen und kennt keine Schwellen. Alle Zahlen, Farben ("status") und das
-Verdikt stehen in der YAML-Datei (Kurzfassung des Berichts in docs/onepager/). Optional wird eine Peer-CSV
-(run_export_candidates.py --peers-out) fuer den Vergleich mit der Konkurrenz eingelesen; fehlt sie, steht an der Stelle
-ein Hinweis statt eines Diagramms.
+In einfachen Worten: Das Skript zeichnet nur, was in der Textdatei (zum Beispiel docs/onepager/PPC.yaml) steht: Zahlen,
+Farben, Verdikt und Texte. Es bewertet nichts. Fehlt in der Datei etwas Wichtiges, bricht es mit einer Meldung ab und
+schreibt keine halbfertige PDF. Einzige Rechnung im Skript: der Median der Vergleichsfirmen im Konkurrenz-Diagramm
+(Mitte aller gezeigten Werte).
 
-Aufruf (PowerShell, aus dem Projektordner):
-    C:\\Users\\<Benutzer>\\anaconda3\\python.exe render_onepager_pdf.py docs\\onepager\\PPC.yaml --out data\\PPC.pdf
-    ... mit Konkurrenz:   --peers data\\peers_A.csv
+Optional liest es eine Datei mit den Vergleichsfirmen (Peers), die run_export_candidates.py mit --peers-out erzeugt. Ohne
+diese Datei steht an der Stelle des Diagramms ein Hinweis. Ist die Datei angegeben, aber unbrauchbar, bricht es ab.
 
-Exit-Code: 0 = PDF geschrieben; 2 = Abbruch (YAML unvollstaendig, Zieldatei existiert schon).
+Aufruf (PowerShell, im Projektordner; python ist der Pfad zu deinem Anaconda-Python):
+    python render_onepager_pdf.py docs\\onepager\\PPC.yaml --out data\\PPC.pdf
+    python render_onepager_pdf.py docs\\onepager\\PPC.yaml --out data\\PPC.pdf --peers data\\peers_A.csv
+
+Ausgang: 0 = PDF geschrieben; 2 = Abbruch (Datei unvollstaendig oder nicht lesbar, Zieldatei existiert schon).
 """
 
 import argparse
@@ -53,6 +56,13 @@ TONES = {  # Farbe je Status; die Zuordnung steht in der YAML-Datei
 }
 HEX = {k: "#%02x%02x%02x" % tuple(int(c * 255) for c in v.rgb()) for k, v in TONES.items()}
 
+REQUIRED_NESTED = {
+    "entry": ["zone_title", "horizon", "limit", "limit_label", "limit_note", "price", "price_date", "price_vs_limit",
+              "offer_value", "offer_date", "condition"],
+    "company": ["name", "ticker", "list_nr", "stage2_rank", "stage2_rank_of", "peer_group"],
+    "dates": ["documents_until", "one_pager", "archive_run", "price"],
+    "verdict": ["label", "tone", "text"],
+}
 REQUIRED = ["company", "dates", "verdict", "thesis", "kpis", "events", "bear", "bull", "entry", "kill", "sources", "not_checked"]
 
 
@@ -82,20 +92,56 @@ def load_yaml(path):
             raise ValueError(f"Unbekannter Status {kpi.get('status')!r} bei {kpi.get('label')!r}")
     if data["verdict"].get("tone") not in TONES:
         raise ValueError("verdict.tone muss ok, warn, bad oder neutral sein")
+    for section, keys in REQUIRED_NESTED.items():
+        absent = [k for k in keys if data[section].get(k) in (None, "")]
+        if absent:
+            raise ValueError(f"In {section} fehlen: " + ", ".join(absent))
+    for i, kpi in enumerate(data["kpis"], start=1):
+        absent = [k for k in ("label", "main", "sub") if not kpi.get(k)]
+        if absent:
+            raise ValueError(f"Karte {i} (kpis): es fehlen " + ", ".join(absent))
+    for i, event in enumerate(data["events"], start=1):
+        if not event.get("date") or not event.get("text"):
+            raise ValueError(f"Ereignis {i} (events): Datum oder Text fehlt")
+    for key in ("bear", "bull"):
+        if not data[key]:
+            raise ValueError(f"{key}: Liste ist leer")
+    hy = data.get("halfyear")
+    if hy:
+        if len(hy.get("labels", [])) != 2 or not hy.get("rows") or any(len(r.get("values", [])) != 2 for r in hy["rows"]):
+            raise ValueError("halfyear: genau zwei Beschriftungen und je Zeile zwei Werte erwartet")
     return data
 
 
+PEER_COLUMNS = ["candidate", "peer_group", "peer_level", "ticker", "status", "ev_ebitda", "fcf_yield", "invalid_reasons"]
+
+
 def read_peers(path, candidate):
-    """Zeilen der Peer-CSV fuer einen Kandidaten als Liste von Dicts (leere Zahlen werden None)."""
+    """Zeilen der Peer-CSV fuer einen Kandidaten. Bricht bei fehlenden Spalten ab. Leere Zahlen werden None (und im
+    Diagramm gezaehlt, nicht verschwiegen)."""
     rows = []
-    with open(path, encoding="utf-8", newline="") as handle:
-        for row in csv.DictReader(handle):
+    with open(path, encoding="utf-8-sig", newline="") as handle:
+        reader = csv.DictReader(handle)
+        missing = [c for c in PEER_COLUMNS if c not in (reader.fieldnames or [])]
+        if missing:
+            raise ValueError("Die Peer-Datei hat nicht die erwarteten Spalten, es fehlen: " + ", ".join(missing))
+        for row in reader:
             if row["candidate"] != candidate:
                 continue
-            for key in ("ev_ebitda", "fcf_yield", "ev_ebitda_percentile"):
+            for key in ("ev_ebitda", "fcf_yield"):
                 row[key] = float(row[key]) if row.get(key) not in (None, "") else None
             rows.append(row)
-    return rows
+    if not rows:
+        raise ValueError(f"Die Peer-Datei enthaelt keine Zeilen fuer {candidate}.")
+    own = [r for r in rows if r["ticker"] == candidate]
+    if own:  # nur die Firmen derselben Gruppe und Ebene wie der Kandidat
+        rows = [r for r in rows if (r["peer_group"], r["peer_level"]) == (own[0]["peer_group"], own[0]["peer_level"])]
+    seen, unique = set(), []
+    for r in rows:
+        if r["ticker"] not in seen:
+            seen.add(r["ticker"])
+            unique.append(r)
+    return unique
 
 
 def _png(fig):
@@ -122,9 +168,9 @@ def halfyear_chart(data):
     for i, label in enumerate(hy["labels"]):
         vals = [r["values"][i] for r in hy["rows"]]
         pos = [j + (i - 0.5) * width for j in range(len(names))]
-        bars = ax.bar(pos, vals, width, color="#9fb3c8" if i == 0 else HEX["bad"], label=label)
+        bars = ax.bar(pos, vals, width, color="#9fb3c8" if i == 0 else HEX[hy.get("tone", "bad")], label=label)
         for b, v in zip(bars, vals):
-            ax.text(b.get_x() + b.get_width() / 2, v, f"{v:,.0f}".replace(",", "."), ha="center", va="bottom", fontsize=6.5, color="#1f2933")
+            ax.text(b.get_x() + b.get_width() / 2, v, f"{v:,.1f}".replace(",", "#").replace(".", ",").replace("#", "."), ha="center", va="bottom", fontsize=6.5, color="#1f2933")
     ax.set_xticks(range(len(names)))
     ax.set_xticklabels(names, fontsize=7)
     ax.set_ylabel(hy.get("unit", ""), fontsize=7, color="#6b7785")
@@ -135,14 +181,20 @@ def halfyear_chart(data):
 
 
 def peer_chart(peers, ticker, key, title, fmt, lower_is_better):
-    rows = [p for p in peers if p[key] is not None]
+    """Balkendiagramm der Vergleichsfirmen. Firmen mit Ungueltigkeitsgrund oder ohne Wert werden nicht gezeichnet, aber
+    in der Unterzeile gezaehlt. Gibt (Bild oder None, Hinweistext) zurueck."""
+    total = len(peers)
+    rows = [p for p in peers if p[key] is not None and not p.get("invalid_reasons")]
+    hidden = total - len(rows)
     if len(rows) < 2:
-        return None
-    rows.sort(key=lambda p: p[key])
+        return None, f"{title}: nur {len(rows)} von {total} Firmen mit Wert, kein Diagramm."
+    rows.sort(key=lambda p: p[key], reverse=not lower_is_better)
     values = [p[key] for p in rows]
     med = statistics.median(values)
-    fig, ax = plt.subplots(figsize=(3.4, max(1.6, 0.17 * len(rows) + 0.7)))
-    colors_ = [HEX["warn"] if p["ticker"] == ticker else "#b8c4d0" for p in rows]
+    failed = sum(1 for p in rows if p.get("status") not in ("passed", "passed_with_flags"))
+    fig, ax = plt.subplots(figsize=(3.4, max(1.6, 0.17 * len(rows) + 0.9)))
+    colors_ = [HEX["warn"] if p["ticker"] == ticker else ("#e3c4c4" if p.get("status") not in ("passed", "passed_with_flags") else "#b8c4d0")
+               for p in rows]
     ax.barh([p["ticker"] for p in rows], values, color=colors_)
     ax.axvline(med, color="#1f2933", linewidth=0.8, linestyle="--")
     ax.annotate("Median " + fmt(med), xy=(med, 1.0), xycoords=("data", "axes fraction"), xytext=(0, 2), textcoords="offset points",
@@ -152,7 +204,12 @@ def peer_chart(peers, ticker, key, title, fmt, lower_is_better):
     ax.invert_yaxis()
     _style_axes(ax)
     ax.set_title(title + (" (niedriger = günstiger)" if lower_is_better else " (höher = günstiger)"), fontsize=7.5, loc="left", pad=14)
-    return _png(fig)
+    note = f"{len(rows)} von {total} Firmen gezeigt"
+    if hidden:
+        note += f" ({hidden} ohne Wert oder mit Ungültigkeitsgrund)"
+    if failed:
+        note += f"; {failed} davon in Stufe 2 durchgefallen (rosa), im Median enthalten"
+    return _png(fig), note + "."
 
 
 def _dec(x, digits=1):
@@ -177,7 +234,7 @@ def _kpi_cards(kpis):
         tone = TONES[k["status"]]
         inner = Table(
             [[Paragraph(k["label"].upper(), S_KPI_L)], [Paragraph(k["main"], _style("kv" + k["label"], 15 if len(k["main"]) <= 7 else 12, 18, tone, bold=True))],
-             [Paragraph(k["sub"], S_KPI_S)]],
+             [Paragraph(k["sub"], S_KPI_S)]] + ([[Paragraph(k["note"], _style("kn", 6.3, 8, TONES[k["status"]]))]] if k.get("note") else []),
             colWidths=[33 * mm],
         )
         inner.setStyle(TableStyle([("LEFTPADDING", (0, 0), (-1, -1), 4), ("RIGHTPADDING", (0, 0), (-1, -1), 3),
@@ -212,13 +269,11 @@ def _timeline(events):
 
 
 def _entry_box(entry):
-    gap = (entry["price"] / entry["limit_fcf"] - 1) * 100 if entry.get("limit_fcf") else None
     lines = [
         Paragraph(entry["zone_title"], _style("et", 9, 12, bold=True)),
         Paragraph(f'Zeithorizont: <b>{entry["horizon"]}</b>', S_BODY),
-        Paragraph(f'Grenze nach FCF-Rendite 6 %: <b>{_usd(entry["limit_fcf"])}</b> '
-                  f'(Kurs {_usd(entry["price"])} am {entry["price_date"]}'
-                  + (f', {_dec(gap, 0)} % darüber' if gap is not None else "") + "). " + entry["limit_note"], S_BODY),
+        Paragraph(f'{entry["limit_label"]}: <b>{_usd(entry["limit"])}</b> (Kurs {_usd(entry["price"])} am {entry["price_date"]}, '
+                  f'{entry["price_vs_limit"]}). {entry["limit_note"]}', S_BODY),
         Paragraph(f'Tauschwert JBS-Vorschlag: {_usd(entry["offer_value"])} am {entry["offer_date"]}.', S_BODY),
         Paragraph("<b>Bedingung:</b> " + entry["condition"], S_BODY),
     ]
@@ -263,13 +318,14 @@ def build(data, out_path, peers=None):
 
     charts = []
     if data.get("halfyear"):
-        charts.append(Image(halfyear_chart(data), width=84 * mm, height=55 * mm))
+        charts.append(Image(halfyear_chart(data), width=84 * mm, height=55 * mm, kind="proportional"))
     ticker = c["ticker"]
-    peer_charts = []
+    peer_charts, peer_notes = [], []
     if peers:
-        a = peer_chart(peers, ticker, "ev_ebitda", "EV/EBITDA der Peer-Gruppe", _num, True)
-        b = peer_chart(peers, ticker, "fcf_yield", "FCF-Rendite der Peer-Gruppe", _pct, False)
-        for png in (a, b):
+        for key, title, fmt, lower in (("ev_ebitda", "EV/EBITDA der Peer-Gruppe", _num, True),
+                                       ("fcf_yield", "FCF-Rendite der Peer-Gruppe", _pct, False)):
+            png, note = peer_chart(peers, ticker, key, title, fmt, lower)
+            peer_notes.append(note)
             if png:
                 peer_charts.append(Image(png, width=84 * mm, height=60 * mm, kind="proportional"))
     story.append(Paragraph("Einordnung", S_H))
@@ -279,11 +335,15 @@ def build(data, out_path, peers=None):
     ctable = Table([row or [Paragraph("Keine Diagramme.", S_SMALL)]], colWidths=[87 * mm] * max(1, len(row)))
     ctable.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
     story.append(ctable)
-    if peers and len(peer_charts) > 1:
+    if len(peer_charts) > 1:
         story.append(Table([[peer_charts[1]]], colWidths=[87 * mm]))
     if not peers:
         story.append(Paragraph("Vergleich mit der Konkurrenz: Peer-Daten fehlen (Export mit run_export_candidates.py --peers-out). "
                                "Ohne sie steht hier kein Diagramm; die Einordnung gegen die Peer-Gruppe ist offen.", S_SMALL))
+    else:
+        story.append(Paragraph(" ".join(peer_notes) + " Die Diagramme zeigen die Archivwerte der Stufe 2 (Geschäftsjahre bzw. "
+                               "3-Jahres-Mittel); die Karten oben zeigen teils die letzten zwölf Monate. Die Vergleichsfirmen "
+                               "und der Kandidat selbst sind im Median enthalten.", S_SMALL))
     story.append(Paragraph("Was ist passiert (Zeitleiste)", S_H))
     story.append(_timeline(data["events"]))
     story.append(Spacer(1, 6))
@@ -313,16 +373,23 @@ def main(argv=None):
     parser.add_argument("--out", required=True)
     parser.add_argument("--peers")
     args = parser.parse_args(argv)
-    if Path(args.out).exists():
+    out = Path(args.out)
+    if out.exists():
         print(f"ABBRUCH: Zieldatei existiert schon (wird nicht überschrieben): {args.out}", file=sys.stderr)
         return 2
+    temp = out.with_name(out.name + ".teil")
     try:
         data = load_yaml(args.yaml_path)
         peers = read_peers(args.peers, data["company"]["ticker"]) if args.peers else None
-    except (ValueError, OSError, yaml.YAMLError, KeyError) as exc:
-        print(f"ABBRUCH: {exc}", file=sys.stderr)
+        build(data, temp, peers)
+        temp.replace(out)
+    except (ValueError, OSError, yaml.YAMLError, KeyError, TypeError) as exc:
+        print(f"ABBRUCH: {type(exc).__name__}: {exc}", file=sys.stderr)
+        try:
+            temp.unlink()
+        except OSError:
+            pass
         return 2
-    build(data, args.out, peers)
     print(f"PDF geschrieben: {args.out}" + ("" if peers else " (ohne Peer-Vergleich)"))
     return 0
 

@@ -61,7 +61,8 @@ def test_main_with_peers_filters_by_candidate_and_builds_a_larger_pdf(tmp_path):
 
 
 def test_peer_chart_needs_at_least_two_values():
-    assert r.peer_chart([{"ticker": "PPC", "ev_ebitda": 4.0}], "PPC", "ev_ebitda", "t", r._num, True) is None
+    png, note = r.peer_chart([{"ticker": "PPC", "ev_ebitda": 4.0, "status": "passed"}], "PPC", "ev_ebitda", "t", r._num, True)
+    assert png is None and "nur 1 von 1" in note
 
 
 def test_main_reports_a_broken_yaml_instead_of_a_traceback(tmp_path, capsys):
@@ -73,3 +74,53 @@ def test_main_reports_a_broken_yaml_instead_of_a_traceback(tmp_path, capsys):
 
 def test_number_helpers_use_the_decimal_comma():
     assert r._pct(0.0463) == "4,6 %" and r._num(6.44) == "6,4" and r._usd(21.31) == "21,31 $"
+
+
+def peer_rows(n=5, **extra):
+    return [{"candidate": "PPC", "peer_group": 1, "peer_level": "fine", "ticker": "PPC" if i == 0 else f"P{i}", "status": "passed",
+             "ev_ebitda": 4.0 + i, "fcf_yield": 0.05 + 0.01 * i, "invalid_reasons": "", **extra} for i in range(n)]
+
+
+def test_peer_chart_counts_hidden_and_failed_firms_and_names_the_median():
+    rows = peer_rows(6)
+    rows[2]["invalid_reasons"] = "ebitda_negative"
+    rows[3]["status"] = "failed"
+    rows[4]["ev_ebitda"] = None
+    png, note = r.peer_chart(rows, "PPC", "ev_ebitda", "t", r._num, True)
+    assert png is not None
+    assert "4 von 6 Firmen gezeigt (2 ohne Wert oder mit Ungültigkeitsgrund)" in note and "1 davon in Stufe 2 durchgefallen" in note
+
+
+def test_read_peers_checks_columns_candidate_level_and_bom(tmp_path):
+    good = tmp_path / "g.csv"
+    write_peers(good)
+    good.write_bytes(b"\xef\xbb\xbf" + good.read_bytes())
+    assert len(r.read_peers(good, "PPC")) == 6
+    with pytest.raises(ValueError, match="keine Zeilen"):
+        r.read_peers(good, "NOPE")
+    wrong = tmp_path / "w.csv"
+    wrong.write_text("a,b\n1,2\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="erwarteten Spalten"):
+        r.read_peers(wrong, "PPC")
+    mixed = tmp_path / "m.csv"
+    write_peers(mixed)
+    text = mixed.read_text(encoding="utf-8")
+    mixed.write_text(text + "PPC,102002,coarse,ZZZ,passed,1.0,,0.2,1,1,\n", encoding="utf-8")
+    assert "ZZZ" not in [p["ticker"] for p in r.read_peers(mixed, "PPC")]
+
+
+def test_nested_required_fields_and_main_never_leave_a_partial_pdf(tmp_path, capsys):
+    data = yaml.safe_load(REAL_YAML.read_text(encoding="utf-8"))
+    del data["entry"]["limit"]
+    bad = tmp_path / "x.yaml"
+    bad.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+    out = tmp_path / "o.pdf"
+    assert r.main([str(bad), "--out", str(out)]) == 2
+    assert "In entry fehlen: limit" in capsys.readouterr().err and not out.exists()
+    assert r.main([str(REAL_YAML), "--out", str(tmp_path / "fehlt" / "o.pdf")]) == 2
+    assert not list(tmp_path.glob("*.teil"))
+
+
+def test_a_note_on_a_kpi_card_is_part_of_the_pdf_and_the_entry_box_has_no_hidden_calculation():
+    import inspect
+    assert "/ entry[" not in inspect.getsource(r._entry_box)

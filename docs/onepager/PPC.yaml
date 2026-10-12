@@ -48,19 +48,20 @@ kpis:
     status: bad
 halfyear:
   labels: ["1. Halbjahr 2025", "1. Halbjahr 2026"]
+  tone: bad
   rows:
     - { name: "Betriebsergebnis", values: [916.8, 228.5] }
     - { name: "Freier Cashflow", values: [362.8, 6.7] }
   unit: "Mio. $"
 events:
-  - { date: "10.04.2026", text: "Vorläufige Einigung der Aktionärsklage" }
+  - { date: "10.04.2026", text: "Vorläufige Einigung der Aktionärsklage (Gericht entscheidet erst am 20.11.)" }
   - { date: "14.04.2026", text: "Rückkauf von 250 Mio. $ Anleihen (6,25 %)" }
-  - { date: "22.05.2026", text: "Steuerstreit UK beendet (HMRC)" }
+  - { date: "22.05.2026", text: "Steuerstreit UK per Vergleich beendet (HMRC; 10-Q Q2 2026)" }
   - { date: "30.07.2026", text: "Quartalszahlen: Gewinneinbruch" }
-  - { date: "17.08.2026", text: "Zukauf Walkers (UK) vereinbart, Preis unbekannt" }
+  - { date: "17.08.2026", text: "Zukauf Walkers (UK) vereinbart, Freigabe der britischen Wettbewerbsbehörde offen, Preis unbekannt" }
   - { date: "18.08.2026", text: "JBS: unverbindlicher Tauschvorschlag, 2,086 JBS-Aktien je PPC-Aktie (kein Aufschlag)" }
   - { date: "23.09.2026", text: "Anleihe über 500 Mio. EUR (4,75 %, 2034)" }
-  - { date: "09.10.2026", text: "Sonderausschuss prüft den JBS-Vorschlag" }
+  - { date: "09.10.2026", text: "Sonderausschuss zur Prüfung des JBS-Vorschlags gebildet" }
   - { date: "20.11.2026", text: "Anhörung zum Vergleich der Aktionärsklage", future: true }
 bear:
   - "Betriebsergebnis 1. Halbjahr 2026: 228,5 Mio. $ nach 916,8 Mio. $; Betriebsmarge 2,5 % (2025: 8,7 %)."
@@ -69,20 +70,22 @@ bear:
   - "Kartellvergleiche: 838,5 Mio. $ bisher, davon 155,4 Mio. $ im 1. Halbjahr 2026."
   - "JBS-Vorschlag ohne Aufschlag (Stand 18.08.), Interessenkonflikt des Mehrheitsaktionärs."
 bull:
-  - "Geschäftsjahr 2025: Betriebsergebnis 1.613,5 Mio. $ (+7,1 %), Cashflow 1.371,7 Mio. $."
+  - "Geschäftsjahr 2025: Betriebsergebnis 1.613,5 Mio. $ (+7,1 %), operativer Cashflow 1.371,7 Mio. $."
   - "Schulden von 3.122 auf 2.886 Mio. $ gesenkt; freie Kreditlinien 1.192 Mio. $."
   - "Teure 6,25-%-Anleihen vorzeitig zurückgekauft; Steuerstreit UK beendet."
-  - "Sonderdividenden 2025 rund 2 Mrd. $ (Sondermaßnahme, keine feste Dividende)."
+  - "Sonderdividenden 2025 rund 2 Mrd. $ (keine feste Dividendenpolitik)."
 entry:
   zone_title: "Einstiegsszenario (Vorschlag, kein Kursziel)"
   horizon: "mittelfristig (1 bis 3 Jahre)"
-  limit_fcf: 21.31
-  limit_note: "Preis je Aktie, bei dem die FCF-Rendite (12 Monate) 6 % erreicht; zweite Grenze (EV/EBITDA) fehlt: Peer-Drittelgrenze nicht vorhanden"
+  limit: 21.31
+  limit_label: "Grenze nach FCF-Rendite 6 %"
+  price_vs_limit: "29,7 % darüber"
+  limit_note: "Vorläufig: Die 6 % sind eine Stufe-2-Regel auf Dreijahresbasis, hier auf die letzten zwölf Monate angewendet; die Regel verlangt strikt mehr als 6 %, der Preis muss also etwas unter der Grenze liegen. Die zweite Grenze (EV/EBITDA) fehlt, die Grenze kann zu hoch sein. Sie liegt rund 25 % unter dem Tauschwert und wäre bei einer Übernahme kaum erreichbar."
   price: 27.63
   price_date: "23.09.2026"
   offer_value: 28.49
   offer_date: "18.08.2026"
   condition: "Abwarten: 10-Q für das 3. Quartal (voraussichtlich Ende Oktober) oder Entscheidung des Sonderausschusses"
-kill: "Net Debt/EBITDA (12 Monate) mindestens 2,5 oder freier Cashflow (12 Monate) negativ; geprüft im nächsten 10-Q. Kommt eine Vereinbarung mit JBS zustande, wird der One-Pager neu geschrieben."
+kill: "Vorschlag des Agenten: Net Debt/EBITDA (12 Monate) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder freier Cashflow (12 Monate) negativ (Wert 0, keine Schwelle aus dem Repo); geprüft im nächsten 10-Q. Kommt eine Vereinbarung mit JBS zustande, wird der One-Pager neu geschrieben."
 sources: "SEC: 10-K 2025 (0000802481-26-000011), 10-Q Q2 2026 (-26-000051) und Q2 2025 (-25-000110), 8-K vom 30.07. bis 09.10.2026. Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
-not_checked: "Peer-Drittelgrenze und heutiger Kurs fehlen. FCF-Rechnung des Agenten ist nicht dieselbe Größe wie das 3-Jahres-Mittel in Stufe 2. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+not_checked: "Ob Peer-Gruppe 102002 fachlich passt, die Peer-Drittelgrenze und der heutige Kurs sind offen. Das 3-Jahres-Mittel der FCF-Rendite ist nicht nachgerechnet; die FCF-Rechnung des Agenten ist nicht dieselbe Größe wie in Stufe 2. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
