@@ -181,6 +181,10 @@ def halfyear_chart(data):
     return _png(fig)
 
 
+MAX_BARS = 18
+FAILED_STATUS = ("failed", "not_evaluable")
+
+
 def _group_size(peers, ticker):
     """Groesse der Peer-Gruppe laut Archiv (peer_n der eigenen Zeile des Kandidaten), sonst None."""
     for p in peers:
@@ -196,18 +200,23 @@ def peer_chart(peers, ticker, key, title, fmt, lower_is_better):
     Hinweistext) zurueck."""
     stored = len(peers)
     group_n = _group_size(peers, ticker)
-    rows = [p for p in peers if p[key] is not None and not p.get("invalid_reasons")]
+    rows = [p for p in peers if p[key] is not None]
     hidden = stored - len(rows)
     if len(rows) < 2:
         return None, f"{title}: nur {len(rows)} von {stored} gespeicherten Firmen mit Wert, kein Diagramm."
     rows.sort(key=lambda p: p[key], reverse=not lower_is_better)
     values = [p[key] for p in rows]
     complete = group_n is None or stored >= group_n
-    failed = sum(1 for p in rows if p.get("status") not in ("passed", "passed_with_flags"))
+    failed = sum(1 for p in rows if p.get("status") in FAILED_STATUS)
+    total_rows = len(rows)
+    if total_rows > MAX_BARS:  # grosse Gruppe: Ausschnitt um den Kandidaten, Median bleibt der der ganzen Gruppe
+        index = next((i for i, p in enumerate(rows) if p["ticker"] == ticker), total_rows // 2)
+        start = max(0, min(index - MAX_BARS // 2, total_rows - MAX_BARS))
+        rows = rows[start:start + MAX_BARS]
     fig, ax = plt.subplots(figsize=(3.4, max(1.6, 0.17 * len(rows) + 0.9)))
-    colors_ = [HEX["warn"] if p["ticker"] == ticker else ("#e3c4c4" if p.get("status") not in ("passed", "passed_with_flags") else "#b8c4d0")
+    colors_ = [HEX["warn"] if p["ticker"] == ticker else ("#e3c4c4" if p.get("status") in FAILED_STATUS else "#b8c4d0")
                for p in rows]
-    ax.barh([p["ticker"] for p in rows], values, color=colors_)
+    ax.barh([p["ticker"] for p in rows], [p[key] for p in rows], color=colors_)
     if complete:
         med = statistics.median(values)
         ax.axvline(med, color="#1f2933", linewidth=0.8, linestyle="--")
@@ -218,11 +227,12 @@ def peer_chart(peers, ticker, key, title, fmt, lower_is_better):
     ax.invert_yaxis()
     _style_axes(ax)
     ax.set_title(title + (" (niedriger = günstiger)" if lower_is_better else " (höher = günstiger)"), fontsize=7.5, loc="left", pad=14)
-    note = f"{len(rows)} von {group_n if group_n else stored} Firmen der Gruppe gezeigt"
+    note = f"{len(rows)} von {group_n if group_n else stored} Firmen der Gruppe gezeigt" if total_rows == len(rows) else \
+        f"Ausschnitt: {len(rows)} von {group_n if group_n else stored} Firmen um den Kandidaten (Median über die ganze Gruppe)"
     if not complete:
         note += " (nur diese sind im Archiv gespeichert, kein Gruppenmedian)"
     if hidden:
-        note += f"; {hidden} ohne Wert oder mit Ungültigkeitsgrund"
+        note += f"; {hidden} ohne Wert (zum Beispiel zu wenige Jahre oder fehlende Investitionen)"
     if failed:
         note += f"; {failed} in Stufe 2 durchgefallen (rosa)"
     return _png(fig), note + "."
@@ -365,7 +375,10 @@ def build(data, out_path, peers=None):
             if own.get("ev_ebitda_percentile") is not None:
                 rank_line += f", {_dec(own['ev_ebitda_percentile'] * 100, 0)} % der Gruppe sind günstiger"
             rank_line += ". "
-        story.append(Paragraph(rank_line + " ".join(peer_notes) + " Die Diagramme zeigen die Archivwerte der Stufe 2 "
+        extra = (data.get("peer_note", "") + " ") if data.get("peer_note") else ""
+        if data.get("peer_summary"):
+            story.append(Paragraph(data["peer_summary"], _style("ps", 8.5, 11.5, bold=True)))
+        story.append(Paragraph(rank_line + " ".join(dict.fromkeys(peer_notes)) + " " + extra + "Die Diagramme zeigen die Archivwerte der Stufe 2 "
                                "(Geschäftsjahre bzw. 3-Jahres-Mittel); die Karten oben zeigen teils die letzten zwölf Monate.", S_SMALL))
     story.append(Paragraph("Was ist passiert (Zeitleiste)", S_H))
     story.append(_timeline(data["events"]))

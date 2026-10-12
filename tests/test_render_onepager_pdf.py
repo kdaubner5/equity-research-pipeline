@@ -88,7 +88,7 @@ def test_peer_chart_counts_hidden_and_failed_firms_and_names_the_median():
     rows[4]["ev_ebitda"] = None
     png, note = r.peer_chart(rows, "PPC", "ev_ebitda", "t", r._num, True)
     assert png is not None
-    assert "4 von 6 Firmen der Gruppe gezeigt" in note and "2 ohne Wert oder mit Ungültigkeitsgrund" in note and "1 in Stufe 2 durchgefallen" in note
+    assert "5 von 6 Firmen der Gruppe gezeigt" in note and "1 ohne Wert" in note and "1 in Stufe 2 durchgefallen" in note
 
 
 def test_read_peers_checks_columns_candidate_level_and_bom(tmp_path):
@@ -131,3 +131,19 @@ def test_incomplete_peer_group_shows_no_group_median_and_says_so():
     rows[0]["peer_n"] = 17
     png, note = r.peer_chart(rows, "PPC", "ev_ebitda", "t", r._num, True)
     assert png is not None and "2 von 17 Firmen der Gruppe gezeigt" in note and "kein Gruppenmedian" in note
+
+
+def test_a_large_group_is_shown_as_a_window_around_the_candidate_with_the_median_of_all():
+    rows = peer_rows(40)
+    rows[0]["ticker"] = "PPC"
+    png, note = r.peer_chart(rows, "PPC", "ev_ebitda", "t", r._num, True)
+    assert png is not None and "Ausschnitt: 18 von 40 Firmen" in note and "Median über die ganze Gruppe" in note
+
+
+def test_invalid_reasons_of_the_fcf_do_not_hide_a_valid_ev_ebitda():
+    rows = peer_rows(4)
+    rows[1]["invalid_reasons"] = "capex_missing"
+    rows[1]["fcf_yield"] = None
+    png_ev, note_ev = r.peer_chart(rows, "PPC", "ev_ebitda", "t", r._num, True)
+    png_fcf, note_fcf = r.peer_chart(rows, "PPC", "fcf_yield", "t", r._pct, False)
+    assert "4 von 4" in note_ev and "3 von 4" in note_fcf
