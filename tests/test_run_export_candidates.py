@@ -209,3 +209,46 @@ def test_a_link_to_the_real_archive_is_refused(tmp_path):
     except OSError:
         pytest.skip("Symlinks nicht möglich")
     assert rec.main([str(link), S2]) == 2
+
+
+def add_peers(db):
+    c = sqlite3.connect(db)
+    c.execute("UPDATE stage2_results SET peer_group = 100001, peer_level = 'fine' WHERE ticker = 'AAA'")
+    for ticker, ev in (("PEER1", 5.0), ("PEER2", 9.0)):
+        c.execute(
+            "INSERT INTO stage2_results (run_timestamp, ticker, simfin_id, status, flags, invalid_reasons, info_flags, ev_ebitda, fcf_yield, peer_group, peer_level, peer_n) "
+            "VALUES (?, ?, 99, 'passed', '', '', '', ?, 0.05, 100001, 'fine', 3)",
+            (S2, ticker, ev),
+        )
+    c.execute(
+        "INSERT INTO stage2_results (run_timestamp, ticker, simfin_id, status, flags, invalid_reasons, info_flags, ev_ebitda, peer_group, peer_level) "
+        "VALUES (?, 'OTHER', 98, 'passed', '', '', '', 3.0, 100002, 'fine')",
+        (S2,),
+    )
+    c.commit()
+    c.close()
+
+
+def test_peers_are_all_firms_of_the_same_group_and_level(tmp_path):
+    db = tmp_path / "kopie.db"
+    build(db)
+    add_peers(db)
+    connection = sqlite3.connect(db)
+    _, rows = rec.export_rows(connection, S2, [(1, "AAA", "A")])
+    peers = rec.export_peers(connection, S2, rows)
+    connection.close()
+    assert sorted(p["ticker"] for p in peers) == ["AAA", "PEER1", "PEER2"]
+    assert all(p["candidate"] == "AAA" and p["peer_group"] == 100001 for p in peers)
+
+
+def test_main_writes_the_peer_file_and_refuses_to_overwrite_it(tmp_path):
+    db = tmp_path / "kopie.db"
+    build(db)
+    add_peers(db)
+    lst = tmp_path / "liste.md"
+    lst.write_text("| 1 | 3 | AAA | A | x |\n", encoding="utf-8")
+    peers_out = tmp_path / "peers.csv"
+    assert rec.main([str(db), S2, "--list", str(lst), "--peers-out", str(peers_out)]) == 0
+    text = peers_out.read_text(encoding="utf-8")
+    assert text.splitlines()[0].startswith("candidate,peer_group") and "PEER1" in text and "OTHER" not in text
+    assert rec.main([str(db), S2, "--list", str(lst), "--peers-out", str(peers_out)]) == 2

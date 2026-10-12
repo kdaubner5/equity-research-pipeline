@@ -11,6 +11,9 @@ Stufe-1-Lauf). Fehlende Zeilen werden nicht verschwiegen, sondern in der Spalte 
 Aufruf (auf einer Kopie, die Konstantin zuvor mit Pruefsumme gesichert hat), Beispiel fuer PowerShell:
     C:\\Users\\<Benutzer>\\anaconda3\\python.exe run_export_candidates.py data\\kopie_nach_A3.db 2026-10-10T12:27:44 --tranche A --out data\\export_A.csv
 
+Mit --peers-out DATEI.csv entsteht eine zweite Datei mit allen Firmen derselben Peer-Gruppen (fuer den Vergleich mit der
+Konkurrenz im One-Pager).
+
 Der Zeitstempel ist der des Stufe-2-Laufs (Spalte run_timestamp in der Tabelle stage2_runs). Die CSV-Datei hat Komma als
 Trenner und Punkt als Dezimalzeichen (nicht fuer das deutsche Excel gedacht, sondern zum Einfuegen in den Chat).
 Ohne --out kommt die CSV auf den Bildschirm; in PowerShell 5 ist Umleiten mit ">" unbrauchbar, bitte --out nehmen.
@@ -183,9 +186,35 @@ def export_rows(connection, stage2_timestamp, candidates):
     return header, rows
 
 
-def render_csv(rows):
+PEER_FIELDNAMES = [
+    "candidate", "peer_group", "peer_level", "ticker", "status", "ev_ebitda", "ev_ebitda_percentile", "fcf_yield",
+    "peer_rank", "peer_n", "invalid_reasons",
+]
+
+
+def export_peers(connection, stage2_timestamp, rows):
+    """Alle Stufe-2-Zeilen derselben Peer-Gruppe (gleiche Gruppe und Ebene) wie je ein Kandidat, fuer den Vergleich
+    mit der Konkurrenz. Kandidaten ohne Stufe-2-Zeile oder ohne Peer-Gruppe erscheinen nicht (die Luecke steht schon in
+    der Export-Tabelle)."""
+    connection.row_factory = sqlite3.Row
+    peers = []
+    for row in rows:
+        if row["peer_group"] in (None, "") or row["peer_level"] in (None, ""):
+            continue
+        found = connection.execute(
+            "SELECT ticker, status, ev_ebitda, ev_ebitda_percentile, fcf_yield, peer_rank, peer_n, invalid_reasons, "
+            "peer_group, peer_level FROM stage2_results WHERE run_timestamp = ? AND peer_group = ? AND peer_level = ? "
+            "ORDER BY ticker",
+            (stage2_timestamp, row["peer_group"], row["peer_level"]),
+        ).fetchall()
+        for f in found:
+            peers.append({"candidate": row["ticker"], **{k: f[k] for k in f.keys()}})
+    return peers
+
+
+def render_csv(rows, fieldnames=None):
     buffer = io.StringIO()
-    writer = csv.DictWriter(buffer, fieldnames=FIELDNAMES, lineterminator="\n")
+    writer = csv.DictWriter(buffer, fieldnames=fieldnames or FIELDNAMES, lineterminator="\n")
     writer.writeheader()
     for row in rows:
         writer.writerow({k: ("" if v is None else v) for k, v in row.items()})
@@ -205,6 +234,7 @@ def main(argv=None):
     parser.add_argument("stage2_timestamp")
     parser.add_argument("--tranche", choices=["A", "B", "C"])
     parser.add_argument("--out")
+    parser.add_argument("--peers-out", help="zweite CSV mit allen Firmen derselben Peer-Gruppen (Vergleich mit der Konkurrenz)")
     parser.add_argument("--list", dest="list_path", default=str(CANDIDATE_LIST))
     args = parser.parse_args(argv)
 
@@ -219,14 +249,16 @@ def main(argv=None):
         if Path(str(path) + suffix).exists():
             _err(f"ABBRUCH: Neben der Kopie liegt eine Datei mit der Endung {suffix}; die Kopie ist unvollständig.")
             return 2
-    if args.out and Path(args.out).exists():
-        _err(f"ABBRUCH: Zieldatei existiert schon (wird nicht überschrieben): {args.out}")
-        return 2
+    for target in (args.out, args.peers_out):
+        if target and Path(target).exists():
+            _err(f"ABBRUCH: Zieldatei existiert schon (wird nicht überschrieben): {target}")
+            return 2
     try:
         candidates = read_candidates(args.list_path, args.tranche)
         connection = _open_read_only(path)
         try:
             header, rows = export_rows(connection, args.stage2_timestamp, candidates)
+            peers = export_peers(connection, args.stage2_timestamp, rows) if args.peers_out else None
         finally:
             connection.close()
     except sqlite3.OperationalError as exc:
@@ -247,6 +279,14 @@ def main(argv=None):
         print(f"{len(rows)} Zeilen nach {args.out} geschrieben (Kopie nur gelesen).")
     else:
         print(text, end="")
+    if args.peers_out:
+        try:
+            with open(args.peers_out, "x", encoding="utf-8", newline="") as handle:
+                handle.write(render_csv(peers, PEER_FIELDNAMES))
+        except OSError as exc:
+            _err(f"ABBRUCH: Peer-Datei nicht schreibbar oder schon vorhanden: {exc}")
+            return 2
+        print(f"{len(peers)} Peer-Zeilen nach {args.peers_out} geschrieben.")
     gaps = [r for r in rows if r["luecken"]]
     print(
         f"Läufe: Stufe 2 {header['stage2']}, Stufe 1 {header['stage1']}, Vorfilter {header['prefilter']}, "
