@@ -4,7 +4,7 @@ Ein One-Pager je Finalist, Ziel etwa eine Seite (Wunsch, kein Zwang; bei mehr St
 
 ---
 
-**Firma:** <Name> (<Kürzel>) · **SimFin-ID:** <ID> · **Stand der Daten:** <Datum des Laufs> · **One-Pager vom:** <Datum>
+**Firma:** <Name> (<Kürzel>) · **SimFin-ID:** <ID> · **Stand der Daten:** <Datum des Laufs> · **Stichtag der Unterlagen:** <Datum der jüngsten ausgewerteten Einreichung> · **One-Pager vom:** <Datum> · **Aktueller Kurs:** <Kurs, Datum, Quelle>
 **Lauf (Archiv):** <Zeitstempel Stufe 1 / Stufe 2 / Trend-Guard> · **Regelstand:** <Commit, clean/dirty> (diese Kopfzeilen kommen aus dem Archiv, Roadmap A.3; Ergänzung gegenüber dem Masterplan)
 **Rang in Stufe 2:** <Rang von N> · **Profil:** <Profil> · **Peer-Gruppe:** <Gruppe> (passt: ja/nein, Punkt 5)
 
