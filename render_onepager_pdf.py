@@ -36,7 +36,7 @@ from reportlab.lib.units import mm  # noqa: E402
 from reportlab.pdfbase import pdfmetrics  # noqa: E402
 from reportlab.pdfbase.ttfonts import TTFont  # noqa: E402
 from reportlab.platypus import (  # noqa: E402
-    Image, KeepTogether, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle,
+    CondPageBreak, Image, KeepTogether, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle,
 )
 
 _FONT_DIR = Path(matplotlib.get_data_path()) / "fonts" / "ttf"
@@ -492,7 +492,7 @@ def build(data, out_path, peers=None):
               _entry_box(data["entry"])]
 
     if data.get("funnel"):
-        story.append(PageBreak())
+        story.append(CondPageBreak(190 * mm))
         story.append(Paragraph(data.get("funnel_title", "Weg durch den Trichter"), S_H))
         story.append(Image(funnel_chart(data["funnel"]), width=CONTENT_W * mm, height=78 * mm, kind="proportional"))
         if data.get("funnel_note"):
@@ -508,7 +508,7 @@ def build(data, out_path, peers=None):
         story.append(Paragraph(data["financials"].get("note", ""), S_SMALL))
 
     ticker = c["ticker"]
-    story += [PageBreak(), Paragraph("Einordnung gegen die Konkurrenz", S_H)]
+    story += [CondPageBreak(215 * mm), Paragraph("Einordnung gegen die Konkurrenz", S_H)]
     peer_notes, items_top, items_bottom = [], [], []
     if data.get("halfyear"):
         items_top.append((halfyear_chart(data), 62))
@@ -551,7 +551,7 @@ def build(data, out_path, peers=None):
         story.append(Paragraph(rank_line + " ".join(dict.fromkeys(peer_notes)) + " " + extra + "Die Diagramme zeigen die Archivwerte der "
                                "Stufe 2 (Geschäftsjahre bzw. 3-Jahres-Mittel); die Karten auf Seite 1 zeigen teils die letzten zwölf Monate.", S_SMALL))
 
-    story += [PageBreak(), Paragraph("Was ist passiert", S_H), _timeline(data["events"]), Spacer(1, 14)]
+    story += [CondPageBreak(150 * mm), Paragraph("Was ist passiert", S_H), _timeline(data["events"]), Spacer(1, 14)]
     cols = Table([[[Paragraph("Risiken (Bear)", _style("bh", 11, 14, TONES["bad"], bold=True)), Spacer(1, 4)] + _bullets(data["bear"], "bad"),
                    "",
                    [Paragraph("Argumente dafür (Bull)", _style("gh", 11, 14, TONES["ok"], bold=True)), Spacer(1, 4)] + _bullets(data["bull"], "ok")]],

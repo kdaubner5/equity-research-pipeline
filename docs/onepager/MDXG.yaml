@@ -71,7 +71,7 @@ bull:
   - "Kostensenkungen zeigen laut Firma Wirkung; Weg zurück zur Profitabilität im 2. Halbjahr angekündigt (Erwartung, kein Beleg)."
   - "Bis zur Übernahme Nettokasse von 119 Mio. $ (Kasse 136 Mio. $); Kredit nur rund 17 Mio. $."
   - "Langfristziel der Firma: Umsatzwachstum im niedrigen zweistelligen Bereich und bereinigte EBITDA-Marge über 20 % (Ziel, kein Beleg)."
-  - "Medicare bleibt laut Firma bei der neuen Zahlungsstruktur bis 2027, was Planbarkeit schafft."
+  - "Die Firma nennt für 2027 vorgeschlagene Medicare-Regeln (CMS-Entwurf, noch nicht endgültig) und sieht Medicare bei der neuen Zahlungsstruktur; Störungen in den Bundesstaaten des WISeR-Programms bleiben laut Präsentation eine Herausforderung."
 entry:
   zone_title: "Kein Einstiegsszenario bei VERWERFEN"
   horizon: "nicht anwendbar"
@@ -107,7 +107,7 @@ gates:
   - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "7,1 (Platz 2 von 12)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
   - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "7,6 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
   - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %", status: ok }
-gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre bis 2025; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Genau deshalb sieht der Filter den Einbruch 2026 nicht: Der Trend-Guard vergleicht Geschäftsjahre (Umsatzverhältnis 1,15, Margenverhältnis 1,14). Die Zahlen des ersten Halbjahres 2026 sind darin nicht enthalten."
+gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre bis 2025; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Genau deshalb sieht der Filter den Einbruch 2026 nicht: Der Trend-Guard vergleicht Geschäftsjahre (Umsatzverhältnis 1,15, Margenverhältnis 1,15). Die Zahlen des ersten Halbjahres 2026 sind darin nicht enthalten."
 financials_title: "Kennzahlen im Überblick (Mio. $)"
 financials:
   columns: ["2023", "2024", "2025", "1. Hj. 2025", "1. Hj. 2026"]

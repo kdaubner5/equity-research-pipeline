@@ -8,7 +8,7 @@ company:
   peer_group: "Manufacturing - Apparel & Furniture (SimFin-Branche 103004, 18 Firmen)"
   profile: non_financial
 dates:
-  documents_until: "29.09.2026 (jüngste Meldung zur Fusion); Fusionsunterlage (S-4) vom 23.09.2026"
+  documents_until: "23.09.2026 (Fusionsunterlage S-4); jüngste 8-K vom 10.09.2026"
   one_pager: "12.10.2026"
   archive_run: "10.10.2026, Regelstand 33ed39b"
   price: "69,18 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden"
@@ -34,8 +34,8 @@ kpis:
     status: warn
     note: "Stufe-2-Grenze 5 % gilt für das 3-Jahres-Mittel"
   - label: "EV/EBIT"
-    main: "13,7"
-    sub: "ungefähr, letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 5,7"
+    main: "13,8"
+    sub: "letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 5,7"
     status: neutral
   - label: "Net Debt/EBITDA"
     main: "3,0"
@@ -66,7 +66,7 @@ bear:
   - "Verschuldung laut Kreditvertrag 3,0 Mal EBITDA (Gesamtschulden rund 1,4 Mrd. $), über der Stufe-1-Grenze von 2,5 (andere Rechnung); Liquidität 691 Mio. $."
   - "RV-Geschäft schwach: RV-Umsatz -15 %, Branchenauslieferungen -16 %; Betriebsmarge im Q2 7,4 % nach 8,3 %; höhere Kraftstoffkosten."
   - "Operativer Cashflow im 1. Halbjahr 68,9 Mio. $ nach 189,5 Mio. $ (mehr Lagerbestände für Verbundwerkstoffe); freier Cashflow 32,3 Mio. $."
-  - "Fusionsrisiko: Zustimmung beider Aktionärsgruppen und der Kartellbehörden nötig; Abbruchgebühr 94,2 Mio. $; Kartellanmeldung musste neu eingereicht werden."
+  - "Fusionsrisiko: Zustimmung beider Aktionärsgruppen und der Kartellbehörden nötig; Abbruchgebühr 94,2 Mio. $; Kartellanmeldung wurde freiwillig zurückgezogen und neu eingereicht (neue Wartefrist)."
 bull:
   - "Breiter aufgestellt als der RV-Markt: Marine +22 %, Powersports +28 %, Wohnbau +2 % im 2. Quartal; RV-Anteil am Umsatz noch 39 %."
   - "Nach der Fusion erwartet der Verwaltungsrat von Patrick eine Verschuldung von rund 2,1 Mal EBITDA im ersten vollen Jahr (unter dem eigenen Ziel von 2,5) und Synergien (LCI nannte im Verfahren rund 150 Mio. $ netto; S-4)."
@@ -89,7 +89,7 @@ sources_detail:
   - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
   - "NICHT verwendet: Earnings-Call-Transkripte (das Transkript wurde als Fusionsmitteilung bei der SEC eingereicht, aber nicht gelesen), Analysten- und Brokerberichte, Nachrichten und Meinungen, Zahlen von LCI Industries, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
 sources: "SEC: 10-K 2025 (eingereicht 19.02.2026), 10-Q Q2 2026 (0000076605-26-000075), 8-K vom 30.06. (-26-000059), 30.07. (-26-000069), 10.08. (-26-000080) und 10.09.2026 (-26-000084), S-4 vom 23.09.2026 (0001628280-26-063259). Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
-not_checked: "Die Zahlen von LCI Industries, die genauen Fusionsbedingungen jenseits der gelesenen Stellen (Rücktritts- und Anpassungsklauseln), die Bewertung des Tauschverhältnisses und die Gründe für den Kursrückgang seit Juni sind nicht ausgewertet. Die Peer-Gruppe (Bekleidung, Möbel, Schuhe) passt kaum zu einem Zulieferer für Wohnmobile, Boote und Fertighäuser. Net Debt/EBITDA 3,0 ist die Angabe der Firma nach dem Kreditvertrag und nicht die Stufe-1-Rechnung; das EV/EBIT ist ungefähr (Schulden aus der Pressemitteilung gerundet, Kasse nicht gelesen). Die Kandidatenliste vermerkt für PATK: Daten veraltet (Stand 1. Quartal des Geschäftsjahres); die hier genutzten Zahlen stammen aus dem 10-Q Q2 2026. Der heutige Kurs ist offen. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+not_checked: "Die Zahlen von LCI Industries, die genauen Fusionsbedingungen jenseits der gelesenen Stellen (Rücktritts- und Anpassungsklauseln), die Bewertung des Tauschverhältnisses und die Gründe für den Kursrückgang seit Juni sind nicht ausgewertet. Die Peer-Gruppe (Bekleidung, Möbel, Schuhe) passt kaum zu einem Zulieferer für Wohnmobile, Boote und Fertighäuser. Net Debt/EBITDA 3,0 ist die Angabe der Firma nach dem Kreditvertrag und nicht die Stufe-1-Rechnung; das EV/EBIT nutzt Schulden 1.429,3 und Kasse 29,2 Mio. $ aus dem 10-Q. Die Aktienzahl laut 10-Q-Deckblatt (32,12 Mio., Stand 31.07.) liegt unter der des Archivs (32,89 Mio.): Marktwert dann 2,22 Mrd. $, FCF-Rendite 5,7 %, rechnerische Grenze 66,3 $ (Kurs 4,4 % darüber). Die Kandidatenliste vermerkt für PATK: Daten veraltet (Stand 1. Quartal des Geschäftsjahres); die hier genutzten Zahlen stammen aus dem 10-Q Q2 2026. Der heutige Kurs ist offen. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
 peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); in der Gruppe fehlen keine Firmen wegen Datenfehlern. Die Gruppe passt kaum (Bekleidung, Möbel, Schuhe)."
 peer_summary: "Gegen die 18 Firmen der Peer-Gruppe: EV/EBITDA 5,7 gegen Median 9,9 (Platz 3 von 18), FCF-Rendite 12,0 % gegen Median 9,4 % (Platz 6 von 18). Archivwerte der Geschäftsjahre bis 2025; auf zwölf Monaten liegt die FCF-Rendite bei 5,6 %. Die Gruppe passt kaum."
 funnel_title: "So kam PATK auf die Liste (Trichter vom 10.10.2026)"

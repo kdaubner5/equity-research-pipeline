@@ -83,7 +83,7 @@ entry:
   price: 36.64
   price_date: "23.09.2026"
   condition: "Abwarten: Quartalsbericht Q3 (Termin noch nicht bekannt) und Q4 mit Stillstand Eastover; freier Cashflow der letzten zwölf Monate muss wieder positiv werden"
-kill: "Vorschlag des Agenten: verwerfen, wenn Net Debt/EBITDA (bereinigt) mit dem Q3-Bericht mindestens 2,5 beträgt (Schwelle aus config/thresholds.yaml, hier auf das bereinigte EBITDA angewendet) oder der freie Cashflow der letzten zwölf Monate mit dem Q4-Bericht (Februar 2027) nicht wieder über der Stufe-2-Durchfallgrenze von 5 % des Börsenwerts liegt (config/stage2.yaml); sonst auf WEITERVERFOLGEN prüfen."
+kill: "Vorschlag des Agenten: verwerfen, wenn Net Debt/EBITDA (bereinigt) mit dem Q3-Bericht mindestens 2,5 beträgt (Schwelle aus config/thresholds.yaml, hier auf das bereinigte EBITDA angewendet) oder der freie Cashflow der letzten zwölf Monate mit dem Q4-Bericht (Termin noch nicht bekannt) nicht wieder über der Stufe-2-Durchfallgrenze von 5 % des Börsenwerts liegt (config/stage2.yaml); sonst auf WEITERVERFOLGEN prüfen."
 sources_detail:
   - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 20.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 07.08.2026 und Q1 2026 vom 08.05.2026, Q1 nur auf Vorhandensein geprüft) und 1 aktuelle Meldung (8-K vom 07.08.2026 mit der Pressemitteilung zu den Quartalszahlen). Zahlen aus den XBRL-Daten der SEC gegengelesen."
   - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."

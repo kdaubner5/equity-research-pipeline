@@ -15,14 +15,14 @@ dates:
 verdict:
   label: "ZURÜCKSTELLEN"
   tone: warn
-  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Hoher Cashflow, aber der bereinigte Gewinn sinkt, der Gewinn 2026 enthält einen Verkaufsgewinn, und 23,8 Mrd. $ Mietverpflichtungen sieht der Filter nicht."
+  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Hoher Cashflow, aber der bereinigte Gewinn sinkt, der Gewinn 2026 enthält einen Verkaufsgewinn, und 23,9 Mrd. $ Mietverpflichtungen sieht der Filter nicht."
   legend: "Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Entscheidung über die Behandlung von Mietverpflichtungen im Filter und der Quartalsbericht Q3) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
 thesis: >-
-  MGM betreibt Kasinos und Hotels in Las Vegas und den USA, in Macau (MGM China) und ein Online-Geschäft. Im 2. Quartal 2026 stieg der Umsatz
-  um 1 % auf 4,5 Mrd. $; der Nettogewinn sprang auf 292 Mio. $ (Vorjahr 49), vor allem wegen eines Verkaufsgewinns von rund 287 Mio. $
-  (Northfield Park). Der bereinigte Gewinn je Aktie fiel auf 0,59 $ nach 0,79 $. Der freie Cashflow der letzten zwölf Monate liegt bei rund
-  1,49 Mrd. $ (15,4 % des Börsenwerts), enthält aber die Minderheitsanteile an MGM China. Schulden 6,07 Mrd. $, Kasse 2,55 Mrd. $; dazu
-  kommen Mietverpflichtungen von 23,8 Mrd. $ (Barmiete an VICI 722 Mio. $ im Jahr), die Net Debt/EBITDA und EV des Filters nicht enthalten.
+  MGM betreibt Kasinos und Hotels in Las Vegas und den USA, in Macau (MGM China) und ein Online-Geschäft. Im 2. Quartal 2026 stieg der Umsatz um 1 %
+  auf 4,5 Mrd. $; der Nettogewinn sprang auf 292 Mio. $ (Vorjahr 49), vor allem durch Gewinne aus Vermögensgeschäften von 286,7 Mio. $ (darunter
+  255 Mio. $ aus dem Verkauf von Northfield Park). Der bereinigte Gewinn je Aktie fiel auf 0,59 $ nach 0,79 $. Der freie Cashflow der letzten zwölf
+  Monate liegt bei rund 1,49 Mrd. $ (15,4 % des Börsenwerts, inklusive Minderheitsanteilen an MGM China). Schulden 6,07 Mrd. $, Kasse 2,55 Mrd. $; dazu
+  Mietverpflichtungen von 23,9 Mrd. $, die der Filter nicht enthält.
 kpis:
   - label: "Marktwert"
     main: "9,68 Mrd. $"
@@ -38,7 +38,7 @@ kpis:
     status: neutral
   - label: "Nettoschulden"
     main: "3,52 Mrd. $"
-    sub: "30.06.2026 ohne Mieten (Mieten 23,8 Mrd. $) | Stufe 1: 1,87"
+    sub: "30.06.2026 ohne Mieten (Mieten 23,9 Mrd. $) | Stufe 1: 1,87"
     status: warn
   - label: "Bereinigter Gewinn je Aktie"
     main: "0,59 $"
@@ -60,8 +60,8 @@ events:
   - { date: "2030", text: "Eröffnung von MGM Osaka geplant (laut Firma im Plan)", future: true }
 bear:
   - "Bereinigter Gewinn je Aktie 0,59 $ nach 0,79 $; bereinigtes EBITDA 610 nach 648 Mio. $; Regionalgeschäft (Erträge vor Mieten) -9 % (gleiche Häuser: unverändert), MGM China -15 %, Online-Geschäft mit Verlust (-31 Mio. $ im Quartal)."
-  - "Der Nettogewinn des 1. Halbjahres (417,6 Mio. $) enthält einen Verkaufsgewinn von rund 287 Mio. $ im 2. Quartal; ohne ihn läge er deutlich unter dem Vorjahr."
-  - "Mietverpflichtungen 23,8 Mrd. $ (Bilanz) bei Schulden von 6,07 Mrd. $; die Barmiete an VICI beträgt 722 Mio. $ im Jahr. Net Debt/EBITDA und EV des Filters erfassen sie nicht."
+  - "Der Nettogewinn des 1. Halbjahres (417,6 Mio. $) enthält Gewinne aus Vermögensgeschäften (netto +272,5 Mio. $) und eine Firmenwert-Abschreibung von 111,0 Mio. $; im Vorjahr stand ein Währungsverlust von 161 Mio. $ im 2. Quartal. Die Vergleichbarkeit der Gewinne ist eingeschränkt; der bereinigte Gewinn je Aktie fiel."
+  - "Mietverpflichtungen 23,9 Mrd. $ (Bilanz) bei Schulden von 6,07 Mrd. $; die Barmiete an VICI beträgt 722 Mio. $ im Jahr. Net Debt/EBITDA und EV des Filters erfassen sie nicht."
   - "Der freie Cashflow enthält MGM China, an der Minderheiten beteiligt sind; Ausschüttungen an Minderheiten 83,0 Mio. $ im 1. Halbjahr."
   - "Betriebsmarge: 2023 11,7 %, 2025 5,7 %; der Trend-Guard markiert die fallende Marge. MGM Osaka ist ein sehr großes Projekt (Eröffnung 2030) mit Kapitalbedarf."
 bull:
@@ -76,17 +76,17 @@ entry:
   limit: 0
   limit_label: "Grenze nach FCF-Rendite 6 %"
   price_vs_limit: "nicht aussagekräftig"
-  limit_note: "Rechnerisch ergäbe die 6-%-Regel auf dem freien Cashflow der letzten zwölf Monate (1.495 Mio. $) eine Grenze von rund 97 $. Sie wird nicht verwendet: Der Cashflow enthält MGM China samt Minderheiten, und die Mietverpflichtungen (23,8 Mrd. $) fehlen in der Rechnung. Eine belastbare Grenze braucht erst die Entscheidung, wie Mieten im Filter zu behandeln sind."
+  limit_note: "Rechnerisch ergäbe die 6-%-Regel auf dem freien Cashflow der letzten zwölf Monate (1.495 Mio. $) rund 97 $. Sie wird nicht verwendet: Der Cashflow enthält MGM China samt Minderheiten, und die Mieten (23,9 Mrd. $) fehlen in der Rechnung. Eine belastbare Grenze braucht erst die Entscheidung, wie Mieten im Filter zu behandeln sind."
   price: 37.85
   price_date: "23.09.2026"
-  condition: "Entscheidung des Projektinhabers, ob Mietverpflichtungen (VICI) in Stufe 1 und 2 einbezogen werden; Quartalsbericht Q3 (Termin noch nicht bekannt) und Kurs prüfen"
+  condition: "Entscheidung des Projektinhabers, ob Mietverpflichtungen in Stufe 1 und 2 einbezogen werden; Quartalsbericht Q3 (Termin noch nicht bekannt) und Kurs prüfen"
 kill: "Vorschlag des Agenten: verwerfen, wenn der bereinigte Gewinn je Aktie auch im 3. Quartal unter dem Vorjahr liegt und zusätzlich die FCF-Rendite der letzten zwölf Monate unter 5 % fällt (Stufe-2-Durchfallgrenze aus config/stage2.yaml; die erste Bedingung ist keine Schwelle aus dem Repo); sonst auf WEITERVERFOLGEN prüfen, sobald die Mieten-Frage entschieden ist."
 sources_detail:
   - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 11.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 29.07.2026 und Q1 2026 vom 29.04.2026, Q1 nur auf Vorhandensein geprüft) und 1 aktuelle Meldung (8-K vom 29.07.2026 mit der Pressemitteilung zu den Quartalszahlen). Zahlen aus den XBRL-Daten der SEC gegengelesen."
   - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
   - "NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
 sources: "SEC: 10-K 2025 (eingereicht 11.02.2026), 10-Q Q2 2026 und Q1 2026, 8-K vom 29.07.2026. Aktenzeichen im Abrufprotokoll. Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
-not_checked: "Die Peer-Gruppe Travel & Leisure (24 Firmen) passt kaum (Spielzeug, Boote, Fitness, Haustierbedarf); nur wenige Kasinobetreiber sind echte Vergleichsfirmen. Das Archiv trägt die Marken Aktienzahl ungeprüft und für Stufe 1 die Datenmarke `debt_component_missing_defaulted_zero`; die Verschuldung 1,87 des Archivs ist nicht nachgerechnet. Der Verkaufsgewinn (rund 287 Mio. $) ist aus der Posten-Zeile Grundstücks- und Vermögensgeschäfte (property transactions, net) abgeleitet und nicht im Detail geprüft; der EV (Börsenwert + Schulden - Kasse + Minderheiten zum Buchwert 853,9 Mio. $) ist grob. Das gesamte bereinigte EBITDA der letzten zwölf Monate wurde nicht gerechnet. Offen sind der Anteil der Minderheiten am Cashflow, die Mietdeckung (VICI), der Kapitalbedarf für Osaka und der heutige Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+not_checked: "Die Peer-Gruppe Travel & Leisure (24 Firmen) passt kaum (Spielzeug, Boote, Fitness, Haustierbedarf); nur wenige Kasinobetreiber sind echte Vergleichsfirmen. Das Archiv trägt die Marken Aktienzahl ungeprüft und für Stufe 1 die Datenmarke `debt_component_missing_defaulted_zero`; die Verschuldung 1,87 des Archivs ist nicht nachgerechnet. Das EBIT der letzten zwölf Monate enthält die Gewinne aus Vermögensgeschäften (+272 Mio. $) und die Firmenwert-Abschreibung (-111 Mio. $) unbereinigt. Von den Mietverpflichtungen (insgesamt 23,9 Mrd. $, langfristiger Teil 23,8) entfallen laut 10-Q unter anderem 3,8 Mrd. $ auf Bellagio (nicht VICI); Finanzierungsleasing von 212,7 Mio. $ ist in den Schulden nicht enthalten. Die Aktienzahl laut 10-Q-Deckblatt (251,59 Mio., Stand 29.07.) liegt unter der des Archivs (255,85 Mio.): Marktwert dann 9,52 Mrd. $, FCF-Rendite 15,7 %, rechnerische Grenze 99 $. der EV (Börsenwert + Schulden - Kasse + Minderheiten zum Buchwert 853,9 Mio. $) ist grob. Das gesamte bereinigte EBITDA der letzten zwölf Monate wurde nicht gerechnet. Offen sind der Anteil der Minderheiten am Cashflow, die Mietdeckung (VICI), der Kapitalbedarf für Osaka und der heutige Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
 peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); 1 Firma fehlt wegen Datenfehlers (MMYT). Große Gruppe: gezeigt ist ein Ausschnitt um MGM. Die Gruppe passt schlecht."
 peer_summary: "Gegen die 24 Firmen der Peer-Gruppe: EV/EBITDA 6,2 gegen Median 10,5 (Platz 4 von 24), FCF-Rendite 16,9 % gegen Median 7,4 % (Platz 1 von 21). Archivwerte der Geschäftsjahre; die Gruppe passt schlecht, und Mieten, Minderheiten und Gewinn je Aktie sind darin nicht berücksichtigt."
 funnel_title: "So kam MGM auf die Liste (Trichter vom 10.10.2026)"

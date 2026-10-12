@@ -13,17 +13,16 @@ dates:
   archive_run: "10.10.2026, Regelstand 33ed39b"
   price: "71,74 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden"
 verdict:
-  label: "ZURÜCKSTELLEN"
-  tone: warn
-  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Gutes Kerngeschäft, aber hohe Wachstums-Investitionen drücken den freien Cashflow auf zwölf Monaten fast auf null und die Verschuldung steigt."
-  legend: "Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3 und der Nachweis, dass der Cashflow nach den Bauprojekten zurückkehrt) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
+  label: "WEITERVERFOLGEN"
+  tone: ok
+  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Stabiles Kerngeschäft; der Cashflow-Einbruch 2026 ist überwiegend eine einmalige Steuerzahlung auf den FanDuel-Verkauf. Beobachten: Betriebsergebnis -18 % und Verschuldung nahe der Grenze."
+  legend: "Was bedeutet WEITERVERFOLGEN? Die Firma besteht den Filter und die Prüfung der Unterlagen zeigt kein Ausschlussmerkmal. Sie kommt in die engere Beobachtung; ein Kauf folgt nur nach den Stufe-4-Regeln und deiner Entscheidung. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
 thesis: >-
-  Boyd Gaming betreibt Regionalkasinos (Mittlerer Westen, Süden, Las Vegas) und ein Online-Geschäft. Auf den Geschäftsjahren ist die
-  Firma günstig (EV/EBITDA 6,0, Platz 3 von 24; Dreijahresmittel des freien Cashflows 495 Mio. $). 2025 verkaufte Boyd die 5-%-Beteiligung an FanDuel für 1,758 Mrd. $ in bar, tilgte damit Schulden
-  und kauft Aktien zurück. 2026 kippt das Bild bei den Zahlen: Das Betriebsergebnis fiel im 1. Halbjahr um 18 % auf 364,7 Mio. $,
-  der operative Cashflow brach auf 110,8 Mio. $ ein (Vorjahr 461,4), und die Investitionen von 297,1 Mio. $ (Neubauten in Norfolk und
-  Cadence Crossing, Renovierungen) ließen den freien Cashflow auf -186 Mio. $ fallen. Auf zwölf Monaten bleibt rund 35 Mio. $ (0,7 %).
-  Die Verschuldung stieg nach Agent-Rechnung auf rund 2,2 Mal EBITDA (Stufe 1 auf Basis 2025: 1,43).
+  Boyd Gaming betreibt Regionalkasinos und ein Online-Geschäft. Auf den Geschäftsjahren ist die Firma günstig (EV/EBITDA 6,0, Platz 3 von 24).
+  2025 verkaufte Boyd die FanDuel-Beteiligung für 1,758 Mrd. $ (Gewinn 1.748,0 Mio. $) und tilgte Schulden. 2026 sank das Betriebsergebnis im
+  1. Halbjahr um 18 % auf 364,7 Mio. $. Der operative Cashflow brach auf 110,8 Mio. $ ein (Vorjahr 461,4), vor allem wegen 341,0 Mio. $ für 2025
+  gekaufte Steuergutschriften (Steuer auf den FanDuel-Gewinn, laut 10-Q); die Investitionen blieben mit 297,1 Mio. $ auf Vorjahreshöhe. Ohne diese
+  Zahlung läge die FCF-Rendite der letzten zwölf Monate bei rund 7,1 % statt 0,7 %. Die Verschuldung stieg auf rund 2,2 Mal EBITDA (Grauzone ab 2,3).
 kpis:
   - label: "Marktwert"
     main: "5,33 Mrd. $"
@@ -32,8 +31,8 @@ kpis:
   - label: "FCF-Rendite"
     main: "0,7 %"
     sub: "letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 8,5 %"
-    status: bad
-    note: "Stufe-2-Grenze 5 % gilt für das 3-Jahres-Mittel"
+    status: warn
+    note: "Ohne die einmalige Steuerzahlung (341 Mio. $) rund 7,1 %"
   - label: "EV/EBITDA"
     main: "7,5"
     sub: "letzte 12 Monate (Agent) | Stufe 2: 6,0"
@@ -63,35 +62,34 @@ events:
   - { date: "13.08.2026", text: "Dividende 0,20 $ je Aktie beschlossen, zahlbar am 15.10.2026" }
 bear:
   - "Betriebsergebnis 1. Halbjahr 2026: 364,7 Mio. $ nach 442,3 Mio. $ (-18 %); Nettogewinn Q2 131,2 Mio. $ nach 151,5 Mio. $."
-  - "Operativer Cashflow im 1. Halbjahr 110,8 Mio. $ nach 461,4 Mio. $: Die Kapitalflussrechnung zeigt einen Abbau von Verbindlichkeiten und Rückstellungen um 406,6 Mio. $ (Vorjahr 35,7); die Ursache wurde nicht untersucht."
-  - "Investitionen 1. Halbjahr 297,1 Mio. $ (Neubauten Norfolk und Cadence Crossing, Renovierungen); für 2026 zusätzlich 75 Mio. $ Hotelumbau und rund 250 Mio. $ laufende Instandhaltung genannt."
-  - "Schwächen in Las Vegas (Orleans, Bauarbeiten am Suncoast) und im Online-Geschäft (Erlöse aus Marktzugangs-Verträgen -28,9 Mio. $ im 1. Halbjahr)."
-  - "Verschuldung steigt nach Agent-Rechnung auf rund 2,2 Mal EBITDA (Gesamtschulden rund 2,6 Mrd. $, Kasse 322,7 Mio. $); Rückkäufe laufen trotz negativem freiem Cashflow."
+  - "Operativer Cashflow im 1. Halbjahr 110,8 Mio. $ nach 461,4 Mio. $: laut 10-Q vor allem 341,0 Mio. $ Zahlungen für 2025 gekaufte Bundessteuergutschriften (Steuer auf den FanDuel-Gewinn); in der Kapitalflussrechnung sank der Posten Verbindlichkeiten und Rückstellungen um 406,6 Mio. $."
+  - "Investitionen weiter hoch: 297,1 Mio. $ im 1. Halbjahr (Neubauten Norfolk und Cadence Crossing); für 2026 zusätzlich 75 Mio. $ Hotelumbau und rund 250 Mio. $ Instandhaltung genannt."
+  - "Schwächen in Las Vegas (Orleans, Suncoast-Bauarbeiten) und online (Marktzugangs-Erlöse -28,9 Mio. $ im 1. Halbjahr)."
+  - "Verschuldung steigt nach Agent-Rechnung auf rund 2,2 Mal EBITDA (Gesamtschulden rund 2,6 Mrd. $, Kasse 322,7 Mio. $), unter anderem weil Kredit und Kreditlinie die Steuerzahlungen und Rückkäufe mitfinanzierten (10-Q); der Rückkauf lief weiter (156 Mio. $ im 2. Quartal)."
 bull:
-  - "Kerngeschäft stabil: Umsatz im Q2 auf Vorjahresniveau, Betriebsmarge der Häuser laut Firma 40 %, Spielvolumen (Slots) +1,6 %, Gewinn aus Spielen +2,4 %."
+  - "Kerngeschäft stabil: Umsatz im Q2 auf Vorjahresniveau, Betriebsmarge der Häuser laut Firma 40 %, Slot-Umsatz (Handle) +1,6 %, Slot-Gewinn +2,4 %, Spielerlöse insgesamt +1,8 %."
   - "Zinsen sinken: Zinsaufwand im 1. Halbjahr -39,1 Mio. $ (durchschnittliche Schulden -1,1 Mrd. $); Verwaltungsgebühren Sky River wachsen."
   - "Cashflow 2023 bis 2025 jeweils zwischen 389 und 557 Mio. $ (nach Agent-Rechnung) vor den Wachstumsprojekten."
   - "Mit dem FanDuel-Verkauf 1,758 Mrd. $ in bar erhalten; Aktienrückkauf mit noch 551 Mio. $ Rahmen."
-  - "Neue Häuser (Norfolk, Cadence Crossing) sollen nach der Bauphase Cashflow liefern (Erwartung, kein Beleg)."
 entry:
   zone_title: "Einstiegsszenario (Vorschlag, kein Kursziel)"
   horizon: "mittelfristig (1 bis 3 Jahre)"
-  limit: 0
-  limit_label: "Grenze nach FCF-Rendite 6 %"
-  price_vs_limit: "nicht aussagekräftig"
-  limit_note: "Der freie Cashflow der letzten zwölf Monate beträgt nur rund 35 Mio. $; die 6-%-Regel ergäbe eine Grenze von rund 7,9 $, die hier keinen Sinn hat (Wachstumsprojekte). Auf dem Dreijahresmittel (495 Mio. $) läge sie bei 111 $. Welche Zahl gilt, hängt davon ab, ob die Projekte Cashflow bringen. Die zweite Grenze (EV/EBITDA) fehlt."
+  limit: 84.3
+  limit_label: "Grenze nach FCF-Rendite 6 % (ohne die einmalige Steuerzahlung)"
+  price_vs_limit: "15 % darunter"
+  limit_note: "Vorläufig: 6 % auf den freien Cashflow der letzten zwölf Monate ohne die einmalige Steuerzahlung (rund 376 Mio. $, Annahme des Agenten) und 74,3 Mio. Aktien ergibt 84,3 $; mit der Zahlung wären es nur 7,9 $. Die Regel verlangt strikt mehr als 6 %. Die zweite Grenze (EV/EBITDA) fehlt."
   price: 71.74
   price_date: "23.09.2026"
   condition: "Abwarten: Quartalsbericht Q3 (Termin noch nicht bekannt); Investitionsplan und Cashflow nach den Bauprojekten prüfen; aktuellen Kurs prüfen"
-kill: "Vorschlag des Agenten: verwerfen, wenn Net Debt/EBITDA mindestens 2,5 beträgt (Schwelle aus config/thresholds.yaml) oder die FCF-Rendite der letzten zwölf Monate mit dem Q4-Bericht (Februar 2027) unter 5 % liegt (Stufe-2-Durchfallgrenze aus config/stage2.yaml); sonst auf WEITERVERFOLGEN prüfen."
+kill: "Vorschlag des Agenten: verwerfen, wenn Net Debt/EBITDA mindestens 2,5 beträgt (Schwelle aus config/thresholds.yaml) oder die FCF-Rendite der letzten zwölf Monate ohne Einmaleffekte unter 5 % liegt (Stufe-2-Durchfallgrenze aus config/stage2.yaml); geprüft mit jedem 10-Q."
 sources_detail:
   - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 20.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 30.07.2026 und Q1 2026 vom 30.04.2026, Q1 nur auf Vorhandensein geprüft) und 2 aktuelle Meldungen (8-K vom 23.07.2026 mit der Pressemitteilung zu den Quartalszahlen und vom 13.08.2026 zur Dividende). Zahlen aus den XBRL-Daten der SEC gegengelesen."
   - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
   - "NICHT verwendet: Earnings-Call-Transkripte (Konferenz am 23.07.2026 stattgefunden), Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
 sources: "SEC: 10-K 2025 (0001437749-26-004908), 10-Q Q2 2026 (-26-025062), 10-Q Q1 2026 (-26-014192), 8-K vom 23.07.2026 (-26-024305) und 13.08.2026 (-26-027683). Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
-not_checked: "Die Peer-Gruppe Travel & Leisure (24 Firmen) passt kaum: Sie enthält Spielzeug (Mattel), Boote (Brunswick, Malibu), Fitness (Peloton), Haustierbedarf (Petco) und Kreuzfahrten; nur Caesars, MGM, Churchill Downs und wenige Verwandte sind echte Vergleichsfirmen. Das Archiv trägt für Stufe 1 die Datenmarke `debt_component_missing_defaulted_zero` (ein Teil der Schulden fehlte und wurde auf 0 gesetzt); die Verschuldung 1,43 des Archivs könnte daher zu niedrig sein. Die Gesamtschulden sind aus der Pressemitteilung nur gerundet (2,6 Mrd. $) übernommen und nicht aus der Bilanz nachgerechnet. Die Ursache des Cashflow-Einbruchs (Verbindlichkeiten -406,6 Mio. $), der Zeitplan der Neubauten und die Wirkung der FanDuel-Neuordnung auf die Online-Erlöse sind offen. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+not_checked: "Die Peer-Gruppe Travel & Leisure (24 Firmen) passt kaum: Sie enthält Spielzeug (Mattel), Boote (Brunswick, Malibu), Fitness (Peloton), Haustierbedarf (Petco) und Kreuzfahrten; nur Caesars, MGM, Churchill Downs und wenige Verwandte sind echte Vergleichsfirmen. Das Archiv trägt für Stufe 1 die Datenmarke `debt_component_missing_defaulted_zero` (ein Teil der Schulden fehlte und wurde auf 0 gesetzt); die Verschuldung 1,43 des Archivs könnte daher zu niedrig sein. Die Gesamtschulden sind aus der Pressemitteilung nur gerundet (2,6 Mrd. $) übernommen und nicht aus der Bilanz nachgerechnet. Der Zeitplan der Neubauten, die Wirkung der FanDuel-Neuordnung auf die Online-Erlöse und ob weitere Steuerzahlungen folgen sind offen. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
 peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); 1 Firma fehlt wegen Datenfehlers (MMYT). Große Gruppe: gezeigt ist ein Ausschnitt um BYD. Die Gruppe passt schlecht (Spielzeug, Boote, Fitness)."
-peer_summary: "Gegen die 24 Firmen der Peer-Gruppe: EV/EBITDA 6,0 gegen Median 10,5 (Platz 3 von 24), FCF-Rendite 8,5 % gegen Median 7,4 % (Platz 10 von 21). Das sind Archivwerte der Geschäftsjahre bis 2025; auf zwölf Monaten liegen EV/EBITDA bei 7,5 und die FCF-Rendite bei 0,7 %. Die Gruppe passt schlecht."
+peer_summary: "Gegen die 24 Firmen der Peer-Gruppe: EV/EBITDA 6,0 gegen Median 10,5 (Platz 3 von 24), FCF-Rendite 8,5 % gegen Median 7,4 % (Platz 10 von 21). Das sind Archivwerte der Geschäftsjahre bis 2025; auf zwölf Monaten liegen EV/EBITDA bei 7,5 und die FCF-Rendite bei 0,7 % (ohne die einmalige Steuerzahlung rund 7,1 %). Die Gruppe passt schlecht."
 funnel_title: "So kam BYD auf die Liste (Trichter vom 10.10.2026)"
 funnel:
   - { label: "US-Börsenfirmen (SimFin)", count: 6654 }
@@ -120,5 +118,5 @@ financials:
     - { name: "Operativer Cashflow", values: ["914,5", "957,1", "976,7", "461,4", "110,8"] }
     - { name: "Investitionen (Sachanlagen)", values: ["373,9", "400,4", "588,2", "294,3", "297,1"] }
     - { name: "Freier Cashflow", values: ["540,6", "556,7", "388,5", "167,1", "-186,3"] }
-  note: "Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten). Der Nettogewinn 2025 enthält den Gewinn aus dem FanDuel-Verkauf (Höhe nicht aus dem Text ermittelt). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen)."
+  note: "Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten). Der Nettogewinn 2025 enthält den Gewinn aus dem FanDuel-Verkauf (1.748,0 Mio. $ laut 10-K). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen)."
 method: "Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen."

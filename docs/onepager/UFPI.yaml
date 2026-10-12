@@ -83,7 +83,7 @@ entry:
   price: 81.78
   price_date: "23.09.2026"
   condition: "Abwarten: Quartalsbericht Q3 (Termin noch nicht bekannt); der freie Cashflow der letzten zwölf Monate muss mit dem Rückfluss des Betriebskapitals wieder deutlich über der 6-%-Marke liegen; aktuellen Kurs prüfen"
-kill: "Vorschlag des Agenten: verwerfen, wenn der freie Cashflow der letzten zwölf Monate mit dem Q4-Bericht (Februar 2027) unter 5 % des Börsenwerts liegt (Stufe-2-Durchfallgrenze aus config/stage2.yaml) oder die Betriebsmarge der letzten zwölf Monate (heute 5,07 %) unter 5 % fällt (keine Schwelle aus dem Repo); sonst auf WEITERVERFOLGEN prüfen."
+kill: "Vorschlag des Agenten: verwerfen, wenn der freie Cashflow der letzten zwölf Monate mit dem Q4-Bericht (Termin noch nicht bekannt) unter 5 % des Börsenwerts liegt (Stufe-2-Durchfallgrenze aus config/stage2.yaml) oder die Betriebsmarge der letzten zwölf Monate (heute 5,07 %) unter 5 % fällt (keine Schwelle aus dem Repo); sonst auf WEITERVERFOLGEN prüfen."
 sources_detail:
   - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 25.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 05.08.2026 und Q1 2026 vom 06.05.2026, Q1 nur auf Vorhandensein geprüft) und 3 aktuelle Meldungen (8-K vom 22.07., 29.07. mit der Pressemitteilung und 30.07.2026 mit der Investorenpräsentation). Zahlen aus den XBRL-Daten der SEC gegengelesen. Die Investorenpräsentation wurde nicht ausgewertet."
   - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."

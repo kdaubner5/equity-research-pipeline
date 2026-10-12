@@ -12,7 +12,7 @@ Stand: 12.10.2026. Alle Verdikte sind Vorschläge des Agenten (Entwurf); die Ent
 | 6 | UFPI | ZURÜCKSTELLEN | 5,8 % | 10,9 % | Cashflow sinkt seit 3 Jahren; 12-Monats-Rendite unter 6 % |
 | 7 | VC | WEITERVERFOLGEN | 6,4 % | 9,5 % | Nettokasse, günstig; Ergebnis 2026 schwächer, Ford 26 % |
 | 8 | DFIN | WEITERVERFOLGEN | 12,7 % | 8,0 % | Software wächst, Marge steigt, geringe Schulden |
-| 9 | BYD | ZURÜCKSTELLEN | 0,7 % | 8,5 % | Wachstums-Investitionen, Cashflow-Einbruch, Verschuldung steigt auf rund 2,2 |
+| 9 | BYD | WEITERVERFOLGEN | 0,7 % (ohne Einmal-Steuerzahlung rund 7,1 %) | 8,5 % | Cashflow-Einbruch überwiegend einmalige Steuer auf den FanDuel-Verkauf; Betriebsergebnis -18 %, Verschuldung rund 2,2 |
 | 10 | MDXG | VERWERFEN | 6,3 % | 7,6 % | Umsatz -35 % (Medicare-Regeln), Übernahme mit 300 Mio. $ neuem Kredit |
 | 11 | CBT | WEITERVERFOLGEN | 6,9 % | 9,8 % | solide Bilanz; bereinigter Gewinn sinkt, Chef- und Finanzchefwechsel |
 | 12 | PATK | ZURÜCKSTELLEN | 5,6 % | 12,0 % | Fusion mit LCI Industries geplant; Verschuldung 3,0 laut Kreditvertrag |
@@ -20,11 +20,11 @@ Stand: 12.10.2026. Alle Verdikte sind Vorschläge des Agenten (Entwurf); die Ent
 | 14 | MGM | ZURÜCKSTELLEN | 15,4 % | 16,9 % | Mietverpflichtungen 23,8 Mrd. $ im Filter unsichtbar; Gewinn 2026 mit Verkaufsgewinn |
 | 15 | WFRD | WEITERVERFOLGEN | 8,7 % | 9,0 % | geringe Schulden; Ergebnis durch Nahost-Konflikt gedrückt |
 
-Verteilung: 7 weiterverfolgen, 7 zurückstellen, 1 verwerfen.
+Verteilung: 8 weiterverfolgen, 6 zurückstellen, 1 verwerfen.
 
 ## Befunde über die Methode (für die Entscheidung des Projektinhabers)
 
-1. **Der Filter sieht nur Geschäftsjahre.** Bei 9 von 15 Namen (JBI, TASK, SLVM, PPC, UFPI, BYD, MDXG, PATK, MGM) widersprechen die Zahlen des laufenden Jahres dem Bild aus Stufe 1 und 2: Betriebsergebnis, freier Cashflow oder Verschuldung haben sich seit dem letzten Geschäftsjahr deutlich verschlechtert. Bei 6 von 15 hat die 12-Monats-FCF-Rendite die Stufe-2-Grenze von 6 % unterschritten oder liegt knapp darüber (SLVM, PPC, UFPI, BYD, PATK, PLAB).
+1. **Der Filter sieht nur Geschäftsjahre.** Bei mindestens 8 von 15 Namen (JBI, SLVM, PPC, UFPI, BYD, MDXG, PATK, TASK) widersprechen die Zahlen des laufenden Jahres dem Bild aus Stufe 1 und 2: Betriebsergebnis, freier Cashflow oder Verschuldung haben sich seit dem letzten Geschäftsjahr deutlich verschlechtert. Bei 5 von 15 liegt die 12-Monats-FCF-Rendite unter 6 % (SLVM, PPC, UFPI, BYD, PATK); bei BYD ist der Grund eine einmalige Steuerzahlung.
 2. **Einschneidende Ereignisse nach dem Geschäftsjahr** (nur mit den 8-K zu finden): Sonderdividende mit Kredit (TASK), Fusion (PATK), Übernahme mit Kredit (MDXG), Rechtssitz-Wechsel und Zukauf (WFRD), Chef- und Finanzchefwechsel (CBT), Tauschvorschlag (PPC).
 3. **Mietverpflichtungen** (MGM: 23,8 Mrd. $) und **Minderheitsanteile** (PLAB: 463 Mio. $; MGM China) fehlen in Net Debt/EBITDA und EV der Stufen 1 und 2.
 4. **Vergleichsgruppen passen oft schlecht** (SimFin-Branchen sind grob; zum Beispiel stehen Mattel, Brunswick und Petco in „Travel & Leisure“, Visteon in „Engineering & Construction“, Photronics bei Chip-Herstellern). Das Archiv enthält zudem Datenfehler (NOV: EV/EBITDA 0,38).
