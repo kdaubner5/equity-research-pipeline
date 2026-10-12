@@ -1,0 +1,88 @@
+# Datenquelle für die PDF-Fassung des One-Pagers PPC (render_onepager_pdf.py).
+# Der ausführliche Bericht mit allen Quellen und Rechnungen ist docs/onepager/PPC_pilot.md; diese Datei enthält nur die
+# Kurzfassung für die Seite. Zahlen und Zitate müssen mit dem Bericht übereinstimmen.
+company:
+  name: "Pilgrim's Pride Corp"
+  ticker: PPC
+  list_nr: 5
+  stage2_rank: 6
+  stage2_rank_of: 41
+  peer_group: "102002 (fein, 17 Firmen)"
+  profile: non_financial
+dates:
+  documents_until: "09.10.2026 (jüngste 8-K)"
+  one_pager: "12.10.2026"
+  archive_run: "10.10.2026, Regelstand 33ed39b"
+  price: "27,63 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden"
+verdict:
+  label: "ZURÜCKSTELLEN"
+  tone: warn   # ok | warn | bad | neutral
+  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Fusionsfall mit offenem Ausgang; Gewinneinbruch im ersten Halbjahr 2026."
+thesis: >-
+  Auf den Zahlen der Geschäftsjahre besteht PPC die Prüfungen (Marge 2025: 8,7 %, Verschuldung 1,17 Mal EBITDA).
+  Das erste Halbjahr 2026 zeigt einen scharfen Einbruch: Betriebsergebnis 228,5 Mio. $ nach 916,8 Mio. $ bei fast
+  gleichem Umsatz, freier Cashflow der letzten zwölf Monate rund 304 Mio. $. Stufe 2 und Trend-Guard rechnen mit
+  Geschäftsjahren und sehen das noch nicht. Seit dem 18.08.2026 liegt zudem ein unverbindlicher Tauschvorschlag
+  des Mehrheitsaktionärs JBS vor.
+kpis:
+  - label: "Marktwert"
+    main: "6,58 Mrd. $"
+    sub: "27,63 $ x 238,1 Mio. Aktien (Kurs 23.09.)"
+    status: neutral
+  - label: "FCF-Rendite"
+    main: "4,6 %"
+    sub: "letzte 12 Monate | Stufe 2 (3-Jahres-Mittel): 11,9 %"
+    status: warn
+    note: "Stufe-2-Grenze 5 % gilt für das 3-Jahres-Mittel"
+  - label: "EV/EBITDA"
+    main: "6,4"
+    sub: "letzte 12 Monate | Stufe 2: 4,3"
+    status: neutral
+  - label: "Net Debt/EBITDA"
+    main: "1,77"
+    sub: "letzte 12 Monate | Stufe 1: 1,17 | Grenze 2,5"
+    status: ok
+  - label: "Betriebsmarge"
+    main: "2,5 %"
+    sub: "1. Halbjahr 2026 | 2025: 8,7 %"
+    status: bad
+halfyear:
+  labels: ["1. Halbjahr 2025", "1. Halbjahr 2026"]
+  rows:
+    - { name: "Betriebsergebnis", values: [916.8, 228.5] }
+    - { name: "Freier Cashflow", values: [362.8, 6.7] }
+  unit: "Mio. $"
+events:
+  - { date: "10.04.2026", text: "Vorläufige Einigung der Aktionärsklage" }
+  - { date: "14.04.2026", text: "Rückkauf von 250 Mio. $ Anleihen (6,25 %)" }
+  - { date: "22.05.2026", text: "Steuerstreit UK beendet (HMRC)" }
+  - { date: "30.07.2026", text: "Quartalszahlen: Gewinneinbruch" }
+  - { date: "17.08.2026", text: "Zukauf Walkers (UK) vereinbart, Preis unbekannt" }
+  - { date: "18.08.2026", text: "JBS: unverbindlicher Tauschvorschlag, 2,086 JBS-Aktien je PPC-Aktie (kein Aufschlag)" }
+  - { date: "23.09.2026", text: "Anleihe über 500 Mio. EUR (4,75 %, 2034)" }
+  - { date: "09.10.2026", text: "Sonderausschuss prüft den JBS-Vorschlag" }
+  - { date: "20.11.2026", text: "Anhörung zum Vergleich der Aktionärsklage", future: true }
+bear:
+  - "Betriebsergebnis 1. Halbjahr 2026: 228,5 Mio. $ nach 916,8 Mio. $; Betriebsmarge 2,5 % (2025: 8,7 %)."
+  - "Hühnerfleischpreise unter Vorjahr und Fünfjahresschnitt, Branchenproduktion +4,5 % im 2. Quartal."
+  - "Freier Cashflow 1. Halbjahr nur 6,7 Mio. $; Investitionen 2026 angekündigt: 900 bis 950 Mio. $."
+  - "Kartellvergleiche: 838,5 Mio. $ bisher, davon 155,4 Mio. $ im 1. Halbjahr 2026."
+  - "JBS-Vorschlag ohne Aufschlag (Stand 18.08.), Interessenkonflikt des Mehrheitsaktionärs."
+bull:
+  - "Geschäftsjahr 2025: Betriebsergebnis 1.613,5 Mio. $ (+7,1 %), Cashflow 1.371,7 Mio. $."
+  - "Schulden von 3.122 auf 2.886 Mio. $ gesenkt; freie Kreditlinien 1.192 Mio. $."
+  - "Teure 6,25-%-Anleihen vorzeitig zurückgekauft; Steuerstreit UK beendet."
+  - "Sonderdividenden 2025 rund 2 Mrd. $ (Sondermaßnahme, keine feste Dividende)."
+entry:
+  zone_title: "Einstiegsszenario (Vorschlag, kein Kursziel)"
+  horizon: "mittelfristig (1 bis 3 Jahre)"
+  limit_fcf: 21.31
+  limit_note: "Preis je Aktie, bei dem die FCF-Rendite (12 Monate) 6 % erreicht; zweite Grenze (EV/EBITDA) fehlt: Peer-Drittelgrenze nicht vorhanden"
+  price: 27.63
+  price_date: "23.09.2026"
+  offer_value: 28.49
+  offer_date: "18.08.2026"
+  condition: "Abwarten: 10-Q für das 3. Quartal (voraussichtlich Ende Oktober) oder Entscheidung des Sonderausschusses"
+kill: "Net Debt/EBITDA (12 Monate) mindestens 2,5 oder freier Cashflow (12 Monate) negativ; geprüft im nächsten 10-Q. Kommt eine Vereinbarung mit JBS zustande, wird der One-Pager neu geschrieben."
+sources: "SEC: 10-K 2025 (0000802481-26-000011), 10-Q Q2 2026 (-26-000051) und Q2 2025 (-25-000110), 8-K vom 30.07. bis 09.10.2026. Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
+not_checked: "Peer-Drittelgrenze und heutiger Kurs fehlen. FCF-Rechnung des Agenten ist nicht dieselbe Größe wie das 3-Jahres-Mittel in Stufe 2. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
