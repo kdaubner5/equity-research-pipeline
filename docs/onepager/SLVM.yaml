@@ -1,0 +1,124 @@
+# Datenquelle für die PDF-Fassung des One-Pagers SLVM (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: "Sylvamo Corporation"
+  ticker: SLVM
+  list_nr: 4
+  stage2_rank: 5
+  stage2_rank_of: 41
+  peer_group: "Basic Materials (grobe Gruppe, SimFin-Branche 110, 51 Firmen)"
+  profile: non_financial
+dates:
+  documents_until: "07.08.2026 (10-Q Q2 2026 und Pressemitteilung)"
+  one_pager: "12.10.2026"
+  archive_run: "10.10.2026, Regelstand 33ed39b"
+  price: "36,64 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden"
+verdict:
+  label: "ZURÜCKSTELLEN"
+  tone: warn
+  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Die Stufen sehen eine gute Firma, doch 2026 ist ein Übergangsjahr: Betriebsergebnis im 1. Halbjahr null, freier Cashflow negativ, Schulden steigen."
+  legend: "Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3 und die versprochene Erholung im zweiten Halbjahr) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
+thesis: >-
+  Sylvamo stellt Büro- und Druckpapier (unbeschichtetes Feinpapier) in Lateinamerika, Europa und den USA her. Auf den Zahlen der
+  Geschäftsjahre ist die Firma billig (EV/EBITDA 5,1, Platz 2 von 51) und der freie Cashflow war im Dreijahresmittel hoch (rund
+  195 Mio. $, 13,4 % des Börsenwerts). 2026 bricht das ab: Die Lieferung aus dem International-Paper-Werk Riverdale endete Ende April,
+  das Werk Eastover steht wegen Investitionen länger still, Zölle und Energiekosten belasten. Das Betriebsergebnis fiel im
+  1. Halbjahr auf -1 Mio. $ (Vorjahr 74), der freie Cashflow lag bei -82 Mio. $. Die Nettoschulden stiegen seit Dezember von 718 auf
+  841 Mio. $ (rund 2,3 Mal bereinigtes EBITDA nach Agent-Rechnung; Stufe-1-Grenze 2,5). Das Management erwartet ein deutlich besseres
+  zweites Halbjahr; das ist eine Erwartung, kein Beleg.
+kpis:
+  - label: "Marktwert"
+    main: "1,46 Mrd. $"
+    sub: "36,64 $ x 39,8 Mio. Aktien (Kurs 23.09.)"
+    status: neutral
+  - label: "FCF-Rendite"
+    main: "-0,8 %"
+    sub: "letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 13,4 %"
+    status: bad
+  - label: "EV/EBITDA"
+    main: "6,3"
+    sub: "bereinigt, letzte 12 Monate (Agent) | Stufe 2: 5,1"
+    status: neutral
+  - label: "Net Debt/EBITDA"
+    main: "2,3"
+    sub: "bereinigt, 30.06.2026 (Agent) | Stufe 1: 1,68 | Durchfall ab 2,5"
+    status: warn
+  - label: "Betriebsmarge"
+    main: "-0,1 %"
+    sub: "1. Halbjahr 2026 | 1. Hj. 2025: 4,6 % | 2025: 7,5 %"
+    status: bad
+halfyear:
+  labels: ["1. Halbjahr 2025", "1. Halbjahr 2026"]
+  tone: bad
+  rows:
+    - { name: "Umsatz", values: [1615.0, 1561.0] }
+    - { name: "Betriebsergebnis", values: [74.0, -1.0] }
+    - { name: "Freier Cashflow", values: [-27.0, -82.0] }
+  unit: "Mio. $"
+events:
+  - { date: "Ende 04.2026", text: "Liefervertrag mit dem International-Paper-Werk Riverdale (Alabama) endet; die Papiermaschine dort wurde umgebaut, rund 7 % des US-Angebots fallen weg" }
+  - { date: "05.2026", text: "Neue Holzaufbereitung (Hartholz) in Eastover in Betrieb" }
+  - { date: "28.07.2026", text: "Dividende 0,45 $ je Aktie gezahlt" }
+  - { date: "07.08.2026", text: "Quartalszahlen Q2: Nettoverlust 11 Mio. $, bereinigtes EBITDA 60 Mio. $ (Vorjahr 82), Preiserhöhungen in allen Regionen" }
+  - { date: "Q4 2026", text: "Geplanter Stillstand in Eastover: Papiermaschine wird beschleunigt (+60.000 Tonnen im Jahr)", future: true }
+  - { date: "Q1 2027", text: "Weichholz-Aufbereitung in Eastover fertig; Lagererweiterung per Sale-and-Leaseback", future: true }
+bear:
+  - "Betriebsergebnis 1. Halbjahr 2026: -1 Mio. $ nach 74 Mio. $; Nettoergebnis -14 Mio. $ (Vorjahr +42 Mio. $)."
+  - "Freier Cashflow 1. Halbjahr: -82 Mio. $; letzte zwölf Monate rund -11 Mio. $ nach Agent-Rechnung (Investitionen 220 Mio. $)."
+  - "Nettoschulden 841 Mio. $ (Dezember: 718), Kasse 123 Mio. $ (135); Verschuldung 2,3 Mal bereinigtes EBITDA, die Stufe-1-Grenze liegt bei 2,5."
+  - "Die Firma beziffert den Effekt der Nordamerika-Umstellung auf 85 Mio. $ weniger bereinigtes EBITDA im Jahr 2026."
+  - "Papier ist ein schrumpfender Markt mit Preisdruck; Energie-, Chemie- und Transportkosten steigen durch den Konflikt im Nahen Osten (Aussage der Firma)."
+bull:
+  - "Preiserhöhungen in Europa, Lateinamerika und Nordamerika laufen bis in das 3. Quartal; Branchenangebot in den USA sinkt um rund 7 %."
+  - "Das Management erwartet ein deutlich besseres 2. Halbjahr und nennt langfristig mehr als 300 Mio. $ freien Cashflow und mehr als 15 % Kapitalrendite im Jahr, wenn Investitionen normal werden (Ziel, kein Beleg)."
+  - "Eastover-Investitionen sollen ab 2027 etwa 50 Mio. $ mehr bereinigtes EBITDA im Jahr bringen (30 bis 40 Mio. $ schon 2027)."
+  - "2023 bis 2025 freier Cashflow von 294, 248 und 44 Mio. $; Dividende 0,45 $ je Quartal bleibt (rund 4,9 % des Börsenwerts im Jahr)."
+  - "Sehr günstig im Branchenvergleich (EV/EBITDA 5,1 gegen Median 9,6)."
+entry:
+  zone_title: "Einstiegsszenario (Vorschlag, kein Kursziel)"
+  horizon: "mittelfristig (1 bis 3 Jahre)"
+  limit: 0
+  limit_label: "Grenze nach FCF-Rendite 6 %"
+  price_vs_limit: "nicht berechenbar"
+  limit_note: "Der freie Cashflow der letzten zwölf Monate ist negativ (rund -11 Mio. $), eine Grenze nach der 6-%-Regel ergibt deshalb keinen Preis. Auf dem Dreijahresmittel (rund 195 Mio. $) läge sie bei 81,9 $, doch dieses Mittel bildet die Lage 2026 nicht ab. Die zweite Grenze (EV/EBITDA) fehlt."
+  price: 36.64
+  price_date: "23.09.2026"
+  condition: "Abwarten: Quartalsbericht Q3 (voraussichtlich Anfang November) und Q4 mit Stillstand Eastover; freier Cashflow der letzten zwölf Monate muss wieder positiv werden"
+kill: "Vorschlag des Agenten: verwerfen, wenn Net Debt/EBITDA (bereinigt) mit dem Q3-Bericht mindestens 2,5 beträgt (Schwelle aus config/thresholds.yaml) oder der freie Cashflow der letzten zwölf Monate mit dem Q4-Bericht (Februar 2027) nicht wieder über der Stufe-2-Durchfallgrenze von 5 % des Börsenwerts liegt (config/stage2.yaml); sonst auf WEITERVERFOLGEN prüfen."
+sources_detail:
+  - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 20.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 07.08.2026 und Q1 2026 vom 08.05.2026, Q1 nur auf Vorhandensein geprüft) und 1 aktuelle Meldung (8-K vom 07.08.2026 mit der Pressemitteilung zu den Quartalszahlen). Zahlen aus den XBRL-Daten der SEC gegengelesen."
+  - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
+  - "NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
+sources: "SEC: 10-K 2025 (0001856485-26-000008), 10-Q Q2 2026 (-26-000034), 10-Q Q1 2026 (-26-000019), 8-K vom 07.08.2026 (-26-000031). Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
+not_checked: "Die Peer-Gruppe ist grob (Branchenebene, 51 Firmen) und mischt Chemie, Baustoffe, Kohle, Metalle, Dünger und Papier; die Passung zu einem Papierhersteller ist gering. Bereinigtes EBITDA ist die Größe der Firma (Definition nicht geprüft); Nettoschulden sind aus Schulden minus Kasse laut Pressemitteilung gerechnet. Offen sind der heutige Kurs, Pensions- und Umweltverpflichtungen, die Lage der Brasilien-Werke (Währung, Zölle) und die Wirkung der Zölle. Das Archiv führt die Firma mit Marke zyklische Branche; die Verschuldung bei Zyklikern hängt stark vom Konjunkturtief ab. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); 12 Firmen fehlen wegen Datenfehlern (AGI, ASM, ASTL, IPX, NAK, NG, NIOBF, PKX, SID, SSL, SSRM, WS). Große Gruppe: gezeigt ist ein Ausschnitt um SLVM."
+peer_summary: "Gegen die 51 Firmen der Peer-Gruppe: EV/EBITDA 5,1 gegen Median 9,6 (Platz 2 von 51), FCF-Rendite 13,4 % gegen Median 5,1 % (Platz 6 von 49). Das sind Archivwerte der Geschäftsjahre bis 2025; im 1. Halbjahr 2026 sieht das Bild deutlich schlechter aus. 12 Firmen fehlen wegen Datenfehlern."
+funnel_title: "So kam SLVM auf die Liste (Trichter vom 10.10.2026)"
+funnel:
+  - { label: "US-Börsenfirmen (SimFin)", count: 6654 }
+  - { label: "Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen", count: 1821 }
+  - { label: "Stufe 1: Qualität und Bilanz", count: 126 }
+  - { label: "Stufe 2: günstig im Branchenvergleich", count: 41 }
+  - { label: "Kandidatenliste Runde 1", count: 40 }
+funnel_note: "Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026)."
+gates_title: "Die Prüfungen im Detail"
+gates:
+  - { stage: "Stufe 1", name: "ROIC (Kapitalrendite), 3-Jahres-Mittel", value: "17,5 %", rule: "sauber über 12 %, Durchfall unter 10 %", status: ok }
+  - { stage: "Stufe 1", name: "Net Debt/EBITDA (Verschuldung)", value: "1,68", rule: "sauber unter 2,3, Durchfall ab 2,5", status: ok }
+  - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "1,86", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
+  - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "5,1 (Platz 2 von 51)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
+  - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "13,4 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "1 Marke", rule: "Marke bei Umsatz- oder Margenverhältnis unter 0,90 oder Marge über 1,25", status: warn }
+gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Trend-Guard: Marge fallend (Marge-Verhältnis 0,88), Umsatzverhältnis 0,93. Die Zahlen des ersten Halbjahres 2026 sind darin nicht enthalten."
+financials_title: "Kennzahlen im Überblick (Mio. $)"
+financials:
+  columns: ["2023", "2024", "2025", "1. Hj. 2025", "1. Hj. 2026"]
+  rows:
+    - { name: "Umsatz", values: ["3.721", "3.773", "3.351", "1.615", "1.561"] }
+    - { name: "Betriebsergebnis", values: ["441", "453", "251", "74", "-1"] }
+    - { name: "Betriebsmarge", values: ["11,9 %", "12,0 %", "7,5 %", "4,6 %", "-0,1 %"] }
+    - { name: "Nettogewinn", values: ["253", "302", "132", "42", "-14"] }
+    - { name: "Operativer Cashflow", values: ["504", "469", "268", "87", "28"] }
+    - { name: "Investitionen", values: ["210", "221", "224", "114", "110"] }
+    - { name: "Freier Cashflow", values: ["294", "248", "44", "-27", "-82"] }
+  note: "Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten; Sylvamo meldet in ganzen Mio. $). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Investitionen)."
+method: "Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen."

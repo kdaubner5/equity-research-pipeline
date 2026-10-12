@@ -80,6 +80,7 @@ S_H = _style("h", 14, 18, NAVY, bold=True, spaceBefore=14, spaceAfter=6, keepWit
 S_H2 = _style("h2", 10.5, 14, NAVY, bold=True, spaceBefore=10, spaceAfter=4, keepWithNext=1)
 S_BODY = _style("body", 9.5, 14)
 S_LEAD = _style("lead", 11, 16)
+S_CARD = _style("card", 8.8, 12.4)
 S_SMALL = _style("small", 8, 11.5, MUTED)
 S_BUL = _style("bul", 9, 13, leftIndent=10, bulletIndent=0)
 S_KPI_L = _style("kl", 7.5, 10, MUTED)
@@ -427,13 +428,14 @@ def _entry_box(entry):
     lines = [
         Paragraph(entry["zone_title"], _style("et", 11, 15, NAVY, bold=True)),
         Spacer(1, 3),
-        Paragraph(f'Zeithorizont: <b>{entry["horizon"]}</b>', S_BODY),
-        Paragraph(f'{entry["limit_label"]}: <b>{_usd(entry["limit"])}</b> (Kurs {_usd(entry["price"])} am {entry["price_date"]}, '
-                  f'{entry["price_vs_limit"]}). {entry["limit_note"]}', S_BODY),
+        Paragraph(f'Zeithorizont: <b>{entry["horizon"]}</b>', S_CARD),
+        Paragraph((f'{entry["limit_label"]}: <b>{_usd(entry["limit"])}</b> (Kurs {_usd(entry["price"])} am {entry["price_date"]}, '
+                   f'{entry["price_vs_limit"]}). ' if entry.get("limit") else
+                   f'{entry["limit_label"]}: <b>nicht berechenbar</b> (Kurs {_usd(entry["price"])} am {entry["price_date"]}). ') + entry["limit_note"], S_CARD),
     ]
     if entry.get("offer_value"):  # nur bei einem laufenden Angebot (zum Beispiel PPC)
-        lines.append(Paragraph(f'{entry.get("offer_label", "Angebotswert")}: {_usd(entry["offer_value"])} am {entry["offer_date"]}.', S_BODY))
-    lines.append(Paragraph("<b>Bedingung:</b> " + entry["condition"], S_BODY))
+        lines.append(Paragraph(f'{entry.get("offer_label", "Angebotswert")}: {_usd(entry["offer_value"])} am {entry["offer_date"]}.', S_CARD))
+    lines.append(Paragraph("<b>Bedingung:</b> " + entry["condition"], S_CARD))
     return _card(lines, "neutral")
 
 
@@ -486,7 +488,7 @@ def build(data, out_path, peers=None):
     if v.get("legend"):
         verdict_flow += [Spacer(1, 5), Paragraph(v["legend"], _style("vg", 8.5, 12.5, MUTED))]
     story += [_card(verdict_flow, v["tone"]), Spacer(1, 12), _kpi_cards(data["kpis"]),
-              Paragraph("Kernaussage", S_H), Paragraph(data["thesis"], _style("th", 10, 15)), Spacer(1, 10),
+              Paragraph("Kernaussage", S_H), Paragraph(data["thesis"], _style("th", 9.6, 14)), Spacer(1, 10),
               _entry_box(data["entry"])]
 
     if data.get("funnel"):

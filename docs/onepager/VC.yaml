@@ -1,0 +1,122 @@
+# Datenquelle für die PDF-Fassung des One-Pagers VC (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: "Visteon Corporation"
+  ticker: VC
+  list_nr: 7
+  stage2_rank: 8
+  stage2_rank_of: 41
+  peer_group: "Engineering & Construction (SimFin-Branche 100003, 17 Firmen)"
+  profile: non_financial
+dates:
+  documents_until: "23.07.2026 (10-Q Q2 2026 und Pressemitteilung)"
+  one_pager: "12.10.2026"
+  archive_run: "10.10.2026, Regelstand 33ed39b"
+  price: "93,03 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden"
+verdict:
+  label: "WEITERVERFOLGEN"
+  tone: ok
+  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Nettokasse, günstige Bewertung und Aktienrückkauf; Gegengewicht: das Ergebnis sinkt 2026 und Ford macht 26 % des Umsatzes."
+  legend: "Was bedeutet WEITERVERFOLGEN? Die Firma besteht den Filter und die Prüfung der Unterlagen zeigt kein Ausschlussmerkmal. Sie kommt in die engere Beobachtung; ein Kauf folgt nur nach den Stufe-4-Regeln und deiner Entscheidung. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
+thesis: >-
+  Visteon baut Cockpit-Elektronik für Autohersteller (Anzeigen, Kombiinstrumente, Bordcomputer). Auf den Geschäftsjahren ist die Firma
+  billig (EV/EBITDA 4,6, Platz 2 von 17) und hat mehr Kasse als Schulden: zum 30.06.2026 Kasse 650 Mio. $, Schulden 299 Mio. $,
+  also 351 Mio. $ Nettokasse. Der freie Cashflow lag 2024 und 2025 bei rund 290 und 277 Mio. $. Das Jahr 2026 ist schwächer:
+  Das bereinigte EBITDA fiel im 1. Halbjahr um 16 % auf 220 Mio. $, der freie Cashflow lag bei -18 Mio. $, und die Firma erwartet
+  für das Gesamtjahr rund 475 Mio. $ EBITDA und 150 Mio. $ freien Cashflow. Am 23.07. startete ein beschleunigter Aktienrückkauf
+  über 200 Mio. $ (rund 8 % des Börsenwerts); danach schrumpft die Nettokasse auf grob 150 Mio. $.
+kpis:
+  - label: "Marktwert"
+    main: "2,48 Mrd. $"
+    sub: "93,03 $ x 26,7 Mio. Aktien (Kurs 23.09.)"
+    status: neutral
+  - label: "FCF-Rendite"
+    main: "6,4 %"
+    sub: "letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 9,5 %"
+    status: ok
+  - label: "EV/EBITDA"
+    main: "4,7"
+    sub: "bereinigt, letzte 12 Monate (Agent) | Stufe 2: 4,6"
+    status: ok
+  - label: "Nettoschulden"
+    main: "-351 Mio. $"
+    sub: "Nettokasse 30.06.2026 (vor Rückkauf von 200 Mio. $) | Stufe 1: -1,07"
+    status: ok
+  - label: "Bereinigte EBITDA-Marge"
+    main: "11,5 %"
+    sub: "1. Halbjahr 2026 | 1. Hj. 2025: 13,8 % | 2025: 13,1 %"
+    status: warn
+halfyear:
+  labels: ["1. Halbjahr 2025", "1. Halbjahr 2026"]
+  tone: warn
+  rows:
+    - { name: "Bereinigtes EBITDA", values: [263.0, 220.0] }
+    - { name: "Nettogewinn", values: [138.0, 80.0] }
+    - { name: "Freier Cashflow", values: [99.0, -18.0] }
+  unit: "Mio. $"
+events:
+  - { date: "1. Halbjahr 2026", text: "Umbaukosten (Restrukturierung) von 17 Mio. $ nach 1 Mio. $ im Vorjahreszeitraum" }
+  - { date: "23.07.2026", text: "Quartalszahlen Q2: Umsatz 960 Mio. $ (Vorjahr 969), bereinigtes EBITDA 116 Mio. $ (134), neue Aufträge 2,0 Mrd. $" }
+  - { date: "23.07.2026", text: "Beschleunigter Aktienrückkauf über 200 Mio. $ mit Bank of America vereinbart (Teil der 800-Mio.-$-Ermächtigung), Abschluss spätestens früh im 4. Quartal" }
+  - { date: "23.07.2026", text: "10-Q Q2 2026 eingereicht" }
+  - { date: "Q4 2026", text: "Rückkauf soll abgeschlossen sein; Jahresziel laut Firma: bereinigtes EBITDA rund 475 Mio. $, freier Cashflow 150 Mio. $", future: true }
+bear:
+  - "Bereinigtes EBITDA 1. Halbjahr 2026: 220 Mio. $ nach 263 Mio. $ (-16 %); Bruttomarge 12,1 % nach 14,7 %."
+  - "Freier Cashflow 1. Halbjahr -18 Mio. $ (Vorjahr +99); Jahresprognose der Firma 150 Mio. $ liegt unter dem Wert der letzten zwölf Monate (160)."
+  - "Starke Kundenkonzentration: Ford 26 % des Umsatzes (2023: 22 %), General Motors 12 %, Volkswagen 10 % (10-K 2025)."
+  - "Die Firma nennt für 2026 niedrigere Produktion der Kunden, auslaufende Programme, höhere Lieferantenkosten und Zölle als Risiken."
+  - "Der Rückkauf von 200 Mio. $ senkt die Nettokasse auf rund 150 Mio. $ (Rechnung des Agenten, ohne den Cashflow der nächsten Monate)."
+bull:
+  - "Nettokasse von 351 Mio. $: Kasse 650 Mio. $, Schulden 299 Mio. $."
+  - "Neue Aufträge von rund 2,0 Mrd. $ im 2. Quartal, darunter Bordcomputer-Aufträge (SmartCore) bei einer großen chinesischen Marke; Wachstum über dem Markt um 4 %."
+  - "Aktionärsfreundlich: 200 Mio. $ beschleunigter Rückkauf bei 800 Mio. $ Ermächtigung."
+  - "Freier Cashflow 2024 und 2025 von 290 und 277 Mio. $ nach Agent-Rechnung; bereinigtes EBITDA 2025 von 492 Mio. $ (+18)."
+  - "Billig: EV/EBITDA 4,6 gegen Median 13,4 in der Vergleichsgruppe (die Gruppe passt aber schlecht)."
+entry:
+  zone_title: "Einstiegsszenario (Vorschlag, kein Kursziel)"
+  horizon: "mittelfristig (1 bis 3 Jahre)"
+  limit: 99.9
+  limit_label: "Grenze nach FCF-Rendite 6 %"
+  price_vs_limit: "6,9 % darunter"
+  limit_note: "Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (160 Mio. $) und 26,7 Mio. Aktien angewendet. Der Kurs vom 23.09. liegt knapp darunter; Die Firma erwartet für 2026 aber nur 150 Mio. $, womit die Grenze bei rund 93,6 $ läge, also etwa beim Kurs. Der Rückkauf senkt die Aktienzahl (bei 93 $ rund 2 Mio. Aktien) und hebt die FCF-Rendite je Aktie. Die zweite Grenze (EV/EBITDA) fehlt."
+  price: 93.03
+  price_date: "23.09.2026"
+  condition: "Aktuellen Kurs prüfen; Quartalsbericht Q3 (voraussichtlich Ende Oktober) abwarten: Hält die Firma die Prognose von 475 Mio. $ EBITDA und 150 Mio. $ freiem Cashflow?"
+kill: "Vorschlag des Agenten: verwerfen, wenn die FCF-Rendite der letzten zwölf Monate unter 5 % fällt (Stufe-2-Durchfallgrenze aus config/stage2.yaml; bei 93 $ Kurs entspricht das einem freien Cashflow von rund 124 Mio. $) oder die Firma die Jahresprognose für den freien Cashflow unter 100 Mio. $ senkt (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q."
+sources_detail:
+  - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 19.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 23.07.2026 und Q1 2026 vom 23.04.2026, Q1 nur auf Vorhandensein geprüft) und 1 aktuelle Meldung (8-K vom 23.07.2026 mit Pressemitteilung und Rückkaufvertrag). Zahlen aus den XBRL-Daten der SEC und der Pressemitteilung gegengelesen."
+  - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
+  - "NICHT verwendet: Earnings-Call-Transkripte (Konferenz am 23.07.2026 stattgefunden), Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
+sources: "SEC: 10-K 2025 (0001111335-26-000006), 10-Q Q2 2026 (-26-000046), 10-Q Q1 2026 (-26-000016), 8-K vom 23.07.2026 (-26-000045). Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
+not_checked: "Die Peer-Gruppe Engineering & Construction (17 Firmen) passt kaum: Sie enthält Bau- und Ingenieurfirmen sowie Maschinenbauer wie Kennametal und Terex; Visteon ist ein Autozulieferer (SimFin ordnet ihn dort ein). Das bereinigte EBITDA ist die Größe der Firma und addiert unter anderem aktienbasierte Vergütung zurück (50 Mio. $ im Jahr). Das Betriebsergebnis nach GAAP ist in den gelesenen Texten nicht ausgewiesen; die Marge ist deshalb als bereinigte EBITDA-Marge gezeigt. Gewinn 2023 (568 Mio. $) enthält nach Angabe der Unternehmensdaten einen Steuereffekt, nicht im Detail geprüft. Offen sind der heutige Kurs, die Wirkung der Zölle, die Lage in China und die genaue Verteilung der Aufträge. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); in der Gruppe fehlen keine Firmen wegen fehlender Fundamentaldaten. Die Gruppe passt schlecht zu einem Autozulieferer."
+peer_summary: "Gegen die 17 Firmen der Peer-Gruppe: EV/EBITDA 4,6 gegen Median 13,4 (Platz 2 von 17), FCF-Rendite 9,5 % gegen Median 4,3 % (Platz 4 von 16). Archivwerte der Geschäftsjahre. Die Gruppe passt schlecht (Bau, Ingenieure, Maschinenbau); der Vergleich mit anderen Autozulieferern fehlt."
+funnel_title: "So kam VC auf die Liste (Trichter vom 10.10.2026)"
+funnel:
+  - { label: "US-Börsenfirmen (SimFin)", count: 6654 }
+  - { label: "Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen", count: 1821 }
+  - { label: "Stufe 1: Qualität und Bilanz", count: 126 }
+  - { label: "Stufe 2: günstig im Branchenvergleich", count: 41 }
+  - { label: "Kandidatenliste Runde 1", count: 40 }
+funnel_note: "Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026)."
+gates_title: "Die Prüfungen im Detail"
+gates:
+  - { stage: "Stufe 1", name: "ROIC (Kapitalrendite), 3-Jahres-Mittel", value: "21,7 %", rule: "sauber über 12 %, Durchfall unter 10 %", status: ok }
+  - { stage: "Stufe 1", name: "Net Debt/EBITDA (Verschuldung)", value: "-1,07 (Nettokasse)", rule: "sauber unter 2,3, Durchfall ab 2,5", status: ok }
+  - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "1,32", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
+  - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "4,6 (Platz 2 von 17)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
+  - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "9,5 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke bei Umsatz- oder Margenverhältnis unter 0,90 oder Marge über 1,25", status: ok }
+gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Die Zahlen des ersten Halbjahres 2026 sind darin nicht enthalten."
+financials_title: "Kennzahlen im Überblick (Mio. $)"
+financials:
+  columns: ["2023", "2024", "2025", "1. Hj. 2025", "1. Hj. 2026"]
+  rows:
+    - { name: "Umsatz", values: ["3.954", "3.866", "3.768", "1.903", "1.914"] }
+    - { name: "Bereinigtes EBITDA (Firma)", values: ["–", "474", "492", "263", "220"] }
+    - { name: "Bereinigte EBITDA-Marge", values: ["–", "12,3 %", "13,1 %", "13,8 %", "11,5 %"] }
+    - { name: "Nettogewinn (Visteon)", values: ["568", "296", "201", "138", "80"] }
+    - { name: "Operativer Cashflow", values: ["267", "427", "410", "165", "43"] }
+    - { name: "Investitionen (inkl. Software)", values: ["125", "137", "133", "66", "61"] }
+    - { name: "Freier Cashflow", values: ["142", "290", "277", "99", "-18"] }
+  note: "Quelle: 10-K 2025, 10-Q und Pressemitteilung Q2 2026 der SEC (Visteon meldet in ganzen Mio. $). Bereinigtes EBITDA: Größe der Firma. Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Investitionen einschließlich immaterieller Werte). Das Betriebsergebnis ist in den gelesenen Texten nicht ausgewiesen."
+method: "Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen."
