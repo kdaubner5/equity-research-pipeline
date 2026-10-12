@@ -7,7 +7,7 @@ company:
   list_nr: 5
   stage2_rank: 6
   stage2_rank_of: 41
-  peer_group: "102002 (fein, 17 Firmen)"
+  peer_group: "Consumer Packaged Goods (SimFin-Branche 102002, 17 Firmen)"
   profile: non_financial
 dates:
   documents_until: "09.10.2026 (jüngste 8-K)"
@@ -18,6 +18,7 @@ verdict:
   label: "ZURÜCKSTELLEN"
   tone: warn   # ok | warn | bad | neutral
   text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Fusionsfall mit offenem Ausgang; Gewinneinbruch im ersten Halbjahr 2026."
+  legend: "Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3 oder Entscheidung des Sonderausschusses zum JBS-Vorschlag) und rechnen dann neu. Die vier möglichen Vorschläge sind WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN und UNZUREICHENDE EVIDENZ. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
 thesis: >-
   Auf den Zahlen der Geschäftsjahre besteht PPC die Prüfungen (Marge 2025: 8,7 %, Verschuldung 1,17 Mal EBITDA).
   Das erste Halbjahr 2026 zeigt einen scharfen Einbruch: Betriebsergebnis 228,5 Mio. $ nach 916,8 Mio. $ bei fast
@@ -87,8 +88,12 @@ entry:
   offer_date: "18.08.2026"
   condition: "Abwarten: 10-Q für das 3. Quartal (voraussichtlich Ende Oktober) oder Entscheidung des Sonderausschusses"
 kill: "Vorschlag des Agenten: Net Debt/EBITDA (12 Monate) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder freier Cashflow (12 Monate) negativ (Wert 0, keine Schwelle aus dem Repo); geprüft im nächsten 10-Q. Kommt eine Vereinbarung mit JBS zustande, wird der One-Pager neu geschrieben."
+sources_detail:
+  - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025), 2 Quartalsberichte (10-Q Q2 2026 und Q2 2025) und 9 aktuelle Meldungen (8-K vom 30.07. bis 09.10.2026: zwei zu den Quartalszahlen, Walkers, JBS-Vorschlag, Aktionärsklage, Anleihe in drei Meldungen, Sonderausschuss). Von den 8-K wurden nur die Anlagen (Pressemitteilungen, Schreiben, Vertrag), nicht die Haupttexte gelesen; vom Anleihevertrag nur der Titel."
+  - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
+  - "NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
 sources: "SEC: 10-K 2025 (0000802481-26-000011), 10-Q Q2 2026 (-26-000051) und Q2 2025 (-25-000110), 8-K vom 30.07. bis 09.10.2026. Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
-not_checked: "Ob Peer-Gruppe 102002 fachlich passt, die Peer-Drittelgrenze und der heutige Kurs sind offen. Das 3-Jahres-Mittel der FCF-Rendite ist nicht nachgerechnet; die FCF-Rechnung des Agenten ist nicht dieselbe Größe wie in Stufe 2. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+not_checked: "Die Peer-Gruppe passt nur eingeschränkt (Consumer Packaged Goods mischt Markenlebensmittel, Haushalts- und Körperpflegeartikel; PPC ist ein Rohstoff-Verarbeiter für Geflügel). Die Peer-Drittelgrenze und der heutige Kurs sind offen. Das 3-Jahres-Mittel der FCF-Rendite ist nicht nachgerechnet; die FCF-Rechnung des Agenten ist nicht dieselbe Größe wie in Stufe 2. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
 peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); in der Gruppe fehlen keine Firmen wegen fehlender Fundamentaldaten. Rosa Balken: in Stufe 2 durchgefallen."
 peer_summary: "Gegen die 17 Firmen der Peer-Gruppe: EV/EBITDA 4,3 gegen Median 8,8 (Platz 2 von 17, eine der günstigsten), FCF-Rendite 11,9 % gegen Median 12,2 % (Platz 10 von 17, ungefähr in der Mitte). Beides sind Archivwerte der Geschäftsjahre; auf den letzten zwölf Monaten sehen beide schwächer aus (siehe Karten)."
 funnel_title: "So kam PPC auf die Liste (Trichter vom 10.10.2026)"

@@ -166,3 +166,25 @@ def test_valuation_map_needs_three_firms_with_both_values():
     assert png is None and "weniger als 3" in note
     png, note = r.valuation_map(peer_rows(5), "PPC")
     assert png is not None and "5 von 5 Firmen" in note
+
+
+def test_peer_names_appear_in_the_legend_when_the_export_has_them(tmp_path):
+    peers = tmp_path / "peers.csv"
+    write_peers(peers)
+    text = peers.read_text(encoding="utf-8").splitlines()
+    text[0] += ",name,sector_name,industry_name"
+    text = [text[0]] + [line + f",Firma {i},Sek,Bra" for i, line in enumerate(text[1:])]
+    peers.write_text("\n".join(text) + "\n", encoding="utf-8")
+    out = tmp_path / "o.pdf"
+    assert r.main([str(REAL_YAML), "--out", str(out), "--peers", str(peers)]) == 0
+    pymupdf = pytest.importorskip("pymupdf")
+    doc = pymupdf.open(str(out))
+    assert any("Vergleichsfirmen (alle)" in page.get_text() for page in doc)
+
+
+def test_the_verdict_legend_and_source_detail_are_in_the_pdf(tmp_path):
+    out = tmp_path / "o.pdf"
+    assert r.main([str(REAL_YAML), "--out", str(out)]) == 0
+    pymupdf = pytest.importorskip("pymupdf")
+    text = " ".join(page.get_text() for page in pymupdf.open(str(out)))
+    assert "Was bedeutet ZURÜCKSTELLEN" in text and "NICHT verwendet" in text

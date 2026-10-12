@@ -193,6 +193,18 @@ def _group_size(peers, ticker):
     return None
 
 
+def shown_rows(peers, ticker, key, lower_is_better):
+    """Die im Balkendiagramm gezeigten Zeilen (sortiert, bei grossen Gruppen ein Ausschnitt um den Kandidaten) und alle Zeilen mit Wert."""
+    rows = [p for p in peers if p[key] is not None]
+    rows.sort(key=lambda p: p[key], reverse=not lower_is_better)
+    total = len(rows)
+    if total > MAX_BARS:
+        index = next((i for i, p in enumerate(rows) if p["ticker"] == ticker), total // 2)
+        start = max(0, min(index - MAX_BARS // 2, total - MAX_BARS))
+        return rows[start:start + MAX_BARS], rows
+    return rows, rows
+
+
 def peer_chart(peers, ticker, key, title, fmt, lower_is_better):
     """Balkendiagramm der im Archiv gespeicherten Vergleichsfirmen. Firmen mit Ungueltigkeitsgrund oder ohne Wert werden
     nicht gezeichnet, aber in der Unterzeile gezaehlt. Das Archiv speichert nur die Firmen, die Stufe 1 bestanden haben;
@@ -204,15 +216,11 @@ def peer_chart(peers, ticker, key, title, fmt, lower_is_better):
     hidden = stored - len(rows)
     if len(rows) < 2:
         return None, f"{title}: nur {len(rows)} von {stored} gespeicherten Firmen mit Wert, kein Diagramm."
-    rows.sort(key=lambda p: p[key], reverse=not lower_is_better)
-    values = [p[key] for p in rows]
+    rows, all_rows = shown_rows(peers, ticker, key, lower_is_better)  # grosse Gruppe: Ausschnitt, Median ueber alle
+    values = [p[key] for p in all_rows]
     complete = group_n is None or stored >= group_n
-    failed = sum(1 for p in rows if p.get("status") in FAILED_STATUS)
-    total_rows = len(rows)
-    if total_rows > MAX_BARS:  # grosse Gruppe: Ausschnitt um den Kandidaten, Median bleibt der der ganzen Gruppe
-        index = next((i for i, p in enumerate(rows) if p["ticker"] == ticker), total_rows // 2)
-        start = max(0, min(index - MAX_BARS // 2, total_rows - MAX_BARS))
-        rows = rows[start:start + MAX_BARS]
+    failed = sum(1 for p in all_rows if p.get("status") in FAILED_STATUS)
+    total_rows = len(all_rows)
     fig, ax = plt.subplots(figsize=(3.4, max(1.6, 0.17 * len(rows) + 0.9)))
     colors_ = [HEX["warn"] if p["ticker"] == ticker else ("#e3c4c4" if p.get("status") in FAILED_STATUS else "#b8c4d0")
                for p in rows]
@@ -410,6 +418,8 @@ def build(data, out_path, peers=None):
     story.append(Paragraph("Kurs: " + data["dates"]["price"], S_SUB))
     story.append(Spacer(1, 4))
     story.append(Paragraph(v["text"], _style("vt", 8, 11, TONES[v["tone"]], bold=True)))
+    if v.get("legend"):
+        story.append(Paragraph(v["legend"], S_SMALL))
     story.append(Spacer(1, 4))
     story.append(_kpi_cards(data["kpis"]))
     story.append(Paragraph("Kernaussage", S_H))
@@ -465,6 +475,11 @@ def build(data, out_path, peers=None):
             rank_line += ". "
         if data.get("peer_summary"):
             story.append(Paragraph(data["peer_summary"], _style("ps", 8.5, 11.5, bold=True)))
+        shown, _ = shown_rows(peers, ticker, "ev_ebitda", True)
+        named = [f'{p["ticker"]} {p["name"]}' for p in shown if p.get("name")]
+        if named:
+            story.append(Paragraph("<b>Vergleichsfirmen (" + ("alle" if len(shown) == len(peers) else "Ausschnitt") + "):</b> " +
+                                   " · ".join(named), S_SMALL))
         extra = (data.get("peer_note", "") + " ") if data.get("peer_note") else ""
         story.append(Paragraph(rank_line + " ".join(dict.fromkeys(peer_notes)) + " " + extra + "Die Diagramme zeigen die Archivwerte der "
                                "Stufe 2 (Geschäftsjahre bzw. 3-Jahres-Mittel); die Karten oben zeigen teils die letzten zwölf Monate.", S_SMALL))
@@ -484,6 +499,8 @@ def build(data, out_path, peers=None):
     story.append(Paragraph(data["kill"], S_BODY))
     story.append(Paragraph("Quellen", S_H))
     story.append(Paragraph(data["sources"], S_SMALL))
+    for line in data.get("sources_detail", []):
+        story.append(Paragraph("• " + line, S_SMALL))
     story.append(Paragraph("Nicht geprüft", S_H))
     story.append(Paragraph(data["not_checked"], S_SMALL))
     if data.get("method"):
