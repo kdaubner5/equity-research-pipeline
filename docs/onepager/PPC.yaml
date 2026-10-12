@@ -18,7 +18,7 @@ verdict:
   label: "ZURÜCKSTELLEN"
   tone: warn   # ok | warn | bad | neutral
   text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Fusionsfall mit offenem Ausgang; Gewinneinbruch im ersten Halbjahr 2026."
-  legend: "Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3 oder Entscheidung des Sonderausschusses zum JBS-Vorschlag) und rechnen dann neu. Die vier möglichen Vorschläge sind WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN und UNZUREICHENDE EVIDENZ. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
+  legend: "Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3 oder Entscheidung des Sonderausschusses zum JBS-Vorschlag) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
 thesis: >-
   Auf den Zahlen der Geschäftsjahre besteht PPC die Prüfungen (Marge 2025: 8,7 %, Verschuldung 1,17 Mal EBITDA).
   Das erste Halbjahr 2026 zeigt einen scharfen Einbruch: Betriebsergebnis 228,5 Mio. $ nach 916,8 Mio. $ bei fast
@@ -84,6 +84,7 @@ entry:
   limit_note: "Vorläufig: Die 6 % sind eine Stufe-2-Regel auf Dreijahresbasis, hier auf die letzten zwölf Monate angewendet; die Regel verlangt strikt mehr als 6 %, der Preis muss also etwas unter der Grenze liegen. Die zweite Grenze (EV/EBITDA) fehlt, die Grenze kann zu hoch sein. Sie liegt rund 25 % unter dem Tauschwert und wäre bei einer Übernahme kaum erreichbar."
   price: 27.63
   price_date: "23.09.2026"
+  offer_label: "Tauschwert JBS-Vorschlag"
   offer_value: 28.49
   offer_date: "18.08.2026"
   condition: "Abwarten: 10-Q für das 3. Quartal (voraussichtlich Ende Oktober) oder Entscheidung des Sonderausschusses"
@@ -125,4 +126,4 @@ financials:
     - { name: "Investitionen (Sachanlagen)", values: ["543,8", "476,2", "711,1", "259,3", "465,2"] }
     - { name: "Freier Cashflow", values: ["134,1", "1.514,0", "660,6", "362,8", "6,7"] }
   note: "Quelle: 10-K 2025 und 10-Q Q2 2026 / Q2 2025 der SEC. Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen)."
-method: "Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch zwei getrennte Prüfläufe gegenlesen. Das Verdikt ist ein Vorschlag; die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen."
+method: "Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch zwei getrennte Prüfläufe gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen."

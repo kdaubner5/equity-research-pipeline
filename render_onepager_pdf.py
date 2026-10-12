@@ -61,7 +61,7 @@ CONTENT_W = 174  # mm
 
 REQUIRED_NESTED = {
     "entry": ["zone_title", "horizon", "limit", "limit_label", "limit_note", "price", "price_date", "price_vs_limit",
-              "offer_value", "offer_date", "condition"],
+              "condition"],
     "company": ["name", "ticker", "list_nr", "stage2_rank", "stage2_rank_of", "peer_group"],
     "dates": ["documents_until", "one_pager", "archive_run", "price"],
     "verdict": ["label", "tone", "text"],
@@ -239,8 +239,8 @@ def peer_chart(peers, ticker, key, title, fmt, lower_is_better):
     ax.tick_params(axis="y", labelsize=7.5)
     ax.invert_yaxis()
     _style_axes(ax)
-    ax.set_title(title, fontsize=10, loc="left", pad=18, color="#14213d", fontweight="bold")
-    ax.text(0, 1.1, "niedriger = günstiger" if lower_is_better else "höher = günstiger", transform=ax.transAxes, fontsize=8, color="#667385", va="bottom")
+    ax.set_title(title, fontsize=10, loc="left", pad=20, color="#14213d", fontweight="bold")
+    ax.set_title("niedriger = günstiger" if lower_is_better else "höher = günstiger", fontsize=8, loc="right", pad=20, color="#667385")
     note = f"{len(rows)} von {group_n if group_n else stored} Firmen der Gruppe gezeigt" if total_rows == len(rows) else \
         f"Ausschnitt: {len(rows)} von {group_n if group_n else stored} Firmen um den Kandidaten (Median über die ganze Gruppe)"
     if not complete:
@@ -292,8 +292,8 @@ def valuation_map(peers, ticker, group_label=""):
     ax.set_xlabel("EV/EBITDA (niedriger = günstiger)", fontsize=8, color="#667385")
     ax.set_ylabel("FCF-Rendite in % (höher = günstiger)", fontsize=8, color="#667385")
     _style_axes(ax)
-    ax.set_title("Bewertungskarte", fontsize=10, loc="left", color="#14213d", fontweight="bold", pad=18)
-    ax.text(0, 1.03, "links oben = günstig", transform=ax.transAxes, fontsize=8, color="#667385", va="bottom")
+    ax.set_title("Bewertungskarte", fontsize=10, loc="left", color="#14213d", fontweight="bold", pad=12)
+    ax.set_title("links oben = günstig", fontsize=8, loc="right", color="#667385", pad=12)
     note = f"Bewertungskarte: {len(shown)} von {len(pts)} Firmen im gezeigten Bereich" + (f" ({outside} Ausreißer außerhalb)" if outside else "") + "."
     return _png(fig), note
 
@@ -430,9 +430,10 @@ def _entry_box(entry):
         Paragraph(f'Zeithorizont: <b>{entry["horizon"]}</b>', S_BODY),
         Paragraph(f'{entry["limit_label"]}: <b>{_usd(entry["limit"])}</b> (Kurs {_usd(entry["price"])} am {entry["price_date"]}, '
                   f'{entry["price_vs_limit"]}). {entry["limit_note"]}', S_BODY),
-        Paragraph(f'Tauschwert JBS-Vorschlag: {_usd(entry["offer_value"])} am {entry["offer_date"]}.', S_BODY),
-        Paragraph("<b>Bedingung:</b> " + entry["condition"], S_BODY),
     ]
+    if entry.get("offer_value"):  # nur bei einem laufenden Angebot (zum Beispiel PPC)
+        lines.append(Paragraph(f'{entry.get("offer_label", "Angebotswert")}: {_usd(entry["offer_value"])} am {entry["offer_date"]}.', S_BODY))
+    lines.append(Paragraph("<b>Bedingung:</b> " + entry["condition"], S_BODY))
     return _card(lines, "neutral")
 
 
@@ -455,7 +456,7 @@ def _header(c, v, data):
             Paragraph(f'Unterlagen bis {d["documents_until"]} · Lauf {d["archive_run"]} · One-Pager vom {d["one_pager"]}', S_SUB),
             Paragraph("Kurs: " + d["price"], S_SUB)]
     badge = [Paragraph("VORSCHLAG DES AGENTEN", _style("bl", 7, 9, colors.white)), Spacer(1, 3),
-             Paragraph(v["label"], _style("vl", 11, 14, colors.white, bold=True))]
+             Paragraph(v["label"], _style("vl", 10, 13, colors.white, bold=True))]
     table = Table([[left, badge]], colWidths=[124 * mm, 50 * mm])
     table.setStyle(TableStyle([("BACKGROUND", (0, 0), (0, 0), NAVY), ("BACKGROUND", (1, 0), (1, 0), TONES[v["tone"]]),
                                ("VALIGN", (0, 0), (0, 0), "TOP"), ("VALIGN", (1, 0), (1, 0), "MIDDLE"),
@@ -486,7 +487,7 @@ def build(data, out_path, peers=None):
         verdict_flow += [Spacer(1, 5), Paragraph(v["legend"], _style("vg", 8.5, 12.5, MUTED))]
     story += [_card(verdict_flow, v["tone"]), Spacer(1, 12), _kpi_cards(data["kpis"]),
               Paragraph("Kernaussage", S_H), Paragraph(data["thesis"], _style("th", 10, 15)), Spacer(1, 10),
-              KeepTogether([_entry_box(data["entry"])])]
+              _entry_box(data["entry"])]
 
     if data.get("funnel"):
         story.append(PageBreak())
@@ -508,17 +509,17 @@ def build(data, out_path, peers=None):
     story += [PageBreak(), Paragraph("Einordnung gegen die Konkurrenz", S_H)]
     peer_notes, items_top, items_bottom = [], [], []
     if data.get("halfyear"):
-        items_top.append((halfyear_chart(data), 70))
+        items_top.append((halfyear_chart(data), 62))
     if peers:
         png, note = valuation_map(peers, ticker)
         peer_notes.append(note)
         if png:
-            items_top.append((png, 78))
+            items_top.append((png, 66))
         for key, title, fmt, lower in (("ev_ebitda", "EV/EBITDA", _num, True), ("fcf_yield", "FCF-Rendite", _pct, False)):
             png, note = peer_chart(peers, ticker, key, title, fmt, lower)
             peer_notes.append(note)
             if png:
-                items_bottom.append((png, 90))
+                items_bottom.append((png, 84))
     if not peers:
         story.append(Paragraph("Vergleich mit der Konkurrenz: Peer-Daten fehlen (Export mit run_export_peers.py). "
                                "Ohne sie steht hier kein Diagramm; die Einordnung gegen die Peer-Gruppe ist offen.", S_SMALL))
