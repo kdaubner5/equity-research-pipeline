@@ -2592,3 +2592,36 @@ Die Fragen unten sind damit beantwortet; sie bleiben zur Nachvollziehbarkeit ste
 **Ungeprüft:** Die Zahlen sind aus dem Bericht übernommen und im Repo nicht belegt. Hinweis aus dem Bericht (Deutung der lokalen Sitzung): „simfin_mapping_error=44“ in Stufe 2 ist ein Statustext aus den Cache-Dateien (44 Firmen ohne nutzbare Fundamentaldaten), kein Abruf. Der Bericht wurde nicht als PR-Kommentar abgelegt.
 
 **Folge:** Roadmap A.3 ist laut Bericht erledigt; der Verweis auf die Messlatte und ein Bericht im Repo (zum Beispiel als PR-Kommentar) stehen noch aus, die Bedingung „Fertig, wenn“ ist damit nur teilweise erfüllt. Der Entwurf „Baseline – alte Läufe vor dem Regelstand“ ist durch diesen Lauf faktisch vollzogen; seine Freigabe durch Konstantin steht aus. Nächster Schritt ist A.4 (Kandidatenliste Runde 1); die Auswahlregel entscheidet Konstantin.
+
+
+## 2026-10-12: Kandidatenliste Runde 1 (Roadmap A.4), Auswahlregel und Vergleichbarkeit (Agent-Entscheidung, Klasse C; Entwurf)
+
+**Status: Entwurf, nicht freigegeben.** Gilt erst nach Merge durch Konstantin. Klasse C, weil der Eintrag eine Auswahlregel festlegt, die später die Auswertung bestimmt. Keine Schwellenänderung, kein Code, keine Daten abgerufen. Auftrag von Konstantin: „Baue das was am meisten sinn macht um es am ende vergleichen zu können.“
+
+**In einfachen Worten:** Wir nehmen **alle 40** Unternehmen aus dem Stufe-2-Ranking vom 10.10.2026 (41 minus XPER) und frieren die Liste ein. Wer am Ende besser oder schlechter abschneidet als die Messlatte, ist dann nicht davon abhängig, welche Namen wir uns hinterher herausgesucht haben. Die Tranchen bestimmen nur, womit wir anfangen.
+
+**Entscheidung (Vorschlag):**
+1. **Liste:** `docs/kandidaten/runde1.md` mit der Rohdatei `docs/kandidaten/runde1_stage2_survivors_2026-10-10T122744.csv` (41 Zeilen, unverändert). Die Liste hat 40 Namen: alle bis auf XPER.
+2. **Eingefroren:** Nach Freigabe wird die Liste nicht mehr geändert. Eine Änderung ist nur eine neue Fassung mit Datum und Grund; die alte bleibt im Repo stehen und wird weiter gemessen, die neue als eigene Gruppe. Änderungen an `docs/kandidaten/runde1*` sind Klasse C.
+3. **Gestrichen:** XPER wegen eines Datenfehlers in den SimFin-Daten (Aktienzahl und Fundamentaldaten stammen von einer anderen Firma; Handprüfung vom 07.10.2026, Angabe von Konstantin, vom Agenten nicht geprüft, siehe Eintrag Stufe-2-Plausibilität). Folge ist die FCF-Rendite von 26,7 %. Die Streichung steht in der Liste und wird in der Auswertung genannt.
+4. **Fusionsfall und Marken:** PATK bleibt auf der Liste und ist als Fusionsfall markiert (laut Projektunterlagen, im Repo nicht belegt; belegt ist nur, dass die Daten veraltet sind, Stand FY2026 Q1). Die 8 Trend-Guard-Marken (AMPH, BCC, JBI, MGM, MTDR, SLVM, TNC, UFPI) sowie die Stufe-2-Marken bleiben ebenfalls drin und sind in der Liste ausgewiesen. Sie entscheiden nichts, sie machen nur später eine getrennte Auswertung möglich.
+5. **Tranchen (nur Bearbeitungsreihenfolge, Stufe 3):** A = laufende Nr. 1 bis 15 (Rang 1 bis 3 und 5 bis 16), B = Nr. 16 bis 30, C = Nr. 31 bis 40. Eine Tranche wird erst begonnen, wenn die vorige fertig ist. Ob B und C bearbeitet werden, entscheidet Konstantin nach A; die Liste bleibt trotzdem 40 Namen lang.
+6. **Referenzzeitpunkt:** Referenzkurs ist `close_price_usd` mit dem Kursdatum aus dem Archiv (Vorfilter-Lauf `2026-10-10T12:27:30`; der 10.10.2026 ist ein Samstag, das Kursdatum ist vermutlich Freitag, der 09.10.2026, ungeprüft). Auswertung und Messlatte beginnen bei diesem Kursdatum, nicht bei dem Tag, an dem ein One-Pager fertig ist.
+7. **Vergleichsgruppen für die spätere Auswertung (E.4), jeweils gleich gewichtet, in Dollar gegen F1 (S&P 500).** F3 (MSCI World in EUR) bleibt den tatsächlichen Käufen mit Kaufkurs und Kaufdatum vorbehalten, weil die Gruppen keine Käufe sind und der Wechselkurs sonst hineinspielt. Option C (der Korb der obersten 10 des Stufe-2-Rangs) besteht nach der Streichung von XPER aus den Listennummern 1 bis 10 (Ränge 1 bis 3 und 5 bis 11); Gruppe 2 wird gegen diesen Korb gemessen (F2).
+   - **Gruppe 1: alle 40.** Sie misst die Stufen 1 und 2 allein (ohne Urteil).
+   - **Gruppe 2: die Namen, die Stufe 3 mit einem noch festzulegenden positiven Verdikt abschließt** (das Verdikt-Log D.3 folgt; bis dahin gibt es diese Gruppe nicht).
+   - **Gruppe 3: Trend-Guard markiert gegen unmarkiert** (8 von 40 markiert). Sie ist rein beschreibend und kann keine Wirksamkeit des Trend-Guards belegen (8 gegen 32 Namen, ein Zeitpunkt, gehäufte Branchen); eine Aussage braucht eine eigene Entscheidung mit Mindestgröße.
+   - **Fairer Vergleich:** Gruppe 1 (40) wird nicht mit Gruppe 2 aus nur einer Tranche verglichen. Gegengruppe zu Gruppe 2 sind die von Stufe 3 geprüften, aber nicht positiv beurteilten Namen. Ab wie vielen positiven Verdikten ausgewertet wird, ist offen (Mindestgröße folgt mit D.3).
+   - **Vorausschau-Risiko:** Das Verdikt fällt Wochen nach dem Referenzkurs und kann von der Kursentwicklung seitdem beeinflusst sein. Jedes Verdikt wird mit Datum im Verdikt-Log festgehalten, und die One-Pager dürfen nur Unterlagen bis zum Kursdatum verwenden. Ist das nicht möglich, gilt Gruppe 2 als verzerrt und wird so ausgewiesen.
+   Die Messlatte bleibt wie in den Messlatten-Einträgen beschlossen; dieser Eintrag ändert Abbruchkriterium und Option C nicht.
+8. **Grenzen:** Das ist keine Prognose und kein Backtest (Masterplan Abschnitt 8, Forward-Log). Mit 40 Namen und einem Start-Zeitpunkt ist es **ein einzelner Durchlauf**: Die Gruppen sind klein, die Ergebnisse breit gestreut, und alle Namen sind zeitgleich in derselben Marktlage gestartet. Sie sind ein Hinweis, kein Beweis.
+
+**Offen und ungeprüft:**
+- Der Export der Rohdatei ist Konstantins lokales Ergebnis und im Repo nicht aus dem Archiv belegt. Ob die Datei zu den berichteten Zahlen passt, wurde nur gezählt: 41 Zeilen, davon 35 `passed` und 6 `passed_with_flags`, 8 Trend-Guard-Namen in der Liste.
+- Ob der Kurs am Lauftag für alle 40 gefüllt ist, wurde nicht an der Datenbank geprüft (laut Bericht bei allen 1.821 bestandenen Firmen gefüllt).
+- Das positive Verdikt für Gruppe 2 ist nicht definiert (Roadmap D.3).
+- Die Fusion bei PATK stammt nicht aus dem Repo; die Datenlage bei UAN (Aktienzahl-Verhältnis 0,77) ist ungeprüft.
+
+**Alternativen:** (a) nur die ersten 15 nach Rang: verworfen, weil die Auswahl nach Rang ohne Grund die Stichprobe weiter verkleinert und die späteren Ränge nie eine Chance auf einen Vergleich bekommen. (b) die Namen auswählen, die uns nach dem Lesen am besten gefallen: verworfen, weil die Auswahl dann das Ergebnis vorwegnimmt. (c) XPER mit aufnehmen: verworfen, weil die Zahl ein Datenfehler ist.
+
+**How to apply (nach Freigabe):** Stufe 3 Runde 1 beginnt mit Tranche A (D.4). Die Liste wird nicht geändert.
