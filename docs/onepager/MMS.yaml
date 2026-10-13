@@ -1,0 +1,209 @@
+# Datenquelle für die PDF-Fassung des One-Pagers MMS (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: Maximus, Inc.
+  ticker: MMS
+  list_nr: 30
+  stage2_rank: 31
+  stage2_rank_of: 41
+  peer_group: Business Services (SimFin-Branche 100002, 13 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 06.08.2026 (10-Q Q3 FY26 zum 30.06.2026 und Pressemitteilung)
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 53,79 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: WEITERVERFOLGEN
+  tone: ok
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Gewinn und Marge steigen, die Firma erwartet 425 bis 475 Mio. $ freien Cashflow; die Gewinnprognose wurde wegen einer befristeten Vertragsänderung gesenkt, und die Schulden stiegen um 300 Mio. $.
+  legend: Was bedeutet WEITERVERFOLGEN? Die Firma besteht den Filter und die Prüfung der Unterlagen zeigt kein Ausschlussmerkmal. Sie kommt in die engere Beobachtung; ein Kauf folgt nur nach den Stufe-4-Regeln und deiner Entscheidung. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.
+thesis: Maximus betreibt Behördendienstleistungen für Regierungen (Gesundheit, Sozialleistungen, Einwanderung; Geschäftsjahr bis 30.09.). Im 3. Quartal 2026 sank der Umsatz erwartungsgemäß auf 1,28 Mrd. $ (Vorjahr 1,35 Mrd. mit Katastropheneinsätzen und Klinik-Spitzen); die Betriebsmarge stieg auf 12,6 %, der Gewinn je Aktie auf 1,95 $ (bereinigt 2,22 $). Ein Großkunde im Bundesgeschäft änderte seinen Vertrag befristet vom 01.07. bis 31.12.2026; das kostet rund 0,35 $ Gewinn je Aktie pro Quartal bis zum 1. Quartal des Geschäftsjahrs 2027, und die Prognose für den bereinigten Gewinn je Aktie 2026 sank auf 7,90 bis 8,20 $. Der freie Cashflow soll 425 bis 475 Mio. $ betragen; der der letzten zwölf Monate liegt bei rund 433 Mio. $ (15,4 % des Börsenwerts laut Archivkurs). Die Schulden stiegen am 27.05.2026 um 325 Mio. $ (Term Loan B) auf 1,64 Mrd. $, die Kasse liegt bei 57 Mio. $.
+kpis:
+- label: Marktwert
+  main: 2,82 Mrd. $
+  sub: 53,79 $ x 52,4 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 15,4 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 11,7 %'
+  status: ok
+- label: EV/EBIT
+  main: 7,6
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 5,9'
+  status: neutral
+- label: Nettoschulden
+  main: 1,58 Mrd. $
+  sub: '30.06.2026: Gesamtschulden 1.636,9 minus Kasse 57,0 (30.09.2025: 1.334,3) | Stufe 1: 1,68'
+  status: warn
+- label: Gewinn je Aktie Q3
+  main: 1,95 $
+  sub: Vorjahr 1,86 $ | bereinigt 2,22 $ (2,16)
+  status: ok
+halfyear:
+  labels:
+  - 9 Monate FY25
+  - 9 Monate FY26
+  tone: ok
+  rows:
+  - name: Umsatz
+    values:
+    - 4112.9
+    - 3930.0
+  - name: Betriebsergebnis
+    values:
+    - 405.4
+    - 456.1
+  - name: Freier Cashflow
+    values:
+    - -275.7
+    - -208.7
+  unit: Mio. $
+events:
+- date: 27.05.2026
+  text: 'Kreditvertrag geändert: Term Loan B um 325 Mio. $ erhöht'
+- date: Ende Mai 2026
+  text: Ein Großkunde kündigt eine befristete Vertragsänderung ab 01.07.2026 an (laut 10-Q)
+- date: 06.08.2026
+  text: 'Zahlen Q3 FY26: Umsatz 1,28 Mrd. $, Gewinn je Aktie 1,95 $ (bereinigt 2,22 $); Gewinnprognose gesenkt, Umsatz- und FCF-Prognose bestätigt bzw. aktualisiert; 10-Q eingereicht'
+- date: 31.08.2026
+  text: Dividende 0,33 $ je Aktie gezahlt (Stichtag 14.08.)
+- date: 31.12.2026
+  text: Ende der befristeten Vertragsänderung (laut Firma)
+  future: true
+bear:
+- Gewinnprognose 2026 gesenkt (bereinigt 7,90 bis 8,20 $) wegen befristeter Vertragsänderung eines Großkunden; Auswirkung rund 0,35 $ je Aktie und Quartal bis Q1 FY27.
+- Schulden 1,64 Mrd. $ (Term Loan A 819, B 814, Revolver 20), Kasse nur 57 Mio. $; Term Loan B im Mai um 325 Mio. $ aufgestockt.
+- 'Umsatz 9 Monate 3,93 Mrd. $ nach 4,11 (-4,4 %): 2025 waren Katastropheneinsätze und Klinik-Spitzen enthalten.'
+- Operativer Cashflow der ersten neun Monate -179,9 Mio. $ (Vorjahr -220,0); das Jahr wird im letzten Quartal gerettet.
+- Das Bundesgeschäft (U.S. Federal Services) macht mit 721 von rund 1.280 Mio. $ rund 56 % des Quartalsumsatzes aus.
+bull:
+- Betriebsergebnis 9 Monate +12 % (456,1 nach 405,4); Nettogewinn +21 %.
+- Marge im Bundesgeschäft 18,6 % (18,1 %); Produktivität und KI-gestützte Werkzeuge senken Kosten.
+- 'Prognose freier Cashflow 425 bis 475 Mio. $ (2025: 366 Mio. $).'
+- 'Rückkäufe: 50,4 Mio. $ im Quartal (204,9 Mio. $ in 9 Monaten); Aktienzahl 53,1 Mio. nach 57,0 Mio. im Vorjahr.'
+- 'Neue Felder: SNAP-Dienste, Verteidigung und nationale Sicherheit (Firmenangabe).'
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 137.9
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 61,0 % darunter
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (433,2 Mio. $) und 52,4 Mio. Aktien laut Archiv angewendet. Mit der Firmenprognose von 425 bis 475 Mio. $ ergäbe sich eine Grenze zwischen 135 und 151 $. Der Kurs liegt weit darunter; die befristete Vertragsänderung ist in der 12-Monats-Zahl noch nicht ausgewiesen. Die zweite Grenze (EV/EBITDA) fehlt.'
+  price: 53.79
+  price_date: 23.09.2026
+  condition: 'Abwarten: Jahresbericht für das Geschäftsjahr bis 30.09.2026 und Ausblick 2027; Ende der Vertragsänderung (31.12.2026) und Schulden prüfen'
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder freier Cashflow der letzten zwölf Monate unter 300 Mio. $ (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K FY2025, eingereicht 20.11.2025), 2 Quartalsberichte (10-Q Q3 FY26 vom 06.08.2026 und Q2 vom 07.05.2026 nur auf Vorhandensein geprüft) und 2 aktuelle Meldungen (8-K vom 28.05.2026 und 06.08.2026 mit Pressemitteilung). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K FY2025 (0001032220-25-000053), 10-Q Q3 FY26 (-26-000035), 10-Q Q2 FY26 (-26-000027), 8-Ks: 28.05.2026 (-26-000030), 06.08.2026 (-26-000033). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Peer-Gruppe (13 Firmen, Unternehmensdienstleister) wurde nicht einzeln geprüft. Das Archiv markiert Stufe 1 mit `roic` (ROIC-Mittel 11,7 %, Grauzone). Nicht geprüft: Identität und Anteil des Großkunden, Bedingungen des Kredits, Mietverpflichtungen, Auslaufen von Verträgen, aktueller Kurs; die Grenzen von 135 bis 151 $ aus der Firmenprognose sind eine Überschlagsrechnung des Agenten. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); keine fehlenden Firmen gemeldet.
+peer_summary: 'Gegen die 13 Firmen der Gruppe mit Wert: EV/EBITDA 5,9 gegen Median 10,2 (Platz 3 von 13, 1 = günstigste), FCF-Rendite 11,7 % gegen Median 8,7 % (Platz 4 von 12, 1 = höchste).'
+funnel_title: So kam MMS auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 11,7 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: warn
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: 1,68
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,66
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 5,9 (Platz 3 von 13)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: ok
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 11,7 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: 'Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Stufe-1-Marke: roic (Wert in der Grauzone, nicht durchgefallen).'
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - FY2023
+  - FY2024
+  - FY2025
+  - 9M FY25
+  - 9M FY26
+  rows:
+  - name: Umsatz
+    values:
+    - 4.904,7
+    - 5.306,2
+    - 5.431,3
+    - 4.112,9
+    - 3.930,0
+  - name: Betriebsergebnis
+    values:
+    - 294,8
+    - 488,5
+    - 528,3
+    - 405,4
+    - 456,1
+  - name: Betriebsmarge
+    values:
+    - 6,0 %
+    - 9,2 %
+    - 9,7 %
+    - 9,9 %
+    - 11,6 %
+  - name: Nettogewinn
+    values:
+    - 161,8
+    - 306,9
+    - 319,0
+    - 243,7
+    - 295,6
+  - name: Operativer Cashflow
+    values:
+    - 314,3
+    - 515,3
+    - 429,4
+    - -220,0
+    - -179,9
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 90,7
+    - 114,2
+    - 63,2
+    - 55,7
+    - 28,8
+  - name: Freier Cashflow
+    values:
+    - 223,6
+    - 401,1
+    - 366,2
+    - -275,7
+    - -208,7
+  note: 'Quelle: 10-K FY2025 und 10-Q Q3 FY26 der SEC (XBRL-Daten); Geschäftsjahr endet am 30.09., 9 Monate = Oktober bis Juni. Marge und freier Cashflow vom Agenten gerechnet; der Cashflow ist saisonal, das letzte Quartal liefert den Großteil.'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

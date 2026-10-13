@@ -1,0 +1,212 @@
+# Datenquelle für die PDF-Fassung des One-Pagers ALG (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: Alamo Group Inc.
+  ticker: ALG
+  list_nr: 24
+  stage2_rank: 25
+  stage2_rank_of: 41
+  peer_group: Sektor Industrials (grobe SimFin-Gruppe 100, 117 Firmen; die feine Branche war zu klein)
+  profile: non_financial
+dates:
+  documents_until: 03.08.2026 (10-Q Q2 2026 und Pressemitteilung), 8-Ks bis 30.09.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 164,64 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: ZURÜCKSTELLEN
+  tone: warn
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Solides Geschäft mit mäßiger Verschuldung, aber das Betriebsergebnis sinkt seit 2023, 163,8 Mio. $ gingen in den Petersen-Kauf, und im 3. Quartal kommen 22 bis 30 Mio. $ Aufwand für zwei eingestellte Marken.
+  legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3 2026 (mit den Aufwendungen für Boxer und Dixie Chopper) und erste Zahlen zu Petersen) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
+thesis: 'Alamo baut Maschinen für Straßen- und Grünpflege und für die Landwirtschaft (Industrial Equipment und Vegetation Management). Im 2. Quartal 2026 stieg der Umsatz um 7,6 % auf 450,7 Mio. $, der bereinigte Gewinn je Aktie um 7 % auf 2,82 $; der Industrie-Bereich wuchs um 12,8 %, die Grünpflege nur um 0,4 %. Im Januar kaufte die Firma Petersen Industries für rund 163,8 Mio. $ (Kasse und Kredit); Ende Mai wurde der Kreditvertrag erneuert (400 Mio. $ Revolver, 202,5 Mio. $ Term Loan). Im September stellte sie die Marken Boxer (7 bis 10 Mio. $ Aufwand) und Dixie Chopper (15 bis 20 Mio. $, davon 1 bis 4 Mio. $ Auszahlung) ein. Das Betriebsergebnis der letzten zwölf Monate beträgt 148 Mio. $ (2023: 198), der freie Cashflow rund 135 Mio. $ (6,8 % des Börsenwerts).'
+kpis:
+- label: Marktwert
+  main: 2,00 Mrd. $
+  sub: 164,64 $ x 12,2 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 6,8 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 7,4 %'
+  status: ok
+- label: EV/EBIT
+  main: 14,0
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 9,7'
+  status: neutral
+- label: Nettoschulden
+  main: 67,7 Mio. $
+  sub: '30.06.2026: Schulden 262,7 minus Kasse 195,0 (Firmenangabe) | Stufe 1: -0,53'
+  status: ok
+- label: Betriebsergebnis
+  main: 148,0 Mio. $
+  sub: 'letzte 12 Monate | 2023: 198,0, 2025: 151,6'
+  status: warn
+halfyear:
+  labels:
+  - 1. Halbjahr 2025
+  - 1. Halbjahr 2026
+  tone: warn
+  rows:
+  - name: Umsatz
+    values:
+    - 810.0
+    - 867.9
+  - name: Betriebsergebnis
+    values:
+    - 91.5
+    - 87.9
+  - name: Freier Cashflow
+    values:
+    - 23.9
+    - 12.4
+  unit: Mio. $
+events:
+- date: 26.01.2026
+  text: Petersen Industries (Baumpflegegeräte) für rund 163,8 Mio. $ gekauft; Geschäftswert 57,6 Mio. $
+- date: 19.05.2026
+  text: Richard Raborn (EVP Vegetation Management) geht am 29.05. in den Ruhestand
+- date: 27.05.2026
+  text: 'Neuer Kreditvertrag: Revolver 400 Mio. $ und Term Loan 202,5 Mio. $'
+- date: 03.08.2026
+  text: 'Zahlen Q2: Umsatz 450,7 Mio. $ (+7,6 %), bereinigter Gewinn je Aktie 2,82 $ (+7 %); 10-Q eingereicht'
+- date: 11.08.2026
+  text: Edward Rizzuti (Unternehmensentwicklung) geht am 11.09. in den Ruhestand
+- date: 08.09.2026
+  text: 'Marke Boxer eingestellt: 7 bis 10 Mio. $ Aufwand im 3. Quartal, keine wesentlichen Auszahlungen'
+- date: 29.09.2026
+  text: 'Marke Dixie Chopper eingestellt: 15 bis 20 Mio. $ Aufwand im 3. Quartal, davon 1 bis 4 Mio. $ Auszahlungen'
+bear:
+- 'Betriebsergebnis: 198 Mio. $ (2023), 165 (2024), 152 (2025), 148 (letzte 12 Monate); 1. Halbjahr 2026 87,9 nach 91,5 trotz +7 % Umsatz.'
+- 22 bis 30 Mio. $ Aufwand im 3. Quartal für die Einstellung von Boxer und Dixie Chopper (Hauptteil nicht zahlungswirksam).
+- Operativer Cashflow 1. Halbjahr 22,7 Mio. $ (Vorjahr 36,9); Kasse von 309,7 auf 195,0 Mio. $ gesunken (Petersen).
+- Grünpflege-Sparte nur +0,4 % im Quartal; die Firma nennt die Märkte „gemischt“.
+- Zwei Führungskräfte gingen im Mai und im September (Vegetation Management, Unternehmensentwicklung).
+bull:
+- Umsatz im 1. Halbjahr +7,1 %; Industrial Equipment +12,8 % im Quartal.
+- Geringe Nettoverschuldung (68 Mio. $ gegen 148 Mio. $ Betriebsergebnis); Kreditzusage von 602,5 Mio. $.
+- Bereinigtes EBITDA im Quartal 63,9 Mio. $ (14,2 % Marge), +8,7 %.
+- Freier Cashflow 2024 und 2025 hoch (185 und 147 Mio. $).
+- Kreditvertrag im Mai 2026 mit verbesserten Bedingungen erneuert (Pressemitteilung).
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 185.41
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 11,2 % darunter
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (135,4 Mio. $) und 12,2 Mio. Aktien angewendet. Der Cashflow enthält die Petersen-Zahlung nicht (Zukauf, nicht Investition), die Aufwendungen für Boxer und Dixie Chopper nur zu einem kleinen Teil. Die zweite Grenze (EV/EBITDA, grobe Gruppe von 117 Firmen) fehlt.'
+  price: 164.64
+  price_date: 23.09.2026
+  condition: Quartalsbericht Q3 2026 abwarten (Aufwand Boxer/Dixie Chopper, Beitrag Petersen); dann Marge und Cashflow neu prüfen
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder Betriebsmarge der letzten zwölf Monate unter 8 % (keine Schwelle aus dem Repo; 2025: 9,5 %); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 02.03.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 03.08.2026 und Q1 vom 04.05.2026 nur auf Vorhandensein geprüft) und 7 aktuelle Meldungen (8-K vom 19.05., 28.05., 08.07., 03.08. mit Pressemitteilung, 11.08., 08.09. und 30.09.2026). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K 2025 (0000897077-26-000016), 10-Q Q2 2026 (-26-000092), 10-Q Q1 2026 (-26-000059), 8-Ks: 19.05. (-26-000076), 28.05. (-26-000078), 08.07. (-26-000082), 03.08. (-26-000091), 11.08. (-26-000096), 08.09. (-26-000101), 30.09.2026 (-26-000102). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Vergleichsgruppe ist grob (117 Firmen aus dem ganzen Sektor Industrie); 2 Firmen fehlen wegen Datenfehlern (LXFR, RELY). Nicht geprüft: Umsatz und Ergebnis von Petersen, Bedingungen der Kreditvereinbarung, Höhe der tatsächlichen Zahlungen für die Markeneinstellungen, Aktienplan, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Grobe Gruppe aus dem ganzen Sektor Industrie (117 Firmen), weil die feine Branche zu klein war; 2 Firmen fehlen wegen Datenfehlern (LXFR, RELY; laut Hinweis des Exportlaufs vom 13.10.2026). Vergleichbarkeit eingeschränkt.
+peer_summary: 'Gegen die 117 Firmen der Gruppe mit Wert: EV/EBITDA 9,7 gegen Median 11,0 (Platz 36 von 117, 1 = günstigste), FCF-Rendite 7,4 % gegen Median 4,8 % (Platz 35 von 112, 1 = höchste). Die Gruppe ist grob (ganze Sektor-Ebene), die Vergleichbarkeit ist eingeschränkt.'
+funnel_title: So kam ALG auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 12,0 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: ok
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: -0,53
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,66
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 9,7 (Platz 36 von 117)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: ok
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 7,4 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter).
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - '2023'
+  - '2024'
+  - '2025'
+  - 1. Hj. 2025
+  - 1. Hj. 2026
+  rows:
+  - name: Umsatz
+    values:
+    - 1.689,7
+    - 1.628,5
+    - 1.603,7
+    - 810,0
+    - 867,9
+  - name: Betriebsergebnis
+    values:
+    - 198,0
+    - 164,8
+    - 151,6
+    - 91,5
+    - 87,9
+  - name: Betriebsmarge
+    values:
+    - 11,7 %
+    - 10,1 %
+    - 9,5 %
+    - 11,3 %
+    - 10,1 %
+  - name: Nettogewinn
+    values:
+    - 136,2
+    - 115,9
+    - 103,8
+    - 62,9
+    - 60,1
+  - name: Operativer Cashflow
+    values:
+    - 131,2
+    - 209,8
+    - 177,5
+    - 36,9
+    - 22,7
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 37,7
+    - 25,0
+    - 30,6
+    - 13,0
+    - 10,3
+  - name: Freier Cashflow
+    values:
+    - 93,5
+    - 184,8
+    - 146,9
+    - 23,9
+    - 12,4
+  note: 'Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen). Zukäufe (2026: 162,9 Mio. $) sind nicht abgezogen.'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

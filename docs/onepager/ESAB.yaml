@@ -1,0 +1,206 @@
+# Datenquelle für die PDF-Fassung des One-Pagers ESAB (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: ESAB Corporation
+  ticker: ESAB
+  list_nr: 31
+  stage2_rank: 32
+  stage2_rank_of: 41
+  peer_group: Industrial Products (SimFin-Branche 100001, 33 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 06.08.2026 (10-Q Q2 2026 zum 03.07.2026 und Pressemitteilung), 8-Ks bis 12.06.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 67,33 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: ZURÜCKSTELLEN
+  tone: warn
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Der 1,45-Mrd.-$-Kauf von Eddyfi (01.06.2026) hat die Schulden auf rund 2,4 Mrd. $ fast verdoppelt; Filter und 12-Monats-Zahlen kennen den Kauf kaum, und das Betriebsergebnis des 1. Halbjahrs fiel um 23 %.
+  legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3 2026 mit einem vollen Quartal Eddyfi) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
+thesis: ESAB stellt Schweiß- und Schneidtechnik und Verbrauchsmaterial her. Im 2. Quartal 2026 stieg der Umsatz um 12,9 % auf einen Rekord von 808 Mio. $ (organisch im Kerngeschäft +2,5 %); das bereinigte Kern-EBITDA stieg um 8 % auf 150 Mio. $, die Marge fiel um 0,9 Prozentpunkte auf 19,5 % (Preis und Kosten neutral, Investitionen in den Vertrieb). Das berichtete Betriebsergebnis des 1. Halbjahrs sank um 23 % auf 169 Mio. $. Am 01.06.2026 kaufte ESAB Eddyfi (Prüf- und Inspektionstechnik, Kanada) für 1,45 Mrd. $ bar, finanziert aus Kasse, 5,625-%-Anleihen 2031, einer Privatplatzierung von 175 Mio. $ Pflicht-Wandel-Vorzugsaktien (6,5 %) und 1,25 Mio. neuen Stammaktien (143 Mio. $). Die langfristigen Schulden stiegen von 1,23 auf 2,39 Mrd. $; die Nettoschulden betragen rund 2,18 Mrd. $. Der freie Cashflow der letzten zwölf Monate liegt bei rund 197 Mio. $ (4,7 % des Börsenwerts laut Archivkurs). Am 10.06.2026 wurde Mitchell Rales Executive Chair des Verwaltungsrats.
+kpis:
+- label: Marktwert
+  main: 4,19 Mrd. $
+  sub: 67,33 $ x 62,2 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 4,7 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 6,5 %'
+  status: bad
+- label: EV/EBIT
+  main: 17,7
+  sub: 'letzte 12 Monate (Agent), Eddyfi nur 1 Monat enthalten | Stufe 2 EV/EBITDA: 10,0'
+  status: neutral
+- label: Nettoschulden
+  main: 2,18 Mrd. $
+  sub: '03.07.2026: Schulden 2.397,2 minus Kasse 217,5, ohne 175 Mio. $ Vorzugsaktien | Stufe 1: 2,00'
+  status: bad
+- label: Eddyfi-Kauf
+  main: 1,45 Mrd. $
+  sub: bar, abgeschlossen 01.06.2026 | ca. 35 % des Börsenwerts laut Archivkurs
+  status: warn
+halfyear:
+  labels:
+  - 1. Halbjahr 2025
+  - 1. Halbjahr 2026
+  tone: warn
+  rows:
+  - name: Umsatz
+    values:
+    - 1393.7
+    - 1553.2
+  - name: Betriebsergebnis
+    values:
+    - 218.9
+    - 169.2
+  - name: Freier Cashflow
+    values:
+    - 65.5
+    - 48.9
+  unit: Mio. $
+events:
+- date: 02.02.2026
+  text: 'Verträge zur Finanzierung geschlossen: Privatplatzierung von Vorzugsaktien (175 Mio. $) und Stammaktien (143 Mio. $) für den Eddyfi-Kauf'
+- date: 01.06.2026
+  text: 'Eddyfi gekauft: 1,45 Mrd. $ bar, einen Monat früher als geplant; Finanzierung aus Kasse, Anleihen 2031 (5,625 %), Vorzugs- und Stammaktien'
+- date: 10.06.2026
+  text: Mitchell P. Rales wird Executive Chair; Leistungs-Optionen für Rales, CEO Shyam Kambeyanda und das Management
+- date: 06.08.2026
+  text: 'Zahlen Q2: Umsatz 808 Mio. $ (+12,9 %), bereinigtes Kern-EBITDA 150 Mio. $, Gewinn je Aktie 0,54 $; Prognose 2026 aktualisiert; 10-Q eingereicht'
+bear:
+- 'Eddyfi-Kauf für 1,45 Mrd. $ bar: langfristige Schulden von 1,23 auf 2,39 Mrd. $; Nettoschulden rund 2,18 Mrd. $ (ohne die 175 Mio. $ Vorzugsaktien).'
+- 'Betriebsergebnis 1. Halbjahr 169 Mio. $ nach 219 (-23 %); Kern-EBITDA-Marge 19,5 % (-90 Basispunkte): „Preis und Kosten neutral“, Logistik- und Rohstoffkosten steigen.'
+- Kern-Umsatzwachstum nur 2,5 % organisch; die Firma verweist auf eine „herausfordernde Lage im Nahen Osten“.
+- Neue Aktien (1,25 Mio.) und Vorzugsaktien verwässern; der Archivwert für Marktwert und Grenze kennt sie nicht.
+- 12-Monats-FCF-Rendite 4,7 % liegt unter der 5-Prozent-Marke der Regel; das Stufe-1-ROIC-Mittel liegt mit 11,9 % in der Grauzone.
+bull:
+- Rekordumsatz im 2. Quartal; beide Segmente mit organischem Kernwachstum.
+- Eddyfi wird laut Firma ein „höheres Wachstum, höhere Marge“-Geschäft; Abschluss vor dem Plan.
+- Kern-EBITDA +8 %; Prognose für das Kern-Umsatzwachstum 2026 auf 11 bis 14 % angehoben (inkl. Eddyfi).
+- 'Stufe 2: günstigster Platz 7 von 33 in der Branche (EV/EBITDA 10,0).'
+- 'Erfahrene Führung: Mitchell Rales als Executive Chair, Anreize bis zu sechs Jahre an Aktienkursziele gebunden.'
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 52.73
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 27,7 % darüber
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (196,7 Mio. $) und 62,2 Mio. Aktien laut Archiv angewendet. Mit 63,4 Mio. Aktien (nach der Platzierung) läge die Grenze rund 2 % tiefer. Eddyfi-Gewinn und die neuen Zinskosten sind nicht enthalten. Die zweite Grenze (EV/EBITDA) fehlt.'
+  price: 67.33
+  price_date: 23.09.2026
+  condition: 'Abwarten: Quartalsbericht Q3 2026 (erstes volles Quartal mit Eddyfi); Zinskosten, Schulden und organisches Wachstum prüfen'
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate, mit Eddyfi) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder Kern-EBITDA-Marge unter 18 % (keine Schwelle aus dem Repo; Q2: 19,5 %); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 20.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 06.08.2026 und Q1 vom 07.05.2026 nur auf Vorhandensein geprüft) und 3 aktuelle Meldungen (8-K vom 02.06., 12.06. und 06.08.2026 mit Pressemitteilung). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K 2025 (0001877322-26-000007), 10-Q Q2 2026 (-26-000056), 10-Q Q1 2026 (-26-000033), 8-Ks: 02.06.2026 (0001213900-26-063775), 12.06. (0001213900-26-067998), 06.08. (0001877322-26-000055). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Peer-Gruppe (33 Firmen, Industrieprodukte) ist gemischt; 1 Firma fehlt wegen Datenfehlers (LXFR). Das Archiv trägt die Datenmarke `debt_component_missing_defaulted_zero`; die Schulden bei ESAB sind laut 10-Q vollständig, ein Fehler des Archivs ist hier nicht erkennbar. Nicht geprüft: Umsatz und Ergebnis von Eddyfi, Zinssatz des Kredits im Detail, Einzelheiten der Rales-Optionen, aktueller Kurs. Die Anzahl der Stammaktien nach der Platzierung (63,4 Mio.) ist eine Summe des Agenten. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); 1 Firma fehlt wegen Datenfehlers (LXFR; laut Hinweis des Exportlaufs). Die Gruppe ist gemischt (Industrieprodukte).
+peer_summary: 'Gegen die 33 Firmen der Gruppe mit Wert: EV/EBITDA 10,0 gegen Median 14,7 (Platz 7 von 33, 1 = günstigste), FCF-Rendite 6,5 % gegen Median 4,2 % (Platz 10 von 33, 1 = höchste).'
+funnel_title: So kam ESAB auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 11,9 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: warn
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: 2,00
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,37
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 10,0 (Platz 7 von 33)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: ok
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 6,5 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: 'Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Stufe-1-Marke: roic (Wert in der Grauzone, nicht durchgefallen). Datenmarke Stufe 1: `debt_component_missing_defaulted_zero` (ein Teil der Schulden fehlte und wurde auf 0 gesetzt).'
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - '2023'
+  - '2024'
+  - '2025'
+  - 1. Hj. 2025
+  - 1. Hj. 2026
+  rows:
+  - name: Umsatz
+    values:
+    - 2.774,8
+    - 2.740,8
+    - 2.842,6
+    - 1.393,7
+    - 1.553,2
+  - name: Betriebsergebnis
+    values:
+    - 404,2
+    - 447,4
+    - 412,2
+    - 218,9
+    - 169,2
+  - name: Betriebsmarge
+    values:
+    - 14,6 %
+    - 16,3 %
+    - 14,5 %
+    - 15,7 %
+    - 10,9 %
+  - name: Nettogewinn
+    values:
+    - 205,3
+    - 264,8
+    - 226,8
+    - 134,2
+    - 80,0
+  - name: Operativer Cashflow
+    values:
+    - 330,5
+    - 355,4
+    - 260,6
+    - 82,0
+    - 80,3
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 48,2
+    - 51,8
+    - 47,3
+    - 16,5
+    - 31,4
+  - name: Freier Cashflow
+    values:
+    - 282,3
+    - 303,6
+    - 213,3
+    - 65,5
+    - 48,9
+  note: 'Quelle: 10-K und 10-Q der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen). Quartale enden z. B. am 03.07.2026; Eddyfi ist ab 01.06.2026 enthalten.'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

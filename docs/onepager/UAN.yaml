@@ -1,0 +1,205 @@
+# Datenquelle für die PDF-Fassung des One-Pagers UAN (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: CVR Partners, LP
+  ticker: UAN
+  list_nr: 40
+  stage2_rank: 41
+  stage2_rank_of: 41
+  peer_group: Chemicals (SimFin-Branche 110001, 22 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 29.07.2026 (10-Q Q2 2026 und Pressemitteilung), 8-Ks bis 29.07.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 127,83 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: ZURÜCKSTELLEN
+  tone: warn
+  text: 'Vorschlag des Agenten, Entscheidung durch Konstantin. Das Ergebnis ist stark vom Düngerpreis abhängig und steht nach 2024 wieder hoch (Betriebsergebnis 2024: 90, letzte 12 Monate 190 Mio. $); die Archiv-FCF-Zahl gilt als ungeprüft, die Branche ist zyklisch, und die Führung wechselte im Juni.'
+  legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3 2026 (nach der Stillstandsrevision in East Dubuque) und Düngerpreise) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
+thesis: 'CVR Partners stellt Ammoniak und Harnstoff-Ammonnitrat-Dünger (UAN) her (u. a. im Werk East Dubuque), eine Personengesellschaft (LP) mit 10,57 Mio. Anteilen. Im 2. Quartal 2026 stiegen Umsatz und Ergebnis kräftig: Umsatz 202 Mio. $ (Vorjahr 169), Nettogewinn 78 Mio. $ (39), je Anteil 7,33 $; die Ammoniak-Auslastung lag bei 99 %. Die Firma verweist auf knappes weltweites Stickstoffangebot durch geopolitische Konflikte, das die Preise stützt. Für das 2. Quartal wurden 6,08 $ je Anteil ausgeschüttet. Das Betriebsergebnis der letzten zwölf Monate beträgt 190 Mio. $ (2024: 90), der freie Cashflow rund 145 Mio. $ (10,7 % des Börsenwerts). Die Nettoschulden betragen rund 432 Mio. $ (6,125-%-Anleihen 550 Mio. $ bis Juni 2028). Ab August 2026 steht eine sechswöchige Stillstandsrevision in East Dubuque an; am 18.06.2026 schied Mark Pytosh als Chef von CVR Energy und der Geschäftsführung von CVR Partners aus.'
+kpis:
+- label: Marktwert
+  main: 1,35 Mrd. $
+  sub: 127,83 $ x 10,6 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 10,7 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 10,7 %'
+  status: ok
+- label: EV/EBIT
+  main: 9,4
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 8,7'
+  status: neutral
+- label: Nettoschulden
+  main: 432,3 Mio. $
+  sub: '30.06.2026: Anleihen 550 plus Finanzierungsleasing 20 minus Kasse 137,5 | Stufe 1: 2,36'
+  status: warn
+- label: Nettogewinn Q2
+  main: 78 Mio. $
+  sub: Vorjahr 39 | 7,33 $ je Anteil | Ausschüttung 6,08 $ je Anteil
+  status: ok
+halfyear:
+  labels:
+  - 1. Halbjahr 2025
+  - 1. Halbjahr 2026
+  tone: ok
+  rows:
+  - name: Umsatz
+    values:
+    - 311.4
+    - 382.2
+  - name: Betriebsergebnis
+    values:
+    - 80.9
+    - 142.5
+  - name: Freier Cashflow
+    values:
+    - 63.9
+    - 109.7
+  unit: Mio. $
+events:
+- date: 18.06.2026
+  text: Mark Pytosh scheidet als President und CEO von CVR Energy und von CVR GP LLC (Komplementär von CVR Partners) aus; Abfindung 3 Mio. $ (8-K vom 23.06.)
+- date: 29.07.2026
+  text: 'Zahlen Q2: Umsatz 202 Mio. $, Nettogewinn 78 Mio. $, Ausschüttung 6,08 $ je Anteil; 10-Q eingereicht'
+- date: '08.2026'
+  text: Planmäßige sechswöchige Stillstandsrevision in East Dubuque; Wasserwerks-Ausbau und Ammoniak-Erweiterung (+5 % Kapazität) laut Firma
+  future: true
+bear:
+- 'Düngerpreis-Zyklus: Betriebsergebnis 2022 320, 2024 90, letzte 12 Monate 190 Mio. $; hohe Preise stützen die Zahlen jetzt.'
+- 'Archiv-Marken: ev_ebitda (Grauzone), FCF-Rendite „ungeprüft“ (mit sonstigen Investitionen 4,1 %), zyklische Branche, Net Debt/EBITDA 2,36 (Grauzone).'
+- 'Stillstandsrevision von sechs Wochen im 3. Quartal: weniger Verkauf und Zusatzkosten.'
+- 'Schulden: 6,125-%-Anleihen 550 Mio. $ fällig Juni 2028 (Refinanzierung steht an); Nettoschulden rund 432 Mio. $.'
+- 'Führungswechsel im Juni 2026: der Konzernchef der Muttergesellschaft ging.'
+bull:
+- Betriebsergebnis 1. Halbjahr 142,5 Mio. $ nach 80,9; Nettogewinn Q2 78 Mio. $ nach 39.
+- Auslastung der Anlagen 99 %; Produktion 214.000 Tonnen Ammoniak im Quartal (197.000).
+- Ausschüttung 6,08 $ je Anteil für das 2. Quartal; die Anteile (10,57 Mio.) sind nicht verwässert.
+- Das 2. Halbjahr ist laut Firma gut gebucht („solides Auftragsbuch“).
+- Ausbau um +5 % Ammoniak-Kapazität im Werk East Dubuque.
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 228.01
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 43,9 % darunter
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (144,6 Mio. $) und 10,57 Mio. Anteile angewendet. Das Archiv-Zahlenverhältnis der Anteilszahl (0,77, ungewöhnlich niedrig) erklärt sich nicht aus der Anteilszahl: sie stimmt mit dem 10-Q überein (10.569.637). Die Ausschüttung hängt an den Düngerpreisen. Die zweite Grenze (EV/EBITDA) fehlt.'
+  price: 127.83
+  price_date: 23.09.2026
+  condition: 'Abwarten: Quartalsbericht Q3 2026 (nach der Stillstandsrevision); Düngerpreise und Ausschüttung prüfen'
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder Betriebsergebnis der letzten zwölf Monate unter 100 Mio. $ (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 18.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 29.07.2026 und Q1 vom 29.04.2026 nur auf Vorhandensein geprüft) und 2 aktuelle Meldungen (8-K vom 23.06. und 29.07.2026 mit Pressemitteilung). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K 2025 (0001425292-26-000011), 10-Q Q2 2026 (-26-000031), 10-Q Q1 2026 (-26-000022), 8-Ks: 23.06.2026 (-26-000025), 29.07.2026 (-26-000030). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Peer-Gruppe (22 Firmen, Chemie) ist gemischt (Spezialchemie bis Dünger); 1 Firma fehlt wegen Datenfehlers (SSL). Das Archiv trägt die Stufe-1-Datenmarke `debt_component_missing_defaulted_zero`; laut 10-Q betragen die Schulden 570 Mio. $, ein Fehler des Archivs ist nicht erkennbar. Nicht geprüft: Steuerliche Behandlung der Personengesellschaft, Verträge mit der Muttergesellschaft, Düngerpreise im Detail, Gaspreise, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); 1 Firma fehlt wegen Datenfehlers (SSL; laut Hinweis des Exportlaufs). Die Gruppe ist gemischt.
+peer_summary: 'Gegen die 22 Firmen der Gruppe mit Wert: EV/EBITDA 8,7 gegen Median 11,0 (Platz 9 von 22, 1 = günstigste), FCF-Rendite 10,7 % gegen Median 4,1 % (Platz 3 von 21, 1 = höchste).'
+funnel_title: So kam UAN auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 13,5 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: ok
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: 2,36
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: warn
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,80
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 8,7 (Platz 9 von 22)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: warn
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 10,7 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: warn
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: 'Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Stufe-1-Marke: net_debt_ebitda (Wert in der Grauzone, nicht durchgefallen). Stufe-2-Marke: ev_ebitda, fcf_yield_unverified. Datenmarke Stufe 1: `debt_component_missing_defaulted_zero` (ein Teil der Schulden fehlte und wurde auf 0 gesetzt).'
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - '2023'
+  - '2024'
+  - '2025'
+  - 1. Hj. 2025
+  - 1. Hj. 2026
+  rows:
+  - name: Umsatz
+    values:
+    - 681,5
+    - 525,3
+    - 606,0
+    - 311,4
+    - 382,2
+  - name: Betriebsergebnis
+    values:
+    - 201,4
+    - 90,4
+    - 128,7
+    - 80,9
+    - 142,5
+  - name: Betriebsmarge
+    values:
+    - 29,6 %
+    - 17,2 %
+    - 21,2 %
+    - 26,0 %
+    - 37,3 %
+  - name: Nettogewinn
+    values:
+    - 172,4
+    - 60,9
+    - 98,7
+    - 65,9
+    - 127,4
+  - name: Operativer Cashflow
+    values:
+    - 243,5
+    - 150,5
+    - 149,6
+    - 79,5
+    - 141,7
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 24,2
+    - 37,1
+    - 50,8
+    - 15,6
+    - 32,0
+  - name: Freier Cashflow
+    values:
+    - 219,3
+    - 113,4
+    - 98,8
+    - 63,9
+    - 109,7
+  note: 'Quelle: 10-K und 10-Q der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen).'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

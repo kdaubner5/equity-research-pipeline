@@ -1,0 +1,211 @@
+# Datenquelle für die PDF-Fassung des One-Pagers VCTR (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: Victory Capital Holdings, Inc.
+  ticker: VCTR
+  list_nr: 35
+  stage2_rank: 36
+  stage2_rank_of: 41
+  peer_group: Asset Management (SimFin-Branche 104001, 8 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 06.08.2026 (10-Q Q2 2026), 8-Ks bis 13.10.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 106,31 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: ZURÜCKSTELLEN
+  tone: warn
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Ein Kauf, der größer ist als der heutige Börsenwert (First Eagle, rund 7,0 Mrd. $, bar 4,4 Mrd. $ und 2,0 Mrd. $ in Aktien) verändert Schulden, Aktienzahl und Ergebnis grundlegend; die Aktionäre müssen noch zustimmen.
+  legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Zustimmung der Aktionäre, Abschluss des First-Eagle-Kaufs und neue Schuldenzahlen) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
+thesis: 'Victory Capital verwaltet Vermögen (Fonds, ETFs, Mandate) und wächst durch Zukäufe. 2025 übernahm es Amundi US; deshalb stieg der Umsatz im 1. Halbjahr 2026 um 44 % auf 823 Mio. $ und das Betriebsergebnis auf 353 Mio. $ (Vorjahr 187). Das verwaltete Vermögen lag Ende September 2026 bei 351,9 Mrd. $, mit 11,7 Mrd. $ Nettozuflüssen im 3. Quartal (Meldung vom 12.10.2026). Am 26.08.2026 vereinbarte die Firma den Kauf von First Eagle (222 Mrd. $ Vermögen) für rund 7,0 Mrd. $: 4,4 Mrd. $ bar, 2,0 Mrd. $ in neuen Aktien, dazu übernommene Anleihen von 575 Mio. $. Finanziert wird mit einem neuen Term Loan B von 3,5 Mrd. $, rund 950 Mio. $ neuen Anleihen und einem aufgestockten Revolver; der Verkäufer Genstar hielte danach rund 14,6 %. Die Firma erwartet rund 35 % mehr bereinigten Gewinn je Aktie 2027. Der freie Cashflow der letzten zwölf Monate liegt bei rund 564 Mio. $ (8,5 % des Börsenwerts laut Archivkurs); die jetzigen Nettoschulden betragen rund 0,9 Mrd. $.'
+kpis:
+- label: Marktwert
+  main: 6,65 Mrd. $
+  sub: 106,31 $ x 62,5 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 8,5 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 5,4 %'
+  status: ok
+- label: EV/EBIT
+  main: 11,7
+  sub: 'letzte 12 Monate (Agent), vor First Eagle | Stufe 2 EV/EBITDA: 11,9'
+  status: neutral
+- label: Nettoschulden
+  main: 897,9 Mio. $
+  sub: '30.06.2026: Schulden 968,0 minus Kasse 70,1, vor dem First-Eagle-Kauf (neue Kredite 4,45 Mrd. $) | Stufe 1: 1,28'
+  status: warn
+- label: First-Eagle-Kauf
+  main: 7,0 Mrd. $
+  sub: 4,4 bar + 2,0 Aktien; dazu 0,575 übernommene Anleihen | Aktionärszustimmung offen
+  status: warn
+halfyear:
+  labels:
+  - 1. Halbjahr 2025
+  - 1. Halbjahr 2026
+  tone: ok
+  rows:
+  - name: Umsatz
+    values:
+    - 570.8
+    - 823.4
+  - name: Betriebsergebnis
+    values:
+    - 187.1
+    - 352.9
+  - name: Freier Cashflow
+    values:
+    - 72.0
+    - 254.3
+  unit: Mio. $
+events:
+- date: 18.05.2026
+  text: 'Kreditvertrag: siebte Änderung (8-K vom 21.05.)'
+- date: 23.07.2026
+  text: Verwaltungsrat Dominique Carrel-Billiard (Amundi) tritt zurück, weil er Amundi verlässt
+- date: 05.08.2026
+  text: Zahlen Q2 2026; 10-Q am 06.08. eingereicht
+- date: 26.08.2026
+  text: 'Vereinbarung zum Kauf von First Eagle Investments (Genstar): rund 7,0 Mrd. $; Fusionsvertrag am 25.08. unterzeichnet (8-K vom 31.08.)'
+- date: 12.10.2026
+  text: Verwaltetes Vermögen 351,9 Mrd. $ (30.09.2026), langfristige Nettozuflüsse im 3. Quartal 11,7 Mrd. $
+- date: 04.11.2026
+  text: Zahlen Q3 2026 geplant (nach Börsenschluss)
+  future: true
+bear:
+- 'First-Eagle-Kauf für rund 7,0 Mrd. $: 3,5 Mrd. $ Term Loan B plus rund 950 Mio. $ Anleihen plus 575 Mio. $ übernommene Anleihen (7,25 %); die Schulden würden um ein Mehrfaches steigen.'
+- Aktionäre müssen zustimmen; Genstar bekäme rund 14,6 % (Stimmrecht begrenzt auf 4,9 %); zwei Verwaltungsratssitze.
+- Stufe 2 markiert die FCF-Rendite (3-Jahres-Mittel 5,4 %, Grauzone); Branche als Grenzfall markiert.
+- Das Wachstum 2026 stammt großenteils aus dem Amundi-US-Kauf; organisches Wachstum ist in den Unterlagen nicht getrennt ausgewiesen.
+- Der Archiv-Wert für Marktwert und Grenze kennt weder neue Aktien (rund 2,0 Mrd. $) noch die neuen Schulden.
+bull:
+- Verwaltetes Vermögen 351,9 Mrd. $; Nettozuflüsse 11,7 Mrd. $ im 3. Quartal.
+- Betriebsergebnis 1. Halbjahr 353 Mio. $ (+89 %); freier Cashflow 12 Monate rund 564 Mio. $.
+- Firma erwartet rund 35 % Zuwachs beim bereinigten Gewinn je Aktie 2027 mit 280 Mio. $ Nettokosteneinsparungen (Firmenangabe, nicht geprüft).
+- Genstar-Anteil drei Jahre gesperrt; First Eagle bleibt als Marke eigenständig.
+- Nettoschulden vor dem Kauf nur rund 0,9 Mrd. $.
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 150.22
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 29,2 % darunter
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (563,6 Mio. $) und 62,5 Mio. Aktien laut Archiv angewendet. Wegen des First-Eagle-Kaufs (neue Aktien, Genstar-Anteil 14,6 %, neue Schulden) gilt die Grenze nur für die Firma vor dem Kauf; nach dem Kauf muss alles neu gerechnet werden. Die zweite Grenze (EV/EBITDA) fehlt.'
+  price: 106.31
+  price_date: 23.09.2026
+  condition: 'Abwarten: Zustimmung der Aktionäre, Abschluss des Kaufs und der erste Quartalsbericht danach; dann Schulden, Zinsen und Aktienzahl neu rechnen'
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate, mit First Eagle) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder Aktionäre lehnen den Kauf ab und die Kurslücke zum Archivkurs schließt sich (kein Maßstab aus dem Repo); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 26.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 06.08.2026 und Q1 vom 07.05.2026 nur auf Vorhandensein geprüft) und mehrere aktuelle Meldungen (8-K vom 21.05., 23.07., 05.08., 26.08. mit Pressemitteilung zum Kauf, 31.08. mit Fusionsvertrag und die monatlichen Vermögensmeldungen bis 13.10.2026). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K 2025 (0001193125-26-077057), 10-Q Q2 2026 (-26-337010), 10-Q Q1 2026 (-26-210575), 8-Ks: 21.05.2026 (-26-234487), 23.07. (-26-314260), 05.08. (-26-335319), 26.08. (-26-101533), 31.08. (-26-103936), 13.10.2026 (-26-419967). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Peer-Gruppe (8 Firmen) ist gemischt: Neben Vermögensverwaltern enthält sie einen Investmentbank-Berater (Moelis), eine Beteiligungsholding (Icahn Enterprises) und einen Kreditfonds (Hercules); deren FCF-Renditen von 47 bis 49 % sind nicht vergleichbar. 4 Firmen fehlen wegen Datenfehlern (OTF, RA, URG, VOYA). Das Archiv trägt die Datenmarke `debt_component_missing_defaulted_zero` und markiert die Branche als Grenzfall. Nicht geprüft: Bedingungen der neuen Kredite im Detail, Zustimmungs- und Genehmigungsstand, organisches Wachstum, aktueller Kurs; die 35 %-Angabe ist eine Firmenangabe. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); 4 Firmen fehlen wegen Datenfehlern (OTF, RA, URG, VOYA; laut Hinweis des Exportlaufs). Die FCF-Renditen der Kreditfonds und Holdings (47 bis 49 %) verzerren den Median.
+peer_summary: 'Gegen die 8 Firmen der Gruppe mit Wert: EV/EBITDA 11,9 gegen Median 13,1 (Platz 3 von 8, 1 = günstigste), FCF-Rendite 5,4 % gegen Median 9,3 % (Platz 7 von 8, 1 = höchste).'
+funnel_title: So kam VCTR auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 14,5 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: ok
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: 1,28
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,36
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 11,9 (Platz 3 von 8)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: ok
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 5,4 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: warn
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: 'Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Stufe-2-Marke: fcf_yield. Datenmarke Stufe 1: `debt_component_missing_defaulted_zero` (ein Teil der Schulden fehlte und wurde auf 0 gesetzt). Das Archiv markiert die Branche als Grenzfall (`borderline_sector`); der Status ändert sich dadurch nicht.'
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - '2023'
+  - '2024'
+  - '2025'
+  - 1. Hj. 2025
+  - 1. Hj. 2026
+  rows:
+  - name: Umsatz
+    values:
+    - 821,0
+    - 893,5
+    - 1.306,1
+    - 570,8
+    - 823,4
+  - name: Betriebsergebnis
+    values:
+    - 328,5
+    - 427,5
+    - 478,4
+    - 187,1
+    - 352,9
+  - name: Betriebsmarge
+    values:
+    - 40,0 %
+    - 47,8 %
+    - 36,6 %
+    - 32,8 %
+    - 42,9 %
+  - name: Nettogewinn
+    values:
+    - 213,2
+    - 288,9
+    - 330,1
+    - 120,7
+    - 251,5
+  - name: Operativer Cashflow
+    values:
+    - 330,3
+    - 340,0
+    - 385,5
+    - 74,5
+    - 256,4
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 5,2
+    - 1,3
+    - 4,2
+    - 2,5
+    - 2,1
+  - name: Freier Cashflow
+    values:
+    - 325,1
+    - 338,7
+    - 381,3
+    - 72,0
+    - 254,3
+  note: 'Quelle: 10-K und 10-Q der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen). Der Umsatzsprung 2025 und 2026 stammt aus dem Kauf von Amundi US.'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

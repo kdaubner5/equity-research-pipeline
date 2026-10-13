@@ -1,0 +1,209 @@
+# Datenquelle für die PDF-Fassung des One-Pagers ASO (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: Academy Sports + Outdoors, Inc.
+  ticker: ASO
+  list_nr: 19
+  stage2_rank: 20
+  stage2_rank_of: 41
+  peer_group: Retail - Apparel & Specialty (SimFin-Branche 103002, 20 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 09.09.2026 (10-Q Q2 FY26 zum 01.08.2026 und Pressemitteilung)
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 48,31 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: WEITERVERFOLGEN
+  tone: ok
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Wachsender Gewinn bei geringer Verschuldung und kräftigen Rückkäufen; der 12-Monats-Cashflow enthält eine einmalige Zollrückerstattung von 83,7 Mio. $.
+  legend: Was bedeutet WEITERVERFOLGEN? Die Firma besteht den Filter und die Prüfung der Unterlagen zeigt kein Ausschlussmerkmal. Sie kommt in die engere Beobachtung; ein Kauf folgt nur nach den Stufe-4-Regeln und deiner Entscheidung. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.
+thesis: Academy ist eine Sport- und Outdoor-Kette mit 327 Filialen (Geschäftsjahr bis Ende Januar). Im 2. Quartal 2026 stieg der Umsatz um 3,0 % auf 1.647 Mio. $ (vergleichbare Fläche -0,4 %, Online +12,8 %); der Gewinn je Aktie stieg um 17 % auf 2,17 $. Im 2. Quartal erhielt die Firma 83,7 Mio. $ Rückerstattung auf Zölle (IEEPA; der Supreme Court hatte diese Zölle im Februar 2026 gekippt), gebucht als Minderung der Warenkosten; das hebt die Bruttomarge-Prognose und den Cashflow, ist aber einmalig. Der freie Cashflow der letzten zwölf Monate liegt bei rund 331 Mio. $ (ohne Rückerstattung rund 248 Mio. $), die Nettoschulden bei 196 Mio. $ (ohne Mieten). Im ersten Halbjahr kaufte die Firma für 182 Mio. $ eigene Aktien zurück. Der CEO nennt den Konsum „unter Druck, besonders bei Haushalten mit niedrigem Einkommen“.
+kpis:
+- label: Marktwert
+  main: 2,97 Mrd. $
+  sub: 48,31 $ x 61,6 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 11,1 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 10,5 %'
+  status: ok
+- label: EV/EBIT
+  main: 5,4
+  sub: 'letzte 12 Monate (Agent), ohne Mieten | Stufe 2 EV/EBITDA: 4,9'
+  status: neutral
+- label: Nettoschulden
+  main: 196,0 Mio. $
+  sub: '01.08.2026: Schulden 494,2 minus Kasse 298,2, ohne Mietverpflichtungen | Stufe 1: 0,24'
+  status: ok
+- label: Gewinn je Aktie Q2
+  main: 2,17 $
+  sub: Vorjahr 1,85 $ (+17 %) | bereinigt 2,31 $ (1,94)
+  status: ok
+halfyear:
+  labels:
+  - 1. Halbjahr FY25
+  - 1. Halbjahr FY26
+  tone: ok
+  rows:
+  - name: Umsatz
+    values:
+    - 2951.2
+    - 3089.3
+  - name: Betriebsergebnis
+    values:
+    - 241.6
+    - 321.0
+  - name: Freier Cashflow
+    values:
+    - 128.4
+    - 237.7
+  unit: Mio. $
+events:
+- date: Feb. 2026
+  text: Der Supreme Court kippt bestimmte Zölle (IEEPA); die Firma bucht Rückerstattungen erst bei Zahlungseingang (Gewinnrealisierung)
+- date: 02.09.2026
+  text: Dividende 0,15 $ je Aktie beschlossen (zahlbar 14.10., Stichtag 16.09.)
+- date: 09.09.2026
+  text: 'Zahlen Q2: Umsatz +3,0 %, Gewinn je Aktie 2,17 $ (+17 %); 83,7 Mio. $ Zollrückerstattung; Prognose Bruttomarge angehoben, EPS-Prognose angehoben, Umsatzprognose bestätigt'
+- date: 09.09.2026
+  text: 10-Q Q2 FY26 eingereicht; 3 neue Filialen im Quartal (327 insgesamt), 11 weitere im 3. Quartal geplant
+- date: 14.10.2026
+  text: Dividende 0,15 $ zahlbar
+  future: true
+bear:
+- Vergleichbare Fläche im 2. Quartal -0,4 %; CEO nennt Konsumdruck, besonders bei Haushalten mit niedrigem Einkommen.
+- 83,7 Mio. $ IEEPA-Rückerstattung stecken im Cashflow und in der Marge (netto 0,06 $ Gewinn je Aktie nach Weitergabe und Reinvestition); 72,2 Mio. $ „Weitergabe von Rückerstattungsansprüchen“ stehen separat im Finanzierungs-Cashflow.
+- Betriebsergebnis 2025 (512 Mio. $) liegt seit 2022 (847) deutlich niedriger; nur im 1. Halbjahr 2026 wieder +33 %.
+- Mieten für Filialen sind nicht in den Schulden (Nettoschulden 196 Mio. $ ohne Mieten).
+- 'Starkes Filialwachstum (24 neue Filialen 2025, weitere 2026) bindet Kapital: Investitionen 213 Mio. $ im Jahr 2025.'
+bull:
+- Gewinn je Aktie im 1. Halbjahr +17 % (bereinigt +19 %); Prognose für das Gesamtjahr angehoben (bereinigtes EPS 6,50 bis 6,90 $).
+- 'Aktienrückkäufe: 182 Mio. $ im 1. Halbjahr (Vorjahr 100); verwässerte Aktienzahl laut Prognose 64,5 Mio. (2025: ca. 68).'
+- Online-Umsatz +12,8 %; neue Filialen mit vergleichbarem Umsatz im mittleren einstelligen Plus (Pressemitteilung).
+- 'Geringe Verschuldung: Nettoschulden 196 Mio. $ gegen ein Betriebsergebnis von 592 Mio. $ (12 Monate).'
+- 'Prognose bereinigter freier Cashflow 2026: 300 bis 350 Mio. $ (vorher 250 bis 300).'
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 89.7
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 46,1 % darunter
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (331,4 Mio. $) und 61,6 Mio. Aktien laut Archiv angewendet. Ohne die Zollrückerstattung (83,7 Mio. $) läge die Grenze bei 67,04 $. Die zweite Grenze (EV/EBITDA, Branchen-Drittel) fehlt; Mieten sind nicht eingerechnet.'
+  price: 48.31
+  price_date: 23.09.2026
+  condition: Quartalsbericht Q3 (Zahlen zum 31.10.2026) abwarten; Rückerstattungseffekt und Konsumlage prüfen; aktuellen Kurs mit der Grenze vergleichen
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder vergleichbare Fläche in zwei Quartalen in Folge unter -2 % (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K FY2025, eingereicht 17.03.2026), 2 Quartalsberichte (10-Q Q2 FY26 vom 09.09.2026 und Q1 vom 10.06.2026 nur auf Vorhandensein geprüft) und 1 aktuelle Meldung (8-K vom 09.09.2026 mit Pressemitteilung). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K FY2025 (0001817358-26-000031), 10-Q Q2 FY26 (-26-000149), 10-Q Q1 FY26 (-26-000113), 8-K vom 09.09.2026 (Pressemitteilung Q2). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Peer-Gruppe (20 Firmen, Einzelhandel) wurde nicht auf Vergleichbarkeit der einzelnen Firmen geprüft. Nicht geprüft: Wirkung der Zölle auf die zweite Jahreshälfte, Mietverpflichtungen, Details der „Weitergabe“ der Rückerstattungsansprüche, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); keine fehlenden Firmen gemeldet.
+peer_summary: 'Gegen die 20 Firmen der Gruppe mit Wert: EV/EBITDA 4,9 gegen Median 7,0 (Platz 5 von 20, 1 = günstigste), FCF-Rendite 10,5 % gegen Median 8,7 % (Platz 8 von 20, 1 = höchste).'
+funnel_title: So kam ASO auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 19,7 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: ok
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: 0,24
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,15
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 4,9 (Platz 5 von 20)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: ok
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 10,5 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter).
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - FY2023
+  - FY2024
+  - FY2025
+  - 1. Hj. FY25
+  - 1. Hj. FY26
+  rows:
+  - name: Umsatz
+    values:
+    - 6.159,3
+    - 5.933,4
+    - 6.053,4
+    - 2.951,2
+    - 3.089,3
+  - name: Betriebsergebnis
+    values:
+    - 677,9
+    - 538,6
+    - 512,2
+    - 241,6
+    - 321,0
+  - name: Betriebsmarge
+    values:
+    - 11,0 %
+    - 9,1 %
+    - 8,5 %
+    - 8,2 %
+    - 10,4 %
+  - name: Nettogewinn
+    values:
+    - 519,2
+    - 418,4
+    - 376,8
+    - 171,5
+    - 190,6
+  - name: Operativer Cashflow
+    values:
+    - 535,8
+    - 528,1
+    - 434,8
+    - 236,0
+    - 349,0
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 207,8
+    - 199,6
+    - 212,7
+    - 107,6
+    - 111,3
+  - name: Freier Cashflow
+    values:
+    - 328,0
+    - 328,5
+    - 222,1
+    - 128,4
+    - 237,7
+  note: 'Quelle: 10-K FY2025 und 10-Q Q2 FY26 der SEC (XBRL-Daten); Geschäftsjahr endet Ende Januar (FY2025 = Februar 2025 bis Januar 2026). Marge und freier Cashflow vom Agenten gerechnet. Cashflow 1. Halbjahr FY26 enthält 83,7 Mio. $ Zollrückerstattung.'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

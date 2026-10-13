@@ -1,0 +1,206 @@
+# Datenquelle für die PDF-Fassung des One-Pagers ALV (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: Autoliv, Inc.
+  ticker: ALV
+  list_nr: 26
+  stage2_rank: 27
+  stage2_rank_of: 41
+  peer_group: Autos (SimFin-Branche 103005, 22 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 17.07.2026 (10-Q Q2 2026 und Finanzbericht), 8-Ks bis 17.07.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 115,40 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: WEITERVERFOLGEN
+  tone: ok
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Der Gewinnrückgang kommt aus dem einmaligen Umbau in der Türkei (142 Mio. $); das bereinigte Ergebnis steigt, die Schulden sinken, die Prognose 2026 steht. Autoindustrie und Zölle bleiben Risiken.
+  legend: Was bedeutet WEITERVERFOLGEN? Die Firma besteht den Filter und die Prüfung der Unterlagen zeigt kein Ausschlussmerkmal. Sie kommt in die engere Beobachtung; ein Kauf folgt nur nach den Stufe-4-Regeln und deiner Entscheidung. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.
+thesis: Autoliv baut Airbags, Gurte und Lenkräder für Autohersteller. Im 2. Quartal 2026 stieg der Umsatz um 3,3 % auf 2.803 Mio. $ (organisch +1,0 %, in einem leicht fallenden Weltmarkt); der bereinigte Betriebsgewinn stieg um 7,3 % auf 270 Mio. $ (9,6 % Marge). Das berichtete Betriebsergebnis fiel dagegen um 22 % auf 192 Mio. $, weil die Firma am 08.05.2026 die Schließung ihrer Werke in der Türkei beschloss (Gesamtaufwand rund 142 Mio. $, davon rund 129 Mio. $ Auszahlungen, rund 2.200 Stellen; erwartete Ersparnis rund 40 Mio. $ im Jahr ab 2027). Der operative Cashflow im 2. Quartal lag bei 434 Mio. $ (Vorjahr 277), auch dank 240 Mio. $ Abbau von Betriebskapital. Der freie Cashflow der letzten zwölf Monate liegt bei rund 757 Mio. $ (9,0 % des Börsenwerts laut Archivkurs). Die Nettoschulden betragen 1.695 Mio. $ (Verschuldungsgrad laut Firma 1,2x). Prognose 2026 bestätigt (bereinigte Marge 10,5 bis 11 %, operativer Cashflow rund 1,2 Mrd. $).
+kpis:
+- label: Marktwert
+  main: 8,45 Mrd. $
+  sub: 115,40 $ x 73,2 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 9,0 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 6,5 %'
+  status: ok
+- label: EV/EBIT
+  main: 10,0
+  sub: 'letzte 12 Monate (Agent), berichtetes Ergebnis inkl. Türkei-Aufwand | Stufe 2 EV/EBITDA: 6,7'
+  status: neutral
+- label: Nettoschulden
+  main: 1,70 Mrd. $
+  sub: '30.06.2026 laut Firma (Schulden 2.037 minus Kasse 377 plus Derivate-Posten) | Stufe 1: 1,03'
+  status: ok
+- label: Bereinigte Marge Q2
+  main: 9,6 %
+  sub: Vorjahr 9,3 % | berichtet 6,8 % (Türkei-Umbau)
+  status: ok
+halfyear:
+  labels:
+  - 1. Halbjahr 2025
+  - 1. Halbjahr 2026
+  tone: ok
+  rows:
+  - name: Umsatz
+    values:
+    - 5292.0
+    - 5556.0
+  - name: Betriebsergebnis
+    values:
+    - 502.0
+    - 429.0
+  - name: Freier Cashflow
+    values:
+    - 138.0
+    - 179.0
+  unit: Mio. $
+events:
+- date: 08.05.2026
+  text: 'Beschluss zur Schließung der Werke in der Türkei: rund 142 Mio. $ vor Steuern (davon 129 Mio. $ Auszahlungen), rund 2.200 Stellen, Ersparnis rund 40 Mio. $ jährlich ab 2027 (8-K vom 11.05.)'
+- date: 24.06.2026
+  text: Kevin Fox (President Americas) kündigt, bleibt bis 31.08.2026 (8-K vom 30.06.)
+- date: 17.07.2026
+  text: 'Zahlen Q2: Umsatz 2.803 Mio. $, bereinigte Marge 9,6 %, Gewinn je Aktie 1,35 $ (bereinigt 2,43 $); Prognose 2026 bestätigt; 10-Q eingereicht'
+- date: 2. Quartal 2026
+  text: Dividende 0,87 $ je Aktie gezahlt; Rückkäufe von 200 Mio. $ (1,65 Mio. Aktien)
+bear:
+- 'Türkei-Schließung: rund 142 Mio. $ Aufwand, davon rund 129 Mio. $ Auszahlungen (Abfindungen); ein Teil davon fließt erst in den nächsten Quartalen ab.'
+- Die Prognose rechnet mit 2,5 % weniger Fahrzeugproduktion weltweit; organisches Wachstum nur rund 0 %.
+- Betriebskapital-Abbau von 240 Mio. $ im Quartal ist einmalig und stützt Cashflow und 12-Monats-Zahl.
+- Zölle, Lieferketten und Rohstoffpreise wirken (Firmenangabe „begrenzt“); Kunden-Ausgleichszahlungen hängen von Verhandlungen ab.
+- In Amerika bleibt das Wachstum deutlicher hinter der Fahrzeugproduktion zurück als in EMEA (Finanzbericht); der President Americas geht.
+bull:
+- Bereinigter Betriebsgewinn Q2 +7,3 % auf 270 Mio. $; bereinigte Kapitalrendite 24,9 %.
+- 'Asien: Indien +20 Prozentpunkte über dem Markt, China mehr als 40 Prozentpunkte (55 % des China-Umsatzes mit chinesischen Herstellern).'
+- Bester Quartalscashflow in einem 2. Quartal; freier operativer Cashflow 340 Mio. $ (mehr als verdoppelt).
+- Verschuldungsgrad 1,2x (Firmenangabe); Dividende 0,87 $ je Quartal (+24 %).
+- Türkei-Schließung soll ab 2027 rund 40 Mio. $ jährlich sparen.
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 172.27
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 33,0 % darunter
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (757,0 Mio. $) und 73,2 Mio. Aktien laut Archiv angewendet. Das ist ein optimistischer Wert (Betriebskapital-Abbau, Türkei-Auszahlungen stehen noch aus). Die zweite Grenze (EV/EBITDA, Branchen-Drittel) fehlt.'
+  price: 115.4
+  price_date: 23.09.2026
+  condition: Quartalsbericht Q3 2026 abwarten; Cashflow nach Türkei-Auszahlungen und Zolleffekte prüfen
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate, Firmenmaß) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder bereinigte Marge unter 9 % (keine Schwelle aus dem Repo; Prognose 10,5 bis 11 %); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 19.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 17.07.2026 und Q1 vom 17.04.2026 nur auf Vorhandensein geprüft) und 4 aktuelle Meldungen (8-K vom 11.05., 30.06., 17.07.2026 mit Finanzbericht). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K 2025 (0001193125-26-058162), 10-Q Q2 2026 (-26-306974), 10-Q Q1 2026 (-26-160472), 8-Ks: 11.05.2026 (-26-216107), 30.06. (-26-289515), 17.07. (-26-306698). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Peer-Gruppe (22 Firmen, Autos und Zulieferer) wurde nicht einzeln geprüft. Nicht geprüft: Umfang und Zeitpunkt der Türkei-Auszahlungen im Detail, Zollwirkung nach Kunden, Pensionsverpflichtungen (180 Mio. $), Mietverpflichtungen, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); keine fehlenden Firmen gemeldet.
+peer_summary: 'Gegen die 22 Firmen der Gruppe mit Wert: EV/EBITDA 6,7 gegen Median 7,5 (Platz 8 von 22, 1 = günstigste), FCF-Rendite 6,5 % gegen Median 6,8 % (Platz 15 von 22, 1 = höchste).'
+funnel_title: So kam ALV auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 18,8 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: ok
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: 1,03
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,73
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 6,7 (Platz 8 von 22)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: ok
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 6,5 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter).
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - '2023'
+  - '2024'
+  - '2025'
+  - 1. Hj. 2025
+  - 1. Hj. 2026
+  rows:
+  - name: Umsatz
+    values:
+    - 10.475,0
+    - 10.390,0
+    - 10.815,0
+    - 5.292,0
+    - 5.556,0
+  - name: Betriebsergebnis
+    values:
+    - 690,0
+    - 979,0
+    - 1.088,0
+    - 502,0
+    - 429,0
+  - name: Betriebsmarge
+    values:
+    - 6,6 %
+    - 9,4 %
+    - 10,1 %
+    - 9,5 %
+    - 7,7 %
+  - name: Nettogewinn
+    values:
+    - 488,0
+    - 646,0
+    - 735,0
+    - 334,0
+    - 242,0
+  - name: Operativer Cashflow
+    values:
+    - 982,0
+    - 1.059,0
+    - 1.157,0
+    - 355,0
+    - 359,0
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 573,0
+    - 579,0
+    - 441,0
+    - 217,0
+    - 180,0
+  - name: Freier Cashflow
+    values:
+    - 409,0
+    - 480,0
+    - 716,0
+    - 138,0
+    - 179,0
+  note: 'Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten, Zahlen in ganzen Mio. $). Marge und freier Cashflow vom Agenten gerechnet. Betriebsergebnis 2026 enthält Türkei-Aufwand (bereinigt 1. Halbjahr: 515 nach 506).'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

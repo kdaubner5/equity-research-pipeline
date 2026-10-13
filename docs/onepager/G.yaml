@@ -1,0 +1,206 @@
+# Datenquelle für die PDF-Fassung des One-Pagers G (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: Genpact Limited
+  ticker: G
+  list_nr: 27
+  stage2_rank: 28
+  stage2_rank_of: 41
+  peer_group: Business Services (SimFin-Branche 100002, 13 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 07.08.2026 (10-Q Q2 2026), 8-Ks bis 08.09.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 33,85 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: WEITERVERFOLGEN
+  tone: ok
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Wachsender Umsatz und Gewinn, Prognose angehoben, mäßige Schulden; der Cashflow im 1. Halbjahr war schwach (Betriebskapital), und die Kernsparte wächst kaum.
+  legend: Was bedeutet WEITERVERFOLGEN? Die Firma besteht den Filter und die Prüfung der Unterlagen zeigt kein Ausschlussmerkmal. Sie kommt in die engere Beobachtung; ein Kauf folgt nur nach den Stufe-4-Regeln und deiner Entscheidung. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.
+thesis: Genpact übernimmt Geschäftsprozesse für Konzerne (Finanzen, Kundendienst, Daten) und baut sein Technologiegeschäft aus. Im 2. Quartal 2026 stieg der Umsatz um 7,1 % auf 1.343 Mio. $; die Sparte Advanced Technology Solutions (27 % des Umsatzes) wuchs um 24 %, die Kernsparte Core Business Services (73 %) um 1,9 %. Das Betriebsergebnis stieg um 7,5 % auf 193 Mio. $, der Gewinn je Aktie um 15 % auf 0,86 $. Die Firma hob die Prognose für den bereinigten Gewinn je Aktie auf mindestens +12 % an. Der operative Cashflow des 1. Halbjahrs fiel auf 48,9 Mio. $ (Vorjahr 217,8), vor allem durch Forderungen, weniger Kundenvorauszahlungen und höhere Steuer- und Personalzahlungen. Der freie Cashflow der letzten zwölf Monate liegt bei rund 572 Mio. $ (10,0 % des Börsenwerts laut Archivkurs). Die Nettoschulden betragen rund 663 Mio. $; im April wurden Anleihen von rund 363 Mio. $ zurückgezahlt, finanziert aus 350 Mio. $ aufgelösten kurzfristigen Anlagen.
+kpis:
+- label: Marktwert
+  main: 5,74 Mrd. $
+  sub: 33,85 $ x 169,5 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 10,0 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 9,9 %'
+  status: ok
+- label: EV/EBIT
+  main: 8,2
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 7,6'
+  status: neutral
+- label: Nettoschulden
+  main: 662,9 Mio. $
+  sub: '30.06.2026: Schulden 1.180,3 (lang 1.154,1 + kurz 26,2) minus Kasse 517,4 | Stufe 1: 0,81'
+  status: ok
+- label: Technologiesparte Q2
+  main: +24,1 %
+  sub: 363 Mio. $, 27 % des Umsatzes | Kernsparte +1,9 %
+  status: ok
+halfyear:
+  labels:
+  - 1. Halbjahr 2025
+  - 1. Halbjahr 2026
+  tone: warn
+  rows:
+  - name: Umsatz
+    values:
+    - 2469.3
+    - 2639.5
+  - name: Betriebsergebnis
+    values:
+    - 363.1
+    - 391.5
+  - name: Freier Cashflow
+    values:
+    - 173.6
+    - 11.0
+  unit: Mio. $
+events:
+- date: 10.04.2026
+  text: Anleihen von 2021 zurückgezahlt (Rückzahlung langfristiger Schulden im 1. Halbjahr 363,3 Mio. $)
+- date: 1. Halbjahr 2026
+  text: Earn-out von 77,5 Mio. $ für den Kauf von XponentL gezahlt; Rückkäufe 120 Mio. $, Dividenden 63,3 Mio. $
+- date: 06.08.2026
+  text: 'Zahlen Q2: Umsatz 1.343 Mio. $ (+7,1 %), Gewinn je Aktie 0,86 $ (bereinigt 1,00 $); Prognose 2026 angehoben; 10-Q am 07.08. eingereicht'
+- date: 08.09.2026
+  text: Sumita Pandit wird Finanzchefin (ab 09.09.2026); Michael Weiner war bisher Finanzchef
+bear:
+- 'Operativer Cashflow 1. Halbjahr 48,9 Mio. $ nach 217,8: höhere Forderungen, weniger Kundenvorauszahlungen, höhere Steuer- und Personalzahlungen.'
+- Kernsparte (73 % des Umsatzes) wächst nur +1,9 %; für das 3. Quartal erwartet die Firma sie „flach bis leicht rückläufig“.
+- Kasse von 853,8 auf 517,4 Mio. $ gesunken (Anleihentilgung 363 Mio. $, Earn-out 77,5, Rückkäufe 120).
+- Neuer Finanzchef seit 09.09.2026.
+- 'Archivmarke: Cash Conversion 0,92 (unter 1,0, Grauzone); Stufe-1-Datenmarke `debt_component_missing_defaulted_zero`.'
+bull:
+- 'Technologiesparte +24 %, Prognose für das Gesamtjahr: mindestens +25 %.'
+- 'Prognose bereinigter Gewinn je Aktie 2026 auf mindestens +12 % angehoben; Q3: 1,04 bis 1,05 $.'
+- Rekord-Aufträge und wachsender Auftragsbestand laut Firma.
+- Betriebsergebnis seit 2022 von 502 auf 750 Mio. $ (2025) gestiegen.
+- 'Schuldenlaufzeiten im Griff: kurzfristige Schulden nur noch 26 Mio. $ (31.12.2025: 376).'
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 56.25
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 39,8 % darunter
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (572,1 Mio. $) und 169,5 Mio. Aktien laut Archiv angewendet. Selbst wenn der Cashflow im 2. Halbjahr nicht aufholt, liegt der Kurs weit unter der Grenze; die Immateriellen-Investitionen (16,1 Mio. $ im Halbjahr) sind nicht abgezogen. Die zweite Grenze (EV/EBITDA) fehlt.'
+  price: 33.85
+  price_date: 23.09.2026
+  condition: Quartalsbericht Q3 2026 abwarten; Erholung des operativen Cashflows und Entwicklung der Kernsparte prüfen
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder freier Cashflow der letzten zwölf Monate unter 300 Mio. $ (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 26.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 07.08.2026 und Q1 vom 08.05.2026 nur auf Vorhandensein geprüft) und 2 aktuelle Meldungen (8-K vom 06.08. mit Pressemitteilung und 08.09.2026). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K 2025 (0001398659-26-000004), 10-Q Q2 2026 (-26-000014), 10-Q Q1 2026 (-26-000010), 8-Ks: 06.08.2026 (-26-000012), 08.09. (0001193125-26-105722). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Peer-Gruppe (13 Firmen, Unternehmensdienstleister) wurde nicht einzeln geprüft. Nicht geprüft: Wirkung künstlicher Intelligenz auf das Geschäft mit Prozessauslagerung (die Prognose nennt die Kernsparte „flach bis leicht rückläufig“), Kundenkonzentration, Mietverpflichtungen, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); keine fehlenden Firmen gemeldet.
+peer_summary: 'Gegen die 13 Firmen der Gruppe mit Wert: EV/EBITDA 7,6 gegen Median 10,2 (Platz 5 von 13, 1 = günstigste), FCF-Rendite 9,9 % gegen Median 8,7 % (Platz 6 von 12, 1 = höchste).'
+funnel_title: So kam G auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 17,1 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: ok
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: 0,81
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,15
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 7,6 (Platz 5 von 13)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: ok
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 9,9 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter).
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - '2023'
+  - '2024'
+  - '2025'
+  - 1. Hj. 2025
+  - 1. Hj. 2026
+  rows:
+  - name: Umsatz
+    values:
+    - 4.476,9
+    - 4.767,1
+    - 5.079,9
+    - 2.469,3
+    - 2.639,5
+  - name: Betriebsergebnis
+    values:
+    - 630,9
+    - 702,1
+    - 750,2
+    - 363,1
+    - 391,5
+  - name: Betriebsmarge
+    values:
+    - 14,1 %
+    - 14,7 %
+    - 14,8 %
+    - 14,7 %
+    - 14,8 %
+  - name: Nettogewinn
+    values:
+    - 631,3
+    - 513,7
+    - 552,5
+    - 263,6
+    - 293,7
+  - name: Operativer Cashflow
+    values:
+    - 490,8
+    - 615,4
+    - 812,9
+    - 217,8
+    - 48,9
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 55,4
+    - 82,8
+    - 78,2
+    - 44,2
+    - 37,9
+  - name: Freier Cashflow
+    values:
+    - 435,4
+    - 532,6
+    - 734,7
+    - 173,6
+    - 11,0
+  note: 'Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen).'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

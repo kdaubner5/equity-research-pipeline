@@ -1,0 +1,211 @@
+# Datenquelle für die PDF-Fassung des One-Pagers MLKN (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: MillerKnoll, Inc.
+  ticker: MLKN
+  list_nr: 28
+  stage2_rank: 29
+  stage2_rank_of: 41
+  peer_group: Manufacturing - Apparel & Furniture (SimFin-Branche 103004, 18 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 28.09.2026 (10-Q Q1 FY27 zum 29.08.2026), 8-Ks bis 22.09.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 20,04 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: ZURÜCKSTELLEN
+  tone: warn
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Der Konzernchef ist seit 30.06.2026 weg (Interimschef), die Umsatzprognose wurde gesenkt, und die Verschuldung liegt nach dem Kreditmaß bei 2,75x, nahe der Schwelle 2,5; das Quartal wurde von rund 10 Mio. $ Zollrückerstattung gestützt.
+  legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Ernennung eines neuen Konzernchefs und Quartalsbericht Q2 FY27) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
+thesis: MillerKnoll stellt Büro- und Wohnmöbel her (Marken u. a. Herman Miller und Knoll; Geschäftsjahr bis Ende Mai). Im 1. Quartal des Geschäftsjahrs 2027 (Juni bis August 2026) sank der Umsatz um 3,4 % auf 923 Mio. $, die Bestellungen stiegen um 3,2 %; die Bruttomarge stieg auf 41,7 % (+3,2 Prozentpunkte), auch durch rund 10 Mio. $ Rückerstattung auf frühere IEEPA-Zölle (einmalig, +0,11 $ Gewinn je Aktie). Der bereinigte Gewinn je Aktie stieg um 18 % auf 0,53 $. Seit 30.06.2026 führt Jeff Stutz die Firma als Interims-Konzernchef, nachdem Andi Owen in den Ruhestand ging. Die Umsatzprognose für FY27 wurde auf 3,88 bis 4,03 Mrd. $ gesenkt (vorher 3,93 bis 4,13), die Gewinnprognose (1,85 bis 2,15 $) blieb. Die Nettoschulden betragen 1,13 Mrd. $; das Verhältnis Net Debt/EBITDA nach dem Kreditvertrag liegt bei 2,75x. Der freie Cashflow der letzten zwölf Monate beträgt rund 116 Mio. $ (8,5 % des Börsenwerts).
+kpis:
+- label: Marktwert
+  main: 1,37 Mrd. $
+  sub: 20,04 $ x 68,1 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 8,5 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 11,5 %'
+  status: ok
+- label: EV/EBIT
+  main: 12,7
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 4,4'
+  status: neutral
+- label: Nettoschulden
+  main: 1,13 Mrd. $
+  sub: '29.08.2026: Schulden 1.307,4 minus Kasse 178,6; Kreditmaß 2,75x | Stufe 1: 2,00'
+  status: warn
+- label: Konzernchef
+  main: Interimschef
+  sub: Andi Owen ging zum 30.06.2026; Jeff Stutz übergangsweise
+  status: warn
+halfyear:
+  labels:
+  - Q1 FY26 (Jun-Aug 2025)
+  - Q1 FY27 (Jun-Aug 2026)
+  tone: warn
+  rows:
+  - name: Umsatz
+    values:
+    - 955.7
+    - 923.4
+  - name: Betriebsergebnis
+    values:
+    - 53.5
+    - 51.8
+  - name: Freier Cashflow
+    values:
+    - -21.3
+    - 16.6
+  unit: Mio. $
+events:
+- date: 01.06.2026
+  text: Konzernchefin Andi Owen und der Verwaltungsrat vereinbaren ihren Ruhestand zum 30.06.2026; seit 30.05. keine Ämter (8-K vom 03.06.)
+- date: 14.07.2026
+  text: Dividende 0,1875 $ je Aktie beschlossen (zahlbar 15.10.)
+- date: 20.07.2026
+  text: Jahresbericht FY26 eingereicht; Altersgrenze 72 für Verwaltungsräte gestrichen
+- date: 22.09.2026
+  text: 'Zahlen Q1 FY27: Umsatz 923,4 Mio. $ (-3,4 %), bereinigter Gewinn je Aktie 0,53 $ (+18 %); Umsatzprognose gesenkt'
+- date: 28.09.2026
+  text: 10-Q Q1 FY27 eingereicht
+- date: 15.10.2026
+  text: Dividende 0,1875 $ zahlbar
+  future: true
+bear:
+- 'Kein fester Konzernchef: Jeff Stutz ist Interimschef seit dem Ruhestand von Andi Owen.'
+- Umsatzprognose FY27 gesenkt (3,88 bis 4,03 Mrd. $ statt 3,93 bis 4,13); „weichere Nachfrage als erwartet“; Nordamerika-Contract -5,3 %.
+- 'Verschuldung: Net Debt/EBITDA laut Kreditvertrag 2,75x; Schulden 1.307 Mio. $ gegen Kasse 179 Mio. $.'
+- Das Quartal enthält rund 10 Mio. $ einmalige Zollrückerstattung (0,11 $ je Aktie); ohne sie wäre der bereinigte Gewinn je Aktie bei etwa 0,42 $.
+- 'Betriebsergebnis Q1 51,8 Mio. $ nach 53,5; Betriebsergebnis 2025 war nur 50,5 Mio. $ (2026: 198,3).'
+bull:
+- Bestellungen +3,2 % (organisch +3,5 %) im Quartal, bereinigter Gewinn je Aktie +18 %.
+- Betriebsergebnis FY26 198,3 Mio. $ (nach 50,5 im Jahr zuvor); Gewinnprognose FY27 unverändert (1,85 bis 2,15 $).
+- Operativer Cashflow Q1 49,1 Mio. $ nach 9,4 Mio. $.
+- 'Kosten und Bilanz im Fokus: „Prioritäten setzen, Kosten steuern, Bilanz stärken“ (Interimschef).'
+- Dividende 0,1875 $ je Quartal fortgeführt.
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 28.26
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 29,1 % darunter
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (115,5 Mio. $) und 68,1 Mio. Aktien laut Archiv angewendet. Die Verschuldung nahe der Schwelle ist in der Grenze nicht abgebildet. Die zweite Grenze (EV/EBITDA, Branchen-Drittel) fehlt.'
+  price: 20.04
+  price_date: 23.09.2026
+  condition: 'Abwarten: Besetzung des Konzernchef-Postens und Quartalsbericht Q2 FY27 (Quartal bis 28.11.2026); Verschuldung unter 2,5x prüfen'
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (Kreditvertrag) mindestens 2,75x nach dem Q2-Bericht oder Betriebsergebnis der letzten zwölf Monate unter 150 Mio. $ (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K FY2026 zum 30.05.2026, eingereicht 20.07.2026), 2 Quartalsberichte (10-Q Q1 FY27 vom 28.09.2026 und Q3 FY26 vom 30.03.2026 nur auf Vorhandensein geprüft) und 3 aktuelle Meldungen (8-K vom 03.06., 20.07. und 22.09.2026 mit Pressemitteilung). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K FY2026 (0000066382-26-000092), 10-Q Q1 FY27 (-26-000156), 10-Q Q3 FY26 (-26-000050), 8-Ks: 03.06.2026 (-26-000057), 20.07. (-26-000091), 22.09. (-26-000150). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Peer-Gruppe (18 Firmen, Möbel und Bekleidung) ist gemischt. Das Archiv markiert Stufe 1 mit `roic` (ROIC-Mittel 11,8 %, Grauzone); Net Debt/EBITDA 2,0 laut Archiv, 2,75x laut Kreditvertrag (andere Definition). Der Hinweis „bereinigt ohne Zollrückerstattung rund 0,42 $“ ist eine Überschlagsrechnung des Agenten (0,53 minus 0,11). Nicht geprüft: Zollwirkung im Detail, Mietverpflichtungen, Pensionen, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); keine fehlenden Firmen gemeldet. Die Gruppe ist gemischt (Möbel und Bekleidung).
+peer_summary: 'Gegen die 18 Firmen der Gruppe mit Wert: EV/EBITDA 4,4 gegen Median 9,9 (Platz 1 von 18, 1 = günstigste), FCF-Rendite 11,5 % gegen Median 9,4 % (Platz 7 von 18, 1 = höchste).'
+funnel_title: So kam MLKN auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 11,8 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: warn
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: 2,00
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,07
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 4,4 (Platz 1 von 18)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: ok
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 11,5 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: 'Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Stufe-1-Marke: roic (Wert in der Grauzone, nicht durchgefallen).'
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - FY2024
+  - FY2025
+  - FY2026
+  - Q1 FY26
+  - Q1 FY27
+  rows:
+  - name: Umsatz
+    values:
+    - 3.628,4
+    - 3.669,9
+    - 3.841,7
+    - 955,7
+    - 923,4
+  - name: Betriebsergebnis
+    values:
+    - 167,2
+    - 50,5
+    - 198,3
+    - 53,5
+    - 51,8
+  - name: Betriebsmarge
+    values:
+    - 4,6 %
+    - 1,4 %
+    - 5,2 %
+    - 5,6 %
+    - 5,6 %
+  - name: Nettogewinn
+    values:
+    - 82,3
+    - -36,9
+    - 91,5
+    - 20,2
+    - 26,6
+  - name: Operativer Cashflow
+    values:
+    - 352,3
+    - 209,3
+    - 199,9
+    - 9,4
+    - 49,1
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 78,4
+    - 107,6
+    - 122,3
+    - 30,7
+    - 32,5
+  - name: Freier Cashflow
+    values:
+    - 273,9
+    - 101,7
+    - 77,6
+    - -21,3
+    - 16,6
+  note: 'Quelle: 10-K FY2026 und 10-Q Q1 FY27 der SEC (XBRL-Daten); Geschäftsjahr endet Ende Mai (FY2026 = Juni 2025 bis Mai 2026). Marge und freier Cashflow vom Agenten gerechnet. Q1 FY27 enthält rund 10 Mio. $ Zollrückerstattung.'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

@@ -1,0 +1,213 @@
+# Datenquelle für die PDF-Fassung des One-Pagers PNR (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: Pentair plc
+  ticker: PNR
+  list_nr: 33
+  stage2_rank: 34
+  stage2_rank_of: 41
+  peer_group: Industrial Products (SimFin-Branche 100001, 33 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 28.07.2026 (10-Q Q2 2026 und Pressemitteilung), 8-Ks bis 22.09.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 55,25 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: ZURÜCKSTELLEN
+  tone: warn
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Ein Lagerabbau im Pool-Geschäft (rund 170 Mio. $) drückte den Umsatz im 2. Quartal um 17 %, und der Kauf von Taco (1,425 Mrd. $, Abschluss 4. Quartal 2026) bringt neue Schulden; die Prognose 2026 steht.
+  legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Abschluss des Taco-Kaufs (4. Quartal 2026) und Quartalsbericht Q3 2026) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
+thesis: Pentair liefert Wasserprodukte (Pumpen, Filter, Pool-Ausrüstung). Im 2. Quartal 2026 sank der Umsatz um 17 % auf 933 Mio. $, weil der Handel im Pool-Geschäft Lager um rund 170 Mio. $ abbaute (Firma am 14.07. vorab mitgeteilt); das Betriebsergebnis betrug 167 Mio. $ nach 218, der bereinigte Gewinn je Aktie 1,14 $ nach 1,39 $. Darin stecken rund 35 Mio. $ Rückerstattung auf frühere Zölle (IEEPA). Die Prognose für 2026 (bereinigter Gewinn je Aktie 4,60 bis 4,80 $) bleibt. Der freie Cashflow im 2. Quartal lag bei 553 Mio. $, im 1. Halbjahr bei 467 Mio. $; der der letzten zwölf Monate bei rund 673 Mio. $ (7,6 % des Börsenwerts laut Archivkurs). Am 27.07.2026 vereinbarte Pentair den Kauf von Taco Group (1,425 Mrd. $), Abschluss im 4. Quartal 2026; finanziert über Kasse und Kredite (1,4 Mrd. $ Term Loans am 01.09. zugesagt). Die Schulden betragen derzeit rund 1,6 Mrd. $.
+kpis:
+- label: Marktwert
+  main: 8,82 Mrd. $
+  sub: 55,25 $ x 159,6 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 7,6 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 7,5 %'
+  status: ok
+- label: EV/EBIT
+  main: 12,7
+  sub: 'letzte 12 Monate (Agent), vor Taco | Stufe 2 EV/EBITDA: 10,6'
+  status: neutral
+- label: Nettoschulden
+  main: 1,51 Mrd. $
+  sub: '30.06.2026: langfristige Schulden 1.606,0 minus Kasse 91,8, vor dem Taco-Kauf (danach rund 1,4 Mrd. $ mehr) | Stufe 1: 1,58'
+  status: warn
+- label: Umsatz Q2
+  main: 933 Mio. $
+  sub: -17 % (Pool-Lagerabbau ca. 170 Mio. $) | Prognose 2026 bestätigt
+  status: warn
+halfyear:
+  labels:
+  - 1. Halbjahr 2025
+  - 1. Halbjahr 2026
+  tone: warn
+  rows:
+  - name: Umsatz
+    values:
+    - 2133.5
+    - 1969.3
+  - name: Betriebsergebnis
+    values:
+    - 420.8
+    - 376.5
+  - name: Freier Cashflow
+    values:
+    - 540.3
+    - 467.2
+  unit: Mio. $
+events:
+- date: 14.07.2026
+  text: 'Vorab-Mitteilung: Pool-Lagerabbau größer als erwartet; Umsatz und Gewinn Q2 unter Plan'
+- date: 27.07.2026
+  text: Vertrag zum Kauf von Taco Group Holdings für 1,425 Mrd. $; Abschluss im 4. Quartal 2026 erwartet
+- date: 28.07.2026
+  text: 'Zahlen Q2: Umsatz 933 Mio. $ (-17 %), bereinigter Gewinn je Aktie 1,14 $; Rückkauf 150 Mio. $; 10-Q eingereicht'
+- date: 01.09.2026
+  text: Kreditvertrag über Term Loans von 400 plus 1.000 Mio. $ für den Taco-Kauf (noch nicht gezogen)
+- date: 17.09.2026
+  text: Louis Pinkham in den Verwaltungsrat berufen
+- date: 21.09.2026
+  text: Robert W. Hau wird Finanzchef (ab 01.11.2026); Robert Fishman war Interims-Finanzchef
+- date: Q4 2026
+  text: Erwarteter Abschluss des Taco-Kaufs (laut Firma, Genehmigungen nötig)
+  future: true
+bear:
+- 'Pool-Handel baut Lager ab: Umsatz Q2 -17 %, Betriebsergebnis 167 Mio. $ nach 218; die Firma nennt es eine „vorübergehende Kanalbereinigung“.'
+- 'Taco-Kauf 1,425 Mrd. $: dazu bis zu 1,4 Mrd. $ neue Term Loans, die Schulden würden sich fast verdoppeln.'
+- In Q2 stecken rund 35 Mio. $ einmalige Zollrückerstattung; ohne sie wäre das Ergebnis niedriger.
+- Finanzchef-Posten war zuletzt nur interimistisch besetzt; Neubesetzung ab 01.11.2026.
+- Gewinn je Aktie 2026 (bereinigt 4,60 bis 4,80 $) ist abhängig von einer Erholung im 2. Halbjahr.
+bull:
+- Bereinigte Marge im Quartal 25,4 % trotz Lagerabbau; Bereiche Flow und Water Solutions laufen „solide“ (Firma).
+- Freier Cashflow 1. Halbjahr 467 Mio. $; Prognose bereinigter Gewinn je Aktie 2026 bestätigt.
+- Rückkauf 150 Mio. $ im Quartal; 50. Jahr in Folge mit höherer Dividende (0,27 $ je Quartal).
+- Gewinn aus Dauerbetrieb im 1. Halbjahr 289,4 Mio. $ (Vorjahr 303,4).
+- Taco soll das Wassergeschäft erweitern (Firmenangabe; keine Zahlen zu Taco-Ergebnis in den Unterlagen).
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 70.25
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 21,4 % darunter
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (672,9 Mio. $) und 159,6 Mio. Aktien laut Archiv angewendet. Der 12-Monats-Cashflow ist aus dem 1. Halbjahr 2025 (Pressemitteilung) und dem 10-Q gerechnet; das Taco-Geschäft und die neuen Zinsen sind nicht enthalten. Die zweite Grenze (EV/EBITDA) fehlt.'
+  price: 55.25
+  price_date: 23.09.2026
+  condition: 'Abwarten: Abschluss des Taco-Kaufs (4. Quartal 2026) und Quartalsbericht Q3 2026; Lagerabbau im Pool-Handel und Verschuldung nach dem Kauf prüfen'
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate, mit Taco) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder Gewinn je Aktie bereinigt für 2026 unter 4,20 $ (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 24.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 28.07.2026 und Q1 vom 28.04.2026 nur auf Vorhandensein geprüft) und 5 aktuelle Meldungen (8-K vom 14.07., 28.07. mit Pressemitteilung, 02.09., 18.09. und 22.09.2026). Zahlen aus den XBRL-Daten der SEC (companyfacts) und der Pressemitteilung gegengelesen; die Q2-Zahlen des XBRL-Abrufs fehlten und wurden aus der Pressemitteilung genommen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K 2025 (0000077360-26-000007), 10-Q Q2 2026 (-26-000045), 10-Q Q1 2026 (-26-000027), 8-Ks: 14.07.2026 (-26-000039), 28.07. (-26-000042), 02.09. (0001104659-26-104725), 18.09. (-26-000047), 22.09. (-26-000050). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Peer-Gruppe (33 Firmen, Industrieprodukte) ist gemischt; 1 Firma fehlt wegen Datenfehlers (LXFR). Das Archiv trägt die Datenmarke `debt_component_missing_defaulted_zero` (Stufe 1); laut Bilanz sind die langfristigen Schulden 1.606 Mio. $, Details zu kurzfristigen Schulden wurden nicht geprüft. Der Cashflow des 1. Halbjahrs 2025 ist aus Pressemitteilung und XBRL zusammengesetzt. Nicht geprüft: Ergebnis von Taco, Genehmigungsstand, Zinssatz der neuen Kredite, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); 1 Firma fehlt wegen Datenfehlers (LXFR; laut Hinweis des Exportlaufs). Die Gruppe ist gemischt.
+peer_summary: 'Gegen die 33 Firmen der Gruppe mit Wert: EV/EBITDA 10,6 gegen Median 14,7 (Platz 9 von 33, 1 = günstigste), FCF-Rendite 7,5 % gegen Median 4,2 % (Platz 6 von 33, 1 = höchste).'
+funnel_title: So kam PNR auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 11,6 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: warn
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: 1,58
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,16
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 10,6 (Platz 9 von 33)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: ok
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 7,5 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: 'Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Stufe-1-Marke: roic (Wert in der Grauzone, nicht durchgefallen). Datenmarke Stufe 1: `debt_component_missing_defaulted_zero` (ein Teil der Schulden fehlte und wurde auf 0 gesetzt).'
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - '2023'
+  - '2024'
+  - '2025'
+  - 1. Hj. 2025
+  - 1. Hj. 2026
+  rows:
+  - name: Umsatz
+    values:
+    - 4.104,5
+    - 4.082,8
+    - 4.176,0
+    - 2.133,5
+    - 1.969,3
+  - name: Betriebsergebnis
+    values:
+    - 739,2
+    - 803,8
+    - 857,5
+    - 420,8
+    - 376,5
+  - name: Betriebsmarge
+    values:
+    - 18,0 %
+    - 19,7 %
+    - 20,5 %
+    - 19,7 %
+    - 19,1 %
+  - name: Nettogewinn
+    values:
+    - 622,7
+    - 625,4
+    - 653,8
+    - 303,4
+    - 301,0
+  - name: Operativer Cashflow
+    values:
+    - 619,2
+    - 766,7
+    - 814,8
+    - 568,0
+    - 504,6
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 76,0
+    - 74,4
+    - 68,8
+    - 27,7
+    - 37,4
+  - name: Freier Cashflow
+    values:
+    - 543,2
+    - 692,3
+    - 746,0
+    - 540,3
+    - 467,2
+  note: 'Quelle: 10-K 2025, 10-Q Q2 2026 und Pressemitteilung vom 28.07.2026 der SEC; Nettogewinn 1. Halbjahr 2026 inkl. 11,6 Mio. $ aus aufgegebenen Geschäften (Dauerbetrieb 289,4). Marge und freier Cashflow vom Agenten gerechnet; Halbjahres-Cashflow 2026 aus der Pressemitteilung (freier Cashflow 467,2 plus Investitionen 37,4), Halbjahr 2025 aus Pressemitteilung und Q1-XBRL zusammengesetzt.'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

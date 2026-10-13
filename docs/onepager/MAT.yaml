@@ -1,0 +1,211 @@
+# Datenquelle für die PDF-Fassung des One-Pagers MAT (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: Mattel, Inc.
+  ticker: MAT
+  list_nr: 17
+  stage2_rank: 18
+  stage2_rank_of: 41
+  peer_group: Travel & Leisure (SimFin-Branche 103015, 24 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 06.08.2026 (10-Q Q2 2026), 8-Ks bis 30.09.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 13,08 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: ZURÜCKSTELLEN
+  tone: warn
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Der Betriebsgewinn liegt im ersten Halbjahr bei -91,8 Mio. $ (Vorjahr +25,5); der positive Halbjahres-Nettogewinn stammt aus einem einmaligen Bewertungsgewinn. Dazu tritt der Konzernchef zurück (02.10.2026).
+  legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3 2026 und erste Aussagen des neuen Konzernchefs) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
+thesis: Mattel macht Spielzeug (Barbie, Hot Wheels, Fisher-Price) und zunehmend Lizenz- und Spielegeschäft. Im 2. Quartal 2026 stieg der Umsatz um 10 % auf 1.125 Mio. $, aber die Bruttomarge fiel um 2,7 Prozentpunkte auf 48,2 % (Zölle, Inflation, höhere Lizenzgebühren, Währung); das Betriebsergebnis betrug 11 Mio. $ nach 79. Im ersten Halbjahr steht ein Betriebsverlust von 91,8 Mio. $ (Vorjahr +25,5). Der Halbjahres-Nettogewinn von 42,8 Mio. $ enthält einen nicht zahlungswirksamen Gewinn von 147,9 Mio. $ aus der Neubewertung des früheren Anteils an Mattel163, das Mattel im März ganz übernommen hat. Der freie Cashflow der letzten zwölf Monate liegt bei rund 435 Mio. $, die Nettoschulden bei 1,8 Mrd. $ (saisonal, Kasse ist zur Jahresmitte niedrig). Am 30.09.2026 wurde bekannt, dass Konzernchef und Chairman Ynon Kreiz zum 02.10.2026 geht; Roger Lynch (bisher Condé Nast) folgt spätestens zum 02.11.2026.
+kpis:
+- label: Marktwert
+  main: 3,74 Mrd. $
+  sub: 13,08 $ x 285,7 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 11,6 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 15,3 %'
+  status: ok
+- label: EV/EBIT
+  main: 12,9
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 6,8'
+  status: neutral
+- label: Nettoschulden
+  main: 1,81 Mrd. $
+  sub: '30.06.2026: Schulden 2.333,9 minus Kasse 523,9; saisonal hoch (31.12.2025: Kasse 1.242,9) | Stufe 1: 1,52'
+  status: warn
+- label: Betriebsergebnis 1. Halbjahr
+  main: -91,8 Mio. $
+  sub: 'Vorjahr +25,5 | 2. Quartal: 10,9 (Vorjahr 78,5)'
+  status: bad
+halfyear:
+  labels:
+  - 1. Halbjahr 2025
+  - 1. Halbjahr 2026
+  tone: warn
+  rows:
+  - name: Umsatz
+    values:
+    - 1845.2
+    - 1987.5
+  - name: Betriebsergebnis
+    values:
+    - 25.5
+    - -91.8
+  - name: Freier Cashflow
+    values:
+    - -351.3
+    - -327.9
+  unit: Mio. $
+events:
+- date: 02.03.2026
+  text: Übernahme der zweiten Hälfte von Mattel163 (Handyspiele, von NetEase); Gewinn 147,9 Mio. $ aus Neubewertung des alten Anteils (nicht zahlungswirksam)
+- date: 29.07.2026
+  text: Roberto Stanichi wird President, Chief Marketing and Brand Officer
+- date: 04.08.2026
+  text: 'Zahlen Q2: Umsatz 1.125 Mio. $ (+10 %), Betriebsergebnis 11 Mio. $, Verlust je Aktie 0,06 $; Prognose 2026 und Rückkauf von 400 Mio. $ bestätigt'
+- date: 06.08.2026
+  text: 10-Q Q2 2026 eingereicht
+- date: 30.09.2026
+  text: Chairman und CEO Ynon Kreiz tritt zum 02.10.2026 zurück (neue Aufgabe bei einer anderen börsennotierten Firma); Roger Lynch wird Chairman (02.10.) und CEO (spätestens 02.11.2026)
+- date: 02.11.2026
+  text: Spätester Amtsantritt von Roger Lynch als CEO
+  future: true
+bear:
+- 'Betriebsergebnis 1. Halbjahr -91,8 Mio. $ (Vorjahr +25,5); Bruttomarge im 2. Quartal 48,2 % nach 50,9 %: Zölle, Inflation, höhere Lizenzgebühren und Währung.'
+- Nettogewinn des 1. Halbjahrs (42,8 Mio. $) enthält 147,9 Mio. $ nicht zahlungswirksamen Bewertungsgewinn; ohne ihn wäre das Halbjahr ein Verlust.
+- Barbie/Puppen 5 % unter Vorjahr, Kleinkind-Linie (Fisher-Price) 11 % darunter (Bruttoumsätze Q2).
+- 'Wechsel an der Spitze: Konzernchef Kreiz geht zum 02.10.2026; der Nachfolger Roger Lynch saß seit 2018 im Verwaltungsrat und führt bisher Condé Nast (Medien), nicht ein Spielzeugunternehmen.'
+- Freier Cashflow 1. Halbjahr -327,9 Mio. $ (saisonal, Vorjahr -351,3); Investitionen im Halbjahr 125,8 Mio. $ (76,0).
+bull:
+- 'Umsatz wächst: Q2 +10 %, Hot Wheels (Fahrzeuge) +14 %; Nordamerika +12 %.'
+- 'Freier Cashflow der letzten zwölf Monate rund 435 Mio. $ (11,6 % des Börsenwerts laut Archivkurs); 2025: 411 Mio. $.'
+- Sparprogramm auf Kurs für 225 Mio. $ bis Jahresende; Prognose 2026 von der Firma bestätigt.
+- 'Rückkauf: 300 Mio. $ im 1. Halbjahr, Ziel 2026 insgesamt 400 Mio. $.'
+- Anleihen laufen zwischen Dezember 2027 und 2041, dazu Kreditlinie von 1,4 Mrd. $ bis Juli 2029.
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 25.36
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 48,4 % darunter
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (434,7 Mio. $) und 285,7 Mio. Aktien (Archiv und 10-Q stimmen überein) angewendet. Der Cashflow hängt stark an der Saison (Arbeitskapital) und enthält keine Ergebnisbelastung der zweiten Jahreshälfte. Die zweite Grenze (EV/EBITDA, Branchen-Drittel) fehlt.'
+  price: 13.08
+  price_date: 23.09.2026
+  condition: 'Abwarten: Quartalsbericht Q3 2026 und Pläne des neuen Konzernchefs; vor jedem Kauf Marge und Zolleffekt neu prüfen'
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate, Jahresende) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder Betriebsergebnis der letzten zwölf Monate unter 300 Mio. $ (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 23.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 06.08.2026 und Q1 2026 vom 01.05.2026 nur auf Vorhandensein geprüft) und mehrere aktuelle Meldungen (8-K vom 02.06., 31.07., 04.08. mit Pressemitteilung und 30.09.2026 mit Mitteilung zum Wechsel des Konzernchefs). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K 2025 (0001628280-26-010716), 10-Q Q2 2026 (-26-054347), 10-Q Q1 2026 (-26-029316), 8-Ks: 02.06.2026 (0000063276-26-000013), 31.07. (0001628280-26-051317), 04.08. (-26-052674), 30.09. (0001193125-26-408403). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Das Archiv trägt für Stufe 1 die Datenmarke `debt_component_missing_defaulted_zero` und die Infomarke `share_count_unchecked`; die Aktienzahl (285,7 Mio.) stimmt mit dem 10-Q überein, ein Schuldenfehler ist nicht erkennbar (Anleihen 2.333,9 Mio. $). Der Gewinn je Aktie 2026 ist wegen des Bewertungsgewinns nur eingeschränkt vergleichbar. Nicht geprüft: Zollwirkung nach Quartalen, Mattel163-Ergebnisbeitrag im Detail, Leasingverbindlichkeiten, Lizenzvertragsbedingungen, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); 1 Firma fehlt wegen Datenfehlers (MMYT; laut Hinweis des Exportlaufs).
+peer_summary: 'Gegen die 24 Firmen der Gruppe mit Wert: EV/EBITDA 6,8 gegen Median 10,5 (Platz 5 von 24, 1 = günstigste), FCF-Rendite 15,3 % gegen Median 7,4 % (Platz 2 von 21, 1 = höchste).'
+funnel_title: So kam MAT auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 13,9 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: ok
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: 1,52
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 2,34
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 6,8 (Platz 5 von 24)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: ok
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 15,3 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: 'Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Datenmarke Stufe 1: `debt_component_missing_defaulted_zero` (ein Teil der Schulden fehlte und wurde auf 0 gesetzt). Infomarke `share_count_unchecked`: die Aktienzahl konnte nicht gegengeprüft werden.'
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - '2023'
+  - '2024'
+  - '2025'
+  - 1. Hj. 2025
+  - 1. Hj. 2026
+  rows:
+  - name: Umsatz
+    values:
+    - 5.441,2
+    - 5.379,5
+    - 5.347,6
+    - 1.845,2
+    - 1.987,5
+  - name: Betriebsergebnis
+    values:
+    - 561,7
+    - 694,3
+    - 546,4
+    - 25,5
+    - -91,8
+  - name: Betriebsmarge
+    values:
+    - 10,3 %
+    - 12,9 %
+    - 10,2 %
+    - 1,4 %
+    - -4,6 %
+  - name: Nettogewinn
+    values:
+    - 214,4
+    - 541,8
+    - 397,6
+    - 13,0
+    - 42,8
+  - name: Operativer Cashflow
+    values:
+    - 869,8
+    - 800,6
+    - 593,3
+    - -275,3
+    - -202,1
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 160,3
+    - 202,6
+    - 182,0
+    - 76,0
+    - 125,8
+  - name: Freier Cashflow
+    values:
+    - 709,5
+    - 598,0
+    - 411,3
+    - -351,3
+    - -327,9
+  note: 'Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten und Kapitalflussrechnung). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Werkzeuge und Sachanlagen). Nettogewinn 1. Halbjahr 2026 enthält 147,9 Mio. $ Bewertungsgewinn.'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

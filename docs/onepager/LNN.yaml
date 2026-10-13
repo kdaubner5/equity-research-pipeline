@@ -1,0 +1,206 @@
+# Datenquelle für die PDF-Fassung des One-Pagers LNN (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: Lindsay Corporation
+  ticker: LNN
+  list_nr: 25
+  stage2_rank: 26
+  stage2_rank_of: 41
+  peer_group: Sektor Industrials (grobe SimFin-Gruppe 100, 117 Firmen; die feine Branche war zu klein)
+  profile: non_financial
+dates:
+  documents_until: 02.07.2026 (10-Q Q3 FY26 zum 31.05.2026 und Pressemitteilung), 8-Ks bis 28.08.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 115,84 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: ZURÜCKSTELLEN
+  tone: warn
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Nettokasse und sauberes Geschäft, aber seit September 2025 fällt das Betriebsergebnis um ein Drittel, der freie Cashflow der letzten zwölf Monate hat sich halbiert, und der Finanzchef ging zum 31.08.2026.
+  legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Jahresbericht für das Geschäftsjahr bis 31.08.2026 und Aussichten für 2027) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
+thesis: Lindsay baut Bewässerungsanlagen (Irrigation) und Straßensicherheits-Produkte (Infrastruktur). Im 3. Quartal (März bis Mai 2026) sank der Umsatz um 5 % auf 160,8 Mio. $, das Betriebsergebnis um 22 % auf 18,5 Mio. $; Nordamerika-Bewässerung -11 % (schwache Rohstoffpreise, gedämpfte Stimmung der Landwirte), Brasilien schwach, Infrastruktur +8 %. In den ersten neun Monaten betrug das Betriebsergebnis 51,1 Mio. $ nach 76,8; der freie Cashflow der letzten zwölf Monate liegt bei rund 45 Mio. $ (3,7 % des Börsenwerts laut Archivkurs) nach 90 Mio. $ im Geschäftsjahr 2025. Die Firma hat Nettokasse von rund 40 Mio. $ und kaufte im Geschäftsjahr bisher für 80,7 Mio. $ eigene Aktien zurück. Ein großes Bewässerungsprojekt in Nahost/Nordafrika (MENA) läuft planmäßig und hebt den Auftragsbestand auf 136,1 Mio. $.
+kpis:
+- label: Marktwert
+  main: 1,20 Mrd. $
+  sub: 115,84 $ x 10,4 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 3,7 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 7,1 %'
+  status: bad
+- label: EV/EBIT
+  main: 18,7
+  sub: 'letzte 12 Monate (Agent), Nettokasse | Stufe 2 EV/EBITDA: 9,8'
+  status: neutral
+- label: Nettoschulden
+  main: -39,9 Mio. $
+  sub: '31.05.2026: Schulden 114,9 minus Kasse 154,8 = Nettokasse | Stufe 1: -1,24'
+  status: ok
+- label: Betriebsergebnis
+  main: 62,4 Mio. $
+  sub: 'letzte 12 Monate | Geschäftsjahr 2025: 88,1 (-29 %)'
+  status: bad
+halfyear:
+  labels:
+  - 9 Monate FY25
+  - 9 Monate FY26
+  tone: bad
+  rows:
+  - name: Umsatz
+    values:
+    - 510.1
+    - 462.2
+  - name: Betriebsergebnis
+    values:
+    - 76.8
+    - 51.1
+  - name: Freier Cashflow
+    values:
+    - 40.6
+    - -4.9
+  unit: Mio. $
+events:
+- date: 02.07.2026
+  text: 'Zahlen Q3 FY26: Umsatz 160,8 Mio. $ (-5 %), Betriebsergebnis 18,5 Mio. $ (-22 %), Gewinn je Aktie 1,53 $; MENA-Projekt im Plan; 10-Q eingereicht'
+- date: 17.07.2026
+  text: Finanzchef Sam Hinrichsen kündigt zum 31.08.2026
+- date: 28.08.2026
+  text: Alicia Pfeifer und Brett Coburn werden gemeinsam Finanzchefs
+- date: '09.2026'
+  text: Die US-Infrastrukturprogramme (IIJA) laufen laut 10-Q bis September 2026
+bear:
+- Betriebsergebnis neun Monate 51,1 Mio. $ nach 76,8 (-33 %); Marge 11,5 % im Quartal nach 14,0 %.
+- Freier Cashflow der letzten zwölf Monate rund 45 Mio. $ nach 90 Mio. $ (Geschäftsjahr 2025); Investitionen 35,5 Mio. $ in neun Monaten.
+- 'Bewässerung Nordamerika -11 %: niedrige Rohstoffpreise, Landwirte halten sich zurück; Brasilien: geringe Profitabilität, knappe Kredite.'
+- Der Finanzchef verlässt die Firma (31.08.2026); ersatzweise zwei gemeinsame Finanzchefs aus dem Haus.
+- 'Der Filter sieht das nicht: Stufe 1 und 2 rechnen mit dem Geschäftsjahr bis 31.08.2025.'
+bull:
+- Nettokasse rund 40 Mio. $; Verschuldung gering.
+- Auftragsbestand 136,1 Mio. $ (117,1 vor einem Jahr) durch das MENA-Projekt, das planmäßig läuft.
+- Infrastruktur +8 % im Quartal; Straßensicherheits-Produkte wachsen ein weiteres Quartal in Folge (Pressemitteilung).
+- 'Aktienrückkäufe: 25,2 Mio. $ im Quartal, 80,7 Mio. $ im Geschäftsjahr.'
+- 'Geschäftsjahr 2025: Betriebsergebnis 88,1 Mio. $ (+15 %), freier Cashflow 90 Mio. $.'
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 71.99
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 60,9 % darüber
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (44,9 Mio. $) und 10,4 Mio. Aktien angewendet. Der Kurs liegt weit über der Grenze. Auf Basis des Geschäftsjahres 2025 (freier Cashflow 90,4 Mio. $) läge die Grenze bei 145 $. Die zweite Grenze (EV/EBITDA, grobe Gruppe von 117 Firmen) fehlt.'
+  price: 115.84
+  price_date: 23.09.2026
+  condition: 'Abwarten: Jahresbericht für das Geschäftsjahr bis 31.08.2026; Beitrag des MENA-Projekts und Erholung in Nordamerika prüfen'
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder Betriebsergebnis der letzten zwölf Monate unter 50 Mio. $ (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K FY2025, eingereicht 23.10.2025), 2 Quartalsberichte (10-Q Q3 FY26 vom 02.07.2026 und Q2 vom 02.04.2026 nur auf Vorhandensein geprüft) und 3 aktuelle Meldungen (8-K vom 02.07. mit Pressemitteilung, 17.07. und 28.08.2026). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K FY2025 (0001193125-25-248751), 10-Q Q3 FY26 (-26-294516), 10-Q Q2 FY26 (-26-140093), 8-Ks: 02.07.2026 (-26-293405), 17.07. (-26-307817), 28.08. (-26-374348). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Vergleichsgruppe ist grob (117 Firmen aus dem ganzen Sektor Industrie); 2 Firmen fehlen wegen Datenfehlern (LXFR, RELY). Nicht geprüft: Zeitplan und Marge des MENA-Projekts, Wirkung der US-Infrastrukturprogramme nach September 2026, Pensions- und Mietverpflichtungen, aktueller Kurs. Der Jahresbericht für das Geschäftsjahr bis 31.08.2026 ist noch nicht erschienen. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Grobe Gruppe aus dem ganzen Sektor Industrie (117 Firmen), weil die feine Branche zu klein war; 2 Firmen fehlen wegen Datenfehlern (LXFR, RELY; laut Hinweis des Exportlaufs vom 13.10.2026). Vergleichbarkeit eingeschränkt.
+peer_summary: 'Gegen die 117 Firmen der Gruppe mit Wert: EV/EBITDA 9,8 gegen Median 11,0 (Platz 37 von 117, 1 = günstigste), FCF-Rendite 7,1 % gegen Median 4,8 % (Platz 39 von 112, 1 = höchste). Die Gruppe ist grob (ganze Sektor-Ebene), die Vergleichbarkeit ist eingeschränkt.'
+funnel_title: So kam LNN auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 16,5 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: ok
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: -1,24
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,63
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 9,8 (Platz 37 von 117)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: ok
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 7,1 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter).
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - FY2023
+  - FY2024
+  - FY2025
+  - 9M FY25
+  - 9M FY26
+  rows:
+  - name: Umsatz
+    values:
+    - 661,9
+    - 584,3
+    - 659,1
+    - 510,1
+    - 462,2
+  - name: Betriebsergebnis
+    values:
+    - 102,2
+    - 76,6
+    - 88,1
+    - 76,8
+    - 51,1
+  - name: Betriebsmarge
+    values:
+    - 15,4 %
+    - 13,1 %
+    - 13,4 %
+    - 15,1 %
+    - 11,1 %
+  - name: Nettogewinn
+    values:
+    - 72,4
+    - 66,3
+    - 74,1
+    - 63,2
+    - 44,4
+  - name: Operativer Cashflow
+    values:
+    - 119,7
+    - 95,8
+    - 132,9
+    - 68,9
+    - 30,6
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 18,8
+    - 29,0
+    - 42,5
+    - 28,3
+    - 35,5
+  - name: Freier Cashflow
+    values:
+    - 100,9
+    - 66,8
+    - 90,4
+    - 40,6
+    - -4,9
+  note: 'Quelle: 10-K FY2025 und 10-Q Q3 FY26 der SEC (XBRL-Daten); Geschäftsjahr endet am 31.08., 9 Monate = September bis Mai. Marge und freier Cashflow vom Agenten gerechnet.'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

@@ -1,0 +1,206 @@
+# Datenquelle für die PDF-Fassung des One-Pagers TNC (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: Tennant Company
+  ticker: TNC
+  list_nr: 32
+  stage2_rank: 33
+  stage2_rank_of: 41
+  peer_group: Industrial Products (SimFin-Branche 100001, 33 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 06.08.2026 (10-Q Q2 2026 und Pressemitteilung), 8-Ks bis 06.08.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 65,95 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: VERWERFEN
+  tone: bad
+  text: 'Vorschlag des Agenten, Entscheidung durch Konstantin. Die Grundlage der Auswahl fällt weg: Betriebsergebnis der letzten zwölf Monate 39 Mio. $ (2023: 139), freier Cashflow leicht negativ, EBITDA-Prognose gesenkt, Finanzchefin kündigt Ruhestand an. Wiedervorlage nach dem Jahresbericht 2026.'
+  legend: Was bedeutet VERWERFEN? Die Firma verlässt die Liste, weil die Unterlagen etwas zeigen, das der Filter nicht sehen kann und das die Grundlage der Auswahl entfallen lässt. Sie kann später neu geprüft werden (siehe Wiedervorlage). Es ist weder eine Kauf- noch eine Verkaufsempfehlung.
+thesis: 'Tennant baut Reinigungsmaschinen für Gewerbe und Industrie (Scheuersaugmaschinen, Roboter). Im 2. Quartal 2026 stieg der Umsatz um 1,7 % auf 324 Mio. $, der Auftragseingang um 6,6 % auf 339,5 Mio. $; aber das bereinigte EBITDA fiel um 31 % auf 35,3 Mio. $ (Marge 10,9 % nach 16,0 %): „Rest-Ineffizienzen nach der ERP-Einführung in Nordamerika und Preis- und Kostendruck in EMEA“. Der Gewinn je Aktie sank auf 0,44 $ (Vorjahr 1,08), der Halbjahres-Nettogewinn auf 7,8 Mio. $ (33,3). Die Prognose für das bereinigte EBITDA 2026 wurde auf 155 bis 170 Mio. $ gesenkt, die Umsatzprognose auf 1,27 bis 1,31 Mrd. $ angehoben. Der operative Cashflow war im 1. Halbjahr -26,2 Mio. $ (Vorjahr +22,1), der freie Cashflow der letzten zwölf Monate liegt bei -2,7 Mio. $. Die Nettoschulden stiegen auf 282 Mio. $; Finanzchefin Fay West will in den Ruhestand (frühestens 02.04.2027).'
+kpis:
+- label: Marktwert
+  main: 1,12 Mrd. $
+  sub: 65,95 $ x 17,0 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: -0,2 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 8,3 %'
+  status: bad
+- label: EV/EBIT
+  main: 36,2
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 10,2'
+  status: neutral
+- label: Nettoschulden
+  main: 282,0 Mio. $
+  sub: '30.06.2026: Schulden 358,9 minus Kasse 76,9 (31.12.2025: 273,6 minus 106,4) | Stufe 1: 1,32'
+  status: warn
+- label: Bereinigtes EBITDA Q2
+  main: 35,3 Mio. $
+  sub: Vorjahr 51,0 (-31 %) | Marge 10,9 % (16,0 %)
+  status: bad
+halfyear:
+  labels:
+  - 1. Halbjahr 2025
+  - 1. Halbjahr 2026
+  tone: bad
+  rows:
+  - name: Umsatz
+    values:
+    - 608.6
+    - 621.9
+  - name: Betriebsergebnis
+    values:
+    - 50.2
+    - 20.8
+  - name: Freier Cashflow
+    values:
+    - 11.3
+    - -34.7
+  unit: Mio. $
+events:
+- date: 17.06.2026
+  text: Rusty Zay wird Chief Operating Officer (ab 01.07.2026)
+- date: 27.07.2026
+  text: Finanzchefin Fay West kündigt Ruhestand an (frühestens 02.04.2027), Nachfolger wird gesucht (8-K vom 30.07.)
+- date: 05.08.2026
+  text: 'Zahlen Q2: Umsatz 324 Mio. $ (+1,7 %), bereinigtes EBITDA 35,3 Mio. $ (-31 %); EBITDA-Prognose gesenkt (155 bis 170 Mio. $), Umsatzprognose angehoben'
+- date: 06.08.2026
+  text: 10-Q Q2 2026 eingereicht
+bear:
+- 'Betriebsergebnis der letzten zwölf Monate 38,9 Mio. $ (2023: 138,6; 2025: 68,3); 1. Halbjahr 2026 nur 20,8 nach 50,2.'
+- Freier Cashflow der letzten zwölf Monate -2,7 Mio. $; 1. Halbjahr operativ -26,2 Mio. $.
+- ERP-Umstellung in Nordamerika drückt noch auf die Marge; EMEA unter Preis- und Kostendruck; organischer Umsatz sinkt (EMEA, APAC).
+- Prognose bereinigtes EBITDA 2026 gesenkt (155 bis 170 Mio. $); Finanzchefin kündigt Ruhestand an.
+- Trend-Guard schlug an (Margenverhältnis 0,81, ROIC im letzten Jahr 6,6 %); Nettoschulden steigen auf 282 Mio. $.
+bull:
+- Auftragseingang +6,6 % auf 339,5 Mio. $, Rückstand 127 Mio. $.
+- Roboter-Umsatz (AMR) rund 31 Mio. $ (+37 %), Ziel 250 Mio. $ bis 2028 laut Firma.
+- Umsatzprognose 2026 angehoben (1,27 bis 1,31 Mrd. $).
+- Aktienzahl 17,05 Mio. nach 17,85 Mio. Ende 2025 (Rückkäufe).
+- 'Geschäftsjahr 2023: Betriebsergebnis 138,6 Mio. $: das Geschäft kann deutlich mehr verdienen (Vergangenheit, kein Versprechen).'
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 0
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: nicht berechenbar
+  limit_note: 'Nicht berechenbar: Der freie Cashflow der letzten zwölf Monate ist mit -2,7 Mio. $ negativ; eine Grenze nach der 6-%-Regel gibt es dann nicht. Der Kurs gilt vom 23.09.2026 (65,95 $). Das Archiv sieht dagegen einen Dreijahres-Durchschnitt von 8,3 % (Stufe 2) aus den Jahren bis 2025.'
+  price: 65.95
+  price_date: 23.09.2026
+  condition: 'Wiedervorlage nach dem Jahresbericht 2026 (Februar 2027): nur wenn freier Cashflow wieder positiv und Marge erholt; sonst nicht weiterverfolgen'
+kill: 'Der Fall ist schon eingetreten (VERWERFEN): freier Cashflow negativ. Wiedervorlage-Bedingung: freier Cashflow (12 Monate) über 6 % des Börsenwerts und bereinigte EBITDA-Marge über 14 % (keine Schwellen aus dem Repo).'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 24.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 06.08.2026 und Q1 vom 05.05.2026 nur auf Vorhandensein geprüft) und 3 aktuelle Meldungen (8-K vom 17.06., 30.07. und 06.08.2026 mit Pressemitteilung). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K 2025 (0000097134-26-000008), 10-Q Q2 2026 (-26-000024), 10-Q Q1 2026 (-26-000015), 8-Ks: 17.06.2026 (0001104659-26-074936), 30.07. (0001104659-26-088498), 06.08. (0000097134-26-000022). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Peer-Gruppe (33 Firmen, Industrieprodukte) ist gemischt; 1 Firma fehlt wegen Datenfehlers (LXFR). Nicht geprüft: Umfang der ERP-Probleme im Detail, Kosten der Maßnahmen, Kreditbedingungen, Mietverpflichtungen, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); 1 Firma fehlt wegen Datenfehlers (LXFR; laut Hinweis des Exportlaufs). Die Gruppe ist gemischt.
+peer_summary: 'Gegen die 33 Firmen der Gruppe mit Wert: EV/EBITDA 10,2 gegen Median 14,7 (Platz 8 von 33, 1 = günstigste), FCF-Rendite 8,3 % gegen Median 4,2 % (Platz 5 von 33, 1 = höchste).'
+funnel_title: So kam TNC auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 11,4 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: warn
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: 1,32
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,43
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 10,2 (Platz 8 von 33)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: ok
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 8,3 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: 2 Marken
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: warn
+gates_note: 'Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Trend-Guard: Marge fallend (Margenverhältnis 0,81); ROIC im letzten Jahr unter 10 % (6,6 %). Stufe-1-Marke: roic (Wert in der Grauzone, nicht durchgefallen).'
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - '2023'
+  - '2024'
+  - '2025'
+  - 1. Hj. 2025
+  - 1. Hj. 2026
+  rows:
+  - name: Umsatz
+    values:
+    - 1.243,6
+    - 1.286,7
+    - 1.203,5
+    - 608,6
+    - 621,9
+  - name: Betriebsergebnis
+    values:
+    - 138,6
+    - 114,3
+    - 68,3
+    - 50,2
+    - 20,8
+  - name: Betriebsmarge
+    values:
+    - 11,1 %
+    - 8,9 %
+    - 5,7 %
+    - 8,2 %
+    - 3,3 %
+  - name: Nettogewinn
+    values:
+    - 109,5
+    - 83,7
+    - 43,8
+    - 33,3
+    - 7,8
+  - name: Operativer Cashflow
+    values:
+    - 188,4
+    - 89,7
+    - 65,0
+    - 22,1
+    - -26,2
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 22,8
+    - 20,9
+    - 21,7
+    - 10,8
+    - 8,5
+  - name: Freier Cashflow
+    values:
+    - 165,6
+    - 68,8
+    - 43,3
+    - 11,3
+    - -34,7
+  note: 'Quelle: 10-K und 10-Q der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen).'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'
