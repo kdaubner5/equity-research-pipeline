@@ -221,6 +221,19 @@ def test_the_daily_limit_stops_the_run_cleanly_and_the_next_run_starts_with_the_
     assert "BBB" in opener.urls[2] and "CCC" in opener.urls[3] and "AAA" in opener.urls[4]
 
 
+def test_the_order_is_a_fair_rotation_a_failed_ticker_goes_behind_one_that_never_got_its_turn(env):
+    write_list(env["root"], "runde1.md", ["AAA", "BBB"])
+    bad = {"Error Message": "Invalid API call."}
+    clock = iter(f"2026-10-09T08:00:{n:02d}" for n in range(60))
+    kwargs = dict(sleep=lambda s: None, today=date(2026, 10, 9), config_path=env["cfg"], db_path=env["db"],
+                  now=lambda: next(clock), key_files=[], repo_root=env["root"])
+    limit = {"Information": "standard API rate limit is 25 requests per day."}
+    run.main([], opener=opener_with([GOOD_A, GOOD_B, bad, limit]), **kwargs)
+    opener = opener_with([GOOD_A, GOOD_B, GOOD_C, bad])
+    run.main([], opener=opener, **kwargs)
+    assert "BBB" in opener.urls[2] and "AAA" in opener.urls[3]
+
+
 def test_a_failed_candidate_fetch_does_not_stop_the_other_symbols(env):
     code, _ = call(env, [GOOD_A, GOOD_B, {"Error Message": "Invalid API call."}])
     assert code == 1 and {row[0] for row in stored(env)} == {"CSPX.LON", "XDWD.DEX"}

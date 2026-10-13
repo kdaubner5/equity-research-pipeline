@@ -24,13 +24,20 @@ def read_candidate_tickers(path) -> List[str]:
     except OSError as exc:
         raise CandidateListError(f"cannot read {path}: {exc}") from exc
     tickers: List[str] = []
+    header_ok = False
     for number, line in enumerate(lines, start=1):
         stripped = line.strip()
         if not stripped.startswith("|"):
             continue
         cells = [cell.strip() for cell in stripped.strip("|").split("|")]
-        if len(cells) < 3 or not cells[0].isdigit():
+        if not cells[0].isdigit():
+            if len(cells) >= 3 and cells[2] == "Ticker":
+                header_ok = True
             continue
+        if len(cells) < 3:
+            raise CandidateListError(f"{path.name} line {number}: row has fewer than 3 columns")
+        if not header_ok:
+            raise CandidateListError(f"{path.name} line {number}: no table header with 'Ticker' as 3rd column before the rows")
         ticker = cells[2]
         if not _TICKER.match(ticker):
             raise CandidateListError(f"{path.name} line {number}: unusable ticker {ticker!r}")

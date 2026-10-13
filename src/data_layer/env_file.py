@@ -35,7 +35,11 @@ def read_key_from_file(path, key_name=KEY_NAME):
     path = Path(path)
     if not path.exists():
         return None
-    for line in path.read_text(encoding="utf-8-sig").splitlines():
+    try:
+        text = path.read_text(encoding="utf-8-sig")
+    except (OSError, UnicodeDecodeError):
+        raise RuntimeError(f"{path.name} ist nicht lesbar") from None
+    for line in text.splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue

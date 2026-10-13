@@ -35,9 +35,12 @@ DEFAULT_DB_PATH = _REPO_ROOT / "data" / "benchmark_prices.db"
 
 
 def fetch_order(connection, config):
-    """ETFs zuerst, danach die uebrigen Symbole mit dem aeltesten (oder fehlenden) letzten Kurs voran."""
+    """ETFs zuerst, danach die uebrigen Symbole, deren letzter Abruf am laengsten zurueckliegt (nie abgerufen = zuerst).
+    Ein am Tageslimit gescheiterter Versuch zaehlt nicht; ein dauerhaft scheiternder Ticker rueckt dagegen nach hinten."""
     def last_day(symbol):
-        return connection.execute("SELECT MAX(price_date) FROM benchmark_prices WHERE symbol = ?", (symbol,)).fetchone()[0] or ""
+        return connection.execute(
+            "SELECT MAX(fetched_at) FROM benchmark_fetches WHERE symbol = ? AND status != 'limit'", (symbol,)
+        ).fetchone()[0] or ""
 
     etfs = [s for s in config.symbols if s.role != CANDIDATE_ROLE]
     candidates = sorted((s for s in config.symbols if s.role == CANDIDATE_ROLE), key=lambda s: (last_day(s.symbol), s.symbol))

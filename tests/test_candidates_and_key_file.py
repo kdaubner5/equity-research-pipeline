@@ -83,3 +83,21 @@ def test_the_default_key_files_are_the_own_file_first_and_both_are_ignored_by_gi
     assert [p.name for p in env_file.DEFAULT_KEY_FILES] == [".env.alphavantage", ".env"]
     ignore = (Path(__file__).resolve().parents[1] / ".gitignore").read_text(encoding="utf-8").split()
     assert ".env" in ignore and ".env.*" in ignore
+
+
+def test_a_numbered_row_with_too_few_cells_or_a_table_without_ticker_header_is_an_error(tmp_path):
+    f = tmp_path / "runde1.md"
+    f.write_text("| Nr. | Rang | Ticker |\n| 1 | 1 |\n", encoding="utf-8")
+    with pytest.raises(CandidateListError, match="fewer than 3"):
+        read_candidate_tickers(f)
+    f.write_text("| Nr. | Rang | Tranche |\n| 1 | 1 | A |\n", encoding="utf-8")
+    with pytest.raises(CandidateListError, match="header"):
+        read_candidate_tickers(f)
+
+
+def test_an_unreadable_key_file_gives_a_clean_error_without_a_value(tmp_path, monkeypatch):
+    monkeypatch.delenv("ALPHAVANTAGE_API_KEY", raising=False)
+    folder = tmp_path / ".env"
+    folder.mkdir()
+    with pytest.raises(RuntimeError, match="nicht lesbar"):
+        env_file.resolve_api_key([folder])
