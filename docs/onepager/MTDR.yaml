@@ -15,29 +15,29 @@ dates:
 verdict:
   label: ZURÜCKSTELLEN
   tone: warn
-  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Rekordförderung und Cashflow, aber eine Zukaufswelle (1,3 Mrd. $ im 1. Halbjahr, dazu Paloma 1,255 Mrd. $ am 01.10.) lässt die Schulden von 3,4 auf 4,2 Mrd. $ steigen, mit Paloma auf rund 5,5 Mrd. $; der Archiv-Cashflow gilt als ungeprüft.
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Rekordförderung und Cashflow, aber eine Zukaufswelle (1,3 Mrd. $ im 1. Halbjahr, Cardinal 0,75 Mrd. $ am 31.07., Paloma 1,255 Mrd. $ am 01.10.) lässt die Schulden von 3,4 auf 4,2 Mrd. $ steigen, mit Cardinal und Paloma auf rund 6 Mrd. $; der Archiv-Cashflow gilt als ungeprüft.
   legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3 2026 mit Paloma und Ridge Runner und die Schuldenentwicklung danach) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
-thesis: Matador fördert Öl und Gas im Delaware-Becken (Permian) und betreibt Midstream (San Mateo, zu 51 %). Im 2. Quartal 2026 erreichte die Ölförderung mit 126.106 Fass am Tag einen Rekord; die Prognose für das Ölwachstum 2026 wurde von 4 auf 7 % angehoben, die Reserven stiegen auf 703 Mio. BOE (+5 %). Der operative Cashflow betrug im Quartal 937 Mio. $, der bereinigte freie Cashflow 303 Mio. $. Daneben kaufte Matador im 1. Halbjahr Rechte und Midstream für 1,27 Mrd. $ (Bundespacht-Versteigerung, Cardinal Midstream) und am 01.10.2026 Paloma Permian für 1,255 Mrd. $ bar; Ridge Runner (13.600 Acres) soll im Oktober folgen. Die langfristigen Schulden stiegen von 3,40 auf 4,22 Mrd. $ (30.06.), mit Paloma auf rund 5,5 Mrd. $ (Agent, grob). Der freie Cashflow der letzten zwölf Monate vor Zukäufen liegt bei rund 569 Mio. $ (8,8 % des Börsenwerts); nach Zukäufen wäre er negativ.
+thesis: 'Matador fördert Öl und Gas im Delaware-Becken (Permian) und betreibt Midstream (San Mateo, zu 51 %). Im 2. Quartal 2026 erreichte die Ölförderung mit 126.106 Fass am Tag einen Rekord; die Prognose für das Ölwachstum 2026 wurde von 4 auf 7 % angehoben, die Reserven stiegen auf 703 Mio. BOE (+5 %). Der operative Cashflow betrug im Quartal 937 Mio. $, der bereinigte freie Cashflow 303 Mio. $. Daneben kaufte Matador im 1. Halbjahr Öl- und Gasrechte für rund 1,23 Mrd. $ (vor allem die Bundespacht-Versteigerung, rund 1,16 Mrd. $) und zahlte 37,6 Mio. $ an für Cardinal Midstream (Abschluss 31.07.: 752 Mio. $ bar, finanziert über einen neuen 650-Mio.-$-Kredit von San Mateo und 100 Mio. $ Einlagen); am 01.10.2026 folgte Paloma Permian für 1,255 Mrd. $ bar, Ridge Runner (13.600 Acres) soll im Oktober folgen. Die langfristigen Schulden stiegen von 3,40 auf 4,22 Mrd. $ (30.06.), mit Cardinal und Paloma auf rund 6 Mrd. $ (Agent, grob). Der freie Cashflow der letzten zwölf Monate vor Zukäufen liegt bei rund 881 Mio. $ (13,7 % des Börsenwerts); nach Zukäufen von rund 1,49 Mrd. $ in diesen zwölf Monaten wäre er negativ (rund -606 Mio. $, Agent).'
 kpis:
 - label: Marktwert
   main: 6,45 Mrd. $
   sub: 52,12 $ x 123,8 Mio. Aktien (Kurs 23.09.)
   status: neutral
 - label: FCF-Rendite
-  main: 8,8 %
+  main: 13,7 %
   sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 25,0 %'
   status: ok
 - label: EV/EBIT
   main: 9,3
-  sub: 'letzte 12 Monate (Agent), vor Paloma und Ridge Runner | Stufe 2 EV/EBITDA: 4,0'
+  sub: 'letzte 12 Monate (Agent), mit Minderheiten 322 Mio. $, vor Cardinal-Kredit, Paloma und Ridge Runner | Stufe 2 EV/EBITDA: 4,0'
   status: neutral
 - label: Nettoschulden
   main: 4,19 Mrd. $
   sub: '30.06.2026: Schulden 4.216,4 minus Kasse 26,3; Paloma (+1.255 Mio. $) kam am 01.10. dazu | Stufe 1: 1,39'
   status: warn
 - label: Zukäufe 2026
-  main: ca. 2,5 Mrd. $
-  sub: 'H1: 1,27 Mrd. + Paloma 1,255 Mrd. (01.10.) + Ridge Runner (offen)'
+  main: ca. 3,2 Mrd. $
+  sub: H1 1,27 + Cardinal 0,71 (31.07.) + Paloma 1,255 (01.10.); Ridge Runner offen
   status: warn
 halfyear:
   labels:
@@ -62,24 +62,24 @@ events:
 - date: Mai 2026
   text: 'Bundespacht-Versteigerung: 5.154 Netto-Acres im Delaware-Becken erworben (Kreditaufnahme, später über 200 Mio. $ zurückgezahlt)'
 - date: 22.07.2026
-  text: Vertrag zum Kauf von Paloma Permian LLC (EnCap)
+  text: Vertrag zum Kauf von Paloma Permian LLC (EnCap; genannter Preis 1,275 Mrd. $, bei Abschluss auf 1,255 Mrd. $ angepasst)
 - date: 31.07.2026
-  text: Cardinal Midstream (Gasaufbereitung, 145 Meilen Leitungen) durch San Mateo gekauft
+  text: 'Cardinal Midstream (Gasaufbereitung, 145 Meilen Leitungen) durch San Mateo gekauft: 752 Mio. $ bar, finanziert über neuen 650-Mio.-$-Kredit und Einlagen von 100 Mio. $'
 - date: 05.08.2026
   text: 'Zahlen Q2: Rekordölförderung 126.106 Fass/Tag; Ölprognose 2026 auf +7 % angehoben; 10-Q am 07.08. eingereicht'
 - date: 09.09.2026
   text: Van H. Singleton II geht als Co-President in den Ruhestand, bleibt Berater (8-K vom 10.09.)
 - date: 01.10.2026
-  text: 'Paloma-Kauf abgeschlossen: 1,255 Mrd. $ bar, 16.500 Netto-Acres, ca. 11.100 BOE/Tag'
+  text: 'Paloma-Kauf abgeschlossen: 1,255 Mrd. $ bar, 16.500 Netto-Acres, geschätzte Produktion im 3. Quartal ca. 11.100 BOE/Tag'
 - date: Okt. 2026
   text: Ridge Runner (13.600 Netto-Acres Woodford) soll später im Oktober abgeschlossen werden
   future: true
 bear:
-- 'Schulden: langfristig 3.402 (Dezember 2025) auf 4.216 Mio. $ (Juni 2026); Paloma (+1,255 Mrd. $) kam danach dazu; Ridge Runner noch offen.'
-- Zukäufe im 1. Halbjahr 1,27 Mrd. $ stehen nicht in der Investitionszeile; mit ihnen wäre der Cashflow der letzten zwölf Monate negativ.
+- 'Schulden: langfristig 3.402 (Dezember 2025) auf 4.216 Mio. $ (Juni 2026); danach Cardinal (752 Mio. $ bar, 650 Mio. $ neuer San-Mateo-Kredit) und Paloma (+1,255 Mrd. $); Ridge Runner noch offen.'
+- Zukäufe von rund 1,49 Mrd. $ in den letzten zwölf Monaten (Öl- und Gasrechte, Cardinal-Anzahlung) stehen nicht in der Investitionszeile; mit ihnen wäre der Cashflow der letzten zwölf Monate negativ.
 - 'Archiv: FCF-Rendite „ungeprüft“, mit sonstigen Investitionen -3,1 % (nicht 25 %); Trend-Guard: ROIC im letzten Jahr 9,9 % unter der Schwelle.'
 - Ölpreisabhängig; das Betriebsergebnis fiel 2025 auf 1.227 nach 1.435 Mio. $ (2024), im 1. Halbjahr 2026 624 nach 678.
-- „Externe Gegenwinde“ und Abschaltungen von Ölmengen im Quartal laut Firma (Details nicht genannt).
+- Im Quartal Abschaltungen von Ölmengen wegen negativer Waha-Gaspreise und Wartung bei Dritten (Pressemitteilung).
 bull:
 - Rekordförderung (126.106 Fass Öl/Tag); Prognose Ölwachstum 2026 +7 %; Reserven +5 % auf 703 Mio. BOE.
 - 'Q2: operativer Cashflow 937 Mio. $, bereinigter freier Cashflow 303 Mio. $ (Q1: 113 Mio. $).'
@@ -89,10 +89,10 @@ bull:
 entry:
   zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
   horizon: mittelfristig (1 bis 3 Jahre)
-  limit: 76.68
+  limit: 118.6
   limit_label: Grenze nach FCF-Rendite 6 %
-  price_vs_limit: 32,0 % darunter
-  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate vor Zukäufen (569,4 Mio. $) und 123,8 Mio. Aktien laut Archiv angewendet. Die Zukäufe sind nicht abgezogen; zählt man die 1,27 Mrd. $ des 1. Halbjahrs mit, ergibt die Rechnung keinen positiven Wert. Die Grenze ist daher nur eine obere Marke. Die zweite Grenze (EV/EBITDA) fehlt.'
+  price_vs_limit: 56,1 % darunter
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate vor Zukäufen (880,6 Mio. $) und 123,8 Mio. Aktien laut Archiv angewendet. Die Zukäufe (rund 1,49 Mrd. $ in den letzten zwölf Monaten) sind nicht abgezogen; mit ihnen ergibt die Rechnung keinen positiven Wert. Die Grenze ist daher nur eine obere Marke. Die zweite Grenze (EV/EBITDA) fehlt.'
   price: 52.12
   price_date: 23.09.2026
   condition: 'Abwarten: Quartalsbericht Q3 2026 mit Paloma und Ridge Runner; Schulden, Zinsen und Cashflow nach Zukäufen neu rechnen'
@@ -102,7 +102,7 @@ sources_detail:
 - 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
 - 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
 sources: 'SEC: 10-K 2025 (0001520006-26-000002), 10-Q Q2 2026 (-26-000041), 10-Q Q1 2026 (-26-000023), 8-Ks: 16.06.2026 (-26-000029), 22.07. (-26-000033), 24.07. (-26-086469), 05.08. (-26-000036), 10.09. (-26-000043), 05.10.2026 (-26-000050). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
-not_checked: 'Die Peer-Gruppe (19 Firmen, Öl und Gas) enthält mehrere Firmen ohne belastbaren FCF-Wert (Kosmos, Ring Energy, SM Energy); 1 Firma fehlt wegen Datenfehlers (APC). Das Archiv markiert die Branche als zyklisch (`cyclical_sector`) und die FCF-Rendite als ungeprüft. Nicht geprüft: Kaufpreise von Ridge Runner und Cardinal im Detail, Absicherungen (Hedges), Reserven nach SEC-Preisen, Anteil der Minderheit an San Mateo, ob die Investitionswerte 2023 und 2024 (3,2 und 3,9 Mrd. $) Zukäufe enthalten, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+not_checked: 'Die Peer-Gruppe (19 Firmen, Öl und Gas) enthält mehrere Firmen ohne belastbaren FCF-Wert (Kosmos, Ring Energy, SM Energy); 1 Firma fehlt wegen Datenfehlers (APC). Das Archiv markiert die Branche als zyklisch (`cyclical_sector`) und die FCF-Rendite als ungeprüft. Nicht geprüft: Kaufpreis von Ridge Runner, Absicherungen (Hedges), Reserven nach SEC-Preisen, Anteil der Minderheit an San Mateo, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
 peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); 1 Firma fehlt wegen Datenfehlers (APC; laut Hinweis des Exportlaufs). Mehrere Firmen ohne FCF-Wert (KOS, REI, SM).
 peer_summary: 'Gegen die 19 Firmen der Gruppe mit Wert: EV/EBITDA 4,0 gegen Median 4,9 (Platz 7 von 19, 1 = günstigste), FCF-Rendite 25,0 % gegen Median 7,5 % (Platz 2 von 16, 1 = höchste).'
 funnel_title: So kam MTDR auf die Liste (Trichter vom 10.10.2026)
@@ -197,17 +197,17 @@ financials:
     - 1.407,7
   - name: Investitionen (laut XBRL)
     values:
-    - 3.228,3
-    - 3.906,5
-    - 2.155,4
+    - 1.362,1
+    - 1.512,4
+    - 1.844,2
     - 907,1
     - 786,1
   - name: Freier Cashflow vor Zukäufen
     values:
-    - -1.360,5
-    - -1.659,6
-    - 269,6
+    - 505,7
+    - 734,5
+    - 580,8
     - 321,8
     - 621,6
-  note: 'Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten, Kapitalflussrechnung). Investitionen 2026 und Vorjahr: Bohrung, Midstream und sonstige (ohne Zukäufe von 1.272,6 Mio. $ im 1. Halbjahr 2026). Ob die Werte 2023 und 2024 Zukäufe enthalten, ist nicht geprüft.'
+  note: 'Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (Kapitalflussrechnung). Investitionen = Bohrung, Midstream und sonstige (ohne Zukäufe von Öl- und Gasrechten, Ameredev 2024 und Advance 2023; im 1. Halbjahr 2026 ohne 1.272,6 Mio. $ Zukäufe). Umsatz = Erlöse aus Kundenverträgen, das Betriebsergebnis ist auf Gesamterlösen gerechnet; die Marge ist daher nur näherungsweise.'
 method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

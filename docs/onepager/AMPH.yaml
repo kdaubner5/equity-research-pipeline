@@ -17,7 +17,7 @@ verdict:
   tone: warn
   text: Vorschlag des Agenten, Entscheidung durch Konstantin. Am 02.07.2026 erhielt die Tochter IMS einen FDA-Warnbrief für ihr Werk in South El Monte; das Betriebsergebnis fiel schon im 1. Halbjahr um 33 %, und die Schulden liegen bei rund 400 Mio. $ netto.
   legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Antwort der FDA auf den Sanierungsplan der IMS und Quartalsbericht Q3 2026) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
-thesis: Amphastar stellt Arzneimittel zum Spritzen, Inhalieren und für die Nase her (Generika und eigene Marken, darunter Primatene MIST). Im 2. Quartal 2026 stieg der Umsatz um 5 % auf 183,9 Mio. $, der Nettogewinn betrug 30,3 Mio. $ (Gewinn je Aktie 0,67 $, bereinigt 0,91 $). Im 1. Halbjahr sank das Betriebsergebnis um 33 % auf 53,4 Mio. $ und der Nettogewinn auf 36,8 Mio. $ (Vorjahr 56,3); die Firma nennt „Preis- und Wettbewerbsdruck in Teilen des Portfolios“. Am 02.07.2026 erhielt die Tochter International Medication Systems einen FDA-Warnbrief (cGMP-Verstöße in Untersuchungsverfahren, Umgebungsüberwachung und Anlagen); es gibt keine Anordnung zu Stopp oder Rückruf, die Produktion läuft weiter, die Firma „kann den Ausgang nicht zusichern“. Der freie Cashflow der letzten zwölf Monate liegt bei rund 153 Mio. $ (14,4 % des Börsenwerts); die Nettoschulden betragen rund 397 Mio. $ (davon 345 Mio. $ Wandelanleihe 2029).
+thesis: Amphastar stellt Arzneimittel zum Spritzen, Inhalieren und für die Nase her (Generika und eigene Marken, darunter Primatene MIST). Im 2. Quartal 2026 stieg der Umsatz um 5 % auf 183,9 Mio. $, der Nettogewinn betrug 30,3 Mio. $ (Gewinn je Aktie 0,67 $, bereinigt 0,91 $). Im 1. Halbjahr sank das Betriebsergebnis um 33 % auf 53,4 Mio. $ und der Nettogewinn auf 36,8 Mio. $ (Vorjahr 56,3); der CEO verweist zum 2. Quartal auf Preis- und Wettbewerbsdynamik in Teilen des Portfolios. Am 02.07.2026 erhielt die Tochter International Medication Systems einen FDA-Warnbrief (cGMP-Verstöße in Untersuchungsverfahren, Umgebungsüberwachung und Anlagen); es gibt keine Anordnung zu Stopp oder Rückruf, die Produktion läuft weiter, die Firma „kann den Ausgang nicht zusichern“. Der freie Cashflow der letzten zwölf Monate liegt bei rund 153 Mio. $ (14,4 % des Börsenwerts); die Nettoschulden betragen rund 397 Mio. $ (davon 345 Mio. $ Wandelanleihe 2029).
 kpis:
 - label: Marktwert
   main: 1,06 Mrd. $
@@ -33,7 +33,7 @@ kpis:
   status: neutral
 - label: Nettoschulden
   main: 396,6 Mio. $
-  sub: '30.06.2026: Schulden 620,2 minus Kasse 223,6 (davon Wandelanleihe 2029: 345 Mio. $) | Stufe 1: 2,23'
+  sub: '30.06.2026: Schulden 620,2 minus Kasse 223,6, ohne 66,5 Mio. $ kurzfristige Anlagen (davon Wandelanleihe 2029: 345 Mio. $) | Stufe 1: 2,23'
   status: warn
 - label: FDA-Warnbrief
   main: 02.07.2026
@@ -68,15 +68,15 @@ events:
 - date: 06.08.2026
   text: 'Zahlen Q2: Umsatz 183,9 Mio. $ (+5 %), Gewinn je Aktie 0,67 $ (bereinigt 0,91 $); 10-Q eingereicht'
 bear:
-- 'FDA-Warnbrief: weitere behördliche Schritte „ohne Vorwarnung“ sind möglich, bis die Mängel behoben sind; die Firma prüft noch die Folgen.'
+- 'FDA-Warnbrief: weitere behördliche Schritte „ohne weitere Ankündigung“ sind möglich, bis die Mängel behoben sind; die Firma prüft noch die Folgen.'
 - Betriebsergebnis 1. Halbjahr 53,4 Mio. $ nach 79,5 (-33 %); 2025 140,4 nach 205,4 (2024).
 - Preis- und Wettbewerbsdruck bei Teilen des Portfolios (Firmenangabe).
-- Nettoschulden rund 397 Mio. $ (Wandelanleihe 2029, 345 Mio. $); kurzfristige Verbindlichkeiten stiegen von 158 auf 263 Mio. $.
+- Nettoschulden rund 397 Mio. $ (Wandelanleihe 2029, 345 Mio. $); kurzfristige Verbindlichkeiten stiegen von 158 auf 263 Mio. $ (vor allem Verbindlichkeiten und Rückstellungen, nicht Finanzschulden).
 - Aktien von Vorstand und Verwaltungsrat sind teilweise verpfändet (Risikohinweis im 10-Q); Trend-Guard markiert Marge und ROIC.
 bull:
 - Umsatz Q2 +5 %; Bruttomarge im Quartal gestiegen; Gewinn je Aktie Q2 0,67 $ nach 0,64 $.
 - Operativer Cashflow 1. Halbjahr 99,2 Mio. $ nach 70,7; freier Cashflow 12 Monate rund 153 Mio. $.
-- Warnbrief verlangt weder Stopp noch Rückruf; die Firma setzt Korrekturen laufend um.
+- Warnbrief verlangt weder Stopp noch weiteren Rückruf (vorbehaltlich der Prüfung durch Dritte); die Firma setzt Korrekturen laufend um.
 - Neue Produkte und Pipeline (Generika und eigene Entwicklungen) laut Firma.
 - Kasse 223,6 Mio. $.
 entry:

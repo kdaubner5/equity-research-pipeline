@@ -17,7 +17,7 @@ verdict:
   tone: bad
   text: Vorschlag des Agenten, Entscheidung durch Konstantin. Am 06.10.2026 wurde ein Übernahmeangebot von CD&R und McKesson über 32,05 $ je Aktie bar bekannt (Prämie rund 37 %). Der Kurs dürfte sich dem Angebot annähern (aktueller Kurs nicht abgerufen); die Grundlage unseres Einstiegsszenarios entfällt. Wiedervorlage, falls der Vertrag scheitert.
   legend: Was bedeutet VERWERFEN? Die Firma verlässt die Liste, weil die Unterlagen etwas zeigen, das der Filter nicht sehen kann und das die Grundlage der Auswahl entfallen lässt. Sie kann später neu geprüft werden (siehe Wiedervorlage). Es ist weder eine Kauf- noch eine Verkaufsempfehlung.
-thesis: 'Option Care Health ist der größte unabhängige Anbieter von Infusionstherapie zu Hause und in ambulanten Zentren. Im 2. Quartal 2026 stieg der Umsatz um 1,9 % auf 1.442 Mio. $, der Nettogewinn um 6,7 % auf 53,9 Mio. $, das bereinigte EBITDA um 3,0 % auf 117,5 Mio. $; der operative Cashflow betrug 184 Mio. $, und die Firma kaufte im Quartal für 150 Mio. $ eigene Aktien zurück. Die Prognose für 2026: Umsatz 5,675 bis 5,775 Mrd. $, bereinigtes EBITDA 480 bis 495 Mio. $, operativer Cashflow mindestens 320 Mio. $. Am 05./06.10.2026 vereinbarte Option Care Health den Verkauf an einen Investorenkreis aus CD&R (Mehrheit, rund 51 %) und McKesson (rund 1,4 Mrd. $, rund 49 %) für 32,05 $ je Aktie bar, Unternehmenswert rund 5,8 Mrd. $; das ist eine Prämie von rund 37 % auf den Schlusskurs vom 05.10.2026. Abschluss im ersten Halbjahr 2027, nach Zustimmung der Aktionäre und der Behörden; danach ist die Aktie nicht mehr börsennotiert. Der freie Cashflow der letzten zwölf Monate liegt bei rund 304 Mio. $ (8,7 % des Archiv-Börsenwerts).'
+thesis: Option Care Health ist der größte unabhängige Anbieter von Infusionstherapie zu Hause und in ambulanten Zentren. Im 2. Quartal 2026 stieg der Umsatz um 1,9 % auf 1.442 Mio. $, der Nettogewinn um 6,7 % auf 53,9 Mio. $, das bereinigte EBITDA um 3,0 % auf 117,5 Mio. $; der operative Cashflow betrug 184 Mio. $, und die Firma kaufte im Quartal für 150 Mio. $ eigene Aktien zurück. Die Prognose vom 29.07. (Umsatz 5,675 bis 5,775 Mrd. $, bereinigtes EBITDA 480 bis 495 Mio. $, operativer Cashflow mindestens 320 Mio. $) wurde mit dem Angebot am 06.10.2026 zurückgezogen. Am 05./06.10.2026 vereinbarte Option Care Health den Verkauf an einen Investorenkreis aus CD&R (Mehrheit, rund 51 %) und McKesson (rund 1,4 Mrd. $, rund 49 %) für 32,05 $ je Aktie bar, Unternehmenswert rund 5,8 Mrd. $; das ist eine Prämie von rund 37 % auf den Schlusskurs vom 05.10.2026. Abschluss im ersten Halbjahr 2027, nach Zustimmung der Aktionäre und der Behörden; danach ist die Aktie nicht mehr börsennotiert. Der freie Cashflow der letzten zwölf Monate liegt bei rund 304 Mio. $ (8,7 % des Archiv-Börsenwerts).
 kpis:
 - label: Marktwert
   main: 3,50 Mrd. $
@@ -28,12 +28,12 @@ kpis:
   sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 7,9 %'
   status: ok
 - label: EV/EBIT
-  main: 13,5
-  sub: 'letzte 12 Monate (Agent), bis 31.03.2026 | Stufe 2 EV/EBITDA: 10,8'
+  main: 13,4
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 10,8'
   status: neutral
 - label: Nettoschulden
-  main: 982,5 Mio. $
-  sub: '31.03.2026: Schulden 1.159,8 minus Kasse 177,3 (30.06. nicht erfasst) | Stufe 1: 2,27'
+  main: 965,1 Mio. $
+  sub: '30.06.2026: Schulden 1.158,8 minus Kasse 193,8 | Stufe 1: 2,27'
   status: warn
 - label: Angebot
   main: 32,05 $
@@ -49,10 +49,10 @@ halfyear:
     values:
     - 2749.1
     - 2793.1
-  - name: Operativer Cashflow
+  - name: Betriebsergebnis
     values:
-    - 83.1
-    - 171.5
+    - 161.9
+    - 157.7
   - name: Freier Cashflow
     values:
     - 64.6
@@ -74,14 +74,14 @@ events:
 bear:
 - 'Kein Einstieg mehr nach unserer Logik: Der Kurs dürfte nach dem Angebot nahe am Angebotspreis von 32,05 $ liegen (aktueller Kurs nicht abgerufen); der Spielraum nach oben ist begrenzt, außer ein anderer Bieter erscheint.'
 - Scheitert der Abschluss (Aktionäre, Behörden), könnte der Kurs auf das Niveau vor dem Angebot zurückfallen (Schlusskurs 05.10.2026 rechnerisch rund 23,4 $).
-- 'Abbruchgebühr der Firma bei Rücktritt zugunsten eines anderen Angebots: 145,96 Mio. $.'
+- 'Abbruchgebühr der Firma bei Annahme eines besseren Angebots oder Wechsel der Empfehlung: 145,96 Mio. $.'
 - Nettoschulden rund 982 Mio. $ (31.03.2026); Gewinn je Aktie bereinigt nur +10 % im Quartal.
-- 'Archiv: ev_ebitda in der Grauzone, ROIC-Mittel 11,2 %, Aktienzahl „ungeprüft“.'
+- 'Die Firma hat ihre Prognose 2026 mit dem Angebot zurückgezogen; Archiv: ev_ebitda in der Grauzone, ROIC-Mittel 11,2 %, Aktienzahl „ungeprüft“.'
 bull:
 - Angebot mit rund 37 % Prämie; Vorstand empfiehlt einstimmig.
 - 'Operatives Geschäft stabil: Umsatz +1,9 %, bereinigtes EBITDA +3 %, Cashflow 1. Halbjahr 171,5 Mio. $ (Vorjahr 83,1).'
-- 'Prognose 2026 bestätigt: bereinigtes EBITDA 480 bis 495 Mio. $, operativer Cashflow mindestens 320 Mio. $.'
-- McKesson bringt Erfahrung im Spezialpharma-Geschäft; geplanter Weg zur vollständigen Übernahme durch McKesson später.
+- Cashflow im Halbjahr 171,5 Mio. $ nach 83,1; Nettoschulden zum 30.06. 965 Mio. $ nach 982 zum 31.03.
+- McKesson bringt Erfahrung im Spezialpharma-Geschäft; der Vertrag schafft einen Rahmen für einen späteren Kauf der CD&R-Beteiligung durch McKesson (unter Bedingungen).
 - Rückkäufe im Quartal 150 Mio. $.
 entry:
   zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
@@ -102,7 +102,7 @@ sources_detail:
 - 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
 - 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
 sources: 'SEC: 10-K 2025 (0001014739-26-000008), 10-Q Q2 2026 (-26-000023), 10-Q Q1 2026 (-26-000011), 8-Ks: 05.05.2026 (-26-000014), 29.07. (-26-000021), 06.10.2026 (0001104659-26-113904). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
-not_checked: 'Die Peer-Gruppe (11 Firmen, Gesundheitsdienstleister) ist gemischt (Kliniken, Pflege, Telemedizin). Das Archiv trägt die Infomarke `share_count_unchecked`. Der Betriebsgewinn der letzten zwölf Monate stammt nur bis zum 31.03.2026 (Q2 nicht im XBRL-Abruf); Nettogewinn und Betriebsergebnis des 1. Halbjahrs fehlen deshalb in der Tabelle. Nicht geprüft: Finanzierung des Angebots, Zeitplan der Behörden, mögliche Gegenangebote, aktueller Kurs (vermutlich nahe 32 $). Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+not_checked: 'Die Peer-Gruppe (11 Firmen, Gesundheitsdienstleister) ist gemischt (Kliniken, Pflege, Telemedizin). Das Archiv trägt die Infomarke `share_count_unchecked`. Nicht geprüft: Finanzierung des Angebots, Zeitplan der Behörden, mögliche Gegenangebote, aktueller Kurs (vermutlich nahe 32 $). Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
 peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); keine fehlenden Firmen gemeldet. Die Gruppe ist gemischt.
 peer_summary: 'Gegen die 11 Firmen der Gruppe mit Wert: EV/EBITDA 10,8 gegen Median 11,8 (Platz 5 von 11, 1 = günstigste), FCF-Rendite 7,9 % gegen Median 4,9 % (Platz 4 von 11, 1 = höchste).'
 funnel_title: So kam OPCH auf die Liste (Trichter vom 10.10.2026)
@@ -172,22 +172,22 @@ financials:
     - 314,6
     - 321,8
     - 337,9
-    - –
-    - –
+    - 161,9
+    - 157,7
   - name: Betriebsmarge
     values:
     - 7,3 %
     - 6,4 %
     - 6,0 %
-    - –
-    - –
+    - 5,9 %
+    - 5,6 %
   - name: Nettogewinn
     values:
     - 267,1
     - 211,8
     - 207,6
-    - –
-    - –
+    - 97,3
+    - 99,3
   - name: Operativer Cashflow
     values:
     - 371,3
@@ -209,5 +209,5 @@ financials:
     - 217,1
     - 64,6
     - 151,4
-  note: 'Quelle: 10-K und 10-Q der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen). Betriebsergebnis und Nettogewinn des 1. Halbjahrs sind im XBRL-Abruf nicht enthalten.'
+  note: 'Quelle: 10-K und 10-Q der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen). Betriebsergebnis und Nettogewinn des 1. Halbjahrs aus dem 10-Q.'
 method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

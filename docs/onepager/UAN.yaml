@@ -17,7 +17,7 @@ verdict:
   tone: warn
   text: 'Vorschlag des Agenten, Entscheidung durch Konstantin. Das Ergebnis ist stark vom Düngerpreis abhängig und steht nach 2024 wieder hoch (Betriebsergebnis 2024: 90, letzte 12 Monate 190 Mio. $); die Archiv-FCF-Zahl gilt als ungeprüft, die Branche ist zyklisch, und die Führung wechselte im Juni.'
   legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3 2026 (nach der Stillstandsrevision in East Dubuque) und Düngerpreise) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
-thesis: 'CVR Partners stellt Ammoniak und Harnstoff-Ammonnitrat-Dünger (UAN) her (u. a. im Werk East Dubuque), eine Personengesellschaft (LP) mit 10,57 Mio. Anteilen. Im 2. Quartal 2026 stiegen Umsatz und Ergebnis kräftig: Umsatz 202 Mio. $ (Vorjahr 169), Nettogewinn 78 Mio. $ (39), je Anteil 7,33 $; die Ammoniak-Auslastung lag bei 99 %. Die Firma verweist auf knappes weltweites Stickstoffangebot durch geopolitische Konflikte, das die Preise stützt. Für das 2. Quartal wurden 6,08 $ je Anteil ausgeschüttet. Das Betriebsergebnis der letzten zwölf Monate beträgt 190 Mio. $ (2024: 90), der freie Cashflow rund 145 Mio. $ (10,7 % des Börsenwerts). Die Nettoschulden betragen rund 432 Mio. $ (6,125-%-Anleihen 550 Mio. $ bis Juni 2028). Ab August 2026 steht eine sechswöchige Stillstandsrevision in East Dubuque an; am 18.06.2026 schied Mark Pytosh als Chef von CVR Energy und der Geschäftsführung von CVR Partners aus.'
+thesis: 'CVR Partners stellt Ammoniak und Harnstoff-Ammonnitrat-Dünger (UAN) her (u. a. im Werk East Dubuque), eine Personengesellschaft (LP) mit 10,57 Mio. Anteilen. Im 2. Quartal 2026 stiegen Umsatz und Ergebnis kräftig: Umsatz 202 Mio. $ (Vorjahr 169), Nettogewinn 78 Mio. $ (39), je Anteil 7,33 $; die Ammoniak-Auslastung lag bei 99 %. Die Firma verweist auf knappes weltweites Stickstoffangebot durch geopolitische Konflikte, das die Preise stützt. Für das 2. Quartal wurden 6,08 $ je Anteil als Ausschüttung beschlossen (Zahltag 17.08.2026). Das Betriebsergebnis der letzten zwölf Monate beträgt 190 Mio. $ (2024: 90), der freie Cashflow rund 145 Mio. $ (10,7 % des Börsenwerts). Die Nettoschulden betragen rund 432 Mio. $ (6,125-%-Anleihen 550 Mio. $ bis Juni 2028). Für August 2026 war eine sechswöchige Stillstandsrevision in East Dubuque geplant; am 18.06.2026 schied Mark Pytosh als Chef von CVR Energy und der Geschäftsführung von CVR Partners aus.'
 kpis:
 - label: Marktwert
   main: 1,35 Mrd. $
@@ -60,16 +60,15 @@ halfyear:
   unit: Mio. $
 events:
 - date: 18.06.2026
-  text: Mark Pytosh scheidet als President und CEO von CVR Energy und von CVR GP LLC (Komplementär von CVR Partners) aus; Abfindung 3 Mio. $ (8-K vom 23.06.)
+  text: Mark Pytosh scheidet als President und CEO von CVR Energy und von CVR GP LLC (Komplementär von CVR Partners) aus; Abfindung 3 Mio. $ (8-K vom 23.06.); laut 10-Q und Pressemitteilung vom 29.07. ist Dane Neumann CEO und zugleich Interims-Finanzchef
 - date: 29.07.2026
   text: 'Zahlen Q2: Umsatz 202 Mio. $, Nettogewinn 78 Mio. $, Ausschüttung 6,08 $ je Anteil; 10-Q eingereicht'
 - date: '08.2026'
-  text: Planmäßige sechswöchige Stillstandsrevision in East Dubuque; Wasserwerks-Ausbau und Ammoniak-Erweiterung (+5 % Kapazität) laut Firma
-  future: true
+  text: Geplante sechswöchige Stillstandsrevision in East Dubuque mit Wasserwerks-Ausbau und Ammoniak-Erweiterung (+5 % Kapazität); ob sie wie geplant lief, belegen die Unterlagen nicht
 bear:
-- 'Düngerpreis-Zyklus: Betriebsergebnis 2022 320, 2024 90, letzte 12 Monate 190 Mio. $; hohe Preise stützen die Zahlen jetzt.'
+- 'Düngerpreis-Zyklus: Betriebsergebnis 2022 320 (XBRL-Daten), 2024 90, letzte 12 Monate 190 Mio. $; hohe Preise stützen die Zahlen jetzt.'
 - 'Archiv-Marken: ev_ebitda (Grauzone), FCF-Rendite „ungeprüft“ (mit sonstigen Investitionen 4,1 %), zyklische Branche, Net Debt/EBITDA 2,36 (Grauzone).'
-- 'Stillstandsrevision von sechs Wochen im 3. Quartal: weniger Verkauf und Zusatzkosten.'
+- 'Geplante sechswöchige Stillstandsrevision in East Dubuque ab August: In dieser Zeit fällt Produktion aus (Schluss des Agenten).'
 - 'Schulden: 6,125-%-Anleihen 550 Mio. $ fällig Juni 2028 (Refinanzierung steht an); Nettoschulden rund 432 Mio. $.'
 - 'Führungswechsel im Juni 2026: der Konzernchef der Muttergesellschaft ging.'
 bull:
@@ -77,7 +76,7 @@ bull:
 - Auslastung der Anlagen 99 %; Produktion 214.000 Tonnen Ammoniak im Quartal (197.000).
 - Ausschüttung 6,08 $ je Anteil für das 2. Quartal; die Anteile (10,57 Mio.) sind nicht verwässert.
 - Das 2. Halbjahr ist laut Firma gut gebucht („solides Auftragsbuch“).
-- Ausbau um +5 % Ammoniak-Kapazität im Werk East Dubuque.
+- Geplanter Ausbau um rund 5 % Ammoniak-Kapazität im Werk East Dubuque (bei der Revision).
 entry:
   zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
   horizon: mittelfristig (1 bis 3 Jahre)

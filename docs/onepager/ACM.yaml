@@ -17,7 +17,7 @@ verdict:
   tone: warn
   text: Vorschlag des Agenten, Entscheidung durch Konstantin. Ein einzelnes Bauprojekt kostete im Quartal bis Juni 337 Mio. $ vor Steuern; der freie Cashflow der letzten zwölf Monate sinkt auf rund 203 Mio. $ und die Nettoschulden haben sich mehr als verdoppelt.
   legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Fertigstellung des Bauprojekts (laut Firma im 2. Quartal FY27) und Jahresbericht für das Geschäftsjahr bis 30.09.2026) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
-thesis: 'AECOM plant, berät und betreut große Infrastrukturprojekte (Geschäftsjahr bis 30.09.). Im 3. Quartal (April bis Juni 2026) sank der Umsatz um 14 % auf 3,59 Mrd. $; das Betriebsergebnis betrug -76 Mio. $, weil ein 2019 vergebenes Bauprojekt mit Festpreis-Charakter (Construction Management) 337 Mio. $ Vorsteuerverlust brachte: Subunternehmer arbeiten langsamer, die Fertigstellung rutscht auf das 2. Quartal FY27, die Firma verfolgt Nachforderungen, die „mehrere Jahre und Rechtsstreit“ dauern können. Ohne dieses Projekt nennt die Firma eine bereinigte Marge von 16,5 % und einen bereinigten Gewinn je Aktie von 1,49 $ (+11 %). Der Auftragsbestand ist mit 27,8 Mrd. $ (+13 %) ein Rekord. Die Prognose für den freien Cashflow 2026 wurde auf rund 300 Mio. $ gesenkt. Die Nettoschulden stiegen von 754 Mio. $ (30.06.2025) auf 1.732 Mio. $.'
+thesis: 'AECOM plant, berät und betreut große Infrastrukturprojekte (Geschäftsjahr bis 30.09.). Im 3. Quartal (April bis Juni 2026) sank der Umsatz um 14 % auf 3,59 Mrd. $; das Betriebsergebnis betrug -76 Mio. $, weil ein 2019 vergebenes Construction-Management-Bauprojekt 337 Mio. $ Vorsteuerverlust brachte: Subunternehmer arbeiten langsamer, die Fertigstellung rutscht auf das 2. Quartal FY27, die Firma verfolgt Nachforderungen, die „mehrere Jahre und Rechtsstreit“ dauern können. Ohne dieses Projekt nennt die Firma eine bereinigte Marge von 16,5 % und einen bereinigten Gewinn je Aktie von 1,49 $ (+11 %). Der Auftragsbestand ist mit 27,8 Mrd. $ (+13 %) ein Rekord. Die Prognose für den freien Cashflow 2026 wurde auf rund 300 Mio. $ gesenkt. Die Nettoschulden stiegen von 754 Mio. $ (30.06.2025) auf 1.732 Mio. $.'
 kpis:
 - label: Marktwert
   main: 7,90 Mrd. $
@@ -55,8 +55,8 @@ halfyear:
     - 169.2
   - name: Freier Cashflow
     values:
-    - 550.9
-    - 69.3
+    - 550.8
+    - 69.4
   unit: Mio. $
 events:
 - date: 10.06.2026
@@ -79,8 +79,9 @@ bear:
 - 337 Mio. $ Vorsteuerverlust auf ein Projekt aus 2019; Fertigstellung später als geplant, Nachforderungen können „mehrere Jahre und Rechtsstreit“ dauern (Firmenangabe).
 - Freier Cashflow der letzten zwölf Monate rund 203 Mio. $ (2,6 % des Börsenwerts laut Archivkurs); 2025 waren es 685 Mio. $.
 - Nettoschulden 1.732 Mio. $ nach 754 Mio. $ ein Jahr zuvor; die Firma nennt einen Verschuldungsgrad von 1,5x.
-- 'Der Filter sieht davon nichts: Stufe 1 und 2 rechnen mit dem Geschäftsjahr bis 30.09.2025 (Betriebsergebnis 1.026 Mio. $), die letzten zwölf Monate liegen bei 631 Mio. $.'
-- 'Prognose für den Umsatzzuwachs (NSR) gesenkt: Projektstarts verzögern sich.'
+- 'Der Filter sieht davon nichts: Stufe 1 und 2 rechnen mit dem Geschäftsjahr bis 30.09.2025 (Betriebsergebnis rund 1.027 Mio. $), die letzten zwölf Monate liegen bei 631 Mio. $.'
+- 'Prognose für den Umsatzzuwachs (NSR) gesenkt: verzögerte Projektstarts und der Nahost-Konflikt (Pressemitteilung).'
+- Der 10-Q nennt zwei verzögerte Construction-Management-Projekte mit bedeutenden Nachforderungen und eine „vernünftige Möglichkeit“, dass Kunden wesentliche Gegenansprüche erheben.
 bull:
 - 'Ohne das Projekt: bereinigtes EBITDA 329 Mio. $ (+5 %), bereinigtes Ergebnis je Aktie 1,49 $ (+11 %), bereinigte Segmentmarge 16,5 %.'
 - Rekord-Auftragsbestand 27,8 Mrd. $ (+13 %), neue Aufträge 4,2 Mrd. $ im Quartal (Book-to-Burn 1,6).
@@ -90,10 +91,10 @@ bull:
 entry:
   zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
   horizon: mittelfristig (1 bis 3 Jahre)
-  limit: 26.36
+  limit: 26.38
   limit_label: Grenze nach FCF-Rendite 6 %
-  price_vs_limit: 133,1 % darüber
-  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (203,3 Mio. $) und 128,5 Mio. Aktien angewendet. Wegen des Projektverlusts liegt der Kurs weit über der Grenze; mit der Firmenprognose von rund 300 Mio. $ läge die Grenze bei etwa 38,9 $. Die zweite Grenze (EV/EBITDA) fehlt.'
+  price_vs_limit: 132,9 % darüber
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (203,4 Mio. $) und 128,5 Mio. Aktien angewendet. Wegen des Projektverlusts liegt der Kurs weit über der Grenze; mit der Firmenprognose von rund 300 Mio. $ läge die Grenze bei etwa 38,9 $. Die zweite Grenze (EV/EBITDA) fehlt.'
   price: 61.45
   price_date: 23.09.2026
   condition: 'Abwarten: Fertigstellung des Projekts und Jahresbericht (Geschäftsjahr bis 30.09.2026); neue Rechnung mit bereinigtem Cashflow'
@@ -208,7 +209,7 @@ financials:
     - 590,4
     - 707,9
     - 684,9
-    - 550,9
-    - 69,3
+    - 550,8
+    - 69,4
   note: 'Quelle: 10-K FY2025 und 10-Q Q3 FY26 der SEC (XBRL-Daten); Geschäftsjahr endet am 30.09., 9 Monate = Oktober bis Juni. Marge und freier Cashflow vom Agenten gerechnet. Betriebsergebnis 9M FY26 enthält 337 Mio. $ Projektverlust.'
 method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

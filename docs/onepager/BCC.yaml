@@ -15,7 +15,7 @@ dates:
 verdict:
   label: ZURÜCKSTELLEN
   tone: warn
-  text: 'Vorschlag des Agenten, Entscheidung durch Konstantin. Die Bewertung beruht auf stark gefallenen Gewinnen (Betriebsergebnis 2022: 1.158, 2025: 183 Mio. $); der freie Cashflow der letzten zwölf Monate (rund 103 Mio. $) ist knapp, und der Wohnungsbau bleibt schwach.'
+  text: 'Vorschlag des Agenten, Entscheidung durch Konstantin. Die Bewertung beruht auf stark gefallenen Gewinnen (Betriebsergebnis 2022: 1.158 laut XBRL-Daten, 2025: 183 Mio. $); der freie Cashflow der letzten zwölf Monate (rund 103 Mio. $) ist knapp, und der Wohnungsbau bleibt schwach.'
   legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3 2026 und Erholung des Wohnungsbaus) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
 thesis: Boise Cascade vertreibt Baustoffe (Building Materials Distribution) und stellt Holzprodukte her. Im 2. Quartal 2026 stieg der Umsatz um 5 % auf 1,83 Mrd. $; der Nettogewinn sank leicht auf 57,3 Mio. $ (Gewinn je Aktie 1,63 $ nach 1,64 $), das bereinigte EBITDA stieg um 6 % auf 126,2 Mio. $. Die Verteilsparte verdiente 10 % weniger, die Holzprodukte 84 % mehr. Seit 2022 ist das Betriebsergebnis von 1.158 auf 183 Mio. $ (2025) gefallen; in den letzten zwölf Monaten liegt es bei 160 Mio. $. Der freie Cashflow der letzten zwölf Monate beträgt rund 103 Mio. $ (3,8 % des Börsenwerts), der Archiv-Dreijahreswert 8,7 %. Mit 148 Mio. $ Nettoschulden ist die Bilanz solide. Am 03.08.2026 wurde Boise Cascade alleiniger landesweiter Distributor des James-Hardie-Portfolios (Hardie, AZEK, TimberTech).
 kpis:
@@ -37,7 +37,7 @@ kpis:
   status: ok
 - label: Betriebsergebnis
   main: 160,1 Mio. $
-  sub: 'letzte 12 Monate | 2022: 1.157,8, 2025: 183,3'
+  sub: 'letzte 12 Monate | 2022: 1.157,8 (XBRL), 2025: 183,3'
   status: bad
 halfyear:
   labels:
@@ -66,7 +66,7 @@ events:
 - date: 03.08.2026
   text: 'Erweiterte Partnerschaft: Boise Cascade wird alleiniger landesweiter Distributor des James-Hardie-Portfolios (gültig ab 31.07.2026)'
 - date: 16.09.2026
-  text: Dividende 0,23 $ zahlbar
+  text: Dividende 0,23 $ laut Beschluss zahlbar
 bear:
 - Betriebsergebnis seit 2022 von 1.158 auf 183 Mio. $ (2025) gefallen; 1. Halbjahr 2026 111,8 nach 135,0.
 - Der Archiv-FCF von 8,7 % ist ein Dreijahresmittel; die letzten zwölf Monate geben nur 3,8 % (rund 103 Mio. $).
@@ -76,7 +76,7 @@ bear:
 bull:
 - 'Holzprodukte: Segmentergebnis +84 % im Quartal (25,7 nach 14,0 Mio. $), Segment-EBITDA +40 %.'
 - Bereinigtes EBITDA im Quartal +6 %; Umsatz +5 %.
-- Neue Hardie-Exklusivrolle erweitert das Sortiment (Siding, Decking).
+- Neue Hardie-Exklusivrolle erweitert das Sortiment (Siding, Decking); Boise Cascade wendet sich dafür von konkurrierenden Siding-, Trim- und Moulding-Produkten ab (gemeinsame Mitteilung).
 - Liquidität 699,9 Mio. $; Nettoschulden nur 148 Mio. $.
 - Investitionen im 1. Halbjahr 63,3 nach 132,3 Mio. $; 2026 geplant 150 bis 170 Mio. $.
 entry:

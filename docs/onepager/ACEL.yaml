@@ -17,7 +17,7 @@ verdict:
   tone: ok
   text: Vorschlag des Agenten, Entscheidung durch Konstantin. Wachsender Umsatz und Gewinn in einem regulierten Nischengeschäft, mäßige Verschuldung; der Cashflow ist dünn und hängt an Genehmigungen (Chicago).
   legend: Was bedeutet WEITERVERFOLGEN? Die Firma besteht den Filter und die Prüfung der Unterlagen zeigt kein Ausschlussmerkmal. Sie kommt in die engere Beobachtung; ein Kauf folgt nur nach den Stufe-4-Regeln und deiner Entscheidung. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.
-thesis: Accel stellt Spielautomaten in Kneipen und Geschäften auf (hauptsächlich Illinois) und betreibt eine Rennbahn mit Kasino (Fairmount Park). Im 2. Quartal 2026 stieg der Umsatz um 10 % auf 368 Mio. $ (Rekord), an 4.676 Standorten mit 29.281 Geräten; der Nettogewinn stieg um 72 % auf 13 Mio. $, das bereinigte EBITDA um 11 % auf 59 Mio. $. Der freie Cashflow der letzten zwölf Monate liegt bei rund 79 Mio. $ (8,7 % des Börsenwerts laut Archivkurs); im 2. Quartal drückte der Kauf einer Steuergutschrift (17 Mio. $) den Cashflow. Die Nettoschulden betragen 318 Mio. $ (Firmenangabe). Chancen kommen aus Chicago, wo die Genehmigungen laufen (17 von 39 genehmigten Standorten sind Accel-Standorte).
+thesis: Accel stellt Spielautomaten in Kneipen und Geschäften auf (hauptsächlich Illinois) und betreibt eine Rennbahn mit Kasino (Fairmount Park). Im 2. Quartal 2026 stieg der Umsatz um 10 % auf 368 Mio. $ (Rekord), an 4.676 Standorten mit 29.281 Geräten; der Nettogewinn stieg um 72 % auf 13 Mio. $, das bereinigte EBITDA um 11 % auf 59 Mio. $. Der freie Cashflow der letzten zwölf Monate liegt bei rund 79 Mio. $ (8,7 % des Börsenwerts laut Archivkurs); im 2. Quartal drückte der Kauf einer Steuergutschrift (17 Mio. $) den Cashflow. Die Nettoschulden betragen 318 Mio. $ (Firmenangabe). Chancen kommen aus Chicago, wo die Genehmigungen laufen (17 oder 44 % der bisher genehmigten Standorte sind Accel-Standorte).
 kpis:
 - label: Marktwert
   main: 0,90 Mrd. $
@@ -59,8 +59,8 @@ halfyear:
     - 28.7
   unit: Mio. $
 events:
-- date: 13.07.2026
-  text: Aktienprogramm für Führungskräfte 2026 beschlossen (8-K)
+- date: 11.07.2026
+  text: Aktienprogramm für Führungskräfte 2026 beschlossen (8-K vom 13.07.)
 - date: 14.07.2026
   text: Chief Compliance Officer Derek Harmer kündigt zum 31.03.2027
 - date: 04.08.2026
@@ -74,10 +74,10 @@ bear:
 - Nettoschulden 318 Mio. $ (Firmenangabe); Schulden 573 Mio. $ gegen Kasse 255 Mio. $.
 - Das Geschäft hängt an staatlichen Genehmigungen (Illinois, Chicago, weitere Staaten) und an der Steuerpolitik für Spielgeräte.
 - Aktienzahl laut Archiv „ungeprüft“ (Infomarke); Earnout-Aktien aus dem Fairmount-Kauf sind noch offen (Neubewertung kostete 5 Mio. $ im Quartal).
-- 'Der Betriebsgewinn 2024 sank auf 91 Mio. $ (2023: 107); die Marge liegt bei rund 8 %.'
+- 'Die Betriebsmarge liegt nur bei rund 8 % (2025: 107,9 Mio. $ auf 1.331 Mio. $ Umsatz; 2024: 90,9).'
 bull:
-- Umsatz seit 2022 von 970 auf 1.331 Mio. $ (2025); 1. Halbjahr 2026 +9 %.
-- 'Chicago: Genehmigungen laufen; 17 von 39 genehmigten Standorten sind Accel-Standorte (44 %).'
+- Umsatz von 1.170 (2023) auf 1.331 Mio. $ (2025); 1. Halbjahr 2026 +9 %.
+- 'Chicago: Genehmigungen laufen; 17 der bisher genehmigten Standorte (44 %) sind Accel-Standorte.'
 - Fairmount Park lieferte im Q2 den höchsten Quartals-Bruttogewinn seit der Übernahme; Tischspiele gestartet.
 - Nebraska und Georgia wachsen deutlich (bereinigtes EBITDA).
 - Rückkaufprogramm läuft (0,5 Mio. Aktien im Q2).
@@ -97,7 +97,7 @@ sources_detail:
 - 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
 - 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
 sources: 'SEC: 10-K 2025 (0001698991-26-000018), 10-Q Q2 2026 (-26-000059), 10-Q Q1 2026 (-26-000037), 8-Ks: 13.07., 14.07., 04.08. (Pressemitteilung), 11.08.2026. Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
-not_checked: 'Die Peer-Gruppe (24 Firmen, Freizeit und Reisen) passt nur teilweise (Kreuzfahrt, Reisen, Spielautomaten); 1 Firma fehlt wegen Datenfehlers (MMYT). Nicht geprüft: Steuer- und Lizenzbedingungen je Bundesstaat, Höhe der Earnout-Aktien, Schulden- und Zinsbedingungen im Detail, Leasing, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+not_checked: 'Die Peer-Gruppe (24 Firmen, Freizeit und Reisen) passt nur teilweise (Kreuzfahrt, Reisen, Spielautomaten); 1 Firma fehlt wegen Datenfehlers (MMYT). Widerspruch in den Quellen: Pressemitteilung und 10-Q nennen Andrew Rubenstein als CEO, der 8-K vom 11.08. nennt Mark Phelan als Chief Executive Officer; ungeklärt. Nicht geprüft: Steuer- und Lizenzbedingungen je Bundesstaat, Höhe der Earnout-Aktien, Schulden- und Zinsbedingungen im Detail, Leasing, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
 peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); 1 Firma fehlt wegen Datenfehlers (MMYT; laut Hinweis des Exportlaufs). Die Gruppe ist gemischt.
 peer_summary: 'Gegen die 24 Firmen der Gruppe mit Wert: EV/EBITDA 7,0 gegen Median 10,5 (Platz 6 von 24, 1 = günstigste), FCF-Rendite 6,3 % gegen Median 7,4 % (Platz 13 von 21, 1 = höchste).'
 funnel_title: So kam ACEL auf die Liste (Trichter vom 10.10.2026)

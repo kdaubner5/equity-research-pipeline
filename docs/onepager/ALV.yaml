@@ -15,7 +15,7 @@ dates:
 verdict:
   label: WEITERVERFOLGEN
   tone: ok
-  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Der Gewinnrückgang kommt aus dem einmaligen Umbau in der Türkei (142 Mio. $); das bereinigte Ergebnis steigt, die Schulden sinken, die Prognose 2026 steht. Autoindustrie und Zölle bleiben Risiken.
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Der Gewinnrückgang kommt aus dem einmaligen Umbau in der Türkei (142 Mio. $); das bereinigte Ergebnis steigt, die Nettoschulden liegen unter dem Vorjahr, die Prognose 2026 steht. Autoindustrie und Zölle bleiben Risiken.
   legend: Was bedeutet WEITERVERFOLGEN? Die Firma besteht den Filter und die Prüfung der Unterlagen zeigt kein Ausschlussmerkmal. Sie kommt in die engere Beobachtung; ein Kauf folgt nur nach den Stufe-4-Regeln und deiner Entscheidung. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.
 thesis: Autoliv baut Airbags, Gurte und Lenkräder für Autohersteller. Im 2. Quartal 2026 stieg der Umsatz um 3,3 % auf 2.803 Mio. $ (organisch +1,0 %, in einem leicht fallenden Weltmarkt); der bereinigte Betriebsgewinn stieg um 7,3 % auf 270 Mio. $ (9,6 % Marge). Das berichtete Betriebsergebnis fiel dagegen um 22 % auf 192 Mio. $, weil die Firma am 08.05.2026 die Schließung ihrer Werke in der Türkei beschloss (Gesamtaufwand rund 142 Mio. $, davon rund 129 Mio. $ Auszahlungen, rund 2.200 Stellen; erwartete Ersparnis rund 40 Mio. $ im Jahr ab 2027). Der operative Cashflow im 2. Quartal lag bei 434 Mio. $ (Vorjahr 277), auch dank 240 Mio. $ Abbau von Betriebskapital. Der freie Cashflow der letzten zwölf Monate liegt bei rund 757 Mio. $ (9,0 % des Börsenwerts laut Archivkurs). Die Nettoschulden betragen 1.695 Mio. $ (Verschuldungsgrad laut Firma 1,2x). Prognose 2026 bestätigt (bereinigte Marge 10,5 bis 11 %, operativer Cashflow rund 1,2 Mrd. $).
 kpis:
@@ -60,7 +60,7 @@ halfyear:
   unit: Mio. $
 events:
 - date: 08.05.2026
-  text: 'Beschluss zur Schließung der Werke in der Türkei: rund 142 Mio. $ vor Steuern (davon 129 Mio. $ Auszahlungen), rund 2.200 Stellen, Ersparnis rund 40 Mio. $ jährlich ab 2027 (8-K vom 11.05.)'
+  text: 'Ankündigung der Schließung der Werke in der Türkei: rund 142 Mio. $ vor Steuern (davon 129 Mio. $ Auszahlungen), rund 2.200 Stellen, Ersparnis rund 40 Mio. $ jährlich ab 2027 (8-K vom 11.05.)'
 - date: 24.06.2026
   text: Kevin Fox (President Americas) kündigt, bleibt bis 31.08.2026 (8-K vom 30.06.)
 - date: 17.07.2026
@@ -68,14 +68,14 @@ events:
 - date: 2. Quartal 2026
   text: Dividende 0,87 $ je Aktie gezahlt; Rückkäufe von 200 Mio. $ (1,65 Mio. Aktien)
 bear:
-- 'Türkei-Schließung: rund 142 Mio. $ Aufwand, davon rund 129 Mio. $ Auszahlungen (Abfindungen); ein Teil davon fließt erst in den nächsten Quartalen ab.'
+- 'Türkei-Schließung: rund 142 Mio. $ Aufwand, davon rund 129 Mio. $ Auszahlungen (Abfindungen); die Auszahlungen (Abfindungen, Haltepraemien) verteilen sich über mehrere Quartale.'
 - Die Prognose rechnet mit 2,5 % weniger Fahrzeugproduktion weltweit; organisches Wachstum nur rund 0 %.
-- Betriebskapital-Abbau von 240 Mio. $ im Quartal ist einmalig und stützt Cashflow und 12-Monats-Zahl.
+- Der Betriebskapital-Abbau von 240 Mio. $ im Quartal stützt Cashflow und 12-Monats-Zahl (laut Firma „Normalisierung“ des Betriebskapitals).
 - Zölle, Lieferketten und Rohstoffpreise wirken (Firmenangabe „begrenzt“); Kunden-Ausgleichszahlungen hängen von Verhandlungen ab.
 - In Amerika bleibt das Wachstum deutlicher hinter der Fahrzeugproduktion zurück als in EMEA (Finanzbericht); der President Americas geht.
 bull:
 - Bereinigter Betriebsgewinn Q2 +7,3 % auf 270 Mio. $; bereinigte Kapitalrendite 24,9 %.
-- 'Asien: Indien +20 Prozentpunkte über dem Markt, China mehr als 40 Prozentpunkte (55 % des China-Umsatzes mit chinesischen Herstellern).'
+- 'Asien: Indien +20 Prozentpunkte über dem Markt; bei chinesischen Herstellern mehr als 40 Prozentpunkte (55 % des China-Umsatzes), gegenüber dem ganzen China-Markt +7,3 Prozentpunkte.'
 - Bester Quartalscashflow in einem 2. Quartal; freier operativer Cashflow 340 Mio. $ (mehr als verdoppelt).
 - Verschuldungsgrad 1,2x (Firmenangabe); Dividende 0,87 $ je Quartal (+24 %).
 - Türkei-Schließung soll ab 2027 rund 40 Mio. $ jährlich sparen.
@@ -91,7 +91,7 @@ entry:
   condition: Quartalsbericht Q3 2026 abwarten; Cashflow nach Türkei-Auszahlungen und Zolleffekte prüfen
 kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate, Firmenmaß) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder bereinigte Marge unter 9 % (keine Schwelle aus dem Repo; Prognose 10,5 bis 11 %); geprüft mit jedem 10-Q.'
 sources_detail:
-- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 19.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 17.07.2026 und Q1 vom 17.04.2026 nur auf Vorhandensein geprüft) und 4 aktuelle Meldungen (8-K vom 11.05., 30.06., 17.07.2026 mit Finanzbericht). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 19.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 17.07.2026 und Q1 vom 17.04.2026 nur auf Vorhandensein geprüft) und 3 aktuelle Meldungen (8-K vom 11.05., 30.06., 17.07.2026 mit Finanzbericht). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
 - 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
 - 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
 sources: 'SEC: 10-K 2025 (0001193125-26-058162), 10-Q Q2 2026 (-26-306974), 10-Q Q1 2026 (-26-160472), 8-Ks: 11.05.2026 (-26-216107), 30.06. (-26-289515), 17.07. (-26-306698). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'

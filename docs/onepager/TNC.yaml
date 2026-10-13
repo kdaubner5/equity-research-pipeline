@@ -17,7 +17,7 @@ verdict:
   tone: bad
   text: 'Vorschlag des Agenten, Entscheidung durch Konstantin. Die Grundlage der Auswahl fällt weg: Betriebsergebnis der letzten zwölf Monate 39 Mio. $ (2023: 139), freier Cashflow leicht negativ, EBITDA-Prognose gesenkt, Finanzchefin kündigt Ruhestand an. Wiedervorlage nach dem Jahresbericht 2026.'
   legend: Was bedeutet VERWERFEN? Die Firma verlässt die Liste, weil die Unterlagen etwas zeigen, das der Filter nicht sehen kann und das die Grundlage der Auswahl entfallen lässt. Sie kann später neu geprüft werden (siehe Wiedervorlage). Es ist weder eine Kauf- noch eine Verkaufsempfehlung.
-thesis: 'Tennant baut Reinigungsmaschinen für Gewerbe und Industrie (Scheuersaugmaschinen, Roboter). Im 2. Quartal 2026 stieg der Umsatz um 1,7 % auf 324 Mio. $, der Auftragseingang um 6,6 % auf 339,5 Mio. $; aber das bereinigte EBITDA fiel um 31 % auf 35,3 Mio. $ (Marge 10,9 % nach 16,0 %): „Rest-Ineffizienzen nach der ERP-Einführung in Nordamerika und Preis- und Kostendruck in EMEA“. Der Gewinn je Aktie sank auf 0,44 $ (Vorjahr 1,08), der Halbjahres-Nettogewinn auf 7,8 Mio. $ (33,3). Die Prognose für das bereinigte EBITDA 2026 wurde auf 155 bis 170 Mio. $ gesenkt, die Umsatzprognose auf 1,27 bis 1,31 Mrd. $ angehoben. Der operative Cashflow war im 1. Halbjahr -26,2 Mio. $ (Vorjahr +22,1), der freie Cashflow der letzten zwölf Monate liegt bei -2,7 Mio. $. Die Nettoschulden stiegen auf 282 Mio. $; Finanzchefin Fay West will in den Ruhestand (frühestens 02.04.2027).'
+thesis: Tennant baut Reinigungsmaschinen für Gewerbe und Industrie (Scheuersaugmaschinen, Roboter). Im 2. Quartal 2026 stieg der Umsatz um 1,7 % auf 324 Mio. $, der Auftragseingang um 6,6 % auf 339,5 Mio. $; aber das bereinigte EBITDA fiel um 31 % auf 35,3 Mio. $ (Marge 10,9 % nach 16,0 %), laut Firma wegen Rest-Ineffizienzen nach der ERP-Einführung in Nordamerika und Preis- und Kostendruck in EMEA. Der Gewinn je Aktie sank auf 0,44 $ (Vorjahr 1,08), der Halbjahres-Nettogewinn auf 7,8 Mio. $ (33,3). Die Prognose für das bereinigte EBITDA 2026 wurde auf 155 bis 170 Mio. $ gesenkt, die Umsatzprognose auf 1,27 bis 1,31 Mrd. $ angehoben. Der operative Cashflow war im 1. Halbjahr -26,2 Mio. $ (Vorjahr +22,1), der freie Cashflow der letzten zwölf Monate liegt bei -2,7 Mio. $. Die Nettoschulden stiegen auf 282 Mio. $; Finanzchefin Fay West will in den Ruhestand (frühestens 02.04.2027).
 kpis:
 - label: Marktwert
   main: 1,12 Mrd. $
@@ -33,7 +33,7 @@ kpis:
   status: neutral
 - label: Nettoschulden
   main: 282,0 Mio. $
-  sub: '30.06.2026: Schulden 358,9 minus Kasse 76,9 (31.12.2025: 273,6 minus 106,4) | Stufe 1: 1,32'
+  sub: '30.06.2026: Schulden 358,9 minus Kasse 76,9 (31.12.2025: 273,6 minus 106,4); Firma nennt Net Debt/EBITDA 2,0x (12 Monate) | Stufe 1: 1,32'
   status: warn
 - label: Bereinigtes EBITDA Q2
   main: 35,3 Mio. $

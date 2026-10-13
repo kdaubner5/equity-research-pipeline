@@ -47,8 +47,8 @@ halfyear:
   rows:
   - name: Umsatz
     values:
-    - 1922.3
-    - 1920.6
+    - 2009.7
+    - 1995.9
   - name: Betriebsergebnis
     values:
     - 370.1
@@ -63,8 +63,8 @@ events:
   text: 'Vertrag zum Kauf von International Money Express (Intermex): rund 500 Mio. $ bar plus Rückzahlung der Schulden'
 - date: 05.05.2026
   text: Anleihe über 165 Mio. $ (4,75 %, 2029) begeben
-- date: 24.06.2026
-  text: Delayed-Draw-Term-Loan-Kreditvertrag geändert (8-K vom 24.06.)
+- date: 17.06.2026
+  text: Delayed-Draw-Term-Loan-Kreditvertrag geändert (laut 10-Q am 17.06.; 8-K vom 24.06.)
 - date: 23.07.2026
   text: Chief Legal Officer Benjamin Adams geht zum 02.11.2026 (Freiwilliges Ruhestandsprogramm)
 - date: 30.07.2026
@@ -79,15 +79,15 @@ events:
 bear:
 - Betriebsmarge Q2 13 % nach 19 %; Betriebsergebnis 1. Halbjahr 255 Mio. $ nach 370 (-31 %).
 - 'Intermex-Abschluss verzögert: Kalifornien hat seine Genehmigung ausgesetzt; die Prognose 2026 unterstellte den Abschluss am 01.09.2026, der nicht eintrat.'
-- Der Umsatz sinkt seit 2022 (4.254 auf 3.880 Mio. $ im Jahr 2025) und stagniert im 1. Halbjahr 2026.
+- Der Gesamtumsatz sank von 4.357 (2023) auf 4.051 Mio. $ (2025) und stagniert im 1. Halbjahr 2026 (1.996 nach 2.010).
 - 'Archivmarken: Cash Conversion 0,92 (Grauzone), Stufe-1-Datenmarke `debt_component_missing_defaulted_zero`, Grenzfall-Branche.'
 - Cashflow-Zahlen eines Zahlungsdienstleisters schwanken mit Abwicklungsposten; die 12-Monats-Rendite von 29,8 % ist nur mit Vorsicht zu lesen.
 bull:
 - 'Digital wächst: Branded Digital +7 %, Transaktionen +25 %, 32 % der Umsätze im Geldtransfer.'
 - Consumer Services +4 % (bereinigt +12 %).
 - Freier Cashflow der letzten zwölf Monate rund 565 Mio. $; Dividenden 152,8 Mio. $ im Halbjahr gezahlt.
-- Kostensenkungen im 2. Halbjahr beschleunigt (Konzernchef).
-- Schulden von 2.885 (Dezember 2025) auf 2.510 Mio. $ (langfristig) gesenkt.
+- Der Konzernchef kündigt schärfere Kostensenkungen im 2. Halbjahr an.
+- Gesamtschulden zum Nennwert von 2.885 (Dezember 2025) auf 2.710 Mio. $ gesenkt (davon 2.510 mit Fälligkeit nach über einem Jahr).
 entry:
   zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
   horizon: mittelfristig (1 bis 3 Jahre)
@@ -104,7 +104,7 @@ sources_detail:
 - 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
 - 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
 sources: 'SEC: 10-K 2025 (0001193125-26-061340), 10-Q Q2 2026 (-26-326355), 10-Q Q1 2026 (-26-177151), 8-Ks: 05.05.2026 (-26-206661), 24.06. (-26-281081), 23.07. (-26-314213), 30.07. (-26-326110), 14.08. (-26-350419), 02.10.2026 (-26-412336). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
-not_checked: 'Die Vergleichsgruppe ist grob (16 Firmen aus dem ganzen Sektor Finanzdienstleistungen, weil die feine Branche zu klein war); 11 Firmen fehlen wegen Datenfehlern (BFH, HIVE, NAVI, NNI, OMF, OPY, OTF, PRAA, RA, URG, VOYA; laut Hinweis des Exportlaufs). Nicht geprüft: Bedingungen des Intermex-Vertrags (Abbruchgebühr, Frist), Verpflichtungen aus Abwicklung, Prozessrisiken, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+not_checked: 'Die Vergleichsgruppe ist grob (16 Firmen aus dem ganzen Sektor Finanzdienstleistungen, weil die feine Branche zu klein war); 11 Firmen fehlen wegen Datenfehlern (BFH, HIVE, NAVI, NNI, OMF, OPY, OTF, PRAA, RA, URG, VOYA; laut Hinweis des Exportlaufs). Mit den Gesamtschulden (Buchwert 2.697 Mio. $) lägen die Nettoschulden bei etwa 1.777 Mio. $ und EV/EBIT bei etwa 5,7. Der freie Cashflow zieht aktivierte Software nicht ab. Nicht geprüft: Bedingungen des Intermex-Vertrags (Abbruchgebühr, Frist), Verpflichtungen aus Abwicklung, Prozessrisiken, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
 peer_note: Grobe Gruppe aus dem ganzen Sektor Finanzdienstleistungen (16 Firmen); 11 Firmen fehlen wegen Datenfehlern (BFH, HIVE, NAVI, NNI, OMF, OPY, OTF, PRAA, RA, URG, VOYA; laut Hinweis des Exportlaufs vom 13.10.2026). Vergleichbarkeit stark eingeschränkt.
 peer_summary: 'Gegen die 16 Firmen der Gruppe mit Wert: EV/EBITDA 3,8 gegen Median 11,0 (Platz 1 von 16, 1 = günstigste), FCF-Rendite 28,7 % gegen Median 9,3 % (Platz 3 von 14, 1 = höchste). Die Gruppe ist grob (ganze Sektor-Ebene), die Vergleichbarkeit ist eingeschränkt.'
 funnel_title: So kam WU auf die Liste (Trichter vom 10.10.2026)
@@ -164,11 +164,11 @@ financials:
   rows:
   - name: Umsatz
     values:
-    - 4.158,0
-    - 4.027,1
-    - 3.879,6
-    - 1.922,3
-    - 1.920,6
+    - 4.357,0
+    - 4.209,7
+    - 4.050,7
+    - 2.009,7
+    - 1.995,9
   - name: Betriebsergebnis
     values:
     - 817,5
@@ -178,11 +178,11 @@ financials:
     - 255,1
   - name: Betriebsmarge
     values:
-    - 19,7 %
-    - 18,0 %
-    - 19,5 %
-    - 19,3 %
-    - 13,3 %
+    - 18,8 %
+    - 17,2 %
+    - 18,7 %
+    - 18,4 %
+    - 12,8 %
   - name: Nettogewinn
     values:
     - 626,0
@@ -211,5 +211,5 @@ financials:
     - 505,2
     - 137,0
     - 197,2
-  note: 'Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen).'
+  note: 'Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC; Umsatz = Gesamtumsatz (inkl. sonstiger Erlöse). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen).'
 method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

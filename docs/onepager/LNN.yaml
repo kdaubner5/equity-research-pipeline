@@ -47,8 +47,8 @@ halfyear:
   rows:
   - name: Umsatz
     values:
-    - 510.1
-    - 462.2
+    - 522.8
+    - 474.3
   - name: Betriebsergebnis
     values:
     - 76.8
@@ -64,9 +64,9 @@ events:
 - date: 17.07.2026
   text: Finanzchef Sam Hinrichsen kündigt zum 31.08.2026
 - date: 28.08.2026
-  text: Alicia Pfeifer und Brett Coburn werden gemeinsam Finanzchefs
+  text: Alicia Pfeifer und Brett Coburn werden kommissarisch gemeinsam Finanzchefs (ab 01.09.2026); die Suche nach einem neuen Finanzchef läuft (8-K vom 17.07.)
 - date: '09.2026'
-  text: Die US-Infrastrukturprogramme (IIJA) laufen laut 10-Q bis September 2026
+  text: Die US-Infrastrukturprogramme (IIJA) sind laut 10-Q bis September 2026 befristet; ob sie verlängert werden, ist ungeprüft
 bear:
 - Betriebsergebnis neun Monate 51,1 Mio. $ nach 76,8 (-33 %); Marge 11,5 % im Quartal nach 14,0 %.
 - Freier Cashflow der letzten zwölf Monate rund 45 Mio. $ nach 90 Mio. $ (Geschäftsjahr 2025); Investitionen 35,5 Mio. $ in neun Monaten.
@@ -75,7 +75,7 @@ bear:
 - 'Der Filter sieht das nicht: Stufe 1 und 2 rechnen mit dem Geschäftsjahr bis 31.08.2025.'
 bull:
 - Nettokasse rund 40 Mio. $; Verschuldung gering.
-- Auftragsbestand 136,1 Mio. $ (117,1 vor einem Jahr) durch das MENA-Projekt, das planmäßig läuft.
+- Auftragsbestand 136,1 Mio. $ (117,1 vor einem Jahr); in der Bewässerung wächst er durch das MENA-Projekt, das planmäßig läuft.
 - Infrastruktur +8 % im Quartal; Straßensicherheits-Produkte wachsen ein weiteres Quartal in Folge (Pressemitteilung).
 - 'Aktienrückkäufe: 25,2 Mio. $ im Quartal, 80,7 Mio. $ im Geschäftsjahr.'
 - 'Geschäftsjahr 2025: Betriebsergebnis 88,1 Mio. $ (+15 %), freier Cashflow 90 Mio. $.'
@@ -155,11 +155,11 @@ financials:
   rows:
   - name: Umsatz
     values:
-    - 661,9
-    - 584,3
-    - 659,1
-    - 510,1
-    - 462,2
+    - 674,1
+    - 607,1
+    - 676,4
+    - 522,8
+    - 474,3
   - name: Betriebsergebnis
     values:
     - 102,2
@@ -169,11 +169,11 @@ financials:
     - 51,1
   - name: Betriebsmarge
     values:
-    - 15,4 %
-    - 13,1 %
-    - 13,4 %
-    - 15,1 %
-    - 11,1 %
+    - 15,2 %
+    - 12,6 %
+    - 13,0 %
+    - 14,7 %
+    - 10,8 %
   - name: Nettogewinn
     values:
     - 72,4
@@ -202,5 +202,5 @@ financials:
     - 90,4
     - 40,6
     - -4,9
-  note: 'Quelle: 10-K FY2025 und 10-Q Q3 FY26 der SEC (XBRL-Daten); Geschäftsjahr endet am 31.08., 9 Monate = September bis Mai. Marge und freier Cashflow vom Agenten gerechnet.'
+  note: 'Quelle: 10-K FY2025 und 10-Q Q3 FY26 der SEC; Umsatz = Operating revenues (inkl. Leasingerlöse); Geschäftsjahr endet am 31.08., 9 Monate = September bis Mai. Marge und freier Cashflow vom Agenten gerechnet.'
 method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

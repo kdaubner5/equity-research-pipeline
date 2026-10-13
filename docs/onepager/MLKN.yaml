@@ -15,9 +15,9 @@ dates:
 verdict:
   label: ZURÜCKSTELLEN
   tone: warn
-  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Der Konzernchef ist seit 30.06.2026 weg (Interimschef), die Umsatzprognose wurde gesenkt, und die Verschuldung liegt nach dem Kreditmaß bei 2,75x, nahe der Schwelle 2,5; das Quartal wurde von rund 10 Mio. $ Zollrückerstattung gestützt.
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Der Konzernchef ist seit 30.06.2026 weg (Interimschef), die Umsatzprognose wurde gesenkt, und die Verschuldung liegt nach dem Kreditmaß bei 2,75x (andere Definition als unsere Schwelle 2,5; im Archiv 2,0); das Quartal wurde von rund 10 Mio. $ Zollrückerstattung gestützt.
   legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Ernennung eines neuen Konzernchefs und Quartalsbericht Q2 FY27) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
-thesis: MillerKnoll stellt Büro- und Wohnmöbel her (Marken u. a. Herman Miller und Knoll; Geschäftsjahr bis Ende Mai). Im 1. Quartal des Geschäftsjahrs 2027 (Juni bis August 2026) sank der Umsatz um 3,4 % auf 923 Mio. $, die Bestellungen stiegen um 3,2 %; die Bruttomarge stieg auf 41,7 % (+3,2 Prozentpunkte), auch durch rund 10 Mio. $ Rückerstattung auf frühere IEEPA-Zölle (einmalig, +0,11 $ Gewinn je Aktie). Der bereinigte Gewinn je Aktie stieg um 18 % auf 0,53 $. Seit 30.06.2026 führt Jeff Stutz die Firma als Interims-Konzernchef, nachdem Andi Owen in den Ruhestand ging. Die Umsatzprognose für FY27 wurde auf 3,88 bis 4,03 Mrd. $ gesenkt (vorher 3,93 bis 4,13), die Gewinnprognose (1,85 bis 2,15 $) blieb. Die Nettoschulden betragen 1,13 Mrd. $; das Verhältnis Net Debt/EBITDA nach dem Kreditvertrag liegt bei 2,75x. Der freie Cashflow der letzten zwölf Monate beträgt rund 116 Mio. $ (8,5 % des Börsenwerts).
+thesis: MillerKnoll stellt Büro- und Wohnmöbel her (Marken u. a. Herman Miller und Knoll; Geschäftsjahr bis Ende Mai). Im 1. Quartal des Geschäftsjahrs 2027 (Juni bis August 2026) sank der Umsatz um 3,4 % auf 923 Mio. $, die Bestellungen stiegen um 3,2 %; die Bruttomarge stieg auf 41,7 % (+3,2 Prozentpunkte), auch durch rund 10 Mio. $ Rückerstattung auf frühere IEEPA-Zölle (laut Firma ca. 10 Mio. $ netto im Betriebsergebnis, +0,11 $ Gewinn je Aktie; weitere Erstattungsansprüche werden verfolgt). Der bereinigte Gewinn je Aktie stieg um 18 % auf 0,53 $. Seit 30.06.2026 führt Jeff Stutz die Firma als Interims-Konzernchef, nachdem Andi Owen in den Ruhestand ging. Die Umsatzprognose für FY27 wurde auf 3,88 bis 4,03 Mrd. $ gesenkt (vorher 3,93 bis 4,13), die Gewinnprognose (1,85 bis 2,15 $) blieb. Die Nettoschulden betragen 1,13 Mrd. $; das Verhältnis Net Debt/EBITDA nach dem Kreditvertrag liegt bei 2,75x. Der freie Cashflow der letzten zwölf Monate beträgt rund 116 Mio. $ (8,5 % des Börsenwerts).
 kpis:
 - label: Marktwert
   main: 1,37 Mrd. $
@@ -76,11 +76,11 @@ bear:
 - 'Kein fester Konzernchef: Jeff Stutz ist Interimschef seit dem Ruhestand von Andi Owen.'
 - Umsatzprognose FY27 gesenkt (3,88 bis 4,03 Mrd. $ statt 3,93 bis 4,13); „weichere Nachfrage als erwartet“; Nordamerika-Contract -5,3 %.
 - 'Verschuldung: Net Debt/EBITDA laut Kreditvertrag 2,75x; Schulden 1.307 Mio. $ gegen Kasse 179 Mio. $.'
-- Das Quartal enthält rund 10 Mio. $ einmalige Zollrückerstattung (0,11 $ je Aktie); ohne sie wäre der bereinigte Gewinn je Aktie bei etwa 0,42 $.
+- Das Quartal enthält rund 10 Mio. $ Zollrückerstattung (0,11 $ je Aktie; weitere Ansprüche werden verfolgt); ohne sie läge der bereinigte Gewinn je Aktie bei etwa 0,42 $ (Überschlag des Agenten).
 - 'Betriebsergebnis Q1 51,8 Mio. $ nach 53,5; Betriebsergebnis 2025 war nur 50,5 Mio. $ (2026: 198,3).'
 bull:
 - Bestellungen +3,2 % (organisch +3,5 %) im Quartal, bereinigter Gewinn je Aktie +18 %.
-- Betriebsergebnis FY26 198,3 Mio. $ (nach 50,5 im Jahr zuvor); Gewinnprognose FY27 unverändert (1,85 bis 2,15 $).
+- Betriebsergebnis FY26 198,3 Mio. $ (nach 50,5 im Jahr zuvor; bereinigt jedoch 238,4 nach 248,7); Gewinnprognose FY27 unverändert (1,85 bis 2,15 $).
 - Operativer Cashflow Q1 49,1 Mio. $ nach 9,4 Mio. $.
 - 'Kosten und Bilanz im Fokus: „Prioritäten setzen, Kosten steuern, Bilanz stärken“ (Interimschef).'
 - Dividende 0,1875 $ je Quartal fortgeführt.

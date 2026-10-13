@@ -28,12 +28,12 @@ kpis:
   sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 13,1 %'
   status: warn
 - label: EV/EBIT
-  main: 8,0
+  main: 8,1
   sub: 'letzte 12 Monate (Agent), ohne Tate & Lyle | Stufe 2 EV/EBITDA: 5,5'
   status: neutral
 - label: Nettoschulden
-  main: 794,0 Mio. $
-  sub: '30.06.2026: Schulden 1.742 minus Kasse 948, vor dem Tate-&-Lyle-Kauf (danach bis ca. 6,0 Mrd. $ Gesamtschulden) | Stufe 1: 0,60'
+  main: 835,0 Mio. $
+  sub: '30.06.2026: Gesamtschulden 1.783 (lang 1.742, kurz 41) minus Kasse 948, vor dem Tate-&-Lyle-Kauf (danach bis ca. 6,0 Mrd. $ Gesamtschulden) | Stufe 1: 0,60'
   status: warn
 - label: Tate & Lyle
   main: 3,5 Mrd. $

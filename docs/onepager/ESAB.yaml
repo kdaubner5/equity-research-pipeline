@@ -17,7 +17,7 @@ verdict:
   tone: warn
   text: Vorschlag des Agenten, Entscheidung durch Konstantin. Der 1,45-Mrd.-$-Kauf von Eddyfi (01.06.2026) hat die Schulden auf rund 2,4 Mrd. $ fast verdoppelt; Filter und 12-Monats-Zahlen kennen den Kauf kaum, und das Betriebsergebnis des 1. Halbjahrs fiel um 23 %.
   legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3 2026 mit einem vollen Quartal Eddyfi) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
-thesis: ESAB stellt Schweiß- und Schneidtechnik und Verbrauchsmaterial her. Im 2. Quartal 2026 stieg der Umsatz um 12,9 % auf einen Rekord von 808 Mio. $ (organisch im Kerngeschäft +2,5 %); das bereinigte Kern-EBITDA stieg um 8 % auf 150 Mio. $, die Marge fiel um 0,9 Prozentpunkte auf 19,5 % (Preis und Kosten neutral, Investitionen in den Vertrieb). Das berichtete Betriebsergebnis des 1. Halbjahrs sank um 23 % auf 169 Mio. $. Am 01.06.2026 kaufte ESAB Eddyfi (Prüf- und Inspektionstechnik, Kanada) für 1,45 Mrd. $ bar, finanziert aus Kasse, 5,625-%-Anleihen 2031, einer Privatplatzierung von 175 Mio. $ Pflicht-Wandel-Vorzugsaktien (6,5 %) und 1,25 Mio. neuen Stammaktien (143 Mio. $). Die langfristigen Schulden stiegen von 1,23 auf 2,39 Mrd. $; die Nettoschulden betragen rund 2,18 Mrd. $. Der freie Cashflow der letzten zwölf Monate liegt bei rund 197 Mio. $ (4,7 % des Börsenwerts laut Archivkurs). Am 10.06.2026 wurde Mitchell Rales Executive Chair des Verwaltungsrats.
+thesis: ESAB stellt Schweiß- und Schneidtechnik und Verbrauchsmaterial her. Im 2. Quartal 2026 stieg der Umsatz um 12,9 % auf einen Rekord von 808 Mio. $ (organisch im Kerngeschäft +2,5 %); das bereinigte Kern-EBITDA stieg um 8 % auf 150 Mio. $, die Marge fiel um 0,9 Prozentpunkte auf 19,5 % (Preis und Kosten neutral, Investitionen in den Vertrieb). Das berichtete Betriebsergebnis des 1. Halbjahrs sank um 23 % auf 169 Mio. $. Am 01.06.2026 kaufte ESAB Eddyfi (Prüf- und Inspektionstechnik, Kanada) für rund 1,45 Mrd. $ bar (8-K; der 10-Q nennt rund 1,5 Mrd. $ netto nach erhaltener Kasse), finanziert aus Kasse, 5,625-%-Anleihen 2031, einer Privatplatzierung von 175 Mio. $ Pflicht-Wandel-Vorzugsaktien (6,5 %) und 1,25 Mio. neuen Stammaktien (143 Mio. $). Die langfristigen Schulden stiegen von 1,23 auf 2,39 Mrd. $; die Nettoschulden betragen rund 2,18 Mrd. $. Der freie Cashflow der letzten zwölf Monate liegt bei rund 197 Mio. $ (4,7 % des Börsenwerts laut Archivkurs). Am 10.06.2026 wurde Mitchell Rales Executive Chair des Verwaltungsrats.
 kpis:
 - label: Marktwert
   main: 4,19 Mrd. $
@@ -29,7 +29,7 @@ kpis:
   status: bad
 - label: EV/EBIT
   main: 17,7
-  sub: 'letzte 12 Monate (Agent), Eddyfi nur 1 Monat enthalten | Stufe 2 EV/EBITDA: 10,0'
+  sub: 'letzte 12 Monate (Agent), mit Minderheiten 45,5 Mio. $, Eddyfi nur 1 Monat enthalten | Stufe 2 EV/EBITDA: 10,0'
   status: neutral
 - label: Nettoschulden
   main: 2,18 Mrd. $
@@ -70,8 +70,8 @@ events:
 bear:
 - 'Eddyfi-Kauf für 1,45 Mrd. $ bar: langfristige Schulden von 1,23 auf 2,39 Mrd. $; Nettoschulden rund 2,18 Mrd. $ (ohne die 175 Mio. $ Vorzugsaktien).'
 - 'Betriebsergebnis 1. Halbjahr 169 Mio. $ nach 219 (-23 %); Kern-EBITDA-Marge 19,5 % (-90 Basispunkte): „Preis und Kosten neutral“, Logistik- und Rohstoffkosten steigen.'
-- Kern-Umsatzwachstum nur 2,5 % organisch; die Firma verweist auf eine „herausfordernde Lage im Nahen Osten“.
-- Neue Aktien (1,25 Mio.) und Vorzugsaktien verwässern; der Archivwert für Marktwert und Grenze kennt sie nicht.
+- Kern-Umsatzwachstum nur 2,5 % organisch; die Pressemitteilung nennt ein „challenging macro environment“, der 10-Q Herausforderungen im Nahen Osten. Die Prognose für den bereinigten Gewinn je Aktie 2026 wurde gesenkt (5,40 bis 5,50 $ nach 5,70 bis 5,90 $).
+- Neue Aktien (1,25 Mio., schon in der Archivzahl) und Vorzugsaktien (175 Mio. $, nicht in der Archivzahl) verwässern.
 - 12-Monats-FCF-Rendite 4,7 % liegt unter der 5-Prozent-Marke der Regel; das Stufe-1-ROIC-Mittel liegt mit 11,9 % in der Grauzone.
 bull:
 - Rekordumsatz im 2. Quartal; beide Segmente mit organischem Kernwachstum.
@@ -85,7 +85,7 @@ entry:
   limit: 52.73
   limit_label: Grenze nach FCF-Rendite 6 %
   price_vs_limit: 27,7 % darüber
-  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (196,7 Mio. $) und 62,2 Mio. Aktien laut Archiv angewendet. Mit 63,4 Mio. Aktien (nach der Platzierung) läge die Grenze rund 2 % tiefer. Eddyfi-Gewinn und die neuen Zinskosten sind nicht enthalten. Die zweite Grenze (EV/EBITDA) fehlt.'
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (196,7 Mio. $) und 62,2 Mio. Aktien laut Archiv angewendet. Die 1,25 Mio. neuen Stammaktien sind in den 62,2 Mio. Aktien (10-Q: 62.167.810 am 30.07.2026) schon enthalten, die Vorzugsaktien (175 Mio. $) nicht. Eddyfi-Gewinn und die neuen Zinskosten sind nicht enthalten. Die zweite Grenze (EV/EBITDA) fehlt.'
   price: 67.33
   price_date: 23.09.2026
   condition: 'Abwarten: Quartalsbericht Q3 2026 (erstes volles Quartal mit Eddyfi); Zinskosten, Schulden und organisches Wachstum prüfen'
@@ -95,7 +95,7 @@ sources_detail:
 - 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
 - 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
 sources: 'SEC: 10-K 2025 (0001877322-26-000007), 10-Q Q2 2026 (-26-000056), 10-Q Q1 2026 (-26-000033), 8-Ks: 02.06.2026 (0001213900-26-063775), 12.06. (0001213900-26-067998), 06.08. (0001877322-26-000055). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
-not_checked: 'Die Peer-Gruppe (33 Firmen, Industrieprodukte) ist gemischt; 1 Firma fehlt wegen Datenfehlers (LXFR). Das Archiv trägt die Datenmarke `debt_component_missing_defaulted_zero`; die Schulden bei ESAB sind laut 10-Q vollständig, ein Fehler des Archivs ist hier nicht erkennbar. Nicht geprüft: Umsatz und Ergebnis von Eddyfi, Zinssatz des Kredits im Detail, Einzelheiten der Rales-Optionen, aktueller Kurs. Die Anzahl der Stammaktien nach der Platzierung (63,4 Mio.) ist eine Summe des Agenten. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+not_checked: 'Die Peer-Gruppe (33 Firmen, Industrieprodukte) ist gemischt; 1 Firma fehlt wegen Datenfehlers (LXFR). Das Archiv trägt die Datenmarke `debt_component_missing_defaulted_zero`; die Schulden bei ESAB sind laut 10-Q vollständig, ein Fehler des Archivs ist hier nicht erkennbar. Nicht geprüft: Umsatz und Ergebnis von Eddyfi, Zinssatz des Kredits im Detail, Einzelheiten der Rales-Optionen, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
 peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); 1 Firma fehlt wegen Datenfehlers (LXFR; laut Hinweis des Exportlaufs). Die Gruppe ist gemischt (Industrieprodukte).
 peer_summary: 'Gegen die 33 Firmen der Gruppe mit Wert: EV/EBITDA 10,0 gegen Median 14,7 (Platz 7 von 33, 1 = günstigste), FCF-Rendite 6,5 % gegen Median 4,2 % (Platz 10 von 33, 1 = höchste).'
 funnel_title: So kam ESAB auf die Liste (Trichter vom 10.10.2026)

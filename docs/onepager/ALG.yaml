@@ -91,7 +91,7 @@ entry:
   limit: 185.41
   limit_label: Grenze nach FCF-Rendite 6 %
   price_vs_limit: 11,2 % darunter
-  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (135,4 Mio. $) und 12,2 Mio. Aktien angewendet. Der Cashflow enthält die Petersen-Zahlung nicht (Zukauf, nicht Investition), die Aufwendungen für Boxer und Dixie Chopper nur zu einem kleinen Teil. Die zweite Grenze (EV/EBITDA, grobe Gruppe von 117 Firmen) fehlt.'
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (135,4 Mio. $) und 12,2 Mio. Aktien angewendet. Zukäufe (Petersen) sind nicht als Investitionen abgezogen, die Aufwendungen für Boxer und Dixie Chopper nur zu einem kleinen Teil. Die zweite Grenze (EV/EBITDA, grobe Gruppe von 117 Firmen) fehlt.'
   price: 164.64
   price_date: 23.09.2026
   condition: Quartalsbericht Q3 2026 abwarten (Aufwand Boxer/Dixie Chopper, Beitrag Petersen); dann Marge und Cashflow neu prüfen

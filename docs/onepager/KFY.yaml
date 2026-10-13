@@ -56,13 +56,13 @@ halfyear:
   - name: Freier Cashflow
     values:
     - -260.0
-    - -265.5
+    - -265.6
   unit: Mio. $
 events:
 - date: 22.06.2026
   text: Dividende 0,55 $ je Aktie beschlossen (gezahlt 31.07.)
-- date: 29.06.2026
-  text: Kaufvertrag für AMS (Auxey Holdco, UK) unterzeichnet; Kaufpreis 1,2 Mrd. $ (8-K, 10-Q)
+- date: 27.06.2026
+  text: Kaufvertrag für AMS (Auxey Holdco, UK) unterzeichnet (8-K vom 29.06.); Kaufpreis 1,2 Mrd. $ (laut 10-Q)
 - date: 18.08.2026
   text: 'Neuer Kreditvertrag: Term Loan 600 Mio. $ plus Revolver 850 Mio. $, 5 Jahre; mit dem Term Loan wurde die 4,625-%-Anleihe 2027 (400 Mio. $) zurückgezahlt'
 - date: 01.09.2026
@@ -78,10 +78,13 @@ events:
 - date: 15.10.2026
   text: Dividende 0,55 $ zahlbar
   future: true
+- date: bis ca. 11.11.2026
+  text: Pro-forma-Zahlen zu AMS per 8-K/A binnen 71 Tagen nach Abschluss angekündigt (8-K vom 01.09.)
+  future: true
 bear:
 - 'AMS-Kauf für 1,2 Mrd. $ (rund 30 % des Börsenwerts laut Archivkurs): Schulden von 0,4 auf rund 1,0 Mrd. $ (Term Loan 600 plus Revolver 440 Mio. $); AMS-Umsatz und -Gewinn nennt der 10-Q nicht.'
 - Aktienzahl steigt um 3,1 Mio. (rund 5,7 % der Archivzahl von 54,6 Mio.); der Archivwert für Marktwert und Grenze stimmt nach dem Kauf nicht mehr.
-- Betriebscashflow im ersten Quartal -247,6 Mio. $ (Vorjahr -237,4); saisonal durch Bonuszahlungen, aber nicht ohne Gewicht.
+- Betriebscashflow im ersten Quartal -247,6 Mio. $ (Vorjahr -237,4); der 10-Q nennt als Haupttreiber Verbindlichkeiten und Rückstellungen (-291,3 Mio. $); saisonal wie im Vorjahr.
 - Bereinigte EBITDA-Marge 17,0 %, unverändert zum Vorjahr; Integrations- und Kaufkosten 7,6 Mio. $ im Quartal (Vorjahr 1,5).
 - Zahl der Berater (Fee Earner) 1.811 nach 1.830 im Vorjahr.
 bull:
@@ -93,10 +96,10 @@ bull:
 entry:
   zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
   horizon: mittelfristig (1 bis 3 Jahre)
-  limit: 97.39
+  limit: 97.36
   limit_label: Grenze nach FCF-Rendite 6 %
-  price_vs_limit: 24,1 % darunter
-  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (318,8 Mio. $) und 54,6 Mio. Aktien laut Archiv angewendet. Mit den 3,1 Mio. neuen AMS-Aktien (57,7 Mio.) läge die Grenze bei 92,12 $. AMS-Gewinn und die neuen Zinskosten sind nicht enthalten. Die zweite Grenze (EV/EBITDA, Branchen-Drittel) fehlt.'
+  price_vs_limit: 24,0 % darunter
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (318,7 Mio. $) und 54,6 Mio. Aktien laut Archiv angewendet. Mit den 3,1 Mio. neuen AMS-Aktien (57,7 Mio.) läge die Grenze bei 92,09 $. AMS-Gewinn und die neuen Zinskosten sind nicht enthalten. Die zweite Grenze (EV/EBITDA, Branchen-Drittel) fehlt.'
   price: 73.96
   price_date: 23.09.2026
   condition: 'Abwarten: nächster 10-Q (Quartal bis 31.10.2026), der AMS erstmals enthält; dann Schulden, Zinsen und Beitrag von AMS prüfen'
@@ -105,7 +108,7 @@ sources_detail:
 - 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K FY2026 zum 30.04.2026, eingereicht 26.06.2026), 2 Quartalsberichte (10-Q Q1 FY27 vom 09.09.2026 und 10-Q zum 31.01.2026 nur auf Vorhandensein geprüft) und mehrere aktuelle Meldungen (8-K) von Juni bis September 2026 mit Pressemitteilung und Anlagen zu Kauf, Kredit und Zahlen. Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
 - 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
 - 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. AMS-Zahlen (Umsatz, Ergebnis) nennen die Unterlagen nicht.'
-sources: 'SEC: 10-K FY2026 (0000056679-26-000021), 10-Q Q1 FY27 (-26-000031), 10-Q zum 31.01.2026 (-26-000009), 8-Ks: 29.06.2026 (0001193125-26-286757), 03.08. (-26-330632), 06.08. (-26-338313), 19.08. (-26-357084), 01.09. (-26-378508), 08.09. (0000056679-26-000023), 09.09. (-26-000033), 15.09. (-26-000035), 29.09. (0001193125-26-405763). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+sources: 'SEC: 10-K FY2026 (0000056679-26-000021), 10-Q Q1 FY27 (-26-000031), 10-Q zum 31.01.2026 (-26-000009), 8-Ks: 29.06.2026 (0001193125-26-286757), 03.08. (-26-330632), 06.08. (-26-338313), 19.08. (-26-357084), 01.09. (-26-378508), 08.09. (0000056679-26-000023), 09.09. (-26-000033; Zahlen -26-000029), 15.09. (-26-000035), 29.09. (0001193125-26-405763). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
 not_checked: 'Die Vergleichsgruppe ist grob (117 Firmen aus dem ganzen Sektor Industrie, weil die feine Branche zu klein war); 2 Firmen fehlen wegen Datenfehlern (LXFR, RELY). Das Archiv trägt für Stufe 1 die Datenmarke `debt_component_missing_defaulted_zero`; grob nachgerechnet passt Net Debt/EBITDA von -1,47 zu Kasse 1.095 minus Anleihe 399 zum 30.04.2026, ein Fehler ist nicht erkennbar. Nicht geprüft: AMS-Umsatz und -Ergebnis, Zinssatz und Kosten des neuen Kredits im Detail, Leasingverbindlichkeiten, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
 peer_note: Grobe Gruppe aus dem ganzen Sektor Industrie (117 Firmen), weil die feine Branche zu klein war; 2 Firmen fehlen wegen Datenfehlern (LXFR, RELY; laut Hinweis des Exportlaufs vom 13.10.2026). Vergleichbarkeit eingeschränkt.
 peer_summary: 'Gegen die 117 Firmen der Gruppe mit Wert: EV/EBITDA 7,0 gegen Median 11,0 (Platz 20 von 117, 1 = günstigste), FCF-Rendite 7,3 % gegen Median 4,8 % (Platz 37 von 112, 1 = höchste). Die Gruppe ist grob (ganze Sektor-Ebene), die Vergleichbarkeit ist eingeschränkt.'
@@ -220,6 +223,6 @@ financials:
     - 301,9
     - 324,3
     - -260,0
-    - -265,5
+    - -265,6
   note: 'Quelle: 10-K FY2026 und 10-Q Q1 FY27 der SEC (XBRL-Daten); Geschäftsjahr endet am 30.04. Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen). Das erste Quartal ist saisonal schwach (Bonuszahlungen).'
 method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

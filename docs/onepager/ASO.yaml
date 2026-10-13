@@ -55,8 +55,8 @@ halfyear:
     - 321.0
   - name: Freier Cashflow
     values:
-    - 128.4
-    - 237.7
+    - 128.5
+    - 237.8
   unit: Mio. $
 events:
 - date: Feb. 2026
@@ -73,7 +73,7 @@ events:
 bear:
 - Vergleichbare Fläche im 2. Quartal -0,4 %; CEO nennt Konsumdruck, besonders bei Haushalten mit niedrigem Einkommen.
 - 83,7 Mio. $ IEEPA-Rückerstattung stecken im Cashflow und in der Marge (netto 0,06 $ Gewinn je Aktie nach Weitergabe und Reinvestition); 72,2 Mio. $ „Weitergabe von Rückerstattungsansprüchen“ stehen separat im Finanzierungs-Cashflow.
-- Betriebsergebnis 2025 (512 Mio. $) liegt seit 2022 (847) deutlich niedriger; nur im 1. Halbjahr 2026 wieder +33 %.
+- Betriebsergebnis 2025 mit 512 Mio. $ nach 678 (2023) und 539 (2024); nur im 1. Halbjahr 2026 wieder +33 %.
 - Mieten für Filialen sind nicht in den Schulden (Nettoschulden 196 Mio. $ ohne Mieten).
 - 'Starkes Filialwachstum (24 neue Filialen 2025, weitere 2026) bindet Kapital: Investitionen 213 Mio. $ im Jahr 2025.'
 bull:
@@ -203,7 +203,7 @@ financials:
     - 328,0
     - 328,5
     - 222,1
-    - 128,4
-    - 237,7
+    - 128,5
+    - 237,8
   note: 'Quelle: 10-K FY2025 und 10-Q Q2 FY26 der SEC (XBRL-Daten); Geschäftsjahr endet Ende Januar (FY2025 = Februar 2025 bis Januar 2026). Marge und freier Cashflow vom Agenten gerechnet. Cashflow 1. Halbjahr FY26 enthält 83,7 Mio. $ Zollrückerstattung.'
 method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

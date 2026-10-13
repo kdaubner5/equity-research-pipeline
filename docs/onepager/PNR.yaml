@@ -17,7 +17,7 @@ verdict:
   tone: warn
   text: Vorschlag des Agenten, Entscheidung durch Konstantin. Ein Lagerabbau im Pool-Geschäft (rund 170 Mio. $) drückte den Umsatz im 2. Quartal um 17 %, und der Kauf von Taco (1,425 Mrd. $, Abschluss 4. Quartal 2026) bringt neue Schulden; die Prognose 2026 steht.
   legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Abschluss des Taco-Kaufs (4. Quartal 2026) und Quartalsbericht Q3 2026) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
-thesis: Pentair liefert Wasserprodukte (Pumpen, Filter, Pool-Ausrüstung). Im 2. Quartal 2026 sank der Umsatz um 17 % auf 933 Mio. $, weil der Handel im Pool-Geschäft Lager um rund 170 Mio. $ abbaute (Firma am 14.07. vorab mitgeteilt); das Betriebsergebnis betrug 167 Mio. $ nach 218, der bereinigte Gewinn je Aktie 1,14 $ nach 1,39 $. Darin stecken rund 35 Mio. $ Rückerstattung auf frühere Zölle (IEEPA). Die Prognose für 2026 (bereinigter Gewinn je Aktie 4,60 bis 4,80 $) bleibt. Der freie Cashflow im 2. Quartal lag bei 553 Mio. $, im 1. Halbjahr bei 467 Mio. $; der der letzten zwölf Monate bei rund 673 Mio. $ (7,6 % des Börsenwerts laut Archivkurs). Am 27.07.2026 vereinbarte Pentair den Kauf von Taco Group (1,425 Mrd. $), Abschluss im 4. Quartal 2026; finanziert über Kasse und Kredite (1,4 Mrd. $ Term Loans am 01.09. zugesagt). Die Schulden betragen derzeit rund 1,6 Mrd. $.
+thesis: Pentair liefert Wasserprodukte (Pumpen, Filter, Pool-Ausrüstung). Im 2. Quartal 2026 sank der Umsatz um 17 % auf 933 Mio. $, weil der Handel im Pool-Geschäft Lager um rund 170 Mio. $ abbaute (Firma am 14.07. vorab mitgeteilt); das Betriebsergebnis betrug 167 Mio. $ nach 218, der bereinigte Gewinn je Aktie 1,14 $ nach 1,39 $. Darin stecken rund 35 Mio. $ Rückerstattung auf frühere Zölle (IEEPA). Die Prognose für 2026 (bereinigter Gewinn je Aktie 4,60 bis 4,80 $) bleibt; die GAAP-Prognose wurde auf 3,86 bis 4,06 $ aktualisiert. Der freie Cashflow im 2. Quartal lag bei 553 Mio. $, im 1. Halbjahr bei 467 Mio. $; der der letzten zwölf Monate bei rund 673 Mio. $ (7,6 % des Börsenwerts laut Archivkurs). Am 27.07.2026 vereinbarte Pentair den Kauf von Taco Group (1,425 Mrd. $), Abschluss im 4. Quartal 2026; finanziert über Kasse und Kredite (1,4 Mrd. $ Term Loans am 01.09. zugesagt). Die Schulden betragen derzeit rund 1,6 Mrd. $.
 kpis:
 - label: Marktwert
   main: 8,82 Mrd. $
@@ -55,10 +55,12 @@ halfyear:
     - 376.5
   - name: Freier Cashflow
     values:
-    - 540.3
+    - 540.1
     - 467.2
   unit: Mio. $
 events:
+- date: 10.07.2026
+  text: Finanzchef Brazis tritt zurück (8-K vom 14.07.)
 - date: 14.07.2026
   text: 'Vorab-Mitteilung: Pool-Lagerabbau größer als erwartet; Umsatz und Gewinn Q2 unter Plan'
 - date: 27.07.2026
@@ -75,24 +77,24 @@ events:
   text: Erwarteter Abschluss des Taco-Kaufs (laut Firma, Genehmigungen nötig)
   future: true
 bear:
-- 'Pool-Handel baut Lager ab: Umsatz Q2 -17 %, Betriebsergebnis 167 Mio. $ nach 218; die Firma nennt es eine „vorübergehende Kanalbereinigung“.'
+- 'Pool-Handel baut Lager ab: Umsatz Q2 -17 %, Betriebsergebnis 167 Mio. $ nach 218; die Firma nennt es eine vorübergehende Kanalbereinigung („temporary channel reset“).'
 - 'Taco-Kauf 1,425 Mrd. $: dazu bis zu 1,4 Mrd. $ neue Term Loans, die Schulden würden sich fast verdoppeln.'
 - In Q2 stecken rund 35 Mio. $ einmalige Zollrückerstattung; ohne sie wäre das Ergebnis niedriger.
-- Finanzchef-Posten war zuletzt nur interimistisch besetzt; Neubesetzung ab 01.11.2026.
+- Der bisherige Finanzchef trat am 10.07.2026 zurück; seitdem Interims-Finanzchef, Neubesetzung ab 01.11.2026.
 - Gewinn je Aktie 2026 (bereinigt 4,60 bis 4,80 $) ist abhängig von einer Erholung im 2. Halbjahr.
 bull:
 - Bereinigte Marge im Quartal 25,4 % trotz Lagerabbau; Bereiche Flow und Water Solutions laufen „solide“ (Firma).
-- Freier Cashflow 1. Halbjahr 467 Mio. $; Prognose bereinigter Gewinn je Aktie 2026 bestätigt.
+- Freier Cashflow 1. Halbjahr 467 Mio. $ (Firmenangabe); Prognose bereinigter Gewinn je Aktie 2026 bestätigt.
 - Rückkauf 150 Mio. $ im Quartal; 50. Jahr in Folge mit höherer Dividende (0,27 $ je Quartal).
 - Gewinn aus Dauerbetrieb im 1. Halbjahr 289,4 Mio. $ (Vorjahr 303,4).
 - Taco soll das Wassergeschäft erweitern (Firmenangabe; keine Zahlen zu Taco-Ergebnis in den Unterlagen).
 entry:
   zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
   horizon: mittelfristig (1 bis 3 Jahre)
-  limit: 70.25
+  limit: 70.27
   limit_label: Grenze nach FCF-Rendite 6 %
   price_vs_limit: 21,4 % darunter
-  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (672,9 Mio. $) und 159,6 Mio. Aktien laut Archiv angewendet. Der 12-Monats-Cashflow ist aus dem 1. Halbjahr 2025 (Pressemitteilung) und dem 10-Q gerechnet; das Taco-Geschäft und die neuen Zinsen sind nicht enthalten. Die zweite Grenze (EV/EBITDA) fehlt.'
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (673,1 Mio. $) und 159,6 Mio. Aktien laut Archiv angewendet. Der 12-Monats-Cashflow ist aus dem 1. Halbjahr 2025 (Pressemitteilung) und dem 10-Q gerechnet; das Taco-Geschäft und die neuen Zinsen sind nicht enthalten. Die zweite Grenze (EV/EBITDA) fehlt.'
   price: 55.25
   price_date: 23.09.2026
   condition: 'Abwarten: Abschluss des Taco-Kaufs (4. Quartal 2026) und Quartalsbericht Q3 2026; Lagerabbau im Pool-Handel und Verschuldung nach dem Kauf prüfen'
@@ -193,8 +195,8 @@ financials:
     - 619,2
     - 766,7
     - 814,8
-    - 568,0
-    - 504,6
+    - 567,7
+    - 504,4
   - name: Investitionen (Sachanlagen)
     values:
     - 76,0
@@ -207,7 +209,7 @@ financials:
     - 543,2
     - 692,3
     - 746,0
-    - 540,3
+    - 540,1
     - 467,2
-  note: 'Quelle: 10-K 2025, 10-Q Q2 2026 und Pressemitteilung vom 28.07.2026 der SEC; Nettogewinn 1. Halbjahr 2026 inkl. 11,6 Mio. $ aus aufgegebenen Geschäften (Dauerbetrieb 289,4). Marge und freier Cashflow vom Agenten gerechnet; Halbjahres-Cashflow 2026 aus der Pressemitteilung (freier Cashflow 467,2 plus Investitionen 37,4), Halbjahr 2025 aus Pressemitteilung und Q1-XBRL zusammengesetzt.'
+  note: 'Quelle: 10-K 2025, 10-Q Q2 2026 und Pressemitteilung vom 28.07.2026 der SEC; Nettogewinn 1. Halbjahr 2026 inkl. 11,6 Mio. $ aus aufgegebenen Geschäften (Dauerbetrieb 289,4). Marge und freier Cashflow vom Agenten gerechnet; operativer Cashflow und Investitionen laut Pressemitteilung/10-Q; freier Cashflow 1. Halbjahr = Firmenangabe (467,2 und 540,1 laut Abstimmungstabelle, inkl. Erlösen aus Anlagenverkäufen).'
 method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

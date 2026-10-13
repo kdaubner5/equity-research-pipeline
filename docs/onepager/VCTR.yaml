@@ -17,7 +17,7 @@ verdict:
   tone: warn
   text: Vorschlag des Agenten, Entscheidung durch Konstantin. Ein Kauf, der größer ist als der heutige Börsenwert (First Eagle, rund 7,0 Mrd. $, bar 4,4 Mrd. $ und 2,0 Mrd. $ in Aktien) verändert Schulden, Aktienzahl und Ergebnis grundlegend; die Aktionäre müssen noch zustimmen.
   legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Zustimmung der Aktionäre, Abschluss des First-Eagle-Kaufs und neue Schuldenzahlen) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
-thesis: 'Victory Capital verwaltet Vermögen (Fonds, ETFs, Mandate) und wächst durch Zukäufe. 2025 übernahm es Amundi US; deshalb stieg der Umsatz im 1. Halbjahr 2026 um 44 % auf 823 Mio. $ und das Betriebsergebnis auf 353 Mio. $ (Vorjahr 187). Das verwaltete Vermögen lag Ende September 2026 bei 351,9 Mrd. $, mit 11,7 Mrd. $ Nettozuflüssen im 3. Quartal (Meldung vom 12.10.2026). Am 26.08.2026 vereinbarte die Firma den Kauf von First Eagle (222 Mrd. $ Vermögen) für rund 7,0 Mrd. $: 4,4 Mrd. $ bar, 2,0 Mrd. $ in neuen Aktien, dazu übernommene Anleihen von 575 Mio. $. Finanziert wird mit einem neuen Term Loan B von 3,5 Mrd. $, rund 950 Mio. $ neuen Anleihen und einem aufgestockten Revolver; der Verkäufer Genstar hielte danach rund 14,6 %. Die Firma erwartet rund 35 % mehr bereinigten Gewinn je Aktie 2027. Der freie Cashflow der letzten zwölf Monate liegt bei rund 564 Mio. $ (8,5 % des Börsenwerts laut Archivkurs); die jetzigen Nettoschulden betragen rund 0,9 Mrd. $.'
+thesis: 'Victory Capital verwaltet Vermögen (Fonds, ETFs, Mandate) und wächst durch Zukäufe. 2025 übernahm es Amundi US; deshalb stieg der Umsatz im 1. Halbjahr 2026 um 44 % auf 823 Mio. $ und das Betriebsergebnis auf 353 Mio. $ (Vorjahr 187). Das verwaltete Vermögen lag Ende September 2026 bei 351,9 Mrd. $, mit 11,7 Mrd. $ Nettozuflüssen im 3. Quartal (Meldung vom 12.10.2026). Am 25./26.08.2026 (Vertrag 25.08., Mitteilung 26.08.) vereinbarte die Firma den Kauf von First Eagle (222 Mrd. $ Vermögen) für rund 7,0 Mrd. $: 4,4 Mrd. $ bar, 2,0 Mrd. $ in neuen Aktien, dazu übernommene Anleihen von 575 Mio. $. Finanziert wird mit einem neuen Term Loan B von 3,5 Mrd. $, rund 950 Mio. $ neuen Anleihen und einem aufgestockten Revolver; der Verkäufer Genstar hielte danach rund 14,6 %. Die Firma erwartet rund 35 % mehr bereinigten Gewinn je Aktie 2027. Der freie Cashflow der letzten zwölf Monate liegt bei rund 564 Mio. $ (8,5 % des Börsenwerts laut Archivkurs); die jetzigen Nettoschulden betragen rund 0,9 Mrd. $.'
 kpis:
 - label: Marktwert
   main: 6,65 Mrd. $
@@ -59,8 +59,6 @@ halfyear:
     - 254.3
   unit: Mio. $
 events:
-- date: 18.05.2026
-  text: 'Kreditvertrag: siebte Änderung (8-K vom 21.05.)'
 - date: 23.07.2026
   text: Verwaltungsrat Dominique Carrel-Billiard (Amundi) tritt zurück, weil er Amundi verlässt
 - date: 05.08.2026
@@ -72,8 +70,11 @@ events:
 - date: 04.11.2026
   text: Zahlen Q3 2026 geplant (nach Börsenschluss)
   future: true
+- date: bis Ende 1. Quartal 2027
+  text: Erwarteter Abschluss des First-Eagle-Kaufs (laut Pressemitteilung und 8-K; Aktionärszustimmung und Genehmigungen nötig)
+  future: true
 bear:
-- 'First-Eagle-Kauf für rund 7,0 Mrd. $: 3,5 Mrd. $ Term Loan B plus rund 950 Mio. $ Anleihen plus 575 Mio. $ übernommene Anleihen (7,25 %); die Schulden würden um ein Mehrfaches steigen.'
+- 'First-Eagle-Kauf für rund 7,0 Mrd. $: 3,5 Mrd. $ Term Loan B plus rund 950 Mio. $ Anleihen plus 575 Mio. $ übernommene Anleihen (7,25 %); zusätzlich rund 4,45 Mrd. $ neue Kredite plus 575 Mio. $ übernommene Anleihen (Summe rund 5,0 Mrd. $, Agent) gegen heutige Schulden von 968 Mio. $.'
 - Aktionäre müssen zustimmen; Genstar bekäme rund 14,6 % (Stimmrecht begrenzt auf 4,9 %); zwei Verwaltungsratssitze.
 - Stufe 2 markiert die FCF-Rendite (3-Jahres-Mittel 5,4 %, Grauzone); Branche als Grenzfall markiert.
 - Das Wachstum 2026 stammt großenteils aus dem Amundi-US-Kauf; organisches Wachstum ist in den Unterlagen nicht getrennt ausgewiesen.
@@ -96,10 +97,10 @@ entry:
   condition: 'Abwarten: Zustimmung der Aktionäre, Abschluss des Kaufs und der erste Quartalsbericht danach; dann Schulden, Zinsen und Aktienzahl neu rechnen'
 kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate, mit First Eagle) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder Aktionäre lehnen den Kauf ab und die Kurslücke zum Archivkurs schließt sich (kein Maßstab aus dem Repo); geprüft mit jedem 10-Q.'
 sources_detail:
-- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 26.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 06.08.2026 und Q1 vom 07.05.2026 nur auf Vorhandensein geprüft) und mehrere aktuelle Meldungen (8-K vom 21.05., 23.07., 05.08., 26.08. mit Pressemitteilung zum Kauf, 31.08. mit Fusionsvertrag und die monatlichen Vermögensmeldungen bis 13.10.2026). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 26.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 06.08.2026 und Q1 vom 07.05.2026 nur auf Vorhandensein geprüft) und mehrere aktuelle Meldungen (8-K vom 23.07., 05.08., 26.08. mit Pressemitteilung zum Kauf, 31.08. mit Fusionsvertrag und die monatlichen Vermögensmeldungen bis 13.10.2026). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
 - 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
 - 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
-sources: 'SEC: 10-K 2025 (0001193125-26-077057), 10-Q Q2 2026 (-26-337010), 10-Q Q1 2026 (-26-210575), 8-Ks: 21.05.2026 (-26-234487), 23.07. (-26-314260), 05.08. (-26-335319), 26.08. (-26-101533), 31.08. (-26-103936), 13.10.2026 (-26-419967). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+sources: 'SEC: 10-K 2025 (0001193125-26-077057), 10-Q Q2 2026 (-26-337010), 10-Q Q1 2026 (-26-210575), 8-Ks: 23.07.2026 (-26-314260), 05.08. (-26-335319), 26.08. (-26-101533), 31.08. (-26-103936), 13.10.2026 (-26-419967). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
 not_checked: 'Die Peer-Gruppe (8 Firmen) ist gemischt: Neben Vermögensverwaltern enthält sie einen Investmentbank-Berater (Moelis), eine Beteiligungsholding (Icahn Enterprises) und einen Kreditfonds (Hercules); deren FCF-Renditen von 47 bis 49 % sind nicht vergleichbar. 4 Firmen fehlen wegen Datenfehlern (OTF, RA, URG, VOYA). Das Archiv trägt die Datenmarke `debt_component_missing_defaulted_zero` und markiert die Branche als Grenzfall. Nicht geprüft: Bedingungen der neuen Kredite im Detail, Zustimmungs- und Genehmigungsstand, organisches Wachstum, aktueller Kurs; die 35 %-Angabe ist eine Firmenangabe. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
 peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); 4 Firmen fehlen wegen Datenfehlern (OTF, RA, URG, VOYA; laut Hinweis des Exportlaufs). Die FCF-Renditen der Kreditfonds und Holdings (47 bis 49 %) verzerren den Median.
 peer_summary: 'Gegen die 8 Firmen der Gruppe mit Wert: EV/EBITDA 11,9 gegen Median 13,1 (Platz 3 von 8, 1 = günstigste), FCF-Rendite 5,4 % gegen Median 9,3 % (Platz 7 von 8, 1 = höchste).'
