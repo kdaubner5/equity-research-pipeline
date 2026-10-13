@@ -24,3 +24,10 @@ jump_threshold_pct: 10
 symbols:
   - {symbol: CSPX.LON, role: sp500, currency: USD}       # iShares Core S&P 500 (Acc), Londoner Boerse
   - {symbol: XDWD.DEX, role: msci_world, currency: EUR}  # Xtrackers MSCI World 1C, Xetra
+
+# Kandidaten: Die Ticker kommen aus den Kandidatenlisten im Repo (Tabelle, 3. Spalte). Eine neue Runde (neue Datei
+# passend zum Muster) wird ohne Codeaenderung uebernommen; wer nicht mehr auf der Liste steht, wird nicht mehr
+# abgerufen (gespeicherte Kurse bleiben). Alle Kandidaten sind US-Boersen-Titel, daher USD.
+candidates:
+  glob: "docs/kandidaten/runde*.md"
+  currency: USD

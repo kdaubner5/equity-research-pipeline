@@ -15,6 +15,9 @@ jump_threshold_pct: 10
 symbols:
   - {symbol: CSPX.LON, role: sp500, currency: USD}
   - {symbol: XDWD.DEX, role: msci_world, currency: EUR}
+candidates:
+  glob: "docs/kandidaten/runde*.md"
+  currency: USD
 """
 
 
@@ -24,8 +27,16 @@ def write(tmp_path, text):
     return path
 
 
+def candidate_root(tmp_path, tickers=("AAA", "BBB")):
+    root = tmp_path / "repo"
+    (root / "docs" / "kandidaten").mkdir(parents=True)
+    rows = "".join(f"| {n} | {n} | {t} | A | passed |\n" for n, t in enumerate(tickers, start=1))
+    (root / "docs" / "kandidaten" / "runde1.md").write_text("| Nr. | Rang | Ticker |\n|---|---|---|\n" + rows, encoding="utf-8")
+    return root
+
+
 def test_valid_file_loads(tmp_path):
-    cfg = load_benchmarks(write(tmp_path, VALID))
+    cfg = load_benchmarks(write(tmp_path, VALID), candidate_root(tmp_path))
     assert cfg.source == "alphavantage"
     assert cfg.pause_between_symbols_seconds == 13
     assert cfg.stale_warn_days == 14
@@ -35,12 +46,28 @@ def test_valid_file_loads(tmp_path):
     assert [(s.symbol, s.role, s.currency) for s in cfg.symbols] == [
         ("CSPX.LON", "sp500", "USD"),
         ("XDWD.DEX", "msci_world", "EUR"),
+        ("AAA", "candidate", "USD"),
+        ("BBB", "candidate", "USD"),
     ]
 
 
-def test_the_real_file_loads_and_has_the_two_decided_etfs():
+def test_the_real_file_loads_the_two_etfs_and_all_40_candidates_of_the_frozen_list():
     cfg = load_benchmarks(DEFAULT_BENCHMARKS_PATH)
-    assert {s.symbol: s.currency for s in cfg.symbols} == {"CSPX.LON": "USD", "XDWD.DEX": "EUR"}
+    etfs = {s.symbol: s.currency for s in cfg.symbols if s.role != "candidate"}
+    candidates = [s.symbol for s in cfg.symbols if s.role == "candidate"]
+    assert etfs == {"CSPX.LON": "USD", "XDWD.DEX": "EUR"}
+    assert len(candidates) == 40 and "FHI" in candidates and "UAN" in candidates and "XPER" not in candidates
+
+
+def test_candidate_block_problems_name_the_key(tmp_path):
+    root = candidate_root(tmp_path)
+    for bad, message in (
+        (VALID.replace('glob: "docs/kandidaten/runde*.md"', 'glob: "docs/gibt_es/*.md"'), "candidates.glob"),
+        (VALID.replace("currency: USD\n", "currency: usd\n").replace("USD}", "USD}"), "currency"),
+        (VALID.replace("candidates:", "kandidaten:"), "unrecognized|missing"),
+    ):
+        with pytest.raises(BenchmarksConfigError, match=message):
+            load_benchmarks(write(tmp_path, bad), root)
 
 
 @pytest.mark.parametrize(

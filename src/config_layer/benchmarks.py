@@ -11,6 +11,8 @@ from typing import Tuple
 
 import yaml
 
+from config_layer.candidates import CandidateListError, collect_candidate_tickers
+
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_BENCHMARKS_PATH = _REPO_ROOT / "config" / "benchmarks.yaml"
 
@@ -22,7 +24,10 @@ _TOP_LEVEL_KEYS = (
     "lookback_max_calendar_days",
     "jump_threshold_pct",
     "symbols",
+    "candidates",
 )
+_CANDIDATE_KEYS = ("glob", "currency")
+CANDIDATE_ROLE = "candidate"
 _SYMBOL_KEYS = ("symbol", "role", "currency")
 _CURRENCIES = ("USD", "EUR")
 
@@ -67,7 +72,7 @@ def _number(raw, key, *, integer, minimum_exclusive=None, minimum=None):
     return int(raw) if integer else raw
 
 
-def load_benchmarks(path=DEFAULT_BENCHMARKS_PATH) -> BenchmarksConfig:
+def load_benchmarks(path=DEFAULT_BENCHMARKS_PATH, repo_root=_REPO_ROOT) -> BenchmarksConfig:
     path = Path(path)
     try:
         raw_text = path.read_text(encoding="utf-8")
@@ -115,6 +120,24 @@ def load_benchmarks(path=DEFAULT_BENCHMARKS_PATH) -> BenchmarksConfig:
             raise BenchmarksConfigError(f"symbol {entry['symbol']!r} is listed twice")
         seen.add(entry["symbol"])
         symbols.append(BenchmarkSymbol(entry["symbol"], entry["role"], entry["currency"]))
+
+    block = data["candidates"]
+    if not isinstance(block, dict) or set(block) != set(_CANDIDATE_KEYS):
+        raise BenchmarksConfigError(f"candidates must be a mapping with exactly the keys {list(_CANDIDATE_KEYS)}")
+    for key in _CANDIDATE_KEYS:
+        if not isinstance(block[key], str) or not block[key].strip():
+            raise BenchmarksConfigError(f"candidates.{key} must be a non-empty string, got {block[key]!r}")
+    if block["currency"] not in _CURRENCIES:
+        raise BenchmarksConfigError(f"candidates.currency must be one of {list(_CURRENCIES)}, got {block['currency']!r}")
+    try:
+        tickers = collect_candidate_tickers(repo_root, block["glob"])
+    except CandidateListError as exc:
+        raise BenchmarksConfigError(f"candidates.glob {block['glob']!r}: {exc}") from exc
+    for ticker in tickers:
+        if ticker in seen:
+            raise BenchmarksConfigError(f"candidate {ticker!r} is already listed under symbols")
+        seen.add(ticker)
+        symbols.append(BenchmarkSymbol(ticker, CANDIDATE_ROLE, block["currency"]))
 
     return BenchmarksConfig(
         source=source,

@@ -18,6 +18,9 @@ jump_threshold_pct: 10
 symbols:
   - {symbol: CSPX.LON, role: sp500, currency: USD}
   - {symbol: XDWD.DEX, role: msci_world, currency: EUR}
+candidates:
+  glob: "docs/kandidaten/runde*.md"
+  currency: USD
 """
 
 
