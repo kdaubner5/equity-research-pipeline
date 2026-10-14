@@ -1,0 +1,211 @@
+# Datenquelle für die PDF-Fassung des One-Pagers INGR (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: Ingredion Incorporated
+  ticker: INGR
+  list_nr: 21
+  stage2_rank: 22
+  stage2_rank_of: 41
+  peer_group: Consumer Packaged Goods (SimFin-Branche 102002, 17 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 07.08.2026 (10-Q Q2 2026), 8-Ks bis 20.08.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 96,82 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: ZURÜCKSTELLEN
+  tone: warn
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Das Betriebsergebnis fällt im 1. Halbjahr um 29 %, und der geplante 3,5-Mrd.-$-Kauf von Tate & Lyle (Abschluss 2. Halbjahr 2027) würde die Schulden von 1,8 auf bis zu 6,0 Mrd. $ treiben.
+  legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Freigaben und Finanzierung des Tate-&-Lyle-Kaufs sowie Quartalsbericht Q3 2026) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
+thesis: 'Ingredion verarbeitet Mais und andere Pflanzen zu Stärken, Süßungsmitteln und Zutaten für Lebensmittel. Im 1. Halbjahr 2026 blieb der Umsatz mit 3.642 Mio. $ flach, das Betriebsergebnis fiel um 29 % auf 391 Mio. $: höhere Herstellkosten, Kosten eines thermischen Ereignisses im Werk Argo und Aufwand für die Schließung des Werks Cabo (Brasilien). Am 08.06.2026 vereinbarte die Firma den Kauf von Tate & Lyle (London) für rund 2,7 Mrd. £ (3,5 Mrd. $) bar; Abschluss erwartet im 2. Halbjahr 2027, die Schulden könnten von 1,8 auf bis zu rund 6,0 Mrd. $ steigen. Der freie Cashflow der letzten zwölf Monate liegt bei rund 355 Mio. $ (5,8 % des Börsenwerts), 2025 waren es 511 Mio. $. Am 30.06.2026 verkaufte INGR 51 % der pakistanischen Rafhan Maize für rund 165 Mio. $.'
+kpis:
+- label: Marktwert
+  main: 6,11 Mrd. $
+  sub: 96,82 $ x 63,1 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 5,8 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 13,1 %'
+  status: warn
+- label: EV/EBIT
+  main: 8,1
+  sub: 'letzte 12 Monate (Agent), ohne Tate & Lyle | Stufe 2 EV/EBITDA: 5,5'
+  status: neutral
+- label: Nettoschulden
+  main: 835,0 Mio. $
+  sub: '30.06.2026: Gesamtschulden 1.783 (lang 1.742, kurz 41) minus Kasse 948, vor dem Tate-&-Lyle-Kauf (danach bis ca. 6,0 Mrd. $ Gesamtschulden) | Stufe 1: 0,60'
+  status: warn
+- label: Tate & Lyle
+  main: 3,5 Mrd. $
+  sub: bar, vereinbart 08.06.2026 | Abschluss erwartet 2. Halbjahr 2027
+  status: warn
+halfyear:
+  labels:
+  - 1. Halbjahr 2025
+  - 1. Halbjahr 2026
+  tone: warn
+  rows:
+  - name: Betriebsergebnis
+    values:
+    - 547.0
+    - 391.0
+  - name: Nettogewinn
+    values:
+    - 393.0
+    - 256.0
+  - name: Freier Cashflow
+    values:
+    - 69.0
+    - -87.0
+  unit: Mio. $
+events:
+- date: 08.06.2026
+  text: 'Vereinbarung zum Kauf von Tate & Lyle PLC: 595 Pence je Aktie bar, ca. 2,7 Mrd. £ (3,5 Mrd. $); Brückenkredit und Delayed-Draw-Term-Loan zugesagt (24./25.06.)'
+- date: 30.06.2026
+  text: 51 % der Rafhan Maize (Pakistan) verkauft, ca. 165 Mio. $ bar
+- date: 28.07.2026
+  text: Aktionäre von Tate & Lyle stimmen dem Angebot zu; Behördenfreigaben stehen aus
+- date: 04.08.2026
+  text: 'Zahlen Q2: Umsatz 1.850 Mio. $ (+1 %); 10-Q am 07.08. eingereicht'
+- date: 19.08.2026
+  text: Diego Reynoso zum Finanzchef gewählt (ab 01.10.2026)
+- date: 2. Halbjahr 2027
+  text: Erwarteter Abschluss des Tate-&-Lyle-Kaufs (laut Firma, Kartellfreigaben in USA, UK, EU, China u. a. nötig)
+  future: true
+bear:
+- 'Betriebsergebnis 1. Halbjahr 391 Mio. $ nach 547 (-29 %); Gründe: Herstellkosten, Argo-Werk, Schließung Cabo.'
+- 'Tate-&-Lyle-Kauf 3,5 Mrd. $ bar: Gesamtschulden bis ca. 6,0 Mrd. $ (jetzt 1,8); keine Abbruchgebühr, keine Finanzierungsbedingung; Währungsabsicherung kostete schon 47 Mio. $ im Quartal.'
+- Freier Cashflow 1. Halbjahr -87 Mio. $ (Investitionen 210 Mio. $); 12 Monate rund 355 Mio. $ nach 511 im Jahr 2025.
+- Steuerquote im 2. Quartal 33,7 % (Pakistan-Gewinn, Währungseffekte).
+- 'Der Filter sieht davon nichts: Stufe 1 und 2 rechnen mit 2025 (Betriebsergebnis 1.016 Mio. $), die letzten zwölf Monate liegen bei 860.'
+bull:
+- 'Geschäftsjahr 2025: Betriebsergebnis 1.016 Mio. $ (+15 %), Nettogewinn 729 Mio. $ (+13 %).'
+- Verkauf von Rafhan Maize brachte rund 165 Mio. $ ein.
+- Liquidität 3,9 Mrd. $ (ohne die Kredite, die nur für den Kauf zugesagt sind; 30.06.2026).
+- 'Freier Cashflow vor dem Argo-Ereignis hoch: 1.141 Mio. $ (2024), 511 Mio. $ (2025).'
+- Der Kauf soll das Portfolio an Spezialzutaten verbreitern (Firmenangabe).
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 93.82
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 3,2 % darüber
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (355,0 Mio. $) und 63,1 Mio. Aktien angewendet. Der Kurs liegt knapp über der Grenze. Der Tate-&-Lyle-Kauf (Schulden, Ergebnisbeitrag, Synergien) ist nicht eingerechnet. Die zweite Grenze (EV/EBITDA) fehlt.'
+  price: 96.82
+  price_date: 23.09.2026
+  condition: 'Abwarten: Freigaben und Finanzierung des Tate-&-Lyle-Kaufs, Quartalsbericht Q3 2026; dann Verschuldung mit dem Kauf neu rechnen'
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate, mit Tate & Lyle) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder Betriebsergebnis der letzten zwölf Monate unter 800 Mio. $ (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 17.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 07.08.2026 und Q1 vom 08.05.2026 nur auf Vorhandensein geprüft) und mehrere aktuelle Meldungen (8-K vom 09.06., 11.06., 25.06., 30.06., 28.07., 04.08., 20.08.2026). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K 2025 (0001628280-26-008603), 10-Q Q2 2026 (-26-054722), 10-Q Q1 2026 (-26-032703), 8-Ks: 09.06.2026 (0001628280-26-041921), 25.06. (-26-045521), 30.06. (0001046257-26-000210), 04.08., 20.08.2026. Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Peer-Gruppe (17 Firmen, Konsumgüter) wurde nicht einzeln geprüft. Nicht geprüft: Ergebnisbeitrag und Schulden von Tate & Lyle, Kosten der Kreditlinien im Detail, Zeitplan der Kartellverfahren, Minderheitsanteile, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); keine fehlenden Firmen gemeldet.
+peer_summary: 'Gegen die 17 Firmen der Gruppe mit Wert: EV/EBITDA 5,5 gegen Median 8,8 (Platz 5 von 17, 1 = günstigste), FCF-Rendite 13,1 % gegen Median 12,2 % (Platz 6 von 17, 1 = höchste).'
+funnel_title: So kam INGR auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 14,9 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: ok
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: 0,60
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,72
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 5,5 (Platz 5 von 17)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: ok
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 13,1 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter).
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - '2023'
+  - '2024'
+  - '2025'
+  - 1. Hj. 2025
+  - 1. Hj. 2026
+  rows:
+  - name: Umsatz
+    values:
+    - 8.160,0
+    - 7.430,0
+    - 7.219,0
+    - 3.646,0
+    - 3.642,0
+  - name: Betriebsergebnis
+    values:
+    - 957,0
+    - 883,0
+    - 1.016,0
+    - 547,0
+    - 391,0
+  - name: Betriebsmarge
+    values:
+    - 11,7 %
+    - 11,9 %
+    - 14,1 %
+    - 15,0 %
+    - 10,7 %
+  - name: Nettogewinn
+    values:
+    - 643,0
+    - 647,0
+    - 729,0
+    - 393,0
+    - 256,0
+  - name: Operativer Cashflow
+    values:
+    - 1.057,0
+    - 1.436,0
+    - 944,0
+    - 262,0
+    - 123,0
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 314,0
+    - 295,0
+    - 433,0
+    - 193,0
+    - 210,0
+  - name: Freier Cashflow
+    values:
+    - 743,0
+    - 1.141,0
+    - 511,0
+    - 69,0
+    - -87,0
+  note: 'Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten, Zahlen in ganzen Mio. $). Marge und freier Cashflow vom Agenten gerechnet. Nettogewinn 1. Halbjahr 2026 enthält 44 Mio. $ Gewinn aus dem Pakistan-Verkauf.'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

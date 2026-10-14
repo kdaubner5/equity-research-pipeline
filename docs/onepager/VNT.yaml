@@ -1,0 +1,206 @@
+# Datenquelle für die PDF-Fassung des One-Pagers VNT (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: Vontier Corporation
+  ticker: VNT
+  list_nr: 34
+  stage2_rank: 35
+  stage2_rank_of: 41
+  peer_group: Engineering & Construction (SimFin-Branche 100003, 17 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 06.08.2026 (10-Q Q2 2026 und Pressemitteilung), 8-K bis 08.10.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 31,32 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: WEITERVERFOLGEN
+  tone: ok
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Betriebsergebnis und Marge steigen, die Prognose wurde angehoben, und der Verlust von 86 Mio. $ stammt aus dem Verkauf von Teletrac Navman; die Verschuldung liegt mit 2,3 nahe an der Schwelle.
+  legend: Was bedeutet WEITERVERFOLGEN? Die Firma besteht den Filter und die Prüfung der Unterlagen zeigt kein Ausschlussmerkmal. Sie kommt in die engere Beobachtung; ein Kauf folgt nur nach den Stufe-4-Regeln und deiner Entscheidung. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.
+thesis: Vontier liefert Technik für Tankstellen und Mobilität (Zapfsäulen, Zahlungs- und Umwelttechnik). Im 2. Quartal 2026 sank der Umsatz um 2,2 % auf 757 Mio. $ (Kerngeschäft -0,2 %, Lieferzeitpunkte); das Betriebsergebnis stieg um 7,6 % auf 147 Mio. $ (Marge 19,4 %, bereinigt 23,0 %). Der Nettogewinn fiel auf 27 Mio. $ (Vorjahr 92) wegen eines vorläufigen Verlusts von 86,2 Mio. $ aus dem Verkauf von Teletrac Navman (30.06.2026; Erlös laut Firma 85 Mio. $ bar, 99,8 Mio. $ Verkäuferdarlehen, 23,4 Mio. $ Minderheitsbeteiligung). Die Prognose für den bereinigten Gewinn je Aktie 2026 wurde auf 3,45 bis 3,55 $ angehoben. Der freie Cashflow der letzten zwölf Monate liegt bei rund 385 Mio. $ (8,7 % des Börsenwerts); die Nettoschulden betragen rund 1,63 Mrd. $ (davon 305 Mio. $ kurzfristige Kredite; Stufe-1-Wert 2,34, in der Grauzone).
+kpis:
+- label: Marktwert
+  main: 4,41 Mrd. $
+  sub: 31,32 $ x 140,8 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 8,7 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 9,0 %'
+  status: ok
+- label: EV/EBIT
+  main: 10,5
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 8,8'
+  status: neutral
+- label: Nettoschulden
+  main: 1,63 Mrd. $
+  sub: '03.07.2026: Schulden 1.900,0 (lang 1.595,2 + kurz 304,8) minus Kasse 265,8 | Stufe 1: 2,34'
+  status: warn
+- label: Betriebsmarge Q2
+  main: 19,4 %
+  sub: Vorjahr 17,6 % | bereinigt 23,0 % (21,1 %)
+  status: ok
+halfyear:
+  labels:
+  - 1. Halbjahr 2025
+  - 1. Halbjahr 2026
+  tone: ok
+  rows:
+  - name: Umsatz
+    values:
+    - 1514.6
+    - 1507.3
+  - name: Betriebsergebnis
+    values:
+    - 266.5
+    - 281.5
+  - name: Freier Cashflow
+    values:
+    - 176.0
+    - 119.7
+  unit: Mio. $
+events:
+- date: 01.04.2026
+  text: 'Anleihe 2026 (500 Mio. $) zurückgezahlt: 300 Mio. $ aus einem neuen 364-Tage-Term-Loan (4,62 %, fällig 30.03.2027), 200 Mio. $ aus Kasse; die 3-Jahres-Term-Loans (500 Mio. $, fällig 12.02.2028) bestanden schon'
+- date: 30.06.2026
+  text: 'Teletrac Navman verkauft: 208,2 Mio. $ Gegenwert (85,0 bar, 99,8 Verkäuferdarlehen, 23,4 Minderheitsanteil); vorläufiger Verlust 86,2 Mio. $'
+- date: 06.08.2026
+  text: 'Zahlen Q2: Umsatz 756,7 Mio. $ (-2,2 %), Betriebsergebnis 146,7 Mio. $ (+7,6 %); Prognose bereinigter Gewinn je Aktie 3,45 bis 3,55 $ angehoben; 10-Q eingereicht'
+- date: 02.10.2026
+  text: Kathryn Rowen (EVP Chief Transformation and Operations Officer) kündigt zum 16.10.2026 (8-K vom 08.10.)
+bear:
+- Verlust 86,2 Mio. $ aus dem Verkauf von Teletrac Navman (vorläufig); Verkäuferdarlehen von 99,8 Mio. $ sind ein Kreditrisiko.
+- Net Debt/EBITDA im Archiv 2,34 (Grauzone der Schwelle 2,5); variable Zinsen auf Term Loans (4,62 % und 4,79 %).
+- Umsatz 1. Halbjahr 1.507 Mio. $ nach 1.515; Kerngeschäft Q2 -0,2 %.
+- Operativer Cashflow 1. Halbjahr 162,8 Mio. $ nach 210,4 (-23 %).
+- 'Ein Wechsel im Führungskreis: der Chief Transformation and Operations Officer geht zum 16.10.2026.'
+bull:
+- Betriebsergebnis +7,6 %, Marge +180 Basispunkte auf 19,4 %; Kostenprogramm „läuft vor Plan“.
+- Prognose bereinigter Gewinn je Aktie auf 3,45 bis 3,55 $ angehoben; Q3-Prognose 0,82 bis 0,86 $.
+- 'Rückkäufe: gewichtete Aktienzahl 139,8 Mio. nach 148,2 Mio. im Vorjahr; Restrahmen 904,5 Mio. $.'
+- Freier Cashflow der letzten zwölf Monate rund 385 Mio. $; bereinigte Cash-Umwandlung 79 % im Quartal.
+- 'Segment Environmental & Fueling Solutions: Marge 31,6 % (29,2 %), enthält laut Pressemitteilung einen einmaligen Vorteil aus einer Zollrückerstattung.'
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 45.55
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 31,2 % darunter
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (384,8 Mio. $) und 140,8 Mio. Aktien laut Archiv angewendet (der 10-Q nennt 135,2 Mio. am 03.08.2026; damit läge die Grenze bei rund 47,4 $). Die Cashflow-Zahl enthält den Verkauf von Teletrac Navman noch nicht als Abgang des Cashflows dieses Geschäfts. Die zweite Grenze (EV/EBITDA) fehlt.'
+  price: 31.32
+  price_date: 23.09.2026
+  condition: Quartalsbericht Q3 2026 abwarten; Verschuldung nach Teletrac-Verkauf, Zinskosten und Kerngeschäft prüfen
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder Kernumsatz in zwei Quartalen in Folge unter -3 % (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 12.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 06.08.2026 und Q1 vom 07.05.2026 nur auf Vorhandensein geprüft) und 2 aktuelle Meldungen (8-K vom 06.08. mit Pressemitteilung und 08.10.2026). Zahlen aus den XBRL-Daten der SEC (companyfacts) und der Pressemitteilung gegengelesen (Halbjahresvergleich aus dem 10-Q).'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K 2025 (0001628280-26-007648), 10-Q Q2 2026 (-26-054180), 10-Q Q1 2026 (-26-031945), 8-Ks: 06.08.2026 (0001628280-26-053799), 08.10.2026 (0001628280-26-065383). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Peer-Gruppe (17 Firmen, Ingenieurs- und Baufirmen sowie Autozulieferer) ist gemischt. Das Archiv markiert Stufe 1 mit `net_debt_ebitda` (2,34, Grauzone). Nicht geprüft: Bewertung des Verkäuferdarlehens, Ergebnisbeitrag von Teletrac Navman in den 12 Monaten, Leasing, aktueller Kurs. Der Nettogewinn je Jahr fehlt in der Tabelle, weil er im XBRL-Abruf nicht erkannt wurde. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); KBR hat keinen FCF-Wert (zu wenige Jahre). Die Gruppe ist gemischt.
+peer_summary: 'Gegen die 17 Firmen der Gruppe mit Wert: EV/EBITDA 8,8 gegen Median 13,4 (Platz 5 von 17, 1 = günstigste), FCF-Rendite 9,0 % gegen Median 4,3 % (Platz 5 von 16, 1 = höchste).'
+funnel_title: So kam VNT auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 14,4 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: ok
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: 2,34
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: warn
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,16
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 8,8 (Platz 5 von 17)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: ok
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 9,0 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: 'Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Stufe-1-Marke: net_debt_ebitda (Wert in der Grauzone, nicht durchgefallen).'
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - '2023'
+  - '2024'
+  - '2025'
+  - 1. Hj. 2025
+  - 1. Hj. 2026
+  rows:
+  - name: Umsatz
+    values:
+    - 3.095,2
+    - 2.979,0
+    - 3.075,6
+    - 1.514,6
+    - 1.507,3
+  - name: Betriebsergebnis
+    values:
+    - 543,4
+    - 537,0
+    - 561,6
+    - 266,5
+    - 281,5
+  - name: Betriebsmarge
+    values:
+    - 17,6 %
+    - 18,0 %
+    - 18,3 %
+    - 17,6 %
+    - 18,7 %
+  - name: Nettogewinn
+    values:
+    - –
+    - –
+    - –
+    - 179,8
+    - 121,7
+  - name: Operativer Cashflow
+    values:
+    - 455,0
+    - 427,5
+    - 511,0
+    - 210,4
+    - 162,8
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 60,1
+    - 82,7
+    - 69,9
+    - 34,4
+    - 43,1
+  - name: Freier Cashflow
+    values:
+    - 394,9
+    - 344,8
+    - 441,1
+    - 176,0
+    - 119,7
+  note: 'Quelle: 10-K und 10-Q der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen). Nettogewinn nur für die Halbjahre ausgewiesen.'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

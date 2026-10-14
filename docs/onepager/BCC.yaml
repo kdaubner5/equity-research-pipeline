@@ -1,0 +1,206 @@
+# Datenquelle für die PDF-Fassung des One-Pagers BCC (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: Boise Cascade Company
+  ticker: BCC
+  list_nr: 37
+  stage2_rank: 38
+  stage2_rank_of: 41
+  peer_group: Building Materials (SimFin-Branche 110005, 16 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 03.08.2026 (10-Q Q2 2026 und Pressemitteilung), 8-Ks bis 03.08.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 77,76 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: ZURÜCKSTELLEN
+  tone: warn
+  text: 'Vorschlag des Agenten, Entscheidung durch Konstantin. Die Bewertung beruht auf stark gefallenen Gewinnen (Betriebsergebnis 2022: 1.158 laut XBRL-Daten, 2025: 183 Mio. $); der freie Cashflow der letzten zwölf Monate (rund 103 Mio. $) ist knapp, und der Wohnungsbau bleibt schwach.'
+  legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3 2026 und Erholung des Wohnungsbaus) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
+thesis: Boise Cascade vertreibt Baustoffe (Building Materials Distribution) und stellt Holzprodukte her. Im 2. Quartal 2026 stieg der Umsatz um 5 % auf 1,83 Mrd. $; der Nettogewinn sank leicht auf 57,3 Mio. $ (Gewinn je Aktie 1,63 $ nach 1,64 $), das bereinigte EBITDA stieg um 6 % auf 126,2 Mio. $. Die Verteilsparte verdiente 10 % weniger, die Holzprodukte 84 % mehr. Seit 2022 ist das Betriebsergebnis von 1.158 auf 183 Mio. $ (2025) gefallen; in den letzten zwölf Monaten liegt es bei 160 Mio. $. Der freie Cashflow der letzten zwölf Monate beträgt rund 103 Mio. $ (3,8 % des Börsenwerts), der Archiv-Dreijahreswert 8,7 %. Mit 148 Mio. $ Nettoschulden ist die Bilanz solide. Am 03.08.2026 wurde Boise Cascade alleiniger landesweiter Distributor des James-Hardie-Portfolios (Hardie, AZEK, TimberTech).
+kpis:
+- label: Marktwert
+  main: 2,74 Mrd. $
+  sub: 77,76 $ x 35,2 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 3,8 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 8,7 %'
+  status: bad
+- label: EV/EBIT
+  main: 18,0
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 8,0'
+  status: neutral
+- label: Nettoschulden
+  main: 147,7 Mio. $
+  sub: '30.06.2026: Schulden 452,5 (Firmenangabe) minus Kasse 304,8 | Stufe 1: -0,05'
+  status: ok
+- label: Betriebsergebnis
+  main: 160,1 Mio. $
+  sub: 'letzte 12 Monate | 2022: 1.157,8 (XBRL), 2025: 183,3'
+  status: bad
+halfyear:
+  labels:
+  - 1. Halbjahr 2025
+  - 1. Halbjahr 2026
+  tone: warn
+  rows:
+  - name: Umsatz
+    values:
+    - 3276.6
+    - 3329.9
+  - name: Betriebsergebnis
+    values:
+    - 135.0
+    - 111.8
+  - name: Freier Cashflow
+    values:
+    - -127.6
+    - -37.0
+  unit: Mio. $
+events:
+- date: 30.07.2026
+  text: Dividende 0,23 $ je Aktie beschlossen (zahlbar 16.09., Stichtag 01.09.)
+- date: 03.08.2026
+  text: 'Zahlen Q2: Umsatz 1,83 Mrd. $ (+5 %), Gewinn je Aktie 1,63 $, bereinigtes EBITDA 126,2 Mio. $ (+6 %); 10-Q eingereicht'
+- date: 03.08.2026
+  text: 'Erweiterte Partnerschaft: Boise Cascade wird alleiniger landesweiter Distributor des James-Hardie-Portfolios (gültig ab 31.07.2026)'
+- date: 16.09.2026
+  text: Dividende 0,23 $ laut Beschluss zahlbar
+bear:
+- Betriebsergebnis seit 2022 von 1.158 auf 183 Mio. $ (2025) gefallen; 1. Halbjahr 2026 111,8 nach 135,0.
+- Der Archiv-FCF von 8,7 % ist ein Dreijahresmittel; die letzten zwölf Monate geben nur 3,8 % (rund 103 Mio. $).
+- 'Wohnungsbau schwach: Baubeginne Einfamilienhäuser -5 % im 1. Halbjahr 2026; „uneinheitliches, wettbewerbsintensives Umfeld“.'
+- 'Trend-Guard: Margenverhältnis 0,62 und ROIC im letzten Jahr 6,5 %; Archiv markiert Stufe 2 (ev_ebitda, Grauzone) und zyklische Branche.'
+- Rückkäufe von 108,3 Mio. $ im 1. Halbjahr gegen einen negativen Halbjahres-Cashflow (-37 Mio. $).
+bull:
+- 'Holzprodukte: Segmentergebnis +84 % im Quartal (25,7 nach 14,0 Mio. $), Segment-EBITDA +40 %.'
+- Bereinigtes EBITDA im Quartal +6 %; Umsatz +5 %.
+- Neue Hardie-Exklusivrolle erweitert das Sortiment (Siding, Decking); Boise Cascade wendet sich dafür von konkurrierenden Siding-, Trim- und Moulding-Produkten ab (gemeinsame Mitteilung).
+- Liquidität 699,9 Mio. $; Nettoschulden nur 148 Mio. $.
+- Investitionen im 1. Halbjahr 63,3 nach 132,3 Mio. $; 2026 geplant 150 bis 170 Mio. $.
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 48.93
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 58,9 % darüber
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (103,3 Mio. $) und 35,2 Mio. Aktien laut Archiv angewendet. Der Kurs liegt deutlich über der Grenze, weil die Gewinne seit 2022 fielen. Die zweite Grenze (EV/EBITDA, Branchen-Drittel) fehlt.'
+  price: 77.76
+  price_date: 23.09.2026
+  condition: 'Abwarten: Quartalsbericht Q3 2026; Erholung der Baubeginne und der Marge prüfen'
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder Betriebsergebnis der letzten zwölf Monate unter 100 Mio. $ (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 24.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 03.08.2026 und Q1 vom 04.05.2026 nur auf Vorhandensein geprüft) und 2 aktuelle Meldungen (8-K vom 30.07. und 03.08.2026 mit Pressemitteilung und gemeinsamer Mitteilung mit James Hardie). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K 2025 (0001328581-26-000006), 10-Q Q2 2026 (-26-000027), 10-Q Q1 2026 (-26-000016), 8-Ks: 30.07.2026 (-26-000023), 03.08.2026 (-26-000025). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Peer-Gruppe (16 Firmen, Baustoffe) ist gemischt (Distribution und Produktion); keine fehlenden Firmen gemeldet. Das Archiv trägt die Datenmarke `debt_component_missing_defaulted_zero`; laut Pressemitteilung betragen die Schulden 452,5 Mio. $, ein Fehler ist nicht erkennbar. Nicht geprüft: Holzpreis-Zyklus, Bedingungen des James-Hardie-Vertrags, Mietverpflichtungen, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); keine fehlenden Firmen gemeldet. Die Gruppe ist gemischt (Distribution und Produktion).
+peer_summary: 'Gegen die 16 Firmen der Gruppe mit Wert: EV/EBITDA 8,0 gegen Median 8,9 (Platz 7 von 16, 1 = günstigste), FCF-Rendite 8,7 % gegen Median 6,3 % (Platz 5 von 15, 1 = höchste).'
+funnel_title: So kam BCC auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 17,6 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: ok
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: -0,05
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,51
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 8,0 (Platz 7 von 16)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: warn
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 8,7 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: 2 Marken
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: warn
+gates_note: 'Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Trend-Guard: Marge fallend (Margenverhältnis 0,62); ROIC im letzten Jahr unter 10 % (6,5 %). Stufe-2-Marke: ev_ebitda. Datenmarke Stufe 1: `debt_component_missing_defaulted_zero` (ein Teil der Schulden fehlte und wurde auf 0 gesetzt).'
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - '2023'
+  - '2024'
+  - '2025'
+  - 1. Hj. 2025
+  - 1. Hj. 2026
+  rows:
+  - name: Umsatz
+    values:
+    - 6.838,2
+    - 6.724,3
+    - 6.404,6
+    - 3.276,6
+    - 3.329,9
+  - name: Betriebsergebnis
+    values:
+    - 624,4
+    - 490,0
+    - 183,3
+    - 135,0
+    - 111,8
+  - name: Betriebsmarge
+    values:
+    - 9,1 %
+    - 7,3 %
+    - 2,9 %
+    - 4,1 %
+    - 3,4 %
+  - name: Nettogewinn
+    values:
+    - 483,7
+    - 376,4
+    - 132,8
+    - 102,3
+    - 75,2
+  - name: Operativer Cashflow
+    values:
+    - 687,5
+    - 438,3
+    - 254,1
+    - 4,7
+    - 26,3
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 215,4
+    - 229,6
+    - 241,4
+    - 132,3
+    - 63,3
+  - name: Freier Cashflow
+    values:
+    - 472,1
+    - 208,7
+    - 12,7
+    - -127,6
+    - -37,0
+  note: 'Quelle: 10-K und 10-Q der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen).'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

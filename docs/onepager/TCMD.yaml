@@ -1,0 +1,206 @@
+# Datenquelle für die PDF-Fassung des One-Pagers TCMD (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: Tactile Systems Technology, Inc.
+  ticker: TCMD
+  list_nr: 23
+  stage2_rank: 24
+  stage2_rank_of: 41
+  peer_group: Medical Devices (SimFin-Branche 106004, 12 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 10.08.2026 (10-Q Q2 2026 und Pressemitteilung)
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 22,43 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: ZURÜCKSTELLEN
+  tone: warn
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Wachsendes, schuldenfreies Medizintechnik-Geschäft, aber der operative Cashflow brach im 1. Halbjahr auf 2,9 Mio. $ ein, die Bewertung liegt im oberen Bereich der Gruppe, und bei der Atemwegs-Sparte stocken die Bestellungen.
+  legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3 2026 (Cashflow und AffloVest-Bestellungen)) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
+thesis: 'Tactile Medical stellt Geräte für Lymphödem- und Atemwegs-Therapie her (Flexitouch, AffloVest). Im 2. Quartal 2026 stieg der Umsatz um 9 % auf 85,7 Mio. $ (Lymphödem +12 %, Atemwege -7 %: „vorübergehende Lagerdynamik“ bei großen Händlern wegen der neuen AffloVest-Generation); die Bruttomarge lag bei 76 %, das bereinigte EBITDA stieg auf 11,4 Mio. $ (Vorjahr 7,7). Die Firma hat 69,9 Mio. $ Kasse und keine Schulden. Der operative Cashflow fiel im 1. Halbjahr auf 2,9 Mio. $ (Vorjahr 15,2), der freie Cashflow der letzten zwölf Monate liegt bei rund 27 Mio. $ (5,3 % des Börsenwerts), 2025 waren es 40 Mio. $. Die Umsatzprognose für 2026 wurde leicht auf 360 bis 366 Mio. $ gesenkt, das bereinigte EBITDA (49 bis 51 Mio. $) bestätigt.'
+kpis:
+- label: Marktwert
+  main: 0,51 Mrd. $
+  sub: 22,43 $ x 22,6 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 5,3 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 7,4 %'
+  status: warn
+- label: EV/EBIT
+  main: 12,4
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 11,0'
+  status: neutral
+- label: Nettoschulden
+  main: -69,9 Mio. $
+  sub: '30.06.2026: Kasse 69,9 Mio. $, keine Schulden (Kreditlinie 40 Mio. $ ungenutzt) | Stufe 1: -2,17'
+  status: ok
+- label: Umsatz Q2
+  main: 85,7 Mio. $
+  sub: +9 % | Lymphödem +12 %, Atemwege -7 %
+  status: neutral
+halfyear:
+  labels:
+  - 1. Halbjahr 2025
+  - 1. Halbjahr 2026
+  tone: warn
+  rows:
+  - name: Umsatz
+    values:
+    - 140.2
+    - 161.0
+  - name: Betriebsergebnis
+    values:
+    - -0.5
+    - 5.3
+  - name: Freier Cashflow
+    values:
+    - 14.5
+    - 0.8
+  unit: Mio. $
+events:
+- date: 17.02.2026
+  text: LymphaTech (3D-Messplattform für Lymphödem) übernommen; Zahlung 6,2 Mio. $ netto
+- date: 24.04.2026
+  text: Dreijähriger Exklusiv-Vertriebsvertrag mit ElastiMed für MyoSleeve bei VA und DoD; 3,0 Mio. $ gezahlt
+- date: 13.07.2026
+  text: Vertriebsvereinbarung bekannt gemacht (8-K)
+- date: 10.08.2026
+  text: 'Zahlen Q2: Umsatz 85,7 Mio. $ (+9 %), Nettogewinn 7,8 Mio. $ (3,2); Umsatzprognose 360 bis 366 Mio. $ (vorher 360 bis 368); 10-Q eingereicht'
+bear:
+- Operativer Cashflow 1. Halbjahr 2,9 Mio. $ nach 15,2 Mio. $; freier Cashflow der letzten zwölf Monate rund 27 Mio. $ nach 40 Mio. $ im Jahr 2025.
+- 'Atemwegs-Sparte (AffloVest) im Q2 -7 %: laut Firma „vorübergehende Lagerdynamik“ bei einigen großen Händlern nach dem Start der neuen Generation.'
+- Umsatzprognose leicht gesenkt (360 bis 366 statt 368 Mio. $).
+- 'Hohe Bewertung im Gruppenvergleich: EV/EBITDA 11,0 (Archiv), der höchste Wert unter den 15 Kandidaten der Tranche B.'
+- Aktienzahl laut Archiv „ungeprüft“ (Infomarke); Betriebsergebnis 2025 nur 29 Mio. $ bei 330 Mio. $ Umsatz.
+bull:
+- Umsatz im 1. Halbjahr +15 %; Lymphödem-Sparte +17 %; Bruttomarge 76 %.
+- Keine Schulden, 70 Mio. $ Kasse; Rückkauf über 5,3 Mio. $ im Quartal (Programm 25 Mio. $).
+- Nettogewinn Q2 7,8 Mio. $ nach 3,2 Mio. $; bereinigtes EBITDA +48 %.
+- 'Neue Produkte: nächste AffloVest-Generation, LymphaTech, Exklusivrechte für MyoSleeve bei VA/DoD.'
+- Klinische Studie zu Kopf-Hals-Lymphödem veröffentlicht (Sechs-Monats-Ergebnis).
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 19.73
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 13,7 % darüber
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (26,7 Mio. $) und 22,6 Mio. Aktien laut Archiv angewendet. Der Kurs liegt über der Grenze, weil der Cashflow im 1. Halbjahr einbrach. Die zweite Grenze (EV/EBITDA) fehlt.'
+  price: 22.43
+  price_date: 23.09.2026
+  condition: 'Abwarten: Quartalsbericht Q3 2026; Cashflow-Erholung und AffloVest-Bestellungen prüfen'
+kill: 'Vorschlag des Agenten: freier Cashflow der letzten zwölf Monate unter 15 Mio. $ oder Umsatz in zwei Quartalen in Folge rückläufig (keine Schwellen aus dem Repo); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 17.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 10.08.2026 und Q1 vom 04.05.2026 nur auf Vorhandensein geprüft) und 2 aktuelle Meldungen (8-K vom 13.07. und 10.08.2026 mit Pressemitteilung). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K 2025 (0001104659-26-016380), 10-Q Q2 2026 (-26-093352), 10-Q Q1 2026 (-26-054877), 8-Ks: 13.07.2026 (-26-082947), 10.08.2026 (-26-093346). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Peer-Gruppe (12 Firmen, Medizintechnik) wurde nicht einzeln geprüft. Das Archiv trägt die Datenmarke `debt_component_missing_defaulted_zero` und die Infomarke `share_count_unchecked`; die Firma hat laut 10-Q tatsächlich keine Schulden. Die Ursache des Cashflow-Rückgangs im 1. Halbjahr ist im Detail nicht untersucht (Forderungen, Lager). Nicht geprüft: Erstattungsbedingungen von Medicare/Krankenkassen, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); keine fehlenden Firmen gemeldet. Die Firmen der Gruppe wurden nicht einzeln geprüft.
+peer_summary: 'Gegen die 12 Firmen der Gruppe mit Wert: EV/EBITDA 11,0 gegen Median 13,6 (Platz 4 von 12, 1 = günstigste), FCF-Rendite 7,4 % gegen Median 4,7 % (Platz 4 von 12, 1 = höchste).'
+funnel_title: So kam TCMD auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 12,8 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: ok
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: -2,17
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,97
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 11,0 (Platz 4 von 12)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: ok
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 7,4 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: 'Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Datenmarke Stufe 1: `debt_component_missing_defaulted_zero` (ein Teil der Schulden fehlte und wurde auf 0 gesetzt). Infomarke `share_count_unchecked`: die Aktienzahl konnte nicht gegengeprüft werden.'
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - '2023'
+  - '2024'
+  - '2025'
+  - 1. Hj. 2025
+  - 1. Hj. 2026
+  rows:
+  - name: Umsatz
+    values:
+    - 274,4
+    - 293,0
+    - 329,5
+    - 140,2
+    - 161,0
+  - name: Betriebsergebnis
+    values:
+    - 18,0
+    - 22,2
+    - 29,3
+    - -0,5
+    - 5,3
+  - name: Betriebsmarge
+    values:
+    - 6,6 %
+    - 7,6 %
+    - 8,9 %
+    - -0,4 %
+    - 3,3 %
+  - name: Nettogewinn
+    values:
+    - 28,5
+    - 17,0
+    - 19,1
+    - 0,2
+    - 6,0
+  - name: Operativer Cashflow
+    values:
+    - 35,9
+    - 40,7
+    - 42,8
+    - 15,2
+    - 2,9
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 2,3
+    - 2,4
+    - 2,4
+    - 0,7
+    - 2,1
+  - name: Freier Cashflow
+    values:
+    - 33,6
+    - 38,3
+    - 40,4
+    - 14,5
+    - 0,8
+  note: 'Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen). Nettogewinn 2023 enthält Steuereffekte.'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

@@ -1,0 +1,215 @@
+# Datenquelle für die PDF-Fassung des One-Pagers WU (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: The Western Union Company
+  ticker: WU
+  list_nr: 29
+  stage2_rank: 30
+  stage2_rank_of: 41
+  peer_group: Sektor Financial Services (grobe SimFin-Gruppe 104, 16 Firmen; die feine Branche war zu klein)
+  profile: non_financial
+dates:
+  documents_until: 30.07.2026 (10-Q Q2 2026), 8-Ks bis 02.10.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 6,09 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: ZURÜCKSTELLEN
+  tone: warn
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Sehr hohe Cashflow-Rendite, aber die Betriebsmarge fiel im 2. Quartal auf 13 % (Vorjahr 19 %), die Prognose rechnet mit einem Intermex-Abschluss, der hängt, und Cashflow-Zahlen eines Zahlungsdienstleisters sind schwer zu deuten.
+  legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Entscheidung zum Intermex-Kauf (Kalifornien, Kartellfrist) und Quartalsbericht Q3 2026) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
+thesis: Western Union überweist Geld über Landesgrenzen (Filialen und digital) und bietet Verbraucherdienste. Im 2. Quartal 2026 sank der Umsatz um 1 % auf rund 1,0 Mrd. $; die Betriebsmarge fiel auf 13 % (bereinigt 15 %) nach 19 %; der Gewinn je Aktie sank auf 0,24 $ (bereinigt 0,31 $) nach 0,37 $ (0,42 $). Der Konzernchef nennt ausgebliebene Besserung im Filialgeschäft in Amerika und den verspäteten Abschluss des Kaufs von Intermex als Gründe. Der Kauf von Intermex (rund 500 Mio. $ bar plus Rückzahlung von Intermex-Schulden) wurde am 10.08.2025 vereinbart; am 13.08.2026 setzte Kalifornien seine Genehmigung aus, am 02.10.2026 wurde eine neue Kartellanmeldung nötig. Der freie Cashflow der letzten zwölf Monate liegt bei rund 565 Mio. $ (29,8 % des Börsenwerts laut Archivkurs); die Nettoschulden betragen rund 1,6 Mrd. $ (ohne kurzfristige Schulden und Mieten).
+kpis:
+- label: Marktwert
+  main: 1,90 Mrd. $
+  sub: 6,09 $ x 311,9 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 29,8 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 28,7 %'
+  status: warn
+- label: EV/EBIT
+  main: 5,4
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 3,8'
+  status: neutral
+- label: Nettoschulden
+  main: 1,59 Mrd. $
+  sub: '30.06.2026: langfristige Schulden 2.510,3 minus Kasse 919,8 (ohne kurzfristige Schulden) | Stufe 1: 1,78'
+  status: warn
+- label: Betriebsmarge Q2
+  main: 13 %
+  sub: Vorjahr 19 % | bereinigt 15 % (19 %)
+  status: bad
+halfyear:
+  labels:
+  - 1. Halbjahr 2025
+  - 1. Halbjahr 2026
+  tone: warn
+  rows:
+  - name: Umsatz
+    values:
+    - 2009.7
+    - 1995.9
+  - name: Betriebsergebnis
+    values:
+    - 370.1
+    - 255.1
+  - name: Freier Cashflow
+    values:
+    - 137.0
+    - 197.2
+  unit: Mio. $
+events:
+- date: 10.08.2025
+  text: 'Vertrag zum Kauf von International Money Express (Intermex): rund 500 Mio. $ bar plus Rückzahlung der Schulden'
+- date: 05.05.2026
+  text: Anleihe über 165 Mio. $ (4,75 %, 2029) begeben
+- date: 17.06.2026
+  text: Delayed-Draw-Term-Loan-Kreditvertrag geändert (laut 10-Q am 17.06.; 8-K vom 24.06.)
+- date: 23.07.2026
+  text: Chief Legal Officer Benjamin Adams geht zum 02.11.2026 (Freiwilliges Ruhestandsprogramm)
+- date: 30.07.2026
+  text: 'Zahlen Q2: Umsatz -1 %, Gewinn je Aktie 0,24 $ (bereinigt 0,31 $); Prognose 2026 bereinigter Gewinn je Aktie 1,25 bis 1,35 $ (Annahme Intermex-Abschluss 01.09.2026); 10-Q eingereicht'
+- date: 13.08.2026
+  text: Vergleich mit der Generalstaatsanwaltschaft New York zu Intermex; Kalifornien (DFPI) setzt seine Genehmigung aus
+- date: 02.10.2026
+  text: Neue Kartellanmeldung (HSR) für Intermex; 30 Tage Wartezeit, Antrag auf vorzeitige Beendigung
+- date: Anfang Nov. 2026
+  text: Ende der neuen Wartezeit (30 Tage ab 02.10.); Abschluss zusätzlich von Kalifornien abhängig
+  future: true
+bear:
+- Betriebsmarge Q2 13 % nach 19 %; Betriebsergebnis 1. Halbjahr 255 Mio. $ nach 370 (-31 %).
+- 'Intermex-Abschluss verzögert: Kalifornien hat seine Genehmigung ausgesetzt; die Prognose 2026 unterstellte den Abschluss am 01.09.2026, der nicht eintrat.'
+- Der Gesamtumsatz sank von 4.357 (2023) auf 4.051 Mio. $ (2025) und stagniert im 1. Halbjahr 2026 (1.996 nach 2.010).
+- 'Archivmarken: Cash Conversion 0,92 (Grauzone), Stufe-1-Datenmarke `debt_component_missing_defaulted_zero`, Grenzfall-Branche.'
+- Cashflow-Zahlen eines Zahlungsdienstleisters schwanken mit Abwicklungsposten; die 12-Monats-Rendite von 29,8 % ist nur mit Vorsicht zu lesen.
+bull:
+- 'Digital wächst: Branded Digital +7 %, Transaktionen +25 %, 32 % der Umsätze im Geldtransfer.'
+- Consumer Services +4 % (bereinigt +12 %).
+- Freier Cashflow der letzten zwölf Monate rund 565 Mio. $; Dividenden 152,8 Mio. $ im Halbjahr gezahlt.
+- Der Konzernchef kündigt schärfere Kostensenkungen im 2. Halbjahr an.
+- Gesamtschulden zum Nennwert von 2.885 (Dezember 2025) auf 2.710 Mio. $ gesenkt (davon 2.510 mit Fälligkeit nach über einem Jahr).
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 30.21
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 79,8 % darunter
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (565,4 Mio. $) und 311,9 Mio. Aktien laut Archiv angewendet. Die Rechnung gibt eine sehr hohe Grenze, weil der Markt dem Cashflow offenbar nicht traut; der Cashflow eines Zahlungsdienstleisters ist mit Abwicklungsposten behaftet. Die zweite Grenze (EV/EBITDA, grobe Gruppe) fehlt.'
+  price: 6.09
+  price_date: 23.09.2026
+  condition: 'Abwarten: Entscheidung zum Intermex-Kauf (Kalifornien, Kartellfrist) und Quartalsbericht Q3 2026; Marge neu prüfen'
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder bereinigte Betriebsmarge unter 14 % im 3. Quartal (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 20.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 30.07.2026 und Q1 vom 24.04.2026 nur auf Vorhandensein geprüft) und 6 aktuelle Meldungen (8-K vom 05.05., 24.06., 23.07., 30.07. mit Pressemitteilung, 14.08. und 02.10.2026). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K 2025 (0001193125-26-061340), 10-Q Q2 2026 (-26-326355), 10-Q Q1 2026 (-26-177151), 8-Ks: 05.05.2026 (-26-206661), 24.06. (-26-281081), 23.07. (-26-314213), 30.07. (-26-326110), 14.08. (-26-350419), 02.10.2026 (-26-412336). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Vergleichsgruppe ist grob (16 Firmen aus dem ganzen Sektor Finanzdienstleistungen, weil die feine Branche zu klein war); 11 Firmen fehlen wegen Datenfehlern (BFH, HIVE, NAVI, NNI, OMF, OPY, OTF, PRAA, RA, URG, VOYA; laut Hinweis des Exportlaufs). Mit den Gesamtschulden (Buchwert 2.697 Mio. $) lägen die Nettoschulden bei etwa 1.777 Mio. $ und EV/EBIT bei etwa 5,7. Der freie Cashflow zieht aktivierte Software nicht ab. Nicht geprüft: Bedingungen des Intermex-Vertrags (Abbruchgebühr, Frist), Verpflichtungen aus Abwicklung, Prozessrisiken, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Grobe Gruppe aus dem ganzen Sektor Finanzdienstleistungen (16 Firmen); 11 Firmen fehlen wegen Datenfehlern (BFH, HIVE, NAVI, NNI, OMF, OPY, OTF, PRAA, RA, URG, VOYA; laut Hinweis des Exportlaufs vom 13.10.2026). Vergleichbarkeit stark eingeschränkt.
+peer_summary: 'Gegen die 16 Firmen der Gruppe mit Wert: EV/EBITDA 3,8 gegen Median 11,0 (Platz 1 von 16, 1 = günstigste), FCF-Rendite 28,7 % gegen Median 9,3 % (Platz 3 von 14, 1 = höchste). Die Gruppe ist grob (ganze Sektor-Ebene), die Vergleichbarkeit ist eingeschränkt.'
+funnel_title: So kam WU auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 26,6 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: ok
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: 1,78
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 0,92
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: warn
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 3,8 (Platz 1 von 16)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: ok
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 28,7 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: 'Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Stufe-1-Marke: cash_conversion (Wert in der Grauzone, nicht durchgefallen). Datenmarke Stufe 1: `debt_component_missing_defaulted_zero` (ein Teil der Schulden fehlte und wurde auf 0 gesetzt). Das Archiv markiert die Branche als Grenzfall (`borderline_sector`); der Status ändert sich dadurch nicht.'
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - '2023'
+  - '2024'
+  - '2025'
+  - 1. Hj. 2025
+  - 1. Hj. 2026
+  rows:
+  - name: Umsatz
+    values:
+    - 4.357,0
+    - 4.209,7
+    - 4.050,7
+    - 2.009,7
+    - 1.995,9
+  - name: Betriebsergebnis
+    values:
+    - 817,5
+    - 725,8
+    - 757,3
+    - 370,1
+    - 255,1
+  - name: Betriebsmarge
+    values:
+    - 18,8 %
+    - 17,2 %
+    - 18,7 %
+    - 18,4 %
+    - 12,8 %
+  - name: Nettogewinn
+    values:
+    - 626,0
+    - 934,2
+    - 499,6
+    - 245,6
+    - 141,4
+  - name: Operativer Cashflow
+    values:
+    - 783,1
+    - 406,3
+    - 543,7
+    - 147,9
+    - 213,9
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 22,9
+    - 37,4
+    - 38,5
+    - 10,9
+    - 16,7
+  - name: Freier Cashflow
+    values:
+    - 760,2
+    - 368,9
+    - 505,2
+    - 137,0
+    - 197,2
+  note: 'Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC; Umsatz = Gesamtumsatz (inkl. sonstiger Erlöse). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen).'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

@@ -1,0 +1,208 @@
+# Datenquelle für die PDF-Fassung des One-Pagers ACEL (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: Accel Entertainment, Inc.
+  ticker: ACEL
+  list_nr: 20
+  stage2_rank: 21
+  stage2_rank_of: 41
+  peer_group: Travel & Leisure (SimFin-Branche 103015, 24 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 04.08.2026 (10-Q Q2 2026 und Pressemitteilung), 8-Ks bis 11.08.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 11,08 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: WEITERVERFOLGEN
+  tone: ok
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Wachsender Umsatz und Gewinn in einem regulierten Nischengeschäft, mäßige Verschuldung; der Cashflow ist dünn und hängt an Genehmigungen (Chicago).
+  legend: Was bedeutet WEITERVERFOLGEN? Die Firma besteht den Filter und die Prüfung der Unterlagen zeigt kein Ausschlussmerkmal. Sie kommt in die engere Beobachtung; ein Kauf folgt nur nach den Stufe-4-Regeln und deiner Entscheidung. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.
+thesis: Accel stellt Spielautomaten in Kneipen und Geschäften auf (hauptsächlich Illinois) und betreibt eine Rennbahn mit Kasino (Fairmount Park). Im 2. Quartal 2026 stieg der Umsatz um 10 % auf 368 Mio. $ (Rekord), an 4.676 Standorten mit 29.281 Geräten; der Nettogewinn stieg um 72 % auf 13 Mio. $, das bereinigte EBITDA um 11 % auf 59 Mio. $. Der freie Cashflow der letzten zwölf Monate liegt bei rund 79 Mio. $ (8,7 % des Börsenwerts laut Archivkurs); im 2. Quartal drückte der Kauf einer Steuergutschrift (17 Mio. $) den Cashflow. Die Nettoschulden betragen 318 Mio. $ (Firmenangabe). Chancen kommen aus Chicago, wo die Genehmigungen laufen (17 oder 44 % der bisher genehmigten Standorte sind Accel-Standorte).
+kpis:
+- label: Marktwert
+  main: 0,90 Mrd. $
+  sub: 11,08 $ x 81,6 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 8,7 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 6,3 %'
+  status: ok
+- label: EV/EBIT
+  main: 10,7
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 7,0'
+  status: neutral
+- label: Nettoschulden
+  main: 318,0 Mio. $
+  sub: '30.06.2026 laut Firma (Kasse 255,5) | Stufe 1: 1,80'
+  status: warn
+- label: Umsatz Q2
+  main: 368 Mio. $
+  sub: +10 % | 4.676 Standorte (+6 %), 29.281 Geräte (+7 %)
+  status: ok
+halfyear:
+  labels:
+  - 1. Halbjahr 2025
+  - 1. Halbjahr 2026
+  tone: ok
+  rows:
+  - name: Umsatz
+    values:
+    - 659.8
+    - 719.7
+  - name: Betriebsergebnis
+    values:
+    - 52.8
+    - 59.1
+  - name: Freier Cashflow
+    values:
+    - 11.8
+    - 28.7
+  unit: Mio. $
+events:
+- date: 11.07.2026
+  text: Aktienprogramm für Führungskräfte 2026 beschlossen (8-K vom 13.07.)
+- date: 14.07.2026
+  text: Chief Compliance Officer Derek Harmer kündigt zum 31.03.2027
+- date: 04.08.2026
+  text: 'Zahlen Q2: Umsatz 368 Mio. $ (+10 %), Nettogewinn 13 Mio. $ (+72 %); Kauf einer Steuergutschrift (18 Mio. $ für 17 Mio. $); Rückkauf 0,5 Mio. Aktien für 5,6 Mio. $'
+- date: 04.08.2026
+  text: 10-Q Q2 2026 eingereicht
+- date: 07.08.2026
+  text: CEO Mark Phelan wird auch Mitglied des Verwaltungsrats (10 statt 9 Sitze)
+bear:
+- Freier Cashflow 1. Halbjahr nur 28,7 Mio. $ (Vorjahr 11,8); im 2. Quartal 10 Mio. $, wegen Kauf einer Steuergutschrift (ohne sie 26 Mio. $).
+- Nettoschulden 318 Mio. $ (Firmenangabe); Schulden 573 Mio. $ gegen Kasse 255 Mio. $.
+- Das Geschäft hängt an staatlichen Genehmigungen (Illinois, Chicago, weitere Staaten) und an der Steuerpolitik für Spielgeräte.
+- Aktienzahl laut Archiv „ungeprüft“ (Infomarke); Earnout-Aktien aus dem Fairmount-Kauf sind noch offen (Neubewertung kostete 5 Mio. $ im Quartal).
+- 'Die Betriebsmarge liegt nur bei rund 8 % (2025: 107,9 Mio. $ auf 1.331 Mio. $ Umsatz; 2024: 90,9).'
+bull:
+- Umsatz von 1.170 (2023) auf 1.331 Mio. $ (2025); 1. Halbjahr 2026 +9 %.
+- 'Chicago: Genehmigungen laufen; 17 der bisher genehmigten Standorte (44 %) sind Accel-Standorte.'
+- Fairmount Park lieferte im Q2 den höchsten Quartals-Bruttogewinn seit der Übernahme; Tischspiele gestartet.
+- Nebraska und Georgia wachsen deutlich (bereinigtes EBITDA).
+- Rückkaufprogramm läuft (0,5 Mio. Aktien im Q2).
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 16.12
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 31,3 % darunter
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (78,9 Mio. $) und 81,6 Mio. Aktien laut Archiv angewendet. Die Aktienzahl ist im Archiv als ungeprüft markiert; Leasing und Earnout-Aktien sind nicht berücksichtigt. Die zweite Grenze (EV/EBITDA) fehlt.'
+  price: 11.08
+  price_date: 23.09.2026
+  condition: Quartalsbericht Q3 (September) abwarten; Genehmigungsstand Chicago und freien Cashflow ohne Sondereffekte prüfen
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder freier Cashflow (12 Monate) unter 40 Mio. $ (keine Schwelle aus dem Repo); geprüft mit jedem 10-Q.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 03.03.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 04.08.2026 und Q1 vom 05.05.2026 nur auf Vorhandensein geprüft) und 4 aktuelle Meldungen (8-K vom 13.07., 14.07., 04.08. mit Pressemitteilung und 11.08.2026). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K 2025 (0001698991-26-000018), 10-Q Q2 2026 (-26-000059), 10-Q Q1 2026 (-26-000037), 8-Ks: 13.07., 14.07., 04.08. (Pressemitteilung), 11.08.2026. Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Peer-Gruppe (24 Firmen, Freizeit und Reisen) passt nur teilweise (Kreuzfahrt, Reisen, Spielautomaten); 1 Firma fehlt wegen Datenfehlers (MMYT). Widerspruch in den Quellen: Pressemitteilung und 10-Q nennen Andrew Rubenstein als CEO, der 8-K vom 11.08. nennt Mark Phelan als Chief Executive Officer; ungeklärt. Nicht geprüft: Steuer- und Lizenzbedingungen je Bundesstaat, Höhe der Earnout-Aktien, Schulden- und Zinsbedingungen im Detail, Leasing, aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); 1 Firma fehlt wegen Datenfehlers (MMYT; laut Hinweis des Exportlaufs). Die Gruppe ist gemischt.
+peer_summary: 'Gegen die 24 Firmen der Gruppe mit Wert: EV/EBITDA 7,0 gegen Median 10,5 (Platz 6 von 24, 1 = günstigste), FCF-Rendite 6,3 % gegen Median 7,4 % (Platz 13 von 21, 1 = höchste).'
+funnel_title: So kam ACEL auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 15,9 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: ok
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: 1,80
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 3,09
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 7,0 (Platz 6 von 24)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: ok
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 6,3 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: 'Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Infomarke `share_count_unchecked`: die Aktienzahl konnte nicht gegengeprüft werden.'
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - '2023'
+  - '2024'
+  - '2025'
+  - 1. Hj. 2025
+  - 1. Hj. 2026
+  rows:
+  - name: Umsatz
+    values:
+    - 1.170,4
+    - 1.231,0
+    - 1.331,0
+    - 659,8
+    - 719,7
+  - name: Betriebsergebnis
+    values:
+    - 107,4
+    - 90,9
+    - 107,9
+    - 52,8
+    - 59,1
+  - name: Betriebsmarge
+    values:
+    - 9,2 %
+    - 7,4 %
+    - 8,1 %
+    - 8,0 %
+    - 8,2 %
+  - name: Nettogewinn
+    values:
+    - 45,6
+    - 35,3
+    - 51,5
+    - 22,0
+    - 27,2
+  - name: Operativer Cashflow
+    values:
+    - 132,5
+    - 121,2
+    - 150,9
+    - 64,6
+    - 62,7
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 81,7
+    - 66,5
+    - 88,9
+    - 52,8
+    - 34,0
+  - name: Freier Cashflow
+    values:
+    - 50,8
+    - 54,7
+    - 62,0
+    - 11,8
+    - 28,7
+  note: 'Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen).'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

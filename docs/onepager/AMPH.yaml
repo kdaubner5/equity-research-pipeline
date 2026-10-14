@@ -1,0 +1,206 @@
+# Datenquelle für die PDF-Fassung des One-Pagers AMPH (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: Amphastar Pharmaceuticals, Inc.
+  ticker: AMPH
+  list_nr: 38
+  stage2_rank: 39
+  stage2_rank_of: 41
+  peer_group: Drug Manufacturers (SimFin-Branche 106005, 12 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 06.08.2026 (10-Q Q2 2026 und Pressemitteilung), 8-Ks bis 13.07.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 24,96 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: ZURÜCKSTELLEN
+  tone: warn
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Am 02.07.2026 erhielt die Tochter IMS einen FDA-Warnbrief für ihr Werk in South El Monte; das Betriebsergebnis fiel schon im 1. Halbjahr um 33 %, und die Schulden liegen bei rund 400 Mio. $ netto.
+  legend: 'Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Antwort der FDA auf den Sanierungsplan der IMS und Quartalsbericht Q3 2026) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung.'
+thesis: Amphastar stellt Arzneimittel zum Spritzen, Inhalieren und für die Nase her (Generika und eigene Marken, darunter Primatene MIST). Im 2. Quartal 2026 stieg der Umsatz um 5 % auf 183,9 Mio. $, der Nettogewinn betrug 30,3 Mio. $ (Gewinn je Aktie 0,67 $, bereinigt 0,91 $). Im 1. Halbjahr sank das Betriebsergebnis um 33 % auf 53,4 Mio. $ und der Nettogewinn auf 36,8 Mio. $ (Vorjahr 56,3); der CEO verweist zum 2. Quartal auf Preis- und Wettbewerbsdynamik in Teilen des Portfolios. Am 02.07.2026 erhielt die Tochter International Medication Systems einen FDA-Warnbrief (cGMP-Verstöße in Untersuchungsverfahren, Umgebungsüberwachung und Anlagen); es gibt keine Anordnung zu Stopp oder Rückruf, die Produktion läuft weiter, die Firma „kann den Ausgang nicht zusichern“. Der freie Cashflow der letzten zwölf Monate liegt bei rund 153 Mio. $ (14,4 % des Börsenwerts); die Nettoschulden betragen rund 397 Mio. $ (davon 345 Mio. $ Wandelanleihe 2029).
+kpis:
+- label: Marktwert
+  main: 1,06 Mrd. $
+  sub: 24,96 $ x 42,5 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 14,4 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 13,7 %'
+  status: ok
+- label: EV/EBIT
+  main: 12,8
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 7,6'
+  status: neutral
+- label: Nettoschulden
+  main: 396,6 Mio. $
+  sub: '30.06.2026: Schulden 620,2 minus Kasse 223,6, ohne 66,5 Mio. $ kurzfristige Anlagen (davon Wandelanleihe 2029: 345 Mio. $) | Stufe 1: 2,23'
+  status: warn
+- label: FDA-Warnbrief
+  main: 02.07.2026
+  sub: Werk South El Monte (IMS) | kein Produktionsstopp, kein Rückruf angeordnet
+  status: warn
+halfyear:
+  labels:
+  - 1. Halbjahr 2025
+  - 1. Halbjahr 2026
+  tone: warn
+  rows:
+  - name: Umsatz
+    values:
+    - 344.9
+    - 355.1
+  - name: Betriebsergebnis
+    values:
+    - 79.5
+    - 53.4
+  - name: Freier Cashflow
+    values:
+    - 49.4
+    - 81.1
+  unit: Mio. $
+events:
+- date: '12.2025'
+  text: FDA-Inspektion des Werks South El Monte (IMS) mit Beanstandungen (Form 483)
+- date: 02.07.2026
+  text: FDA-Warnbrief an IMS wegen cGMP-Verstößen; Antwort binnen 15 Arbeitstagen, Risikobewertung und Sanierungsplan verlangt (8-K vom 08.07.)
+- date: 09.07.2026
+  text: Anthony Pierce in den Verwaltungsrat berufen (von 10 auf 11 Sitze; 8-K vom 13.07.)
+- date: 06.08.2026
+  text: 'Zahlen Q2: Umsatz 183,9 Mio. $ (+5 %), Gewinn je Aktie 0,67 $ (bereinigt 0,91 $); 10-Q eingereicht'
+bear:
+- 'FDA-Warnbrief: weitere behördliche Schritte „ohne weitere Ankündigung“ sind möglich, bis die Mängel behoben sind; die Firma prüft noch die Folgen.'
+- Betriebsergebnis 1. Halbjahr 53,4 Mio. $ nach 79,5 (-33 %); 2025 140,4 nach 205,4 (2024).
+- Preis- und Wettbewerbsdruck bei Teilen des Portfolios (Firmenangabe).
+- Nettoschulden rund 397 Mio. $ (Wandelanleihe 2029, 345 Mio. $); kurzfristige Verbindlichkeiten stiegen von 158 auf 263 Mio. $ (vor allem Verbindlichkeiten und Rückstellungen, nicht Finanzschulden).
+- Aktien von Vorstand und Verwaltungsrat sind teilweise verpfändet (Risikohinweis im 10-Q); Trend-Guard markiert Marge und ROIC.
+bull:
+- Umsatz Q2 +5 %; Bruttomarge im Quartal gestiegen; Gewinn je Aktie Q2 0,67 $ nach 0,64 $.
+- Operativer Cashflow 1. Halbjahr 99,2 Mio. $ nach 70,7; freier Cashflow 12 Monate rund 153 Mio. $.
+- Warnbrief verlangt weder Stopp noch weiteren Rückruf (vorbehaltlich der Prüfung durch Dritte); die Firma setzt Korrekturen laufend um.
+- Neue Produkte und Pipeline (Generika und eigene Entwicklungen) laut Firma.
+- Kasse 223,6 Mio. $.
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 59.91
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 58,3 % darunter
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (152,9 Mio. $) und 42,5 Mio. Aktien laut Archiv angewendet. Die Grenze berücksichtigt weder mögliche Kosten der FDA-Sanierung noch einen Ausfall von Umsatz aus dem Werk. Die zweite Grenze (EV/EBITDA) fehlt.'
+  price: 24.96
+  price_date: 23.09.2026
+  condition: 'Abwarten: Reaktion der FDA auf den Sanierungsplan und Quartalsbericht Q3 2026; Umsatz aus dem IMS-Werk und Kosten prüfen'
+kill: 'Vorschlag des Agenten: Net Debt/EBITDA (12 Monate) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder FDA ordnet Produktions- oder Lieferstopp für das IMS-Werk an (kein Maßstab aus dem Repo); geprüft mit jedem 10-Q und jeder 8-K.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 26.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 06.08.2026 und Q1 vom 07.05.2026 nur auf Vorhandensein geprüft) und 3 aktuelle Meldungen (8-K vom 08.07. mit Warnbrief, 13.07. und 06.08.2026 mit Pressemitteilung). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K 2025 (0001297184-26-000009), 10-Q Q2 2026 (-26-000047), 10-Q Q1 2026 (-26-000033), 8-Ks: 08.07.2026 (-26-000041), 13.07. (-26-082772), 06.08. (-26-000045). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Peer-Gruppe (12 Firmen, Arzneimittelhersteller) ist gemischt (mehrere Firmen ohne Vergleichbarkeit, z. B. Cannabis, Telemedizin); 1 Firma fehlt wegen Datenfehlers (TAK). Das Archiv trägt die Infomarke `share_count_unchecked`. Nicht geprüft: Anteil des IMS-Werks am Umsatz, Inhalt der Antwort an die FDA, Preisentwicklung einzelner Produkte, Mietverpflichtungen (lang 67,5 Mio. $), aktueller Kurs. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); 1 Firma fehlt wegen Datenfehlers (TAK; laut Hinweis des Exportlaufs). Die Gruppe ist gemischt.
+peer_summary: 'Gegen die 12 Firmen der Gruppe mit Wert: EV/EBITDA 7,6 gegen Median 8,4 (Platz 5 von 12, 1 = günstigste), FCF-Rendite 13,7 % gegen Median 7,7 % (Platz 4 von 12, 1 = höchste).'
+funnel_title: So kam AMPH auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 11,7 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: warn
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: 2,23
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,42
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 7,6 (Platz 5 von 12)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: warn
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 13,7 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: 2 Marken
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: warn
+gates_note: 'Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Trend-Guard: Marge fallend (Margenverhältnis 0,83); ROIC im letzten Jahr unter 10 % (8,6 %). Stufe-1-Marke: roic (Wert in der Grauzone, nicht durchgefallen). Stufe-2-Marke: ev_ebitda. Infomarke `share_count_unchecked`: die Aktienzahl konnte nicht gegengeprüft werden.'
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - '2023'
+  - '2024'
+  - '2025'
+  - 1. Hj. 2025
+  - 1. Hj. 2026
+  rows:
+  - name: Umsatz
+    values:
+    - 644,4
+    - 732,0
+    - 719,9
+    - 344,9
+    - 355,1
+  - name: Betriebsergebnis
+    values:
+    - 197,0
+    - 205,4
+    - 140,4
+    - 79,5
+    - 53,4
+  - name: Betriebsmarge
+    values:
+    - 30,6 %
+    - 28,1 %
+    - 19,5 %
+    - 23,1 %
+    - 15,0 %
+  - name: Nettogewinn
+    values:
+    - 137,5
+    - 159,5
+    - 98,1
+    - 56,3
+    - 36,8
+  - name: Operativer Cashflow
+    values:
+    - 183,5
+    - 213,4
+    - 156,1
+    - 70,7
+    - 99,2
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 38,2
+    - 41,0
+    - 34,9
+    - 21,3
+    - 18,1
+  - name: Freier Cashflow
+    values:
+    - 145,3
+    - 172,4
+    - 121,2
+    - 49,4
+    - 81,1
+  note: 'Quelle: 10-K und 10-Q der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen).'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'

@@ -1,0 +1,213 @@
+# Datenquelle für die PDF-Fassung des One-Pagers OPCH (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: Option Care Health, Inc.
+  ticker: OPCH
+  list_nr: 39
+  stage2_rank: 40
+  stage2_rank_of: 41
+  peer_group: Health Care Providers (SimFin-Branche 106011, 11 Firmen)
+  profile: non_financial
+dates:
+  documents_until: 29.07.2026 (10-Q Q2 2026 und Pressemitteilung), 8-K bis 06.10.2026
+  one_pager: 13.10.2026
+  archive_run: 10.10.2026, Regelstand 33ed39b
+  price: 23,34 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden
+verdict:
+  label: VERWERFEN
+  tone: bad
+  text: Vorschlag des Agenten, Entscheidung durch Konstantin. Am 06.10.2026 wurde ein Übernahmeangebot von CD&R und McKesson über 32,05 $ je Aktie bar bekannt (Prämie rund 37 %). Der Kurs dürfte sich dem Angebot annähern (aktueller Kurs nicht abgerufen); die Grundlage unseres Einstiegsszenarios entfällt. Wiedervorlage, falls der Vertrag scheitert.
+  legend: Was bedeutet VERWERFEN? Die Firma verlässt die Liste, weil die Unterlagen etwas zeigen, das der Filter nicht sehen kann und das die Grundlage der Auswahl entfallen lässt. Sie kann später neu geprüft werden (siehe Wiedervorlage). Es ist weder eine Kauf- noch eine Verkaufsempfehlung.
+thesis: Option Care Health ist der größte unabhängige Anbieter von Infusionstherapie zu Hause und in ambulanten Zentren. Im 2. Quartal 2026 stieg der Umsatz um 1,9 % auf 1.442 Mio. $, der Nettogewinn um 6,7 % auf 53,9 Mio. $, das bereinigte EBITDA um 3,0 % auf 117,5 Mio. $; der operative Cashflow betrug 184 Mio. $, und die Firma kaufte im Quartal für 150 Mio. $ eigene Aktien zurück. Die Prognose vom 29.07. (Umsatz 5,675 bis 5,775 Mrd. $, bereinigtes EBITDA 480 bis 495 Mio. $, operativer Cashflow mindestens 320 Mio. $) wurde mit dem Angebot am 06.10.2026 zurückgezogen. Am 05./06.10.2026 vereinbarte Option Care Health den Verkauf an einen Investorenkreis aus CD&R (Mehrheit, rund 51 %) und McKesson (rund 1,4 Mrd. $, rund 49 %) für 32,05 $ je Aktie bar, Unternehmenswert rund 5,8 Mrd. $; das ist eine Prämie von rund 37 % auf den Schlusskurs vom 05.10.2026. Abschluss im ersten Halbjahr 2027, nach Zustimmung der Aktionäre und der Behörden; danach ist die Aktie nicht mehr börsennotiert. Der freie Cashflow der letzten zwölf Monate liegt bei rund 304 Mio. $ (8,7 % des Archiv-Börsenwerts).
+kpis:
+- label: Marktwert
+  main: 3,50 Mrd. $
+  sub: 23,34 $ x 149,8 Mio. Aktien (Kurs 23.09.)
+  status: neutral
+- label: FCF-Rendite
+  main: 8,7 %
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 7,9 %'
+  status: ok
+- label: EV/EBIT
+  main: 13,4
+  sub: 'letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 10,8'
+  status: neutral
+- label: Nettoschulden
+  main: 965,1 Mio. $
+  sub: '30.06.2026: Schulden 1.158,8 minus Kasse 193,8 | Stufe 1: 2,27'
+  status: warn
+- label: Angebot
+  main: 32,05 $
+  sub: je Aktie bar, CD&R und McKesson, 06.10.2026 | Prämie ca. 37 %
+  status: warn
+halfyear:
+  labels:
+  - 1. Halbjahr 2025
+  - 1. Halbjahr 2026
+  tone: ok
+  rows:
+  - name: Umsatz
+    values:
+    - 2749.1
+    - 2793.1
+  - name: Betriebsergebnis
+    values:
+    - 161.9
+    - 157.7
+  - name: Freier Cashflow
+    values:
+    - 64.6
+    - 151.4
+  unit: Mio. $
+events:
+- date: 05.05.2026
+  text: Chief Growth Officer Christopher Grashoff geht zum 08.05.2026
+- date: 29.07.2026
+  text: 'Zahlen Q2: Umsatz 1.442 Mio. $ (+1,9 %), Nettogewinn 53,9 Mio. $, Rückkauf 150 Mio. $; 10-Q eingereicht'
+- date: 05.10.2026
+  text: 'Fusionsvertrag mit einem Investorenkreis aus CD&R und McKesson: 32,05 $ je Aktie bar, Unternehmenswert rund 5,8 Mrd. $ (8-K vom 06.10.)'
+- date: 04.11.2026
+  text: Zahlen Q3 2026 geplant, ohne Telefonkonferenz
+  future: true
+- date: 1. Halbjahr 2027
+  text: Erwarteter Abschluss, nach Zustimmung der Aktionäre und der Behörden
+  future: true
+bear:
+- 'Kein Einstieg mehr nach unserer Logik: Der Kurs dürfte nach dem Angebot nahe am Angebotspreis von 32,05 $ liegen (aktueller Kurs nicht abgerufen); der Spielraum nach oben ist begrenzt, außer ein anderer Bieter erscheint.'
+- Scheitert der Abschluss (Aktionäre, Behörden), könnte der Kurs auf das Niveau vor dem Angebot zurückfallen (Schlusskurs 05.10.2026 rechnerisch rund 23,4 $).
+- 'Abbruchgebühr der Firma bei Annahme eines besseren Angebots oder Wechsel der Empfehlung: 145,96 Mio. $.'
+- Nettoschulden rund 982 Mio. $ (31.03.2026); Gewinn je Aktie bereinigt nur +10 % im Quartal.
+- 'Die Firma hat ihre Prognose 2026 mit dem Angebot zurückgezogen; Archiv: ev_ebitda in der Grauzone, ROIC-Mittel 11,2 %, Aktienzahl „ungeprüft“.'
+bull:
+- Angebot mit rund 37 % Prämie; Vorstand empfiehlt einstimmig.
+- 'Operatives Geschäft stabil: Umsatz +1,9 %, bereinigtes EBITDA +3 %, Cashflow 1. Halbjahr 171,5 Mio. $ (Vorjahr 83,1).'
+- Cashflow im Halbjahr 171,5 Mio. $ nach 83,1; Nettoschulden zum 30.06. 965 Mio. $ nach 982 zum 31.03.
+- McKesson bringt Erfahrung im Spezialpharma-Geschäft; der Vertrag schafft einen Rahmen für einen späteren Kauf der CD&R-Beteiligung durch McKesson (unter Bedingungen).
+- Rückkäufe im Quartal 150 Mio. $.
+entry:
+  zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
+  horizon: mittelfristig (1 bis 3 Jahre)
+  limit: 33.82
+  limit_label: Grenze nach FCF-Rendite 6 %
+  price_vs_limit: 31,0 % darunter
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (303,9 Mio. $) und 149,8 Mio. Aktien laut Archiv angewendet. Das Angebot liegt knapp unter dieser Grenze; das Wissen aus dem Angebot hat der Archivkurs vom 23.09.2026 nicht, ein aktueller Kurs wurde nicht abgerufen und liegt vermutlich nahe am Angebot. Die zweite Grenze (EV/EBITDA) fehlt.'
+  price: 23.34
+  price_date: 23.09.2026
+  condition: 'Kein Einstieg: nur Wiedervorlage, falls der Fusionsvertrag scheitert oder ein anderer Bieter erscheint (Aktionärsabstimmung, Behörden, erwartet 1. Halbjahr 2027)'
+  offer_label: Übernahmeangebot (bar je Aktie)
+  offer_value: 32.05
+  offer_date: 06.10.2026
+kill: 'Der Fall ist eingetreten (VERWERFEN): Übernahmeangebot 32,05 $ je Aktie. Wiedervorlage-Bedingung: Fusionsvertrag scheitert; dann neue Prüfung mit dem Archivkurs vor dem Angebot.'
+sources_detail:
+- 'Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 24.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 29.07.2026 und Q1 vom 30.04.2026 nur auf Vorhandensein geprüft) und 3 aktuelle Meldungen (8-K vom 05.05., 29.07. mit Pressemitteilung und 06.10.2026 mit Fusionsvertrag und Pressemitteilung zum Angebot). Zahlen aus den XBRL-Daten der SEC (companyfacts) gegengelesen.'
+- 'Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet.'
+- 'NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs.'
+sources: 'SEC: 10-K 2025 (0001014739-26-000008), 10-Q Q2 2026 (-26-000023), 10-Q Q1 2026 (-26-000011), 8-Ks: 05.05.2026 (-26-000014), 29.07. (-26-000021), 06.10.2026 (0001104659-26-113904). Archivwerte laut Export vom 13.10.2026 (im Repo nicht belegt).'
+not_checked: 'Die Peer-Gruppe (11 Firmen, Gesundheitsdienstleister) ist gemischt (Kliniken, Pflege, Telemedizin). Das Archiv trägt die Infomarke `share_count_unchecked`. Nicht geprüft: Finanzierung des Angebots, Zeitplan der Behörden, mögliche Gegenangebote, aktueller Kurs (vermutlich nahe 32 $). Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese.'
+peer_note: Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 13.10.2026); keine fehlenden Firmen gemeldet. Die Gruppe ist gemischt.
+peer_summary: 'Gegen die 11 Firmen der Gruppe mit Wert: EV/EBITDA 10,8 gegen Median 11,8 (Platz 5 von 11, 1 = günstigste), FCF-Rendite 7,9 % gegen Median 4,9 % (Platz 4 von 11, 1 = höchste).'
+funnel_title: So kam OPCH auf die Liste (Trichter vom 10.10.2026)
+funnel:
+- label: US-Börsenfirmen (SimFin)
+  count: 6654
+- label: 'Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen'
+  count: 1821
+- label: 'Stufe 1: Qualität und Bilanz'
+  count: 126
+- label: 'Stufe 2: günstig im Branchenvergleich'
+  count: 41
+- label: Kandidatenliste Runde 1
+  count: 40
+funnel_note: 'Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026).'
+gates_title: Die Prüfungen im Detail
+gates:
+- stage: Stufe 1
+  name: ROIC (Kapitalrendite), 3-Jahres-Mittel
+  value: 11,2 %
+  rule: sauber über 12 %, Durchfall unter 10 %
+  status: warn
+- stage: Stufe 1
+  name: Net Debt/EBITDA (Verschuldung)
+  value: 2,27
+  rule: sauber unter 2,3, Durchfall ab 2,5
+  status: ok
+- stage: Stufe 1
+  name: Cash Conversion (Gewinn wird Cash)
+  value: 1,37
+  rule: sauber ab 1,0, Durchfall unter 0,8
+  status: ok
+- stage: Stufe 2
+  name: EV/EBITDA im Branchenvergleich
+  value: 10,8 (Platz 5 von 11)
+  rule: sauber im günstigsten Drittel, Grauzone bis 40 %
+  status: warn
+- stage: Stufe 2
+  name: FCF-Rendite, 3-Jahres-Mittel
+  value: 7,9 %
+  rule: sauber über 6 %, Durchfall unter 5 %
+  status: ok
+- stage: Trend-Guard
+  name: Verlauf (Umsatz, Marge, ROIC)
+  value: keine Marke
+  rule: 'Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %'
+  status: ok
+gates_note: 'Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Stufe-1-Marke: roic (Wert in der Grauzone, nicht durchgefallen). Stufe-2-Marke: ev_ebitda. Infomarke `share_count_unchecked`: die Aktienzahl konnte nicht gegengeprüft werden.'
+financials_title: Kennzahlen im Überblick (Mio. $)
+financials:
+  columns:
+  - '2023'
+  - '2024'
+  - '2025'
+  - 1. Hj. 2025
+  - 1. Hj. 2026
+  rows:
+  - name: Umsatz
+    values:
+    - 4.302,3
+    - 4.998,2
+    - 5.649,5
+    - 2.749,1
+    - 2.793,1
+  - name: Betriebsergebnis
+    values:
+    - 314,6
+    - 321,8
+    - 337,9
+    - 161,9
+    - 157,7
+  - name: Betriebsmarge
+    values:
+    - 7,3 %
+    - 6,4 %
+    - 6,0 %
+    - 5,9 %
+    - 5,6 %
+  - name: Nettogewinn
+    values:
+    - 267,1
+    - 211,8
+    - 207,6
+    - 97,3
+    - 99,3
+  - name: Operativer Cashflow
+    values:
+    - 371,3
+    - 323,4
+    - 258,4
+    - 83,1
+    - 171,5
+  - name: Investitionen (Sachanlagen)
+    values:
+    - 41,9
+    - 35,6
+    - 41,3
+    - 18,5
+    - 20,1
+  - name: Freier Cashflow
+    values:
+    - 329,4
+    - 287,8
+    - 217,1
+    - 64,6
+    - 151,4
+  note: 'Quelle: 10-K und 10-Q der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen). Betriebsergebnis und Nettogewinn des 1. Halbjahrs aus dem 10-Q.'
+method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'
