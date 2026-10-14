@@ -18,6 +18,7 @@ Ausgang: 0 = PDF geschrieben; 2 = Abbruch (Datei unvollstaendig oder nicht lesba
 import argparse
 import csv
 import io
+import re
 import statistics
 import sys
 from pathlib import Path
@@ -36,8 +37,9 @@ from reportlab.lib.units import mm  # noqa: E402
 from reportlab.pdfbase import pdfmetrics  # noqa: E402
 from reportlab.pdfbase.ttfonts import TTFont  # noqa: E402
 from reportlab.platypus import (  # noqa: E402
-    CondPageBreak, Image, KeepTogether, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle,
+    CondPageBreak, Image, KeepTogether, PageBreak, SimpleDocTemplate, Spacer, Table, TableStyle,
 )
+from reportlab.platypus import Paragraph as _ReportlabParagraph  # noqa: E402
 
 _FONT_DIR = Path(matplotlib.get_data_path()) / "fonts" / "ttf"
 pdfmetrics.registerFont(TTFont("DV", str(_FONT_DIR / "DejaVuSans.ttf")))
@@ -58,6 +60,23 @@ TONES = {  # Farbe je Status; die Zuordnung steht in der YAML-Datei
 HEX = {k: "#%02x%02x%02x" % tuple(int(c * 255) for c in v.rgb()) for k, v in TONES.items()}
 TINT = {"ok": "#eaf5ee", "warn": "#fdf3e1", "bad": "#fbebe8", "neutral": "#ebf0f7"}
 CONTENT_W = 174  # mm
+
+# Ein nacktes "&" (zum Beispiel in "CD&R" oder "Oil & Gas - E&P") ist für reportlab der Anfang einer Entität und stand im PDF
+# als "CD&R;". Schon geschriebene Entitäten (&amp;, &nbsp;, &#38;) bleiben unberührt; die Texte dürfen beides enthalten.
+_BARE_AMPERSAND = re.compile(r"&(?!(?:amp|lt|gt|nbsp|quot|apos|#[0-9]+|#x[0-9A-Fa-f]+);)")
+
+
+def escape_ampersands(text):
+    """Maskiert jedes nackte "&" als "&amp;"; Nicht-Text (reportlab ruft die Klasse beim Teilen mit None auf) bleibt unverändert."""
+    return _BARE_AMPERSAND.sub("&amp;", text) if isinstance(text, str) else text
+
+
+class Paragraph(_ReportlabParagraph):
+    """Wie reportlab.platypus.Paragraph, aber nackte "&" im Text werden vorher maskiert (siehe escape_ampersands)."""
+
+    def __init__(self, text, *args, **kwargs):
+        super().__init__(escape_ampersands(text), *args, **kwargs)
+
 
 REQUIRED_NESTED = {
     "entry": ["zone_title", "horizon", "limit", "limit_label", "limit_note", "price", "price_date", "price_vs_limit",
