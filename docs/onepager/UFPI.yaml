@@ -1,0 +1,124 @@
+# Datenquelle für die PDF-Fassung des One-Pagers UFPI (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: "UFP Industries, Inc."
+  ticker: UFPI
+  list_nr: 6
+  stage2_rank: 7
+  stage2_rank_of: 41
+  peer_group: "Industrial Products (SimFin-Branche 100001, 33 Firmen)"
+  profile: non_financial
+dates:
+  documents_until: "05.08.2026 (10-Q Q2 2026)"
+  one_pager: "12.10.2026"
+  archive_run: "10.10.2026, Regelstand 33ed39b"
+  price: "81,78 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden"
+verdict:
+  label: "ZURÜCKSTELLEN"
+  tone: warn
+  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Solide Bilanz mit Nettokasse, aber der freie Cashflow sinkt seit drei Jahren und liegt auf zwölf Monaten unter der 6-%-Marke."
+  legend: "Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3, wenn der Aufbau des Betriebskapitals zurückfließen soll) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
+thesis: >-
+  UFP Industries stellt Produkte aus Holz und Verbundstoffen her (Terrassendielen, Paletten und Verpackungen, Bauteile für den
+  Hausbau). Auf den Geschäftsjahren besteht die Firma die Prüfungen mit einer Nettokasse (EV/EBITDA 7,4, Platz 3 von 33; ROIC 16,5 %).
+  Die Entwicklung zeigt aber nach unten: Umsatz von 7.218 (2023) auf 6.320 Mio. $ (2025), Betriebsergebnis von 647 auf 364 Mio. $,
+  freier Cashflow von 780 über 410 auf 276 Mio. $. Im 1. Halbjahr 2026 sank das Betriebsergebnis um 22 % auf 167,5 Mio. $. Der
+  Dreijahresschnitt (10,9 % FCF-Rendite) sieht die Lage besser, als sie heute ist: Auf zwölf Monaten liegt die FCF-Rendite bei etwa
+  5,8 %.
+kpis:
+  - label: "Marktwert"
+    main: "4,62 Mrd. $"
+    sub: "81,78 $ x 56,5 Mio. Aktien (Kurs 23.09.)"
+    status: neutral
+  - label: "FCF-Rendite"
+    main: "5,8 %"
+    sub: "letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 10,9 %"
+    status: warn
+    note: "Stufe-2-Grenze 6 % gilt für das 3-Jahres-Mittel"
+  - label: "EV/EBIT"
+    main: "13,5"
+    sub: "letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 7,4"
+    status: neutral
+  - label: "Nettoschulden"
+    main: "-363 Mio. $"
+    sub: "Nettokasse: Kasse 597,3 minus Schulden 234,2 (27.06.) | Stufe 1: -1,29"
+    status: ok
+  - label: "Betriebsmarge"
+    main: "5,0 %"
+    sub: "1. Halbjahr 2026 | 1. Hj. 2025: 6,3 % | 2025: 5,8 %"
+    status: warn
+halfyear:
+  labels: ["1. Halbjahr 2025", "1. Halbjahr 2026"]
+  tone: bad
+  rows:
+    - { name: "Betriebsergebnis", values: [215.3, 167.5] }
+    - { name: "Nettogewinn", values: [179.5, 133.6] }
+    - { name: "Operativer Cashflow", values: [113.1, 60.6] }
+  unit: "Mio. $"
+events:
+  - { date: "2. Quartal 2026", text: "Drei Zukäufe abgeschlossen (Beitrag im 1. Halbjahr rund 41 Mio. $ Umsatz)" }
+  - { date: "22.07.2026", text: "Quartalsdividende 0,36 $ je Aktie beschlossen (+3 %), zahlbar am 15.09." }
+  - { date: "29.07.2026", text: "Quartalszahlen Q2: Umsatz +3 % (1,88 Mrd. $), Gewinn je Aktie 1,48 $ nach 1,70 $; bereinigtes EBITDA 154,5 Mio. $ (8,2 %) nach 174,1 Mio. $" }
+  - { date: "30.07.2026", text: "Aktualisierte Investorenpräsentation veröffentlicht (8-K)" }
+  - { date: "05.08.2026", text: "10-Q Q2 2026 eingereicht" }
+  - { date: "Q4 2026", text: "Der Aufbau von Betriebskapital (rund 170 Mio. $ im 1. Halbjahr) soll laut Firma bis Beginn des 4. Quartals zu Cash werden", future: true }
+bear:
+  - "Betriebsergebnis 1. Halbjahr 2026: 167,5 Mio. $ nach 215,3 Mio. $ (-22 %); Q2: Gewinn je Aktie 1,48 $ nach 1,70 $."
+  - "Höhere Frachtkosten (Transport +1,6 Prozentpunkte vom Umsatz) drücken das Ergebnis; ein schwacher Wohnungsbau wurde im 2. Quartal laut Firma durch andere Bereiche ausgeglichen. Bereinigte EBITDA-Marge 8,2 % nach 9,5 %."
+  - "Freier Cashflow nach Agent-Rechnung: 2023 780, 2024 410, 2025 276 Mio. $; 1. Halbjahr 2026 -26,0 Mio. $ (operativer Cashflow 60,6 Mio. $, Investitionen 86,6 Mio. $)."
+  - "Die Nettokasse ist von 685 Mio. $ (Ende 2025) auf 363 Mio. $ gesunken (Rückkäufe 142 Mio. $, Zukäufe, Betriebskapital)."
+  - "Trend-Guard markiert die fallende Marge; die Firma nennt Geopolitik, schwachen Wohnungsmarkt, steigende Einkaufspreise und hohe Frachtkosten."
+bull:
+  - "Nettokasse von 363 Mio. $, 1,9 Mrd. $ Liquidität; Schulden nur 234 Mio. $."
+  - "Umsatz +3 % im 2. Quartal (organisch +1 %, Zukäufe +2 %); Surestone-Terrassendielen +37 %, Deckorators organisch +9 %."
+  - "Aktienrückkauf von 142 Mio. $ im 1. Halbjahr und höhere Dividende (+3 %); Einsparprogramm von 60 Mio. $, davon laut Firma noch mindestens 25 Mio. $ ausstehend."
+  - "Der Betriebskapital-Aufbau von rund 170 Mio. $ ist saisonal und soll bis Jahresende zurückfließen."
+  - "Billig im Branchenvergleich: EV/EBITDA 7,4 gegen Median 14,7."
+entry:
+  zone_title: "Einstiegsszenario (Vorschlag, kein Kursziel)"
+  horizon: "mittelfristig (1 bis 3 Jahre)"
+  limit: 78.79
+  limit_label: "Grenze nach FCF-Rendite 6 %"
+  price_vs_limit: "3,8 % darüber"
+  limit_note: "Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (267,0 Mio. $) und 56,5 Mio. Aktien angewendet. Die Regel verlangt strikt mehr als 6 %, der Preis muss also unter der Grenze liegen; der Kurs vom 23.09. liegt knapp darüber. Die zweite Grenze (EV/EBITDA) fehlt. Die Firma selbst rechnet den freien Cashflow anders (ohne Betriebskapital-Aufbau, nur Instandhaltungs-Investitionen: 198 Mio. $ im 1. Halbjahr); das ist nicht dieselbe Größe."
+  price: 81.78
+  price_date: "23.09.2026"
+  condition: "Abwarten: Quartalsbericht Q3 (Termin noch nicht bekannt); der freie Cashflow der letzten zwölf Monate muss mit dem Rückfluss des Betriebskapitals wieder deutlich über der 6-%-Marke liegen; aktuellen Kurs prüfen"
+kill: "Vorschlag des Agenten: verwerfen, wenn der freie Cashflow der letzten zwölf Monate mit dem Q4-Bericht (Termin noch nicht bekannt) unter 5 % des Börsenwerts liegt (Stufe-2-Durchfallgrenze aus config/stage2.yaml) oder die Betriebsmarge der letzten zwölf Monate (heute 5,07 %) unter 5 % fällt (keine Schwelle aus dem Repo); sonst auf WEITERVERFOLGEN prüfen."
+sources_detail:
+  - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 25.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 05.08.2026 und Q1 2026 vom 06.05.2026, Q1 nur auf Vorhandensein geprüft) und 3 aktuelle Meldungen (8-K vom 22.07., 29.07. mit der Pressemitteilung und 30.07.2026 mit der Investorenpräsentation). Zahlen aus den XBRL-Daten der SEC gegengelesen. Die Investorenpräsentation wurde nicht ausgewertet."
+  - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
+  - "NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
+sources: "SEC: 10-K 2025 (0001104659-26-019567), 10-Q Q2 2026 (-26-090859), 10-Q Q1 2026 (-26-056076), 8-K vom 22.07., 29.07. und 30.07.2026. Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
+not_checked: "Die Peer-Gruppe Industrial Products (33 Firmen) mischt Pumpen, Ventile, Filter, Klimatechnik und Energietechnik; UFP ist ein Holz- und Verbundstoff-Verarbeiter, die Passung ist gering. Das EV/EBITDA der letzten zwölf Monate ist nicht gerechnet (Abschreibungen für den Zeitraum nicht gezogen); gezeigt ist EV/EBIT. Offen sind der heutige Kurs, die Holzpreise, die Wirkung von Zöllen auf Holz und die drei Zukäufe im Detail. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); 1 Firma fehlt wegen Datenfehlers (LXFR). Große Gruppe: gezeigt ist ein Ausschnitt um UFPI."
+peer_summary: "Gegen die 33 Firmen der Peer-Gruppe: EV/EBITDA 7,4 gegen Median 14,7 (Platz 3 von 33), FCF-Rendite 10,9 % gegen Median 4,2 % (Platz 3 von 33). Das sind Archivwerte der Geschäftsjahre; auf zwölf Monaten liegt die FCF-Rendite bei etwa 5,8 %, das Betriebsergebnis fällt. Die Passung der Gruppe ist gering."
+funnel_title: "So kam UFPI auf die Liste (Trichter vom 10.10.2026)"
+funnel:
+  - { label: "US-Börsenfirmen (SimFin)", count: 6654 }
+  - { label: "Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen", count: 1821 }
+  - { label: "Stufe 1: Qualität und Bilanz", count: 126 }
+  - { label: "Stufe 2: günstig im Branchenvergleich", count: 41 }
+  - { label: "Kandidatenliste Runde 1", count: 40 }
+funnel_note: "Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026)."
+gates_title: "Die Prüfungen im Detail"
+gates:
+  - { stage: "Stufe 1", name: "ROIC (Kapitalrendite), 3-Jahres-Mittel", value: "16,5 %", rule: "sauber über 12 %, Durchfall unter 10 %", status: ok }
+  - { stage: "Stufe 1", name: "Net Debt/EBITDA (Verschuldung)", value: "-1,29 (Nettokasse)", rule: "sauber unter 2,3, Durchfall ab 2,5", status: ok }
+  - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "1,75", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
+  - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "7,4 (Platz 3 von 33)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
+  - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "10,9 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "1 Marke", rule: "Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %", status: warn }
+gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Trend-Guard: Marge fallend (Marge-Verhältnis 0,87), Umsatzverhältnis 0,94. Die Zahlen des ersten Halbjahres 2026 sind darin nicht enthalten. Das Archiv rechnet 10,9 % FCF-Rendite; mit den hier gezeigten FCF-Zahlen (Dreijahresmittel 488,7 Mio. $) ergibt sich 10,6 %, die Ursache der Abweichung ist nicht untersucht."
+financials_title: "Kennzahlen im Überblick (Mio. $)"
+financials:
+  columns: ["2023", "2024", "2025", "1. Hj. 2025", "1. Hj. 2026"]
+  rows:
+    - { name: "Umsatz", values: ["7.218,4", "6.652,3", "6.320,3", "3.430,9", "3.344,2"] }
+    - { name: "Betriebsergebnis", values: ["646,5", "492,2", "363,9", "215,3", "167,5"] }
+    - { name: "Betriebsmarge", values: ["9,0 %", "7,4 %", "5,8 %", "6,3 %", "5,0 %"] }
+    - { name: "Nettogewinn", values: ["514,3", "414,6", "294,8", "179,5", "133,6"] }
+    - { name: "Operativer Cashflow", values: ["959,9", "642,6", "545,7", "113,1", "60,6"] }
+    - { name: "Investitionen (Sachanlagen)", values: ["180,4", "232,3", "269,4", "129,8", "86,6"] }
+    - { name: "Freier Cashflow", values: ["779,5", "410,3", "276,3", "-16,7", "-26,0"] }
+  note: "Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen). Im 1. Halbjahr ist der Cashflow saisonal niedrig (Betriebskapital)."
+method: "Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen."

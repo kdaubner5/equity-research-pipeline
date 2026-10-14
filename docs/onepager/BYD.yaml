@@ -1,0 +1,122 @@
+# Datenquelle für die PDF-Fassung des One-Pagers BYD (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: "Boyd Gaming Corporation"
+  ticker: BYD
+  list_nr: 9
+  stage2_rank: 10
+  stage2_rank_of: 41
+  peer_group: "Travel & Leisure (SimFin-Branche 103015, 24 Firmen)"
+  profile: non_financial
+dates:
+  documents_until: "13.08.2026 (jüngste 8-K)"
+  one_pager: "12.10.2026"
+  archive_run: "10.10.2026, Regelstand 33ed39b"
+  price: "71,74 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden"
+verdict:
+  label: "WEITERVERFOLGEN"
+  tone: ok
+  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Stabiles Kerngeschäft; der Cashflow-Einbruch 2026 ist überwiegend eine einmalige Steuerzahlung auf den FanDuel-Verkauf. Beobachten: Betriebsergebnis -18 % und Verschuldung nahe der Grenze."
+  legend: "Was bedeutet WEITERVERFOLGEN? Die Firma besteht den Filter und die Prüfung der Unterlagen zeigt kein Ausschlussmerkmal. Sie kommt in die engere Beobachtung; ein Kauf folgt nur nach den Stufe-4-Regeln und deiner Entscheidung. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
+thesis: >-
+  Boyd Gaming betreibt Regionalkasinos und ein Online-Geschäft. Auf den Geschäftsjahren ist die Firma günstig (EV/EBITDA 6,0, Platz 3 von 24).
+  2025 verkaufte Boyd die FanDuel-Beteiligung für 1,758 Mrd. $ (Gewinn 1.748,0 Mio. $) und tilgte Schulden. 2026 sank das Betriebsergebnis im
+  1. Halbjahr um 18 % auf 364,7 Mio. $. Der operative Cashflow brach auf 110,8 Mio. $ ein (Vorjahr 461,4), vor allem wegen 341,0 Mio. $ für 2025
+  gekaufte Steuergutschriften (Steuer auf den FanDuel-Gewinn, laut 10-Q); die Investitionen blieben mit 297,1 Mio. $ auf Vorjahreshöhe. Ohne diese
+  Zahlung läge die FCF-Rendite der letzten zwölf Monate bei rund 7,1 % statt 0,7 %. Die Verschuldung stieg auf rund 2,2 Mal EBITDA (Grauzone ab 2,3).
+kpis:
+  - label: "Marktwert"
+    main: "5,33 Mrd. $"
+    sub: "71,74 $ x 74,3 Mio. Aktien (Kurs 23.09.)"
+    status: neutral
+  - label: "FCF-Rendite"
+    main: "0,7 %"
+    sub: "letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 8,5 %"
+    status: warn
+    note: "Ohne die einmalige Steuerzahlung (341 Mio. $) rund 7,1 %"
+  - label: "EV/EBITDA"
+    main: "7,5"
+    sub: "letzte 12 Monate (Agent) | Stufe 2: 6,0"
+    status: warn
+  - label: "Net Debt/EBITDA"
+    main: "2,2"
+    sub: "30.06.2026 (Agent, Schulden gerundet) | Stufe 1: 1,43 | Durchfall ab 2,5"
+    status: warn
+  - label: "Betriebsmarge"
+    main: "18,0 %"
+    sub: "1. Halbjahr 2026 | 1. Hj. 2025: 21,8 % | 2025: 18,3 %"
+    status: warn
+halfyear:
+  labels: ["1. Halbjahr 2025", "1. Halbjahr 2026"]
+  tone: bad
+  rows:
+    - { name: "Betriebsergebnis", values: [442.3, 364.7] }
+    - { name: "Operativer Cashflow", values: [461.4, 110.8] }
+    - { name: "Freier Cashflow", values: [167.1, -186.3] }
+  unit: "Mio. $"
+events:
+  - { date: "31.07.2025", text: "5-%-Beteiligung an FanDuel für 1.758,0 Mio. $ in bar verkauft; Marktzugangs-Verträge neu geregelt (10-K)" }
+  - { date: "2. Quartal 2026", text: "Aktienrückkauf über 156 Mio. $; noch 551 Mio. $ Rahmen (Stand 30.06.2026)" }
+  - { date: "15.07.2026", text: "Quartalsdividende 0,20 $ je Aktie gezahlt" }
+  - { date: "23.07.2026", text: "Quartalszahlen Q2: Umsatz 1,03 Mrd. $ (unverändert), Nettogewinn 131,2 Mio. $ (Vorjahr 151,5), bereinigtes EBITDAR 350,5 Mio. $ (357,9)" }
+  - { date: "30.07.2026", text: "10-Q Q2 2026 eingereicht" }
+  - { date: "13.08.2026", text: "Dividende 0,20 $ je Aktie beschlossen, zahlbar am 15.10.2026" }
+bear:
+  - "Betriebsergebnis 1. Halbjahr 2026: 364,7 Mio. $ nach 442,3 Mio. $ (-18 %); Nettogewinn Q2 131,2 Mio. $ nach 151,5 Mio. $."
+  - "Operativer Cashflow im 1. Halbjahr 110,8 Mio. $ nach 461,4 Mio. $: laut 10-Q vor allem 341,0 Mio. $ Zahlungen für 2025 gekaufte Bundessteuergutschriften (Steuer auf den FanDuel-Gewinn); in der Kapitalflussrechnung sank der Posten Verbindlichkeiten und Rückstellungen um 406,6 Mio. $."
+  - "Investitionen weiter hoch: 297,1 Mio. $ im 1. Halbjahr (Neubauten Norfolk und Cadence Crossing); für 2026 zusätzlich 75 Mio. $ Hotelumbau und rund 250 Mio. $ Instandhaltung genannt."
+  - "Schwächen in Las Vegas (Orleans, Suncoast-Bauarbeiten) und online (Marktzugangs-Erlöse -28,9 Mio. $ im 1. Halbjahr)."
+  - "Verschuldung steigt nach Agent-Rechnung auf rund 2,2 Mal EBITDA (Gesamtschulden rund 2,6 Mrd. $, Kasse 322,7 Mio. $), unter anderem weil Kredit und Kreditlinie die Steuerzahlungen und Rückkäufe mitfinanzierten (10-Q); der Rückkauf lief weiter (156 Mio. $ im 2. Quartal)."
+bull:
+  - "Kerngeschäft stabil: Umsatz im Q2 auf Vorjahresniveau, Betriebsmarge der Häuser laut Firma 40 %, Slot-Umsatz (Handle) +1,6 %, Slot-Gewinn +2,4 %, Spielerlöse insgesamt +1,8 %."
+  - "Zinsen sinken: Zinsaufwand im 1. Halbjahr -39,1 Mio. $ (durchschnittliche Schulden -1,1 Mrd. $); Verwaltungsgebühren Sky River wachsen."
+  - "Cashflow 2023 bis 2025 jeweils zwischen 389 und 557 Mio. $ (nach Agent-Rechnung) vor den Wachstumsprojekten."
+  - "Mit dem FanDuel-Verkauf 1,758 Mrd. $ in bar erhalten; Aktienrückkauf mit noch 551 Mio. $ Rahmen."
+entry:
+  zone_title: "Einstiegsszenario (Vorschlag, kein Kursziel)"
+  horizon: "mittelfristig (1 bis 3 Jahre)"
+  limit: 84.3
+  limit_label: "Grenze nach FCF-Rendite 6 % (ohne die einmalige Steuerzahlung)"
+  price_vs_limit: "15 % darunter"
+  limit_note: "Vorläufig: 6 % auf den freien Cashflow der letzten zwölf Monate ohne die einmalige Steuerzahlung (rund 376 Mio. $, Annahme des Agenten) und 74,3 Mio. Aktien ergibt 84,3 $; mit der Zahlung wären es nur 7,9 $. Die Regel verlangt strikt mehr als 6 %. Die zweite Grenze (EV/EBITDA) fehlt."
+  price: 71.74
+  price_date: "23.09.2026"
+  condition: "Abwarten: Quartalsbericht Q3 (Termin noch nicht bekannt); Investitionsplan und Cashflow nach den Bauprojekten prüfen; aktuellen Kurs prüfen"
+kill: "Vorschlag des Agenten: verwerfen, wenn Net Debt/EBITDA mindestens 2,5 beträgt (Schwelle aus config/thresholds.yaml) oder die FCF-Rendite der letzten zwölf Monate ohne Einmaleffekte unter 5 % liegt (Stufe-2-Durchfallgrenze aus config/stage2.yaml); geprüft mit jedem 10-Q."
+sources_detail:
+  - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 20.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 30.07.2026 und Q1 2026 vom 30.04.2026, Q1 nur auf Vorhandensein geprüft) und 2 aktuelle Meldungen (8-K vom 23.07.2026 mit der Pressemitteilung zu den Quartalszahlen und vom 13.08.2026 zur Dividende). Zahlen aus den XBRL-Daten der SEC gegengelesen."
+  - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
+  - "NICHT verwendet: Earnings-Call-Transkripte (Konferenz am 23.07.2026 stattgefunden), Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
+sources: "SEC: 10-K 2025 (0001437749-26-004908), 10-Q Q2 2026 (-26-025062), 10-Q Q1 2026 (-26-014192), 8-K vom 23.07.2026 (-26-024305) und 13.08.2026 (-26-027683). Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
+not_checked: "Die Peer-Gruppe Travel & Leisure (24 Firmen) passt kaum: Sie enthält Spielzeug (Mattel), Boote (Brunswick, Malibu), Fitness (Peloton), Haustierbedarf (Petco) und Kreuzfahrten; nur Caesars, MGM, Churchill Downs und wenige Verwandte sind echte Vergleichsfirmen. Das Archiv trägt für Stufe 1 die Datenmarke `debt_component_missing_defaulted_zero` (ein Teil der Schulden fehlte und wurde auf 0 gesetzt); die Verschuldung 1,43 des Archivs könnte daher zu niedrig sein. Die Gesamtschulden sind aus der Pressemitteilung nur gerundet (2,6 Mrd. $) übernommen und nicht aus der Bilanz nachgerechnet. Der Zeitplan der Neubauten, die Wirkung der FanDuel-Neuordnung auf die Online-Erlöse und ob weitere Steuerzahlungen folgen sind offen. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); 1 Firma fehlt wegen Datenfehlers (MMYT). Große Gruppe: gezeigt ist ein Ausschnitt um BYD. Die Gruppe passt schlecht (Spielzeug, Boote, Fitness)."
+peer_summary: "Gegen die 24 Firmen der Peer-Gruppe: EV/EBITDA 6,0 gegen Median 10,5 (Platz 3 von 24), FCF-Rendite 8,5 % gegen Median 7,4 % (Platz 10 von 21). Das sind Archivwerte der Geschäftsjahre bis 2025; auf zwölf Monaten liegen EV/EBITDA bei 7,5 und die FCF-Rendite bei 0,7 % (ohne die einmalige Steuerzahlung rund 7,1 %). Die Gruppe passt schlecht."
+funnel_title: "So kam BYD auf die Liste (Trichter vom 10.10.2026)"
+funnel:
+  - { label: "US-Börsenfirmen (SimFin)", count: 6654 }
+  - { label: "Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen", count: 1821 }
+  - { label: "Stufe 1: Qualität und Bilanz", count: 126 }
+  - { label: "Stufe 2: günstig im Branchenvergleich", count: 41 }
+  - { label: "Kandidatenliste Runde 1", count: 40 }
+funnel_note: "Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026)."
+gates_title: "Die Prüfungen im Detail"
+gates:
+  - { stage: "Stufe 1", name: "ROIC (Kapitalrendite), 3-Jahres-Mittel", value: "16,2 %", rule: "sauber über 12 %, Durchfall unter 10 %", status: ok }
+  - { stage: "Stufe 1", name: "Net Debt/EBITDA (Verschuldung)", value: "1,43", rule: "sauber unter 2,3, Durchfall ab 2,5", status: ok }
+  - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "1,18", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
+  - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "6,0 (Platz 3 von 24)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
+  - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "8,5 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %", status: ok }
+gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Das Archiv trägt die Datenmarke `debt_component_missing_defaulted_zero`. Die Zahlen des ersten Halbjahres 2026 sind darin nicht enthalten."
+financials_title: "Kennzahlen im Überblick (Mio. $)"
+financials:
+  columns: ["2023", "2024", "2025", "1. Hj. 2025", "1. Hj. 2026"]
+  rows:
+    - { name: "Umsatz", values: ["3.738,5", "3.930,2", "4.092,0", "2.025,6", "2.031,7"] }
+    - { name: "Betriebsergebnis", values: ["901,8", "927,8", "748,4", "442,3", "364,7"] }
+    - { name: "Betriebsmarge", values: ["24,1 %", "23,6 %", "18,3 %", "21,8 %", "18,0 %"] }
+    - { name: "Nettogewinn (Boyd)", values: ["620,0", "578,0", "1.843,3", "262,9", "236,8"] }
+    - { name: "Operativer Cashflow", values: ["914,5", "957,1", "976,7", "461,4", "110,8"] }
+    - { name: "Investitionen (Sachanlagen)", values: ["373,9", "400,4", "588,2", "294,3", "297,1"] }
+    - { name: "Freier Cashflow", values: ["540,6", "556,7", "388,5", "167,1", "-186,3"] }
+  note: "Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten). Der Nettogewinn 2025 enthält den Gewinn aus dem FanDuel-Verkauf (1.748,0 Mio. $ laut 10-K). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen)."
+method: "Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen."

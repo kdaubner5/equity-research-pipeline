@@ -1,0 +1,122 @@
+# Datenquelle für die PDF-Fassung des One-Pagers PLAB (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: "Photronics, Inc."
+  ticker: PLAB
+  list_nr: 13
+  stage2_rank: 14
+  stage2_rank_of: 41
+  peer_group: "Semiconductors (SimFin-Branche 101004, 9 Firmen)"
+  profile: non_financial
+dates:
+  documents_until: "10.09.2026 (10-Q Q3 Geschäftsjahr 2026); Geschäftsjahr endet am 31.10."
+  one_pager: "12.10.2026"
+  archive_run: "10.10.2026, Regelstand 33ed39b"
+  price: "30,35 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden"
+verdict:
+  label: "WEITERVERFOLGEN"
+  tone: ok
+  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Stabiles Geschäft mit hoher Marge und viel Kasse, aber hohe Investitionen lassen nur eine dünne FCF-Rendite von rund 6 %."
+  legend: "Was bedeutet WEITERVERFOLGEN? Die Firma besteht den Filter und die Prüfung der Unterlagen zeigt kein Ausschlussmerkmal. Sie kommt in die engere Beobachtung; ein Kauf folgt nur nach den Stufe-4-Regeln und deiner Entscheidung. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
+thesis: >-
+  Photronics stellt Fotomasken her (Schablonen zur Belichtung von Chips und Bildschirmen). Im 3. Quartal des Geschäftsjahres (Ende 02.08.2026) stieg der
+  Umsatz um 2,7 % auf 216,0 Mio. $, der Nettogewinn auf 28,9 Mio. $; der Anteil anspruchsvoller Chip-Masken erreichte mit 44 % einen Rekord. Die Bilanz
+  hat kaum Schulden und 672,8 Mio. $ Kasse und kurzfristige Anlagen, davon 503,5 Mio. $ in Gemeinschaftsunternehmen (50,01 % gehalten). Das EV/EBITDA
+  der Karte (5,8) rechnet mit den letzten zwölf Monaten und den Minderheiten (463 Mio. $); das Stufe-2-Maß (4,5) stammt aus 2025 ohne Minderheiten.
+  Die Schwäche: hohe Investitionen (2025: 188 Mio. $; 2026 geplant 255 bis 305 Mio. $) halten den freien Cashflow bei rund 6 % des Börsenwerts.
+kpis:
+  - label: "Marktwert"
+    main: "1,79 Mrd. $"
+    sub: "30,35 $ x 59,0 Mio. Aktien (Kurs 23.09.)"
+    status: neutral
+  - label: "FCF-Rendite"
+    main: "6,2 %"
+    sub: "letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 6,7 %"
+    status: warn
+    note: "Stufe 2 inkl. sonstiger Investitionen: 5,3 %"
+  - label: "EV/EBITDA"
+    main: "5,8"
+    sub: "mit Minderheitsanteilen, 12 Monate (Agent) | Stufe 2: 4,5"
+    status: ok
+  - label: "Nettokasse"
+    main: "ca. 669 Mio. $"
+    sub: "02.08.2026, davon 503,5 in Gemeinschaftsunternehmen | Stufe 1: -1,72"
+    status: ok
+  - label: "Betriebsmarge"
+    main: "21,9 %"
+    sub: "9 Monate bis 02.08.2026 | Vorjahr 24,6 % | Geschäftsjahr 2025: 24,5 %"
+    status: warn
+halfyear:
+  labels: ["9 Monate bis 03.08.2025", "9 Monate bis 02.08.2026"]
+  tone: ok
+  rows:
+    - { name: "Umsatz", values: [633.5, 651.1] }
+    - { name: "Betriebsergebnis", values: [156.1, 142.5] }
+    - { name: "Freier Cashflow", values: [39.4, 90.2] }
+  unit: "Mio. $"
+events:
+  - { date: "28.05.2026", text: "Quartalszahlen Q2: Firma nennt verzögerte Chip-Designfreigaben (hohe Fabrikauslastung) als vorübergehende Bremse" }
+  - { date: "11.06.2026", text: "10-Q für das 2. Quartal eingereicht" }
+  - { date: "26.08.2026", text: "Quartalszahlen Q3: Umsatz 216,0 Mio. $ (+2,7 %), Nettogewinn 28,9 Mio. $; Ausblick Q4: Umsatz 207 bis 227 Mio. $, Betriebsmarge 19 bis 24 %" }
+  - { date: "10.09.2026", text: "10-Q für das 3. Quartal eingereicht" }
+  - { date: "31.10.2026", text: "Ende des Geschäftsjahres 2026 (Ergebnisse danach, Termin nicht bekannt)", future: true }
+bear:
+  - "Betriebsergebnis 9 Monate: 142,5 Mio. $ nach 156,1 Mio. $ (-9 %); Betriebsmarge 21,9 % nach 24,6 %; Ausblick Q4: Marge 19 bis 24 %."
+  - "Hohe Investitionen: 130,4 Mio. $ in den ersten neun Monaten, 188,1 Mio. $ im Geschäftsjahr 2025; für 2026 plant die Firma 255 bis 305 Mio. $ (laut 10-Q), im 4. Quartal also rund 125 bis 175 Mio. $. Der freie Cashflow der letzten zwölf Monate (110,5 Mio. $) dürfte damit zum Jahresende deutlich sinken; 2025 lag er bei nur 59,7 Mio. $."
+  - "Rund drei Viertel der Kasse (503,5 von 672,8 Mio. $) liegen in Gemeinschaftsunternehmen, an denen Partner rund die Hälfte halten; laut 10-Q liegen 408,5 Mio. $ Bargeld in den Gemeinschaftsunternehmen in Taiwan und China; ob sie frei verfügbar sind, ist nicht geprüft."
+  - "Flachbildschirm-Geschäft (FPD) schwächelt: Umsatz -2 % im Quartal."
+  - "Das Archiv trägt die Marke Aktienzahl ungeprüft; die FCF-Rendite des Archivs sinkt mit sonstigen Investitionen auf 5,3 % (Durchfallgrenze 5 %)."
+bull:
+  - "Umsatz Q3 +2,7 % (216,0 Mio. $), Chip-Masken +5 %, Anteil Hochleistungs-Masken 44 % der Chip-Umsätze (Rekord)."
+  - "Kaum Schulden (kurzfristiger Teil 3,9 Mio. $); Kasse und kurzfristige Anlagen 672,8 Mio. $."
+  - "Nettogewinn 9 Monate 103,3 Mio. $ nach 74,6 Mio. $; operativer Cashflow 220,6 Mio. $ nach 160,0 Mio. $."
+  - "Freier Cashflow 9 Monate 90,2 Mio. $ nach 39,4 Mio. $; letzte zwölf Monate rund 110,5 Mio. $."
+  - "Investitionen in den USA und Korea liegen laut Firma im Plan und stärken die Stellung im Hochleistungs-Segment."
+entry:
+  zone_title: "Einstiegsszenario (Vorschlag, kein Kursziel)"
+  horizon: "mittelfristig (1 bis 3 Jahre)"
+  limit: 31.2
+  limit_label: "Grenze nach FCF-Rendite 6 %"
+  price_vs_limit: "2,7 % darunter"
+  limit_note: "Vorläufig: 6 % auf den freien Cashflow der letzten zwölf Monate (110,5 Mio. $) und 59,0 Mio. Aktien ergibt 31,2 $; der Kurs vom 23.09. liegt knapp darunter. Der Spielraum ist klein: Die geplanten Investitionen (255 bis 305 Mio. $ im Geschäftsjahr) drücken die Zwölf-Monats-Zahl bis zum Jahresende wohl weiter. Die zweite Grenze (EV/EBITDA) fehlt."
+  price: 30.35
+  price_date: "23.09.2026"
+  condition: "Aktuellen Kurs prüfen; Ergebnisse des Geschäftsjahres 2026 (Termin noch nicht bekannt) abwarten: Fällt die Betriebsmarge unter 19 % oder bleibt der freie Cashflow unter 6 %?"
+kill: "Vorschlag des Agenten: verwerfen, wenn die FCF-Rendite der letzten zwölf Monate unter 5 % fällt (Stufe-2-Durchfallgrenze aus config/stage2.yaml) oder die Betriebsmarge der letzten zwölf Monate unter 19 % fällt (untere Grenze des Ausblicks für das 4. Quartal; keine Schwelle aus dem Repo); geprüft mit jedem 10-Q."
+sources_detail:
+  - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K für das Geschäftsjahr bis 31.10.2025, eingereicht 17.12.2025), 2 Quartalsberichte (10-Q Q3 vom 10.09.2026 und Q2 vom 11.06.2026, Q2 nur auf Vorhandensein geprüft) und 2 aktuelle Meldungen (8-K vom 28.05. und 26.08.2026 mit den Pressemitteilungen zu den Quartalszahlen). Zahlen aus den XBRL-Daten der SEC gegengelesen."
+  - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
+  - "NICHT verwendet: Earnings-Call-Transkripte (Konferenz am 26.08.2026 stattgefunden), Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
+sources: "SEC: 10-K Geschäftsjahr 2025 (eingereicht 17.12.2025), 10-Q Q3 2026 (0001140361-26-036138), 10-Q Q2 2026 (-26-024915), 8-K vom 26.08.2026 und 28.05.2026. Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
+not_checked: "Die Peer-Gruppe Semiconductors (9 Firmen) passt kaum: Sie enthält Chip-Hersteller und Ausrüster mit EV/EBITDA von meist 20 bis 80 (Ausnahme XPER) sowie einen Solarinstallateur (Sunrun); Photronics ist ein Zulieferer von Masken. Das EV/EBITDA mit Minderheitsanteilen ist eine Agent-Rechnung (Buchwert der Minderheiten 463 Mio. $, Schulden grob aus der Bilanz); die Nettokasse ist aus der Pressemitteilung (672,8 Mio. $) abzüglich der Schulden gerundet. Die genaue Aufteilung des Gewinns und der Kasse zwischen Photronics und den Gemeinschaftsunternehmen und die Abhängigkeit von China sind nicht ausgewertet. Offen sind der heutige Kurs und die Wirkung von Exportkontrollen. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); in der Gruppe fehlt 1 Firma wegen Datenfehlers (CNXT). XPER wurde aus der Kandidatenliste gestrichen (Datenfehler). Die Gruppe passt kaum."
+peer_summary: "Gegen die 9 Firmen der Peer-Gruppe: EV/EBITDA 4,5 gegen Median 26,0 (Platz 2 von 9), FCF-Rendite 6,7 % gegen Median 2,4 % (Platz 2 von 9). Archivwerte der Geschäftsjahre; der Vergleich ist wenig aussagekräftig, weil die Gruppe aus Chip-Herstellern mit ganz anderen Bewertungen besteht."
+funnel_title: "So kam PLAB auf die Liste (Trichter vom 10.10.2026)"
+funnel:
+  - { label: "US-Börsenfirmen (SimFin)", count: 6654 }
+  - { label: "Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen", count: 1821 }
+  - { label: "Stufe 1: Qualität und Bilanz", count: 126 }
+  - { label: "Stufe 2: günstig im Branchenvergleich", count: 41 }
+  - { label: "Kandidatenliste Runde 1", count: 40 }
+funnel_note: "Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026)."
+gates_title: "Die Prüfungen im Detail"
+gates:
+  - { stage: "Stufe 1", name: "ROIC (Kapitalrendite), 3-Jahres-Mittel", value: "18,8 %", rule: "sauber über 12 %, Durchfall unter 10 %", status: ok }
+  - { stage: "Stufe 1", name: "Net Debt/EBITDA (Verschuldung)", value: "-1,72 (Nettokasse)", rule: "sauber unter 2,3, Durchfall ab 2,5", status: ok }
+  - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "2,08", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
+  - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "4,5 (Platz 2 von 9)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
+  - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "6,7 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: warn }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %", status: ok }
+gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre (bis 31.10.2025); die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Die FCF-Rendite 6,7 % liegt nur knapp über der sauberen Grenze von 6 %. Die Zahlen der ersten neun Monate des Geschäftsjahres 2026 sind darin nicht enthalten."
+financials_title: "Kennzahlen im Überblick (Mio. $; Geschäftsjahr bis 31.10.)"
+financials:
+  columns: ["2023", "2024", "2025", "9 M. 2025", "9 M. 2026"]
+  rows:
+    - { name: "Umsatz", values: ["892,1", "866,9", "849,3", "633,5", "651,1"] }
+    - { name: "Betriebsergebnis", values: ["253,1", "221,5", "208,2", "156,1", "142,5"] }
+    - { name: "Betriebsmarge", values: ["28,4 %", "25,6 %", "24,5 %", "24,6 %", "21,9 %"] }
+    - { name: "Nettogewinn (Photronics)", values: ["125,5", "130,7", "136,4", "74,6", "103,3"] }
+    - { name: "Operativer Cashflow", values: ["302,2", "261,4", "247,8", "160,0", "220,6"] }
+    - { name: "Investitionen (Sachanlagen)", values: ["131,3", "130,9", "188,1", "120,6", "130,4"] }
+    - { name: "Freier Cashflow", values: ["170,9", "130,5", "59,7", "39,4", "90,2"] }
+  note: "Quelle: 10-K Geschäftsjahr 2025 und 10-Q Q3 2026 der SEC (XBRL-Daten). Spalten 9 M.: November bis Juli/August. Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen)."
+method: "Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen."

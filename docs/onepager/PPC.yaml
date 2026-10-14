@@ -1,0 +1,129 @@
+# Datenquelle für die PDF-Fassung des One-Pagers PPC (render_onepager_pdf.py).
+# Der ausführliche Bericht mit allen Quellen und Rechnungen ist docs/onepager/PPC_pilot.md; diese Datei enthält nur die
+# Kurzfassung für die Seite. Zahlen und Zitate müssen mit dem Bericht übereinstimmen.
+company:
+  name: "Pilgrim's Pride Corp"
+  ticker: PPC
+  list_nr: 5
+  stage2_rank: 6
+  stage2_rank_of: 41
+  peer_group: "Consumer Packaged Goods (SimFin-Branche 102002, 17 Firmen)"
+  profile: non_financial
+dates:
+  documents_until: "09.10.2026 (jüngste 8-K)"
+  one_pager: "12.10.2026"
+  archive_run: "10.10.2026, Regelstand 33ed39b"
+  price: "27,63 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden"
+verdict:
+  label: "ZURÜCKSTELLEN"
+  tone: warn   # ok | warn | bad | neutral
+  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Fusionsfall mit offenem Ausgang; Gewinneinbruch im ersten Halbjahr 2026."
+  legend: "Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3 oder Entscheidung des Sonderausschusses zum JBS-Vorschlag) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
+thesis: >-
+  Auf den Zahlen der Geschäftsjahre besteht PPC die Prüfungen (Marge 2025: 8,7 %, Verschuldung 1,17 Mal EBITDA).
+  Das erste Halbjahr 2026 zeigt einen scharfen Einbruch: Betriebsergebnis 228,5 Mio. $ nach 916,8 Mio. $ bei fast
+  gleichem Umsatz, freier Cashflow der letzten zwölf Monate rund 304 Mio. $. Stufe 2 und Trend-Guard rechnen mit
+  Geschäftsjahren und sehen das noch nicht. Seit dem 18.08.2026 liegt zudem ein unverbindlicher Tauschvorschlag
+  des Mehrheitsaktionärs JBS vor.
+kpis:
+  - label: "Marktwert"
+    main: "6,58 Mrd. $"
+    sub: "27,63 $ x 238,1 Mio. Aktien (Kurs 23.09.)"
+    status: neutral
+  - label: "FCF-Rendite"
+    main: "4,6 %"
+    sub: "letzte 12 Monate | Stufe 2 (3-Jahres-Mittel): 11,9 %"
+    status: warn
+    note: "Stufe-2-Grenze 5 % gilt für das 3-Jahres-Mittel"
+  - label: "EV/EBITDA"
+    main: "6,4"
+    sub: "letzte 12 Monate | Stufe 2: 4,3"
+    status: neutral
+  - label: "Net Debt/EBITDA"
+    main: "1,77"
+    sub: "letzte 12 Monate | Stufe 1: 1,17 | Grenze 2,5"
+    status: ok
+  - label: "Betriebsmarge"
+    main: "2,5 %"
+    sub: "1. Halbjahr 2026 | 2025: 8,7 %"
+    status: bad
+halfyear:
+  labels: ["1. Halbjahr 2025", "1. Halbjahr 2026"]
+  tone: bad
+  rows:
+    - { name: "Betriebsergebnis", values: [916.8, 228.5] }
+    - { name: "Freier Cashflow", values: [362.8, 6.7] }
+  unit: "Mio. $"
+events:
+  - { date: "10.04.2026", text: "Vorläufige Einigung der Aktionärsklage (Gericht entscheidet erst am 20.11.)" }
+  - { date: "14.04.2026", text: "Rückkauf von 250 Mio. $ Anleihen (6,25 %)" }
+  - { date: "22.05.2026", text: "Steuerstreit UK per Vergleich beendet (HMRC; 10-Q Q2 2026)" }
+  - { date: "30.07.2026", text: "Quartalszahlen: Gewinneinbruch" }
+  - { date: "17.08.2026", text: "Zukauf Walkers (UK) vereinbart, Freigabe der britischen Wettbewerbsbehörde offen, Preis unbekannt" }
+  - { date: "18.08.2026", text: "JBS: unverbindlicher Tauschvorschlag, 2,086 JBS-Aktien je PPC-Aktie (kein Aufschlag)" }
+  - { date: "23.09.2026", text: "Anleihe über 500 Mio. EUR (4,75 %, 2034)" }
+  - { date: "09.10.2026", text: "Sonderausschuss zur Prüfung des JBS-Vorschlags gebildet" }
+  - { date: "20.11.2026", text: "Anhörung zum Vergleich der Aktionärsklage", future: true }
+bear:
+  - "Betriebsergebnis 1. Halbjahr 2026: 228,5 Mio. $ nach 916,8 Mio. $; Betriebsmarge 2,5 % (2025: 8,7 %)."
+  - "Hühnerfleischpreise unter Vorjahr und Fünfjahresschnitt, Branchenproduktion +4,5 % im 2. Quartal."
+  - "Freier Cashflow 1. Halbjahr nur 6,7 Mio. $; Investitionen 2026 angekündigt: 900 bis 950 Mio. $."
+  - "Kartellvergleiche: 838,5 Mio. $ bisher, davon 155,4 Mio. $ im 1. Halbjahr 2026."
+  - "JBS-Vorschlag ohne Aufschlag (Stand 18.08.), Interessenkonflikt des Mehrheitsaktionärs."
+bull:
+  - "Geschäftsjahr 2025: Betriebsergebnis 1.613,5 Mio. $ (+7,1 %), operativer Cashflow 1.371,7 Mio. $."
+  - "Schulden von 3.122 auf 2.886 Mio. $ gesenkt; freie Kreditlinien 1.192 Mio. $."
+  - "Teure 6,25-%-Anleihen vorzeitig zurückgekauft; Steuerstreit UK beendet."
+  - "Sonderdividenden 2025 rund 2 Mrd. $ (keine feste Dividendenpolitik)."
+entry:
+  zone_title: "Einstiegsszenario (Vorschlag, kein Kursziel)"
+  horizon: "mittelfristig (1 bis 3 Jahre)"
+  limit: 21.31
+  limit_label: "Grenze nach FCF-Rendite 6 %"
+  price_vs_limit: "29,7 % darüber"
+  limit_note: "Vorläufig: Die 6 % sind eine Stufe-2-Regel auf Dreijahresbasis, hier auf die letzten zwölf Monate angewendet; die Regel verlangt strikt mehr als 6 %, der Preis muss also etwas unter der Grenze liegen. Die zweite Grenze (EV/EBITDA) fehlt, die Grenze kann zu hoch sein. Sie liegt rund 25 % unter dem Tauschwert und wäre bei einer Übernahme kaum erreichbar."
+  price: 27.63
+  price_date: "23.09.2026"
+  offer_label: "Tauschwert JBS-Vorschlag"
+  offer_value: 28.49
+  offer_date: "18.08.2026"
+  condition: "Abwarten: 10-Q für das 3. Quartal (Termin noch nicht bekannt) oder Entscheidung des Sonderausschusses"
+kill: "Vorschlag des Agenten: Net Debt/EBITDA (12 Monate) mindestens 2,5 (Schwelle aus config/thresholds.yaml) oder freier Cashflow (12 Monate) negativ (Wert 0, keine Schwelle aus dem Repo); geprüft im nächsten 10-Q. Kommt eine Vereinbarung mit JBS zustande, wird der One-Pager neu geschrieben."
+sources_detail:
+  - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025), 2 Quartalsberichte (10-Q Q2 2026 und Q2 2025) und 9 aktuelle Meldungen (8-K vom 30.07. bis 09.10.2026: zwei zu den Quartalszahlen, Walkers, JBS-Vorschlag, Aktionärsklage, Anleihe in drei Meldungen, Sonderausschuss). Von den 8-K wurden nur die Anlagen (Pressemitteilungen, Schreiben, Vertrag), nicht die Haupttexte gelesen; vom Anleihevertrag nur der Titel."
+  - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
+  - "NICHT verwendet: Earnings-Call-Transkripte, Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
+sources: "SEC: 10-K 2025 (0000802481-26-000011), 10-Q Q2 2026 (-26-000051) und Q2 2025 (-25-000110), 8-K vom 30.07. bis 09.10.2026. Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
+not_checked: "Die Peer-Gruppe passt nur eingeschränkt (Consumer Packaged Goods mischt Markenlebensmittel, Haushalts- und Körperpflegeartikel; PPC ist ein Rohstoff-Verarbeiter für Geflügel). Die Peer-Drittelgrenze und der heutige Kurs sind offen. Das 3-Jahres-Mittel der FCF-Rendite ist nicht nachgerechnet; die FCF-Rechnung des Agenten ist nicht dieselbe Größe wie in Stufe 2. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); in der Gruppe fehlen keine Firmen wegen fehlender Fundamentaldaten. Rosa Balken: in Stufe 2 durchgefallen."
+peer_summary: "Gegen die 17 Firmen der Peer-Gruppe: EV/EBITDA 4,3 gegen Median 8,8 (Platz 2 von 17, eine der günstigsten), FCF-Rendite 11,9 % gegen Median 12,2 % (Platz 10 von 17, ungefähr in der Mitte). Beides sind Archivwerte der Geschäftsjahre; auf den letzten zwölf Monaten sehen beide schwächer aus (siehe Karten)."
+funnel_title: "So kam PPC auf die Liste (Trichter vom 10.10.2026)"
+funnel:
+  - { label: "US-Börsenfirmen (SimFin)", count: 6654 }
+  - { label: "Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen", count: 1821 }
+  - { label: "Stufe 1: Qualität und Bilanz", count: 126 }
+  - { label: "Stufe 2: günstig im Branchenvergleich", count: 41 }
+  - { label: "Kandidatenliste Runde 1", count: 40 }
+funnel_note: "Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026)."
+gates_title: "Die Prüfungen im Detail"
+gates:
+  - { stage: "Stufe 1", name: "ROIC (Kapitalrendite), 3-Jahres-Mittel", value: "16,4 %", rule: "sauber über 12 %, Durchfall unter 10 %", status: ok }
+  - { stage: "Stufe 1", name: "Net Debt/EBITDA (Verschuldung)", value: "1,17", rule: "sauber unter 2,3, Durchfall ab 2,5", status: ok }
+  - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "1,74", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
+  - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "4,3 (Platz 2 von 17)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
+  - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "11,9 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %", status: ok }
+gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Die Zahlen des ersten Halbjahres 2026 sind darin noch nicht enthalten."
+financials_title: "Kennzahlen im Überblick (Mio. $)"
+financials:
+  columns: ["2023", "2024", "2025", "1. Hj. 2025", "1. Hj. 2026"]
+  rows:
+    - { name: "Umsatz", values: ["17.362,2", "17.878,3", "18.497,6", "9.220,4", "9.158,9"] }
+    - { name: "Betriebsergebnis", values: ["522,3", "1.506,1", "1.613,5", "916,8", "228,5"] }
+    - { name: "Betriebsmarge", values: ["3,0 %", "8,4 %", "8,7 %", "9,9 %", "2,5 %"] }
+    - { name: "Nettogewinn", values: ["322,3", "1.087,2", "1.083,3", "652,4", "114,7"] }
+    - { name: "Operativer Cashflow", values: ["677,9", "1.990,1", "1.371,7", "622,1", "471,8"] }
+    - { name: "Investitionen (Sachanlagen)", values: ["543,8", "476,2", "711,1", "259,3", "465,2"] }
+    - { name: "Freier Cashflow", values: ["134,1", "1.514,0", "660,6", "362,8", "6,7"] }
+  note: "Quelle: 10-K 2025 und 10-Q Q2 2026 / Q2 2025 der SEC. Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen)."
+method: "Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch zwei getrennte Prüfläufe gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen."

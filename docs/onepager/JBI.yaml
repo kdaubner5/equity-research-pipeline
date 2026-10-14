@@ -1,0 +1,123 @@
+# Datenquelle für die PDF-Fassung des One-Pagers JBI (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: "Janus International Group, Inc."
+  ticker: JBI
+  list_nr: 2
+  stage2_rank: 2
+  stage2_rank_of: 41
+  peer_group: "Building Materials (SimFin-Branche 110005, 16 Firmen)"
+  profile: non_financial
+dates:
+  documents_until: "25.09.2026 (jüngste 8-K)"
+  one_pager: "12.10.2026"
+  archive_run: "10.10.2026, Regelstand 33ed39b"
+  price: "4,26 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden"
+verdict:
+  label: "ZURÜCKSTELLEN"
+  tone: warn
+  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Auf Geschäftsjahren sauber und billig, aber das Betriebsergebnis fiel im 1. Halbjahr 2026 um 45 % und die bereinigte Verschuldung der Firma (2,7) liegt über der Stufe-1-Grenze von 2,5 (dort anders gerechnet)."
+  legend: "Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Quartalsbericht Q3, Termin noch nicht bekannt) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
+thesis: >-
+  Janus baut Türen, Gebäude und Zutrittstechnik für Selbstlager (Self-Storage). Auf den Zahlen der Geschäftsjahre ist die Firma
+  billig (EV/EBITDA 5,9, Platz 1 von 16) und erzeugt viel Cash (freier Cashflow im Dreijahresmittel rund 148 Mio. $ bei 581 Mio. $
+  Börsenwert). Doch der Trend zeigt nach unten: Umsatz von 1.066 auf 884 Mio. $ (2023 bis 2025), Betriebsergebnis von 246 auf
+  112 Mio. $. Im 1. Halbjahr 2026 fiel es auf 33,7 Mio. $ (Vorjahr 61,3). Die bereinigte Verschuldung stieg laut Firma von
+  2,1 auf 2,7 Mal EBITDA; die Stufe-1-Grenze von 2,5 gilt für eine andere Rechnung (Geschäftsjahr, nicht bereinigt). Dazu läuft ein Umbauprogramm (Restrukturierung).
+kpis:
+  - label: "Marktwert"
+    main: "581 Mio. $"
+    sub: "4,26 $ x 136,4 Mio. Aktien (Kurs 23.09.)"
+    status: neutral
+  - label: "FCF-Rendite"
+    main: "14,2 %"
+    sub: "letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 26,0 %"
+    status: ok
+  - label: "EV/EBITDA"
+    main: "6,5"
+    sub: "bereinigt, letzte 12 Monate (Agent, mit EBITDA der Firma) | Stufe 2: 5,9"
+    status: neutral
+  - label: "Net Debt/EBITDA"
+    main: "2,7"
+    sub: "bereinigt, 04.07.2026 (Firma) | Stufe 1: 2,22 | Durchfall ab 2,5"
+    status: bad
+  - label: "Betriebsmarge"
+    main: "7,4 %"
+    sub: "1. Halbjahr 2026 | 1. Hj. 2025: 14,0 % | 2025: 12,6 %"
+    status: bad
+halfyear:
+  labels: ["1. Halbjahr 2025", "1. Halbjahr 2026"]
+  tone: bad
+  rows:
+    - { name: "Betriebsergebnis", values: [61.3, 33.7] }
+    - { name: "Nettogewinn", values: [31.5, 10.9] }
+    - { name: "Freier Cashflow", values: [86.5, 55.0] }
+  unit: "Mio. $"
+events:
+  - { date: "08.01.2026", text: "Kiwi II Construction (Selbstlager-Bauer, Kalifornien) als Vermögenswerte übernommen; Kaufpreis im 10-Q noch vorläufig" }
+  - { date: "02.02.2026", text: "Zinsaufschläge des Kredits (First-Lien-Term-Loan) um 0,50 Punkte gesenkt (auf 2,00 % über SOFR); Zinssatz am 04.07.2026: 5,62 %" }
+  - { date: "02.2026", text: "US-Supreme-Court erklärt die IEEPA-Zölle für ungültig; Janus beantragt Rückerstattung (laut 10-Q wahrscheinlich, bisher rund 1,3 Mio. $ geschätzt)" }
+  - { date: "11.08.2026", text: "Quartalszahlen Q2: Umsatz +2,4 % (233,5 Mio. $), bereinigtes EBITDA -18 %; Jahresausblick aktualisiert (bereinigtes EBITDA 150 bis 170 Mio. $)" }
+  - { date: "23.09.2026", text: "Sonderzuteilung von Aktienrechten (RSU, über drei Jahre unverfallbar, je 750.000 $ Wert) an drei Führungskräfte als Halteprämie" }
+  - { date: "25.09.2026", text: "Umbau offengelegt: drei Maßnahmen, Einsparung rund 10,8 Mio. $ im Jahr, Kosten rund 5,6 Mio. $" }
+  - { date: "03.10.2026", text: "Ende des 3. Quartals (Quartalsbericht danach, Datum nicht bekannt)", future: true }
+bear:
+  - "Betriebsergebnis 1. Halbjahr 2026: 33,7 Mio. $ nach 61,3 Mio. $; Betriebsmarge 7,4 % (2023: 23,0 %)."
+  - "Bereinigte Net-Debt/EBITDA-Quote 2,7 (Januar: 2,1); Nettoschulden 422,6 nach 356,6 Mio. $, Kasse 127,0 nach 194,4 Mio. $."
+  - "Ohne Kiwi II (19,2 Mio. $ Umsatz im Quartal) ging der Umsatz im 2. Quartal nach Agent-Rechnung um rund 6 % zurück; Geschäft mit gewerblichen Kunden -21,2 %."
+  - "Operativer Cashflow im 1. Halbjahr -39,2 % (60,6 nach 99,7 Mio. $); Trend-Guard markiert fallende Marge und ROIC unter der Untergrenze."
+  - "Das Management nennt die Quartalszahlen ‚leicht unter den Erwartungen‘ und das Umfeld ‚herausfordernd‘ (Pressemitteilung)."
+bull:
+  - "Selbstlager-Neubau +20,3 % und Nachrüstung (R3) +6,6 % im 2. Quartal; Nokē-Zutrittssystem mit 501.000 installierten Einheiten (+22,5 %)."
+  - "Freier Cashflow der letzten zwölf Monate nach Firmenangabe 129 % des bereinigten Gewinns; 1. Halbjahr 55,0 Mio. $."
+  - "Sehr günstig bewertet: Dreijahresmittel der FCF-Rendite rund 26 %; Aktienrückkauf mit noch 63,1 Mio. $ Rahmen."
+  - "Der Kredit läuft bis 2030 (Zins 5,62 %), die Kreditlinie über 125 Mio. $ bis 2028; Zölle könnten teilweise erstattet werden."
+  - "Einsparprogramm: rund 10,8 Mio. $ im Jahr bei etwa 5,6 Mio. $ Kosten."
+entry:
+  zone_title: "Einstiegsszenario (Vorschlag, kein Kursziel)"
+  horizon: "mittelfristig (1 bis 3 Jahre)"
+  limit: 10.08
+  limit_label: "Grenze nach FCF-Rendite 6 %"
+  price_vs_limit: "58 % darunter"
+  limit_note: "Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (82,5 Mio. $) und 136,4 Mio. Aktien angewendet. Der Kurs liegt weit darunter, die Grenze allein ist deshalb keine Kaufschwelle: Warum der Kurs so niedrig ist, ist nicht belegt (mögliche Gründe: Verschuldung, fallende Gewinne). Die zweite Grenze (EV/EBITDA) fehlt."
+  price: 4.26
+  price_date: "23.09.2026"
+  condition: "Abwarten: Quartalsbericht Q3 (Termin noch nicht bekannt); aktuellen Kurs prüfen"
+kill: "Vorschlag des Agenten: verwerfen, wenn mit dem Q3-Bericht Net Debt/EBITDA weiterhin mindestens 2,5 beträgt (Schwelle aus config/thresholds.yaml) oder die FCF-Rendite der letzten zwölf Monate unter 5 % fällt (Stufe-2-Grenze aus config/stage2.yaml); sonst auf WEITERVERFOLGEN prüfen."
+sources_detail:
+  - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 04.03.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 11.08.2026 und Q1 2026 vom 12.05.2026, Q1 nur auf Vorhandensein geprüft) und 2 aktuelle Meldungen (8-K vom 11.08.2026 mit der Pressemitteilung zu den Quartalszahlen und vom 25.09.2026 zu Umbau und Halteprämien). Zahlen aus den XBRL-Daten der SEC gegengelesen."
+  - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
+  - "NICHT verwendet: Earnings-Call-Transkripte (Konferenz am 11.08.2026 stattgefunden), Analysten- und Brokerberichte, Nachrichten und Meinungen, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
+sources: "SEC: 10-K 2025 (0001839839-26-000006), 10-Q Q2 2026 (-26-000018), 10-Q Q1 2026 (-26-000012), 8-K vom 11.08.2026 (-26-000016) und vom 25.09.2026 (0001104659-26-111032). Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
+not_checked: "Die Peer-Gruppe Building Materials (16 Firmen) mischt Baustoffhändler, Dämmstoffe, Holz und Fertigteile; Janus liefert Türen und Zutritt für Selbstlager, die Passung ist begrenzt. Das Archiv trägt die Marke Aktienzahl ungeprüft. Net Debt/EBITDA und EV/EBITDA der Firma sind bereinigte Größen (Firmen-Definition, nicht die Stufe-1-Rechnung); mit dem Betriebsergebnis laut Rechnung ohne Abschreibungen fiele die Quote höher aus. Der Kaufpreis von Kiwi II, die Höhe der Zollerstattung, der Jahresausblick im Vergleich zum Vorquartal und der heutige Kurs sind offen. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026). Rosa Balken: in Stufe 2 durchgefallen; 1 Firma ohne FCF-Wert (fehlende Investitionen)."
+peer_summary: "Gegen die 16 Firmen der Peer-Gruppe: EV/EBITDA 5,9 gegen Median 8,9 (Platz 1 von 16, die günstigste), FCF-Rendite 26,0 % gegen Median 6,3 % (Platz 1 von 15, die höchste). Beides sind Archivwerte der Geschäftsjahre; auf den letzten zwölf Monaten liegt die FCF-Rendite bei 14,2 %, das Betriebsergebnis fällt."
+funnel_title: "So kam JBI auf die Liste (Trichter vom 10.10.2026)"
+funnel:
+  - { label: "US-Börsenfirmen (SimFin)", count: 6654 }
+  - { label: "Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen", count: 1821 }
+  - { label: "Stufe 1: Qualität und Bilanz", count: 126 }
+  - { label: "Stufe 2: günstig im Branchenvergleich", count: 41 }
+  - { label: "Kandidatenliste Runde 1", count: 40 }
+funnel_note: "Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026)."
+gates_title: "Die Prüfungen im Detail"
+gates:
+  - { stage: "Stufe 1", name: "ROIC (Kapitalrendite), 3-Jahres-Mittel", value: "13,5 %", rule: "sauber über 12 %, Durchfall unter 10 %", status: ok }
+  - { stage: "Stufe 1", name: "Net Debt/EBITDA (Verschuldung)", value: "2,22", rule: "sauber unter 2,3, Durchfall ab 2,5", status: warn }
+  - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "1,30", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
+  - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "5,9 (Platz 1 von 16)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
+  - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "26,0 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "2 Marken", rule: "Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %", status: bad }
+gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Trend-Guard: Marge fallend (Marge-Verhältnis 0,82) und ROIC des Vorjahres 9,1 % unter der Untergrenze; Umsatzverhältnis 0,91. Die Verschuldung lag zum Geschäftsjahr bei 2,22, knapp unter der sauberen Grenze von 2,3. Die Zahlen des ersten Halbjahres 2026 sind darin noch nicht enthalten."
+financials_title: "Kennzahlen im Überblick (Mio. $)"
+financials:
+  columns: ["2023", "2024", "2025", "1. Hj. 2025", "1. Hj. 2026"]
+  rows:
+    - { name: "Umsatz", values: ["1.066,4", "963,8", "884,2", "438,6", "456,2"] }
+    - { name: "Betriebsergebnis", values: ["245,7", "146,6", "111,5", "61,3", "33,7"] }
+    - { name: "Betriebsmarge", values: ["23,0 %", "15,2 %", "12,6 %", "14,0 %", "7,4 %"] }
+    - { name: "Nettogewinn", values: ["135,7", "70,4", "53,8", "31,5", "10,9"] }
+    - { name: "Operativer Cashflow", values: ["215,0", "154,0", "139,5", "99,7", "60,6"] }
+    - { name: "Investitionen (Sachanlagen)", values: ["19,0", "20,1", "25,5", "13,2", "5,6"] }
+    - { name: "Freier Cashflow", values: ["196,0", "133,9", "114,0", "86,5", "55,0"] }
+  note: "Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten); 2025 endet am 03.01.2026 (52/53-Wochen-Jahr). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen)."
+method: "Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen."

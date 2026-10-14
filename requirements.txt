@@ -2,3 +2,5 @@
 # Minimum versions = the versions installed locally when this file was created.
 PyYAML>=6.0.1  # runtime: src/config_layer/thresholds.py (Stage-1 thresholds loader)
 pytest>=7.4.4  # tests only
+reportlab>=5.0.1  # runtime: render_onepager_pdf.py (PDF-Fassung des One-Pagers)
+matplotlib>=3.11.2  # runtime: render_onepager_pdf.py (Diagramme)

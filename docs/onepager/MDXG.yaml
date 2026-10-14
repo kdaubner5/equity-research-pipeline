@@ -1,0 +1,123 @@
+# Datenquelle für die PDF-Fassung des One-Pagers MDXG (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: "MiMedx Group, Inc."
+  ticker: MDXG
+  list_nr: 10
+  stage2_rank: 11
+  stage2_rank_of: 41
+  peer_group: "Medical Devices (SimFin-Branche 106004, 12 Firmen)"
+  profile: non_financial
+dates:
+  documents_until: "29.07.2026 (10-Q Q2 2026, Pressemitteilung, Übernahmevertrag)"
+  one_pager: "12.10.2026"
+  archive_run: "10.10.2026, Regelstand 33ed39b"
+  price: "4,77 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden"
+verdict:
+  label: "VERWERFEN"
+  tone: bad
+  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Die Zahlen der Geschäftsjahre bestehen den Filter, aber 2026 sind Umsatz und Ergebnis eingebrochen und eine Übernahme mit 300 Mio. $ neuen Schulden steht an."
+  legend: "Was bedeutet VERWERFEN? Die Firma verlässt die Liste, weil die Unterlagen etwas zeigen, das der Filter nicht sehen kann und das die Grundlage der Auswahl entfallen lässt. Sie kann später neu geprüft werden (siehe Wiedervorlage). Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
+thesis: >-
+  MiMedx liefert Gewebe-Produkte für Wundheilung und Chirurgie. Auf den Geschäftsjahren sieht die Firma sehr gut aus (ROIC 36 %,
+  Nettokasse, freier Cashflow 2025 rund 73 Mio. $). Doch seit Januar 2026 gelten neue Medicare-Erstattungsregeln für Hautersatzprodukte:
+  Der Wundgeschäft-Umsatz fiel im 2. Quartal um 61 %, der Gesamtumsatz um 35 % auf 64 Mio. $, es gab einen Nettoverlust von 15 Mio. $.
+  Die Firma erwartet für 2026 nur 260 bis 290 Mio. $ Umsatz (2025: 418,6) und ein bereinigtes EBITDA nahe null. Gleichzeitig will sie
+  Sanara MedTech für rund 350 Mio. $ kaufen, finanziert mit einem neuen Kredit von 300 Mio. $. Der Filter rechnet noch mit 2025;
+  mit dem Betriebsergebnis der letzten zwölf Monate (8,8 Mio. $) ist das EV/EBITDA von 7,1 nicht mehr aussagekräftig.
+kpis:
+  - label: "Marktwert"
+    main: "710 Mio. $"
+    sub: "4,77 $ x 148,9 Mio. Aktien (Kurs 23.09.)"
+    status: neutral
+  - label: "FCF-Rendite"
+    main: "6,3 %"
+    sub: "letzte 12 Monate (Agent) | Stufe 2 (3-Jahres-Mittel): 7,6 % | 2026 erwartet schwächer"
+    status: warn
+  - label: "EV/EBIT"
+    main: "67"
+    sub: "letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 7,1"
+    status: bad
+  - label: "Nettokasse"
+    main: "119 Mio. $"
+    sub: "30.06.2026, vor der Übernahme | danach 300 Mio. $ neuer Kredit"
+    status: warn
+  - label: "Umsatz Q2 2026"
+    main: "-35 %"
+    sub: "64 Mio. $ nach 99 Mio. $ | Wundgeschäft -61 %, Chirurgie +15 %"
+    status: bad
+halfyear:
+  labels: ["1. Halbjahr 2025", "1. Halbjahr 2026"]
+  tone: bad
+  rows:
+    - { name: "Umsatz", values: [186.8, 123.4] }
+    - { name: "Betriebsergebnis", values: [20.6, -34.5] }
+    - { name: "Freier Cashflow", values: [19.1, -9.3] }
+  unit: "Mio. $"
+events:
+  - { date: "01.01.2026", text: "Neue Medicare-Erstattungsregeln für Hautersatzprodukte treten in Kraft; sie senken die Preise der Wundprodukte" }
+  - { date: "04.2026", text: "Kostensenkungsprogramm (Umbau) angekündigt" }
+  - { date: "29.07.2026", text: "Quartalszahlen Q2: Umsatz 64 Mio. $ (-35 %), Nettoverlust 15 Mio. $; Jahresprognose 260 bis 290 Mio. $ Umsatz bestätigt" }
+  - { date: "29.07.2026", text: "Übernahme von Sanara MedTech vereinbart: 33,00 $ in bar plus 0,4735 MiMedx-Aktien je Sanara-Aktie (Wert 35 $), Unternehmenswert rund 350 Mio. $; Kredit von 300 Mio. $ von Hayfin zugesagt" }
+  - { date: "29.07.2026", text: "10-Q Q2 2026 eingereicht" }
+  - { date: "Ende 2026", text: "Abschluss der Übernahme erwartet (Zustimmung der Sanara-Aktionäre und Behörden nötig; spätestens bis 29.07.2027, mit Verlängerung bis 29.01.2028)", future: true }
+bear:
+  - "Umsatz Q2 2026 -35 % (64 nach 99 Mio. $); Wundgeschäft -61 %; Bruttomarge 69 % nach 81 %."
+  - "Betriebsergebnis 1. Halbjahr 2026: -34,5 Mio. $ nach +20,6 Mio. $; Nettoverlust 25,7 Mio. $; operativer Cashflow -8,1 Mio. $."
+  - "Prognose 2026: Umsatz 260 bis 290 Mio. $ (2025: 418,6) und bereinigtes EBITDA nahe null."
+  - "Übernahme von Sanara für rund 350 Mio. $ mit Kredit über 300 Mio. $ (Hayfin); die bestehende Kreditlinie wird abgelöst. Bei einem EBITDA nahe null ist die Verschuldungsquote nicht sinnvoll berechenbar."
+  - "Höhere Forderungsausfälle (+5 Mio. $) wegen verschlechterter Kreditwürdigkeit einzelner Altkunden; Rechtsstreit- und Regulierungskosten 8,4 Mio. $ im 1. Halbjahr."
+bull:
+  - "Chirurgie wächst +15 % (AMNIOFIX, AMNIOEFFECT); Wundvolumen im 2. Quartal +22 % gegenüber dem 1. Quartal."
+  - "Kostensenkungen zeigen laut Firma Wirkung; Weg zurück zur Profitabilität im 2. Halbjahr angekündigt (Erwartung, kein Beleg)."
+  - "Bis zur Übernahme Nettokasse von 119 Mio. $ (Kasse 136 Mio. $); Kredit nur rund 17 Mio. $."
+  - "Langfristziel der Firma: Umsatzwachstum im niedrigen zweistelligen Bereich und bereinigte EBITDA-Marge über 20 % (Ziel, kein Beleg)."
+  - "Die Firma nennt für 2027 vorgeschlagene Medicare-Regeln (CMS-Entwurf, noch nicht endgültig) und sieht Medicare bei der neuen Zahlungsstruktur; Störungen in den Bundesstaaten des WISeR-Programms bleiben laut Präsentation eine Herausforderung."
+entry:
+  zone_title: "Kein Einstiegsszenario bei VERWERFEN"
+  horizon: "nicht anwendbar"
+  limit: 0
+  limit_label: "Grenze nach FCF-Rendite 6 %"
+  price_vs_limit: "nicht anwendbar"
+  limit_note: "Rechnerisch ergäbe die 6-%-Regel auf dem freien Cashflow der letzten zwölf Monate (44,6 Mio. $) und 148,9 Mio. Aktien eine Grenze von 5,0 $. Diese Zahl bildet das Geschäft nach den neuen Medicare-Regeln aber nicht ab (Halbjahr 2026: freier Cashflow -9,3 Mio. $) und wird deshalb nicht verwendet."
+  price: 4.77
+  price_date: "23.09.2026"
+  condition: "Wiedervorlage: Bericht für das Geschäftsjahr 2026 (Anfang 2027) und Abschluss der Sanara-Übernahme"
+kill: "Wiedervorlage (Vorschlag des Agenten): Neubewertung, wenn mit den Zahlen für 2026 das bereinigte EBITDA wieder positiv ist, die FCF-Rendite der letzten zwölf Monate über 6 % liegt (Stufe-2-Regel aus config/stage2.yaml) und Net Debt/EBITDA nach der Übernahme unter 2,5 liegt (config/thresholds.yaml). Sonst bleibt die Firma verworfen."
+sources_detail:
+  - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 25.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 29.07.2026 und Q1 2026 vom 29.04.2026, Q1 nur auf Vorhandensein geprüft) und 2 aktuelle Meldungen vom 29.07.2026 (8-K zur Übernahme von Sanara mit Vertrag, Stimmrechtsvereinbarung und Präsentation; 8-K zu den Quartalszahlen mit Pressemitteilung und Präsentation). Von den Präsentationen und dem Vertrag wurden nur die Zusammenfassungen im 8-K gelesen. Zahlen aus den XBRL-Daten der SEC gegengelesen."
+  - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
+  - "NICHT verwendet: Earnings-Call-Transkripte (Konferenz am 29.07.2026 stattgefunden), Analysten- und Brokerberichte, Nachrichten und Meinungen, Zahlen von Sanara (Übernahmeziel), Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
+sources: "SEC: 10-K 2025, 10-Q Q2 2026, 10-Q Q1 2026, 8-K vom 29.07.2026 (zwei Meldungen). Aktenzeichen im Abrufprotokoll. Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
+not_checked: "Die Zahlen von Sanara (Umsatz, Gewinn, Schulden) wurden nicht gelesen; ob der Kaufpreis von rund 350 Mio. $ angemessen ist, ist offen. Die genaue Verschuldung nach der Übernahme, die Zinsen des Hayfin-Kredits und mögliche Bedingungen sind nicht ausgewertet. Das Archiv trägt die Marke Aktienzahl ungeprüft und für Stufe 1 die Datenmarke `debt_component_missing_defaulted_zero`. Offen sind der heutige Kurs, die Wirkung der Medicare-Regeln über 2027 hinaus und die Ursachen der Forderungsausfälle. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); in der Gruppe fehlen keine Firmen wegen Datenfehlern."
+peer_summary: "Gegen die 12 Firmen der Peer-Gruppe: EV/EBITDA 7,1 gegen Median 13,6 (Platz 2 von 12), FCF-Rendite 7,6 % gegen Median 4,7 % (Platz 3 von 12). Beides sind Archivwerte der Geschäftsjahre bis 2025 und bilden die Lage 2026 (Umsatz -35 % im 2. Quartal) nicht ab."
+funnel_title: "So kam MDXG auf die Liste (Trichter vom 10.10.2026)"
+funnel:
+  - { label: "US-Börsenfirmen (SimFin)", count: 6654 }
+  - { label: "Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen", count: 1821 }
+  - { label: "Stufe 1: Qualität und Bilanz", count: 126 }
+  - { label: "Stufe 2: günstig im Branchenvergleich", count: 41 }
+  - { label: "Kandidatenliste Runde 1", count: 40 }
+funnel_note: "Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026)."
+gates_title: "Die Prüfungen im Detail"
+gates:
+  - { stage: "Stufe 1", name: "ROIC (Kapitalrendite), 3-Jahres-Mittel", value: "36,1 %", rule: "sauber über 12 %, Durchfall unter 10 %", status: ok }
+  - { stage: "Stufe 1", name: "Net Debt/EBITDA (Verschuldung)", value: "-1,88 (Nettokasse)", rule: "sauber unter 2,3, Durchfall ab 2,5", status: ok }
+  - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "1,18", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
+  - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "7,1 (Platz 2 von 12)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
+  - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "7,6 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %", status: ok }
+gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre bis 2025; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Genau deshalb sieht der Filter den Einbruch 2026 nicht: Der Trend-Guard vergleicht Geschäftsjahre (Umsatzverhältnis 1,15, Margenverhältnis 1,15). Die Zahlen des ersten Halbjahres 2026 sind darin nicht enthalten."
+financials_title: "Kennzahlen im Überblick (Mio. $)"
+financials:
+  columns: ["2023", "2024", "2025", "1. Hj. 2025", "1. Hj. 2026"]
+  rows:
+    - { name: "Umsatz", values: ["321,5", "348,9", "418,6", "186,8", "123,4"] }
+    - { name: "Betriebsergebnis", values: ["37,1", "58,9", "63,9", "20,6", "-34,5"] }
+    - { name: "Betriebsmarge", values: ["11,5 %", "16,9 %", "15,3 %", "11,0 %", "-28,0 %"] }
+    - { name: "Nettogewinn", values: ["58,2", "42,4", "48,6", "16,6", "-25,7"] }
+    - { name: "Operativer Cashflow", values: ["26,8", "66,2", "74,0", "19,7", "-8,1"] }
+    - { name: "Investitionen (Ausrüstung)", values: ["2,0", "1,7", "1,0", "0,6", "1,2"] }
+    - { name: "Freier Cashflow", values: ["24,8", "64,5", "73,0", "19,1", "-9,3"] }
+  note: "Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten; Investitionen aus der Kapitalflussrechnung). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Ausrüstung)."
+method: "Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen."

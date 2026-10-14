@@ -1,0 +1,124 @@
+# Datenquelle für die PDF-Fassung des One-Pagers PATK (render_onepager_pdf.py). Alle Zahlen: SEC-Originaltexte (Quellen unten) und Archiv-Export.
+company:
+  name: "Patrick Industries, Inc."
+  ticker: PATK
+  list_nr: 12
+  stage2_rank: 13
+  stage2_rank_of: 41
+  peer_group: "Manufacturing - Apparel & Furniture (SimFin-Branche 103004, 18 Firmen)"
+  profile: non_financial
+dates:
+  documents_until: "23.09.2026 (Fusionsunterlage S-4); jüngste 8-K vom 10.09.2026"
+  one_pager: "12.10.2026"
+  archive_run: "10.10.2026, Regelstand 33ed39b"
+  price: "69,18 $ am 23.09.2026 (Archiv); aktueller Kurs nicht vorhanden"
+verdict:
+  label: "ZURÜCKSTELLEN"
+  tone: warn
+  text: "Vorschlag des Agenten, Entscheidung durch Konstantin. Fusionsfall: Zusammenschluss mit LCI Industries geplant (Abschluss 1. Halbjahr 2027 erwartet); danach ist es eine andere Firma."
+  legend: "Was bedeutet ZURÜCKSTELLEN? Die Firma besteht den Filter und bleibt auf der Liste, ist aber noch nicht reif für eine Entscheidung: Wir warten auf ein benanntes Ereignis (hier: Abstimmung der Aktionäre über die Fusion und die Freigabe der Kartellbehörden) und rechnen dann neu. Es ist weder eine Kauf- noch eine Verkaufsempfehlung."
+thesis: >-
+  Patrick liefert Bauteile für Wohnmobile (RV, 39 % des Umsatzes im 2. Quartal), Boote, Geländefahrzeuge und Fertighäuser. Am 30.06.2026
+  vereinbarte die Firma einen reinen Aktientausch mit dem Wettbewerber LCI Industries (je LCI-Aktie 1,2440 Patrick-Aktien; danach Patrick-Aktionäre
+  rund 52 %, LCI-Aktionäre rund 48 %). Der Abschluss wird für das 1. Halbjahr 2027 erwartet. Die Aktie fiel von 93,18 $ (29.06.) auf 69,18 $
+  (23.09., Archiv), rund 26 %. Operativ: Umsatz im 2. Quartal -1 %, RV-Umsatz -15 %, Betriebsmarge 7,4 % nach 8,3 %, freier Cashflow der
+  letzten zwölf Monate rund 128 Mio. $ (5,6 % des Börsenwerts), Verschuldung laut Kreditvertrag 3,0 Mal EBITDA (Stufe 1 auf Basis 2025: 2,02).
+kpis:
+  - label: "Marktwert"
+    main: "2,28 Mrd. $"
+    sub: "69,18 $ x 32,9 Mio. Aktien (Kurs 23.09.)"
+    status: neutral
+  - label: "FCF-Rendite"
+    main: "5,6 %"
+    sub: "letzte 12 Monate (Firma und Agent) | Stufe 2 (3-Jahres-Mittel): 12,0 %"
+    status: warn
+    note: "Stufe-2-Grenze 5 % gilt für das 3-Jahres-Mittel"
+  - label: "EV/EBIT"
+    main: "13,8"
+    sub: "letzte 12 Monate (Agent) | Stufe 2 EV/EBITDA: 5,7"
+    status: neutral
+  - label: "Net Debt/EBITDA"
+    main: "3,0"
+    sub: "30.06.2026 (Firma, nach Kreditvertrag) | Stufe 1: 2,02 | Durchfall ab 2,5"
+    status: bad
+  - label: "Betriebsmarge"
+    main: "7,0 %"
+    sub: "1. Halbjahr 2026 | 1. Hj. 2025: 7,4 % | 2025: 7,0 %"
+    status: neutral
+halfyear:
+  labels: ["1. Halbjahr 2025", "1. Halbjahr 2026"]
+  tone: warn
+  rows:
+    - { name: "Betriebsergebnis", values: [152.3, 141.8] }
+    - { name: "Nettogewinn", values: [70.7, 82.9] }
+    - { name: "Freier Cashflow", values: [151.1, 32.3] }
+  unit: "Mio. $"
+events:
+  - { date: "30.06.2026", text: "Fusionsvertrag mit LCI Industries (Aktientausch 1,2440 zu 1; Patrick-Aktionäre 52 %, LCI-Aktionäre 48 %; je 6 Verwaltungsräte; Patrick-Chef Nemeth bleibt Chef; Abbruchgebühr 94,2 Mio. $)" }
+  - { date: "30.07.2026", text: "Quartalszahlen Q2: Umsatz 1,04 Mrd. $, RV-Umsatz -15 %, Marine +22 %, Powersports +28 %; Rückgabe an Aktionäre 106 Mio. $ im Quartal" }
+  - { date: "05.08.2026", text: "Kartellanmeldung (HSR) bei FTC und Justizministerium eingereicht" }
+  - { date: "06.08.2026", text: "10-Q Q2 2026 eingereicht" }
+  - { date: "04.09. und 09.09.2026", text: "Kartellanmeldung freiwillig zurückgezogen und neu eingereicht; neue Wartefrist beginnt" }
+  - { date: "23.09.2026", text: "Fusionsunterlage (S-4) mit gemeinsamem Aktionärsantrag bei der SEC eingereicht" }
+  - { date: "1. Halbjahr 2027", text: "Abschluss der Fusion erwartet (laut S-4)", future: true }
+bear:
+  - "Aktienkurs seit Bekanntgabe von 93,18 $ (29.06.) auf 69,18 $ (23.09.) gefallen (-26 %); die Gründe sind nicht aus den Unterlagen belegt."
+  - "Verschuldung laut Kreditvertrag 3,0 Mal EBITDA (Gesamtschulden rund 1,4 Mrd. $), über der Stufe-1-Grenze von 2,5 (andere Rechnung); Liquidität 691 Mio. $."
+  - "RV-Geschäft schwach: RV-Umsatz -15 %, Branchenauslieferungen -16 %; Betriebsmarge im Q2 7,4 % nach 8,3 %; höhere Kraftstoffkosten."
+  - "Operativer Cashflow im 1. Halbjahr 68,9 Mio. $ nach 189,5 Mio. $ (mehr Lagerbestände für Verbundwerkstoffe); freier Cashflow 32,3 Mio. $."
+  - "Fusionsrisiko: Zustimmung beider Aktionärsgruppen und der Kartellbehörden nötig; Abbruchgebühr 94,2 Mio. $; Kartellanmeldung wurde freiwillig zurückgezogen und neu eingereicht (neue Wartefrist)."
+bull:
+  - "Breiter aufgestellt als der RV-Markt: Marine +22 %, Powersports +28 %, Wohnbau +2 % im 2. Quartal; RV-Anteil am Umsatz noch 39 %."
+  - "Nach der Fusion erwartet der Verwaltungsrat von Patrick eine Verschuldung von rund 2,1 Mal EBITDA im ersten vollen Jahr (unter dem eigenen Ziel von 2,5) und Synergien (LCI nannte im Verfahren rund 150 Mio. $ netto; S-4)."
+  - "Freier Cashflow 2023 bis 2025: 350, 251 und 247 Mio. $ (Agent-Rechnung); letzte zwölf Monate 128 Mio. $."
+  - "Aktionärsrückfluss: 106 Mio. $ im 2. Quartal (91 Mio. $ Rückkauf, 15 Mio. $ Dividende)."
+  - "Inhalt je Fahrzeug steigt: Wohnmobil +7 %, Boot +22 % (Firmenangabe, zwölf Monate)."
+entry:
+  zone_title: "Einstiegsszenario (Vorschlag, kein Kursziel)"
+  horizon: "mittelfristig (1 bis 3 Jahre)"
+  limit: 64.7
+  limit_label: "Grenze nach FCF-Rendite 6 %"
+  price_vs_limit: "6,9 % darüber"
+  limit_note: "Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (127,7 Mio. $) und 32,9 Mio. Aktien angewendet; der Kurs vom 23.09. liegt darüber. Nach der Fusion gibt es eine größere Firma mit anderen Zahlen. Die zweite Grenze (EV/EBITDA) fehlt."
+  price: 69.18
+  price_date: "23.09.2026"
+  condition: "Abwarten: Aktionärsabstimmungen und Freigabe der Kartellbehörden (Termine nicht bekannt); danach die zusammengeführte Firma neu prüfen; aktuellen Kurs prüfen"
+kill: "Vorschlag des Agenten: Wird die Fusion abgesagt, Patrick einzeln neu prüfen. Wird sie vollzogen, gilt der Filter für die neue Firma (neues Archiv, neuer Lauf). Verwerfen, wenn Net Debt/EBITDA (Kreditvertrag) nach dem Abschluss mindestens 2,5 beträgt (config/thresholds.yaml) oder die FCF-Rendite der letzten zwölf Monate unter 5 % fällt (config/stage2.yaml)."
+sources_detail:
+  - "Verwendet (nur SEC, Originaltext): 1 Jahresbericht (10-K 2025, eingereicht 19.02.2026), 2 Quartalsberichte (10-Q Q2 2026 vom 06.08.2026 und Q1 2026 vom 07.05.2026, Q1 nur auf Vorhandensein geprüft), 4 aktuelle Meldungen (8-K vom 30.06. zum Fusionsvertrag, 30.07. mit der Pressemitteilung zu den Zahlen, 10.08. und 10.09.2026 zur Kartellanmeldung) und die Fusionsunterlage (S-4 vom 23.09.2026) nur an ausgewählten Stellen (Eckdaten, Zeitplan, Abbruchgebühr, Synergien, Verschuldung nach der Fusion, Begründung des Verwaltungsrats). Zahlen aus den XBRL-Daten der SEC gegengelesen."
+  - "Aus dem Archiv: Kurs vom 23.09.2026, Kennzahlen und Rang aus Stufe 1, Stufe 2 und Trend-Guard; Peer-Gruppe aus dem Zwischenspeicher neu gerechnet."
+  - "NICHT verwendet: Earnings-Call-Transkripte (das Transkript wurde als Fusionsmitteilung bei der SEC eingereicht, aber nicht gelesen), Analysten- und Brokerberichte, Nachrichten und Meinungen, Zahlen von LCI Industries, Quartalszahlen der Peer-Firmen, ein aktueller Kurs. Die Quellenregel des Projekts erlaubt nur Primärquellen; Transkripte stünden zur Verfügung, sind dem Agenten aber derzeit nicht zugänglich."
+sources: "SEC: 10-K 2025 (eingereicht 19.02.2026), 10-Q Q2 2026 (0000076605-26-000075), 8-K vom 30.06. (-26-000059), 30.07. (-26-000069), 10.08. (-26-000080) und 10.09.2026 (-26-000084), S-4 vom 23.09.2026 (0001628280-26-063259). Archivwerte laut Export vom 12.10.2026 (im Repo nicht belegt)."
+not_checked: "Die Zahlen von LCI Industries, die genauen Fusionsbedingungen jenseits der gelesenen Stellen (Rücktritts- und Anpassungsklauseln), die Bewertung des Tauschverhältnisses und die Gründe für den Kursrückgang seit Juni sind nicht ausgewertet. Die Peer-Gruppe (Bekleidung, Möbel, Schuhe) passt kaum zu einem Zulieferer für Wohnmobile, Boote und Fertighäuser. Net Debt/EBITDA 3,0 ist die Angabe der Firma nach dem Kreditvertrag und nicht die Stufe-1-Rechnung; das EV/EBIT nutzt Schulden 1.429,3 und Kasse 29,2 Mio. $ aus dem 10-Q. Die Aktienzahl laut 10-Q-Deckblatt (32,12 Mio., Stand 31.07.) liegt unter der des Archivs (32,89 Mio.): Marktwert dann 2,22 Mrd. $, FCF-Rendite 5,7 %, rechnerische Grenze 66,3 $ (Kurs 4,4 % darüber). Die Kandidatenliste vermerkt für PATK: Daten veraltet (Stand 1. Quartal des Geschäftsjahres); die hier genutzten Zahlen stammen aus dem 10-Q Q2 2026. Der heutige Kurs ist offen. Entwurf des Agenten, ohne die Prompts Bear/Bull/Synthese."
+peer_note: "Vollständige Peer-Gruppe aus dem Zwischenspeicher neu gerechnet (Export vom 12.10.2026); in der Gruppe fehlen keine Firmen wegen Datenfehlern. Die Gruppe passt kaum (Bekleidung, Möbel, Schuhe)."
+peer_summary: "Gegen die 18 Firmen der Peer-Gruppe: EV/EBITDA 5,7 gegen Median 9,9 (Platz 3 von 18), FCF-Rendite 12,0 % gegen Median 9,4 % (Platz 6 von 18). Archivwerte der Geschäftsjahre bis 2025; auf zwölf Monaten liegt die FCF-Rendite bei 5,6 %. Die Gruppe passt kaum."
+funnel_title: "So kam PATK auf die Liste (Trichter vom 10.10.2026)"
+funnel:
+  - { label: "US-Börsenfirmen (SimFin)", count: 6654 }
+  - { label: "Vorfilter: Börsenwert 0,3 bis 10 Mrd. $, Handelsvolumen", count: 1821 }
+  - { label: "Stufe 1: Qualität und Bilanz", count: 126 }
+  - { label: "Stufe 2: günstig im Branchenvergleich", count: 41 }
+  - { label: "Kandidatenliste Runde 1", count: 40 }
+funnel_note: "Von 1.821 Firmen im Vorfilter schieden in Stufe 1 aus: 458 durchgefallen, 706 nicht beurteilbar (Datenlücken), 531 mit ausgeschlossenem Geschäftsmodell. In Stufe 2 fielen 77 durch, 8 waren nicht beurteilbar (laut Bericht der lokalen Sitzung vom 10.10.2026)."
+gates_title: "Die Prüfungen im Detail"
+gates:
+  - { stage: "Stufe 1", name: "ROIC (Kapitalrendite), 3-Jahres-Mittel", value: "13,8 %", rule: "sauber über 12 %, Durchfall unter 10 %", status: ok }
+  - { stage: "Stufe 1", name: "Net Debt/EBITDA (Verschuldung)", value: "2,02", rule: "sauber unter 2,3, Durchfall ab 2,5", status: ok }
+  - { stage: "Stufe 1", name: "Cash Conversion (Gewinn wird Cash)", value: "2,55", rule: "sauber ab 1,0, Durchfall unter 0,8", status: ok }
+  - { stage: "Stufe 2", name: "EV/EBITDA im Branchenvergleich", value: "5,7 (Platz 3 von 18)", rule: "sauber im günstigsten Drittel, Grauzone bis 40 %", status: ok }
+  - { stage: "Stufe 2", name: "FCF-Rendite, 3-Jahres-Mittel", value: "12,0 %", rule: "sauber über 6 %, Durchfall unter 5 %", status: ok }
+  - { stage: "Trend-Guard", name: "Verlauf (Umsatz, Marge, ROIC)", value: "keine Marke", rule: "Marke: Umsatz- oder Margenverhältnis unter 0,90, Marge über 1,25, ROIC unter 10 %", status: ok }
+gates_note: "Alle sechs Prüfungen auf Basis der Geschäftsjahre; die Schwellen stehen in config/thresholds.yaml, config/stage2.yaml und config/trend_guard.yaml (zum Teil Platzhalter). Die Verschuldung lag zum Geschäftsjahr bei 2,02; die aktuelle Angabe der Firma (3,0) ist anders gerechnet. Die Zahlen des ersten Halbjahres 2026 sind darin nicht enthalten."
+financials_title: "Kennzahlen im Überblick (Mio. $)"
+financials:
+  columns: ["2023", "2024", "2025", "1. Hj. 2025", "1. Hj. 2026"]
+  rows:
+    - { name: "Umsatz", values: ["3.468,0", "3.715,7", "3.950,8", "2.051,0", "2.038,9"] }
+    - { name: "Betriebsergebnis", values: ["260,2", "258,0", "276,0", "152,3", "141,8"] }
+    - { name: "Betriebsmarge", values: ["7,5 %", "6,9 %", "7,0 %", "7,4 %", "7,0 %"] }
+    - { name: "Nettogewinn", values: ["142,9", "138,4", "135,1", "70,7", "82,9"] }
+    - { name: "Operativer Cashflow", values: ["408,7", "326,8", "329,4", "189,5", "68,9"] }
+    - { name: "Investitionen (Sachanlagen)", values: ["59,0", "75,7", "82,9", "38,4", "36,6"] }
+    - { name: "Freier Cashflow", values: ["349,7", "251,1", "246,5", "151,1", "32,3"] }
+  note: "Quelle: 10-K 2025 und 10-Q Q2 2026 der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen); der freie Cashflow der letzten zwölf Monate (127,7) deckt sich mit der Angabe der Firma (128)."
+method: "Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen."
