@@ -68,7 +68,7 @@ def test_the_names_in_the_rules_still_exist_so_a_rename_cannot_switch_a_rule_off
 
 def fake_item(module, name):
     marks = []
-    return SimpleNamespace(fspath=rules.TESTS_DIR / module, name=name + "[param]", originalname=name,
+    return SimpleNamespace(path=rules.TESTS_DIR / module, name=name + "[param]", originalname=name,
                            add_marker=marks.append, marks=marks)
 
 

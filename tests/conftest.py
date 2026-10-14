@@ -42,7 +42,7 @@ def pytest_collection_modifyitems(config, items):
     Results are never rewritten: a test that runs reports what it finds."""
     raw_dir_exists = skip_rules.SIMFIN_RAW_DIR.is_dir()
     for item in items:
-        module = Path(str(item.fspath)).name
+        module = item.path.name
         test = getattr(item, "originalname", None) or item.name
         reason = skip_rules.skip_reason(module, test, raw_dir_exists=raw_dir_exists, platform=sys.platform)
         if reason:
