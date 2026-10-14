@@ -1,5 +1,6 @@
 """render_onepager_pdf.py: ein nacktes "&" im Text (zum Beispiel "CD&R") darf nicht als "CD&R;" im PDF stehen."""
 
+import ast
 import html
 from pathlib import Path
 
@@ -24,7 +25,10 @@ def plain(text):
     ("S&amp;P 500", "S&amp;P 500"),  # schon geschrieben: nicht doppelt maskieren
     ("a&nbsp;b &lt; c &gt; d &quot;e&quot; &apos;f&apos;", "a&nbsp;b &lt; c &gt; d &quot;e&quot; &apos;f&apos;"),
     ("&#38; und &#x26;", "&#38; und &#x26;"),
-    ("AT&T; Corp", "AT&amp;T; Corp"),  # unbekannte Entität mit Semikolon ist keine Entität
+    ("AT&T Corp", "AT&amp;T Corp"),
+    ("von 2020 &ndash; 2025, 5 &euro;, &AMP; &auml;", "von 2020 &ndash; 2025, 5 &euro;, &AMP; &auml;"),  # jede geschriebene Entität
+    ("&amp bla", "&amp;amp bla"),  # ohne Semikolon ist es keine Entität
+    ("AT&T; Verizon", "AT&T; Verizon"),  # bekannte Grenze: Name plus Semikolon gilt als Entität
     ("<b>A&B</b>", "<b>A&amp;B</b>"),  # Auszeichnung des Skripts bleibt erhalten
     ("&&", "&amp;&amp;"),
     ("", ""),
@@ -40,6 +44,7 @@ def test_escape_ampersands(text, expected):
     ("gegen den S&amp;P 500 und den MSCI World", "gegen den S&P 500 und den MSCI World"),
     ("<b>CD&R-Beteiligung</b> durch McKesson", "CD&R-Beteiligung durch McKesson"),
     ("Net Debt/EBITDA > 2,5 bei AT&T", "Net Debt/EBITDA > 2,5 bei AT&T"),
+    ("von 2020 &ndash; 2025", "von 2020 – 2025"),  # reportlab löst geschriebene Entitäten weiter selbst auf
 ])
 def test_the_paragraph_shows_the_text_as_written(text, expected):
     assert plain(text) == expected
@@ -81,7 +86,43 @@ def test_every_text_in_all_onepager_yamls_is_shown_as_written():
     assert not wrong, f"{len(wrong)} Texte werden anders ausgegeben, als sie geschrieben sind: {wrong[:5]}"
 
 
-def test_the_opch_onepager_with_cd_and_r_builds(tmp_path):
-    out = tmp_path / "OPCH.pdf"
-    assert r.main([str(ONEPAGER_DIR / "OPCH.yaml"), "--out", str(out)]) == 0
-    assert out.read_bytes()[:5] == b"%PDF-"
+def bare_ampersand_texts(path):
+    """Alle Texte einer YAML mit einem nackten & (die Stellen, an denen das PDF früher "CD&R;" zeigte)."""
+    found, stack = [], [yaml.safe_load(path.read_text(encoding="utf-8"))]
+    while stack:
+        node = stack.pop()
+        if isinstance(node, str):
+            if r._BARE_AMPERSAND.search(node):
+                found.append(node)
+        elif isinstance(node, dict):
+            stack.extend(node.values())
+        elif isinstance(node, list):
+            stack.extend(node)
+    return found
+
+
+@pytest.mark.parametrize("ticker, at_least", [("OPCH", 5), ("MTDR", 1)])
+def test_every_text_with_a_bare_ampersand_goes_through_the_escaping_when_the_pdf_is_built(monkeypatch, tmp_path, ticker,
+                                                                                         at_least):
+    """Verdrahtung: Alle Absätze des PDFs müssen über r.Paragraph laufen. Die Eingaben von escape_ampersands werden
+    mitgeschrieben; jeder Text mit nacktem & aus der YAML muss darin vorkommen (sonst ginge er an der Maskierung vorbei)."""
+    yaml_path = ONEPAGER_DIR / f"{ticker}.yaml"
+    texts = bare_ampersand_texts(yaml_path)
+    assert len(texts) >= at_least, "die YAML hat keine Texte mit nacktem & mehr: der Test prüft nichts"
+    seen, original = [], r.escape_ampersands
+    monkeypatch.setattr(r, "escape_ampersands", lambda text: (seen.append(text), original(text))[1])
+    out = tmp_path / f"{ticker}.pdf"
+    assert r.main([str(yaml_path), "--out", str(out)]) == 0 and out.read_bytes()[:5] == b"%PDF-"
+    missing = [text[:60] for text in texts if not any(text in s for s in seen if isinstance(s, str))]
+    assert not missing, f"{len(missing)} Texte mit & laufen nicht über die Maskierung: {missing}"
+
+
+def test_reportlabs_own_paragraph_is_only_the_base_class_of_ours():
+    """Ein zweiter Weg zu reportlabs Paragraph (andere Import-Schreibweise, platypus.Paragraph(...)) würde die Maskierung umgehen."""
+    tree = ast.parse(Path(r.__file__).read_text(encoding="utf-8"))
+    imports = [(node.module, alias.name, alias.asname) for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)
+               for alias in node.names if alias.name == "Paragraph"]
+    assert imports == [("reportlab.platypus", "Paragraph", "_ReportlabParagraph")]
+    assert sum(1 for n in ast.walk(tree) if isinstance(n, ast.Name) and n.id == "_ReportlabParagraph") == 1  # Basisklasse
+    assert not any(isinstance(n, ast.Attribute) and n.attr == "Paragraph" for n in ast.walk(tree))
+    assert r.Paragraph.__mro__[1].__module__.startswith("reportlab")

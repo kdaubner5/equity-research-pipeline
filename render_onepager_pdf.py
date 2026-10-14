@@ -62,8 +62,10 @@ TINT = {"ok": "#eaf5ee", "warn": "#fdf3e1", "bad": "#fbebe8", "neutral": "#ebf0f
 CONTENT_W = 174  # mm
 
 # Ein nacktes "&" (zum Beispiel in "CD&R" oder "Oil & Gas - E&P") ist für reportlab der Anfang einer Entität und stand im PDF
-# als "CD&R;". Schon geschriebene Entitäten (&amp;, &nbsp;, &#38;) bleiben unberührt; die Texte dürfen beides enthalten.
-_BARE_AMPERSAND = re.compile(r"&(?!(?:amp|lt|gt|nbsp|quot|apos|#[0-9]+|#x[0-9A-Fa-f]+);)")
+# als "CD&R;". Jede geschriebene Entität (Name oder Zahl, mit Semikolon: &amp;, &nbsp;, &ndash;, &#38;, &#x26;) bleibt unberührt,
+# damit die Texte beides enthalten dürfen und reportlab die Entitäten wie bisher selbst auflöst. Bekannte Grenze: Ein Text,
+# der nach dem "&" einen Namen und ein Semikolon hat ("AT&T; Verizon"), gilt als Entität.
+_BARE_AMPERSAND = re.compile(r"&(?![A-Za-z][A-Za-z0-9]*;|#[0-9]+;|#[xX][0-9A-Fa-f]+;)")
 
 
 def escape_ampersands(text):
