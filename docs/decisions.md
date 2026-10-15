@@ -2,6 +2,8 @@
 
 Kurzprotokoll von Design-Entscheidungen, die nicht direkt aus dem Code ersichtlich sind. Neue Einträge unten anhängen, mit Datum.
 
+> Masterplan, Roadmap und CLAUDE.md sind interne Arbeitsdokumente und nicht Teil des öffentlichen Repos. Verweise darauf bleiben als Protokoll stehen.
+
 ## 2026-09-14: Net Debt/EBITDA – Grauzonen-Band und Stichtagslogik
 
 **Kontext:** Issue #3 (Net Debt/EBITDA) benötigt dieselbe Grauzonen-Logik wie Cash Conversion (Flag statt hartem Ja/Nein), aber mit einer offenen Frage zum Zeitbezug (Stichtag vs. 3-Jahres-Schnitt wie bei ROIC).
