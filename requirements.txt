@@ -4,3 +4,4 @@ PyYAML>=6.0.1  # runtime: src/config_layer/thresholds.py (Stage-1 thresholds loa
 pytest>=7.4.4  # tests only
 reportlab>=5.0.1  # runtime: render_onepager_pdf.py (PDF-Fassung des One-Pagers)
 matplotlib>=3.11.2  # runtime: render_onepager_pdf.py (Diagramme)
+pymupdf>=1.28.2  # tests only: tests/test_render_onepager_pdf.py (Text der erzeugten PDFs lesen; ohne es werden 2 Tests uebersprungen). Lizenz: AGPL-3.0 oder kommerziell
