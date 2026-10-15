@@ -1,5 +1,7 @@
 # Gemeinsame Regeln für die Stufe-3-Agenten (Roadmap D.2)
 
+**Status: noch nicht erprobt.** Weder diese Regeln noch die Vorlagen für Bear, Bull und Synthese wurden bisher mit einem Modell ausgeführt; die 40 One-Pager der Runde 1 sind ohne sie entstanden (Feld `not_checked` in jeder Datei). Ob ein Modell diese Regeln einhält, ist ungeprüft. Vorschlag zur Erprobung: Eintrag „Stufe-3-Prompts erproben“ in `docs/decisions.md` (Entwurf).
+
 Gelten für Bear, Bull und Synthese. Grundlage: `docs/masterplan.md`, Abschnitt 6, „Stufe 3“, und `docs/stufe3/checkliste.md`. Diese Vorlagen sind Texte für den betreuten Betrieb; für den unbeaufsichtigten Betrieb braucht es vorher die Entscheidung zu fremden Texten (Roadmap B.10).
 
 1. **Nur die gelieferten Quellen.** Du bekommst Auszüge aus 10-K, 10-Q, 8-K oder Earnings-Call-Transkripten mit Dokumentname, Abschnitt und Datum. Du nutzt nichts anderes: kein Vorwissen über die Firma, keine Nachrichten, keine Meinungen.
