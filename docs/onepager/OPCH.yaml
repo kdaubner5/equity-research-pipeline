@@ -55,7 +55,7 @@ halfyear:
     - 157.7
   - name: Freier Cashflow
     values:
-    - 64.6
+    - 64.7
     - 151.4
   unit: Mio. $
 events:
@@ -86,10 +86,10 @@ bull:
 entry:
   zone_title: Einstiegsszenario (Vorschlag, kein Kursziel)
   horizon: mittelfristig (1 bis 3 Jahre)
-  limit: 33.82
+  limit: 33.81
   limit_label: Grenze nach FCF-Rendite 6 %
   price_vs_limit: 31,0 % darunter
-  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (303,9 Mio. $) und 149,8 Mio. Aktien laut Archiv angewendet. Das Angebot liegt knapp unter dieser Grenze; das Wissen aus dem Angebot hat der Archivkurs vom 23.09.2026 nicht, ein aktueller Kurs wurde nicht abgerufen und liegt vermutlich nahe am Angebot. Die zweite Grenze (EV/EBITDA) fehlt.'
+  limit_note: 'Vorläufig: Die 6 % sind die Stufe-2-Regel (Dreijahresmittel), hier auf den freien Cashflow der letzten zwölf Monate (303,8 Mio. $) und 149,8 Mio. Aktien laut Archiv angewendet. Das Angebot liegt knapp unter dieser Grenze; das Wissen aus dem Angebot hat der Archivkurs vom 23.09.2026 nicht, ein aktueller Kurs wurde nicht abgerufen und liegt vermutlich nahe am Angebot. Die zweite Grenze (EV/EBITDA) fehlt.'
   price: 23.34
   price_date: 23.09.2026
   condition: 'Kein Einstieg: nur Wiedervorlage, falls der Fusionsvertrag scheitert oder ein anderer Bieter erscheint (Aktionärsabstimmung, Behörden, erwartet 1. Halbjahr 2027)'
@@ -207,7 +207,7 @@ financials:
     - 329,4
     - 287,8
     - 217,1
-    - 64,6
+    - 64,7
     - 151,4
   note: 'Quelle: 10-K und 10-Q der SEC (XBRL-Daten). Marge und freier Cashflow vom Agenten gerechnet (operativer Cashflow minus Auszahlungen für Sachanlagen). Betriebsergebnis und Nettogewinn des 1. Halbjahrs aus dem 10-Q.'
 method: 'Wie dieser One-Pager entsteht: Ein regelbasierter Filter (Stufe 1 und 2, Schwellen vorab festgelegt) wählt die Firmen aus, nicht Bauchgefühl oder Kursverlauf. Danach lesen wir ausschließlich Primärquellen (SEC-Einreichungen im Originaltext), rechnen per Skript und lassen den Entwurf durch einen getrennten Prüflauf gegenlesen. Das Verdikt ist ein Vorschlag (WEITERVERFOLGEN, ZURÜCKSTELLEN, VERWERFEN oder UNZUREICHENDE EVIDENZ); die Entscheidung trifft der Projektinhaber. Jeder Lauf wird mit Kurs, Regelstand und Verdikt festgehalten (Forward-Log) und später gegen den S&amp;P 500 und den MSCI World gemessen.'
