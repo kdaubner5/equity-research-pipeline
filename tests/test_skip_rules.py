@@ -1,6 +1,8 @@
 """skip_rules.py und der Hook in conftest.py: Tests werden vor dem Lauf übersprungen, Ergebnisse nie umgeschrieben."""
 
 import ast
+import os
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -11,19 +13,20 @@ import skip_rules as rules
 RAW_MODULE = "test_run_stage2.py"
 HOOK_TEST = "test_registered_hook_command_blocks_in_every_permission_mode"
 SYMLINK_MODULE, SYMLINK_TEST = sorted(rules.SYMLINK_TESTS)[0]
+OWN_FILES = {"conftest.py", "skip_rules.py", "test_skip_rules.py"}
 
 
 def reason(module, test, raw=True, platform="linux", symlinks=True):
-    return rules.skip_reason(module, test, raw_dir_exists=raw, platform=platform, symlinks_ok=lambda: symlinks)
+    return rules.skip_reason(module, test, raw_data=raw, platform=platform, symlinks_ok=lambda: symlinks)
 
 
-def test_raw_data_modules_are_skipped_only_when_the_raw_folder_is_missing():
+def test_raw_data_modules_are_skipped_only_when_the_raw_data_is_missing():
     assert reason(RAW_MODULE, "test_x", raw=False) == rules.REASON_RAW
     assert reason(RAW_MODULE, "test_x", raw=True) is None
     assert reason("test_roic.py", "test_x", raw=False) is None
 
 
-def test_every_module_in_the_list_is_skipped_without_the_folder():
+def test_every_module_in_the_list_is_skipped_without_the_data():
     assert all(reason(module, "test_x", raw=False) == rules.REASON_RAW for module in rules.RAW_DATA_MODULES)
 
 
@@ -45,11 +48,80 @@ def test_the_symlink_probe_is_not_called_for_other_tests():
     def boom():
         raise AssertionError("probe must not run")
 
-    assert rules.skip_reason("test_roic.py", "test_x", raw_dir_exists=True, platform="linux", symlinks_ok=boom) is None
+    assert rules.skip_reason("test_roic.py", "test_x", raw_data=True, platform="linux", symlinks_ok=boom) is None
 
 
-def test_the_symlink_probe_returns_a_bool_and_leaves_nothing_behind():
-    assert rules.symlinks_allowed() in (True, False)
+@pytest.mark.skipif(os.name != "posix", reason="Linux and macOS can create symbolic links without a privilege")
+def test_the_symlink_probe_succeeds_where_links_are_always_allowed():
+    """Eine Probe, die immer False liefert, würde die drei Symlink-Tests hier still abschalten."""
+    assert rules.symlinks_allowed() is True
+
+
+@pytest.mark.parametrize("error", [OSError("WinError 1314"), NotImplementedError("no symlinks")])
+def test_the_symlink_probe_returns_false_when_creating_a_link_fails(monkeypatch, error):
+    def refuse(self, target, target_is_directory=False):
+        raise error
+
+    monkeypatch.setattr(Path, "symlink_to", refuse)
+    assert rules.symlinks_allowed() is False
+
+
+def test_the_raw_data_counts_as_present_only_with_at_least_one_json_file(monkeypatch, tmp_path):
+    folder = tmp_path / "simfin_raw"
+    monkeypatch.setattr(rules, "SIMFIN_RAW_DIR", folder)
+    assert rules.raw_data_present() is False  # Ordner fehlt
+    folder.mkdir()
+    assert rules.raw_data_present() is False  # leer
+    (folder / ".gitkeep").write_text("", encoding="utf-8")
+    (folder / "README.md").write_text("x", encoding="utf-8")
+    assert rules.raw_data_present() is False  # Platzhalterdateien sind keine Daten
+    (folder / "AAA.json").write_text("{}", encoding="utf-8")
+    assert rules.raw_data_present() is True
+
+
+def test_the_path_of_the_raw_folder_is_the_one_the_test_modules_use():
+    """Ein falscher Pfad in skip_rules würde im vollen Checkout 223 Tests still überspringen."""
+    assert rules.TESTS_DIR == Path(__file__).parent
+    assert rules.SIMFIN_RAW_DIR == Path(__file__).parent / "fixtures" / "simfin_raw"
+
+
+def source_files():
+    return {p.name: p for p in sorted(rules.TESTS_DIR.glob("*.py")) if p.name not in OWN_FILES}
+
+
+def imported_modules(path):
+    found = set()
+    for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+        if isinstance(node, ast.ImportFrom) and node.module:
+            found.add(node.module.split(".")[0])
+        elif isinstance(node, ast.Import):
+            found.update(alias.name.split(".")[0] for alias in node.names)
+    return found
+
+
+def test_the_list_of_raw_data_modules_is_exactly_the_modules_that_use_the_raw_folder():
+    """Neue Tests, die den Rohdaten-Ordner brauchen (direkt oder über ein Modul der Liste), müssen in
+    RAW_DATA_MODULES stehen; sonst würden sie im öffentlichen Repo rot statt übersprungen. Umgekehrt darf kein
+    Modul in der Liste stehen, das den Ordner nicht braucht (sonst liefe sein Test still nicht)."""
+    files = source_files()
+    needs = {name for name, path in files.items() if "SIMFIN_RAW_DIR" in path.read_text(encoding="utf-8")}
+    while True:
+        stems = {Path(name).stem for name in needs}
+        more = {name for name, path in files.items() if name not in needs and imported_modules(path) & stems}
+        if not more:
+            break
+        needs |= more
+    assert needs == set(rules.RAW_DATA_MODULES)
+
+
+def test_the_list_of_symlink_tests_is_exactly_the_tests_that_create_a_link():
+    found = set()
+    for name, path in source_files().items():
+        for function in (n for n in ast.walk(ast.parse(path.read_text(encoding="utf-8"))) if isinstance(n, ast.FunctionDef)):
+            if any(isinstance(call.func, ast.Attribute) and call.func.attr in ("symlink_to", "symlink")
+                   for call in ast.walk(function) if isinstance(call, ast.Call)):
+                found.add((name, function.name))
+    assert found == set(rules.SYMLINK_TESTS)
 
 
 def defined_functions(module):
@@ -80,8 +152,9 @@ def test_the_collection_hook_adds_a_skip_marker_with_the_reason(monkeypatch, tmp
     assert other.marks == []
 
 
-def test_the_collection_hook_adds_nothing_when_the_raw_folder_exists(monkeypatch, tmp_path):
+def test_the_collection_hook_adds_nothing_when_the_raw_data_exists(monkeypatch, tmp_path):
     (tmp_path / "raw").mkdir()
+    (tmp_path / "raw" / "AAA.json").write_text("{}", encoding="utf-8")
     monkeypatch.setattr(rules, "SIMFIN_RAW_DIR", tmp_path / "raw")
     raw = fake_item(RAW_MODULE, "test_a")
     conftest.pytest_collection_modifyitems(None, [raw])

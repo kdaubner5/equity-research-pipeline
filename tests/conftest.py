@@ -40,10 +40,10 @@ def all_company_ids():
 def pytest_collection_modifyitems(config, items):
     """Skip, before they run, the tests whose preconditions this checkout lacks (rules and reasons: skip_rules.py).
     Results are never rewritten: a test that runs reports what it finds."""
-    raw_dir_exists = skip_rules.SIMFIN_RAW_DIR.is_dir()
+    raw_data = skip_rules.raw_data_present()
     for item in items:
         module = item.path.name
         test = getattr(item, "originalname", None) or item.name
-        reason = skip_rules.skip_reason(module, test, raw_dir_exists=raw_dir_exists, platform=sys.platform)
+        reason = skip_rules.skip_reason(module, test, raw_data=raw_data, platform=sys.platform)
         if reason:
             item.add_marker(pytest.mark.skip(reason=reason))

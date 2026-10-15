@@ -8,9 +8,10 @@ Three cases:
 
 1. Licensed SimFin sample data (tests/fixtures/simfin_raw/) is not redistributed (SimFin free plan: personal research
    use only), so the public repository has no such folder. The modules that build their inputs from it are skipped as
-   a whole when the folder is missing. In the full checkout the folder exists and nothing is skipped.
+   a whole when the folder is missing or holds no *.json file (a placeholder file does not count as data). In the
+   full checkout the folder exists and nothing is skipped.
 2. The registered Bash-guard hook is run through POSIX `sh -c` (tests/test_bash_guard.py, run_registered_hook). That
-   does not work in the Windows setup used so far (docs/roadmap B.2, still open): skipped on Windows only.
+   does not work in the Windows setup used so far (known, not fixed yet): skipped on Windows only.
 3. Creating symbolic links needs a privilege on Windows (WinError 1314): the tests that create one are skipped when a
    probe cannot create a link.
 """
@@ -43,8 +44,13 @@ SYMLINK_TESTS = frozenset({
 })
 
 REASON_RAW = "needs the licensed SimFin raw data (tests/fixtures/simfin_raw), which is not part of this checkout"
-REASON_HOOK = "runs the registered hook through POSIX `sh -c`, which does not work on Windows (roadmap B.2, open)"
+REASON_HOOK = "runs the registered hook through POSIX `sh -c`, which does not work on Windows (known, not fixed yet)"
 REASON_SYMLINK = "creating symbolic links is not permitted here (Windows: WinError 1314)"
+
+
+def raw_data_present():
+    """True if tests/fixtures/simfin_raw/ exists and holds at least one *.json file."""
+    return SIMFIN_RAW_DIR.is_dir() and any(SIMFIN_RAW_DIR.glob("*.json"))
 
 
 def symlinks_allowed():
@@ -59,12 +65,12 @@ def symlinks_allowed():
     return True
 
 
-def skip_reason(module, test, *, raw_dir_exists, platform, symlinks_ok=symlinks_allowed):
+def skip_reason(module, test, *, raw_data, platform, symlinks_ok=symlinks_allowed):
     """Reason to skip the test `test` (function name without parameters) in file `module`, or None to run it.
 
     `symlinks_ok` is called only for the symlink tests, so the probe costs nothing in other runs.
     """
-    if module in RAW_DATA_MODULES and not raw_dir_exists:
+    if module in RAW_DATA_MODULES and not raw_data:
         return REASON_RAW
     if module == HOOK_MODULE and test.startswith(HOOK_TEST_PREFIX) and platform == "win32":
         return REASON_HOOK
