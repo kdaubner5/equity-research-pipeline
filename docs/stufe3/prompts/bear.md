@@ -1,5 +1,7 @@
 # Agent Bear (Vorlage, Roadmap D.2)
 
+**Status: noch nicht erprobt.** Diese Vorlage wurde bisher mit keinem Modell ausgeführt. Die 40 One-Pager der Runde 1 hat Claude direkt aus den Quellen geschrieben, nicht über diese Vorlage (jeder One-Pager nennt das im Feld `not_checked`). Vorschlag zur Erprobung: Eintrag „Stufe-3-Prompts erproben“ in `docs/decisions.md` (Entwurf).
+
 Regeln: `docs/stufe3/prompts/gemeinsame_regeln.md` gelten vollständig.
 *Nur für den betreuten Betrieb (Roadmap B.10 regelt fremde Texte für den unbeaufsichtigten Betrieb).*
 
