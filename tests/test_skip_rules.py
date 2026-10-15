@@ -1,6 +1,7 @@
 """skip_rules.py und der Hook in conftest.py: Tests werden vor dem Lauf übersprungen, Ergebnisse nie umgeschrieben."""
 
 import ast
+import importlib
 import os
 from pathlib import Path
 from types import SimpleNamespace
@@ -83,6 +84,19 @@ def test_the_path_of_the_raw_folder_is_the_one_the_test_modules_use():
     """Ein falscher Pfad in skip_rules würde im vollen Checkout 223 Tests still überspringen."""
     assert rules.TESTS_DIR == Path(__file__).parent
     assert rules.SIMFIN_RAW_DIR == Path(__file__).parent / "fixtures" / "simfin_raw"
+
+
+def test_the_raw_folder_of_every_test_module_is_the_one_skip_rules_checks():
+    """Die Testmodule lesen den Rohdaten-Ordner über ihre eigene Konstante SIMFIN_RAW_DIR. Zeigt eine davon woandershin
+    als skip_rules, prüft skip_rules den falschen Ordner: im öffentlichen Repo wären die Tests rot statt übersprungen,
+    im vollen Checkout liefen sie still nicht mehr (die Regeln selbst blieben grün)."""
+    owners = {}
+    for name in sorted(rules.RAW_DATA_MODULES):
+        module = importlib.import_module(Path(name).stem)
+        if hasattr(module, "SIMFIN_RAW_DIR"):
+            owners[name] = Path(module.SIMFIN_RAW_DIR).resolve()
+    assert owners, "kein Testmodul der Liste definiert SIMFIN_RAW_DIR mehr; der Vergleich prüft nichts"
+    assert owners == {name: rules.SIMFIN_RAW_DIR.resolve() for name in owners}
 
 
 def source_files():
